@@ -90,3 +90,117 @@ Use:
 - `Needs Evidence`
 - `Deferred`
 - `No Action`
+
+## Engagement flow: extract → classify → map → emit actions → apply
+
+Inside a `consult` engagement, reviewer comments are not resolved by hand-editing
+documents. They are turned into **structured actions applied through the
+state/register commands**, attributed and logged, and made **idempotent** by a
+consumed marker. The driver is `scripts/review_ingest.py` (T31), which reuses
+`scripts/docx_comments.py` (T30) for the OOXML work and calls `scripts/state_machine.py`
+for every mutation. Never re-parse the `.docx` yourself and never edit `state.json`
+or `register.json` directly — go through these commands.
+
+### 1. Extract (helper, deterministic)
+
+```
+python3 scripts/review_ingest.py extract \
+    --engagement E --docx PATH/reviewed.docx --round N --out review/bundle.json
+```
+
+This runs `docx_comments.py`, computes the docx content hash, and:
+
+- **If that hash is already in `engagements/E/review/consumed.json` → it skips**
+  (prints `{"skipped": true, ...}`, touches nothing). This is the crash-replay
+  guard: re-running extract on an already-applied docx is a no-op.
+- Otherwise it emits the comments bundle (JSON: `{engagement, docx, hash, round,
+  comments[], tracked_changes[]}`) and appends one entry per comment to
+  `engagements/E/deliverables/review_log.md`. It does **not** mark the docx
+  consumed — `apply` does that.
+
+Each comment in the bundle carries `{id, author, date, comment, anchored_text}`.
+The `anchored_text` is the body span the reviewer commented on — use it to locate
+the node/step the comment is about.
+
+### 2. Classify each comment
+
+Assign a `comment_id` (the bundle's `id`) and one of the categories above
+(`FACTUAL CORRECTION`, `CLARIFICATION`, `STRUCTURE / FORMATTING`, `EVIDENCE REQUEST`,
+`CONTROL / COMPLIANCE`, `SCOPE QUESTION`, `SME VALIDATION REQUIRED`,
+`CLIENT PREFERENCE`, `DUPLICATE / NO ACTION`). The category drives the command map.
+
+### 3. Map each comment to a command
+
+Map to the real `state_machine.py` subcommands only (`set-lens`, `add-item`,
+`set-sop`, `set-improvement`):
+
+| Comment intent | Category (typical) | Command |
+|---|---|---|
+| Diagnosis/lens change (e.g. "this is mostly manual, not mixed") | FACTUAL CORRECTION, SCOPE QUESTION | `set-lens --node L1.L2 --lens automation --value human` |
+| New finding / corrected finding | FACTUAL CORRECTION, CONTROL / COMPLIANCE | `add-item --type improvement --l1 L1 --l2 L2 --field title=... --field description=...` |
+| SOP scope/status change (e.g. mark a draft `revised`) | STRUCTURE / FORMATTING, SCOPE QUESTION | `set-sop --node L1.L2 --status revised` |
+| Improvement deliverable status/scope change | SCOPE QUESTION | `set-improvement --node L1.L2 --status revised` |
+| `SME VALIDATION REQUIRED` | SME VALIDATION REQUIRED | `add-item --type improvement ... --field requires_human_review=true` (routes + **blocks `final`** until closed) |
+| Prose-only edit (wording, no state change) | CLARIFICATION, CLIENT PREFERENCE | Edit the node MD (`engagements/E/nodes/L1/L2.md`) directly; no state command |
+| Duplicate / no action | DUPLICATE / NO ACTION | none — record in the log only |
+
+A lens change that **conflicts with an evidence-backed value** (e.g. a reviewer
+overrides a lens the system_observed evidence supports) should raise a
+`GAP-CONFLICT` instead of silently overwriting. Full conflict detection is **T33**;
+until then, flag it for human review (`add-item ... --field requires_human_review=true`)
+and note it in the log rather than applying the conflicting `set-lens`.
+
+### 4. Emit the actions JSON
+
+A JSON **list** of action objects. Each is `{command, args, reviewer, comment_id}`,
+where `args` are the command's flags (dashes→underscores), and `--field` /
+`--field-json` may be given as an object:
+
+```json
+[
+  {
+    "command": "set-sop",
+    "args": {"node": "procure-to-pay.invoice-processing", "status": "revised"},
+    "reviewer": "Jane Reviewer",
+    "comment_id": "0"
+  },
+  {
+    "command": "add-item",
+    "args": {
+      "type": "improvement",
+      "l1": "procure-to-pay", "l2": "invoice-processing",
+      "field": {"title": "AP manager approves invoices",
+                "description": "Reviewer correction from round 1"}
+    },
+    "reviewer": "Jane Reviewer",
+    "comment_id": "0"
+  },
+  {
+    "command": "set-lens",
+    "args": {"node": "procure-to-pay.invoice-processing",
+             "lens": "automation", "value": "human"},
+    "reviewer": "Jane Reviewer",
+    "comment_id": "0"
+  }
+]
+```
+
+Only `set-lens`, `add-item`, `set-sop`, `set-improvement` are allowed in actions
+JSON; any other command is rejected.
+
+### 5. Apply
+
+```
+python3 scripts/review_ingest.py apply \
+    --engagement E --docx PATH/reviewed.docx --actions review/actions.json --round N
+```
+
+For each action `apply` runs the command (attributed to `reviewer`), captures the
+touched node's **before→after** and appends it to `review_log.md`, then **marks the
+docx hash consumed** in `engagements/E/review/consumed.json`. If any action fails,
+the docx is **not** marked consumed (fix the actions and re-run). A re-run on an
+already-consumed docx is a no-op (no double-apply).
+
+Lens/finding changes bump node state, leaving the node **diagnosis-dirty** — the
+next `consult-run` re-consolidates and redraws it. That is how review folds back in
+without a CSV round-trip; `review_log.md` is the canonical human-readable trail.
