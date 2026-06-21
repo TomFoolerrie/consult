@@ -113,8 +113,11 @@ for the human*, never a destination the merge writes to.
 Reads every `classify/*.artifact.json` and resolves per node:
 
 **Evidence** — for each `node_hit.evidence[].ref`, `add-evidence` if that exact ref isn't
-already on the node. Dedup by ref string → idempotent. (Implies a small `add-evidence`
-idempotency guard, or a pre-check via `get-node`.)
+already on the node. **`add-evidence` must dedup by ref string** (a node never holds the same
+ref twice) — this is a **required behavior** the merge's idempotency depends on, implemented in
+the command itself (not in `classify_merge.py`), so every caller benefits. *Prerequisite build
+task — `add-evidence` currently appends unconditionally.* Each add also stamps
+`node.last_evidence_at` (the diagnosis-dirty signal, §orchestration).
 
 **Lenses** — collect all `lens_signals` for each `(node, lens)` across artifacts:
 1. Drop `low` confidence signals.
@@ -122,21 +125,47 @@ idempotency guard, or a pre-check via `get-node`.)
    the threshold (**≥1 `high`, or ≥2 `med`**): `set-lens` to that value.
 3. If they **disagree** (≥2 distinct values both pass threshold): **do not set the lens**
    (leave null) and emit a contradiction **gap** (`type:gap`, `tag:unconfirmed`,
-   `source:classify-merge`) citing the conflicting evidence refs. The human resolves it via
-   `set-lens` during review. (Null also trips the structural-gap scan — double safety.)
+   `source:classify-merge`, stable id `GAP-CONFLICT-{l1}-{l2}-{lens}`) citing the conflicting
+   evidence refs. The human resolves it via `set-lens` during review. (Null also trips the
+   structural-gap scan — double safety.) **Lens-value validity** (`process: machine` is
+   invalid) is checked here before any write, agreeing with the register's soft-validation —
+   a malformed signal is dropped/flagged, never written.
+
+> **Gap-ID namespaces:** `classify_merge.py` owns `GAP-CONFLICT-*` (lens conflicts);
+> `gap_report.py` owns `GAP-STRUCT-*` (structural). Distinct prefixes → the two generators
+> never collide on the same row (resolves `spec.md` §8 open item).
 
 **Candidate findings** — **not applied.** They remain in the artifacts for Stage 3 consolidate
 to dedup/confirm into the register via `add-item`. (Judgments are LLM-gated.)
 
-**Unmapped** — each entry becomes a register `type:unmapped` row (null node, `owner:TBD`,
-`review_status:needs_review`), deduped by `evidence_ref`. Surfaced in the gap report's
-Unmapped Triage. (Auto-adding is safe — these are explicitly "needs triage," and visibility
-is the whole point. Requires the null-node register path noted as ◻ in `spec.md` §3.)
+**Unmapped** — each entry becomes a register `type:unmapped` row (**null** `l1_cycle`/
+`l2_process`, `owner:TBD`, `review_status:needs_review`), deduped by `evidence_ref`. Surfaced
+in the gap report's Unmapped Triage. Auto-adding is safe — these are explicitly "needs triage."
+*Prerequisite build task:* `type:unmapped` is now in the register schema, but `add-item`
+rejects null-node rows — a **null-node add path** (`add-item --type unmapped` with no `--l1/--l2`)
+must be built. Resolution lifecycle in §5b.
 
 **Idempotency** — re-classifying a doc overwrites its artifact; re-running merge re-resolves
 from the full set. Evidence deduped by ref; lenses recomputed from scratch each run;
-contradiction gaps use stable ids (e.g. `GAP-STRUCT-{l1}-{l2}-lens-conflict-{lens}`) so they
-upsert rather than duplicate.
+contradiction gaps use stable ids (`GAP-CONFLICT-{l1}-{l2}-{lens}`) so they upsert rather than
+duplicate.
+
+### 5b. Unmapped resolution lifecycle
+
+An `unmapped` row is only *closed* when its content is accounted for — "owned" is necessary but
+not sufficient (an owned-but-unactioned row still means client reality was dropped). During
+review (Stage 6) a human dispositions each row to one of:
+
+- **Reclassify → an L2** — the human names the right `{l1}.{l2}`; the orchestrator re-opens
+  classify/consolidate for that content (sets the node dirty) and **archives** the unmapped row
+  (`record_status:archived`, noting the destination). The reclassification is *human* — the
+  pipeline never auto-buckets.
+- **Convert → improvement/gap** — the content is in-scope but is itself a finding; it becomes a
+  normal register row and the unmapped row is archived.
+- **Out of scope** — explicitly accepted as not part of this engagement; archived with a reason.
+
+The **DoD gate** is "every unmapped row *dispositioned*" (reclassified/converted/out-of-scope),
+not merely assigned an owner. Open (un-dispositioned) unmapped rows block `final`.
 
 ## 6. Worked example (end to end)
 

@@ -144,10 +144,11 @@ A flat list of every item that hangs off an L2 node, discriminated by `type`:
 - `improvement` — a process improvement opportunity (Stream B)
 - `gap` — a gap / validation item (from the drafter gap tags / structural scan)
 - `screenshot` — a screenshot placeholder (SC-IDs)
-- `unmapped` ◻ — client content that fits **no** L2 node. Node link is null; it carries an
-  `owner` and is surfaced for triage in the gap report. It is **never** auto-bucketed into a
-  nearest L2 — this is the safety net against the taxonomy silently dropping client reality.
-  (Needs schema/code support: a null-node register path + a `gap_report` Triage section.)
+- `unmapped` — client content that fits **no** L2 node (null `l1_cycle`/`l2_process`); carries
+  an `owner`, surfaced for triage in the gap report, **never** auto-bucketed — the safety net
+  against the taxonomy silently dropping client reality. In the schema ✅; **build prereq:** a
+  null-node `add-item` path. Closed only when **dispositioned** (reclassified to an L2 / converted
+  to a finding / accepted out-of-scope) — see `classify_contract.md` §5b.
 
 Each row links to its node via `l1_cycle` / `l2_process` (taxonomy slugs). The 26-field
 schema (validated against `schemas/item_register.schema.json`):
@@ -227,7 +228,7 @@ and gets compact output — it never round-trips a whole file through context.
 | `get-node` ✅ | discovery | Return one node (compact, or `--json`), not the whole file. |
 | `query` ✅ | discovery | List node keys matching ANDed filters (`--coverage`, `--lens-missing`, `--has-gaps`, `--has-improvements`, `--l1`, `--count`). |
 | `set-lens` ✅ | mutate | Set/clear one lens value on a node (schema-validated). |
-| `add-evidence` ✅ | mutate | Append an evidence entry to a node. |
+| `add-evidence` ✅ | mutate | Append an evidence entry to a node; stamps `last_evidence_at`. ◻ must **dedup by ref** (idempotency the classify merge depends on). |
 | `set-coverage` ✅ | mutate | Manual coverage override (writes `coverage_override`; `sync` preserves it; `auto` clears it). |
 | `set-sop` ✅ | mutate | Update SOP deliverable status/path/rev. |
 | `add-item` ✅ | mutate | Add a register row through `improvement_log.py` then auto-`sync`; stable auto IDs (`IMP-/GAP-/SC-NNNN`); orphan node keys rejected. |
@@ -368,9 +369,11 @@ Cross-Reference Matrix populated; ready for docx.
 Effort × Impact → Owner (register fields non-empty), tied to a lens.
 
 **Engagement completeness rubric** (not "100% covered" — `coverage:none` is a valid
-finding): every L2 node is *triaged* (covered, or an explicit gap explains why not); zero
-`unmapped` rows left without an owner; all evidence refs resolve; evidence-auditor passes;
-no open SME-validation items. ◻ to wire as gates.
+finding): every L2 node is *triaged* (covered, or an explicit gap explains why not); every
+`unmapped` row **dispositioned** (reclassified/converted/out-of-scope — not merely owned); all
+evidence refs resolve; evidence-auditor passes; no open SME-validation items. ◻ to wire as gates.
+Every review/consolidate round appends to the required change log
+`deliverables/review_log.md`. ◻ to wire as gates.
 
 > Cleanup: `references/canonical_sop_deliverable_template.md` is a redundant handlebars
 > variable-catalog shell that contradicts the SKILL.md's "produce completed Markdown"
@@ -467,9 +470,14 @@ Open:
    entirely (human CSV import is already dropped). `build-xlsx` stays only as optional read-only.
 3. **docx comment extraction** — Stage 6 review ingestion needs a helper that pulls **tracked
    comments** (not just body text) out of reviewed Word docs for `consult-review-comment-resolver`.
-4. **Machine-record ID schemes** — `add-item` uses `IMP-/GAP-/SC-NNNN`; structural gaps use
-   `GAP-STRUCT-{l1}-{l2}-{kind}`. Confirm the manual (`GAP-NNNN`) and machine (`GAP-STRUCT-*`)
-   gap-ID spaces coexist cleanly (they do today; keep an eye as Stage 4 integrates).
+4. **Machine-record ID schemes** — `add-item` manual `IMP-/GAP-/SC-NNNN`; `gap_report.py` owns
+   `GAP-STRUCT-*` (structural); `classify_merge.py` owns `GAP-CONFLICT-*` (lens conflicts).
+   Distinct prefixes → no collision (**resolved**).
+11. **Prereq build tasks the contracts lean on** (S-sized, on the slice's critical path — must
+    precede the R2R integration test): (a) register `type:unmapped` **null-node add path**
+    (`add-item` rejects null nodes today); (b) **`add-evidence` ref-dedup** + `last_evidence_at`
+    stamp; (c) evidence-specific **diagnosis-dirty** signal (`last_evidence_at > consolidated_at`)
+    + Stream-B `improvement.*` node status (parallel to `sop.*`).
 5. **Engagement state in git** — kept in-repo. Decide whether real client engagements are
    committed or git-ignored per-engagement (backups already ignored).
 6. **Screenshot items** — supported as a register `type`; decide whether they live in the
@@ -563,9 +571,16 @@ artifact contract and the Word review loop) while they are cheap to change, yiel
 demoable result fastest, and becomes the regression fixture. Building ingest's full format
 zoo before proving classify would be effort at risk.
 
-The slice should deliberately exercise the parts that only bite at scale: a **second review
-round** (to prove versioning / no-silent-overwrite) and at least **one `unmapped` item** (to
-prove the triage path) — not just a happy-path single pass.
+The slice's **acceptance criteria** (not "also include") are the parts that only bite at scale
+and where the design is thinnest: a **second review round** (proves versioning /
+no-silent-overwrite / evidence-specific dirty) and at least **one `unmapped` item** carried
+through to **disposition** (proves the safety net). A green light on a happy single pass would
+validate only the parts that already work.
+
+**Sequence the three prereq build tasks first** (§8 open #11) — `unmapped` null-node add path,
+`add-evidence` dedup, and the evidence-specific dirty signal + Stream-B status. They are
+S-sized, on the critical path, and currently written in the contracts as if they exist; build
+them before the slice's integration test, not during it.
 
 ### Persona, invocation & success metrics
 

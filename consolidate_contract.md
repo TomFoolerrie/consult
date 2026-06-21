@@ -30,8 +30,15 @@ cite them:
 ```
 1. dedup + confirm candidate_findings  → orchestrator add-items → IDs assigned
 2. author node MD citing the now-existing register IDs + evidence refs
-3. set node.consolidated_at = now      (clears the "dirty" signal for orchestration)
+3. set node.consolidated_at = now      (clears the diagnosis-dirty signal)
 ```
+
+**Diagnosis-dirty is evidence-specific:** a node needs (re)consolidation when
+`node.last_evidence_at > node.consolidated_at` — i.e. *new evidence* since the last synthesis.
+It is **not** keyed off the generic `node.updated`, because `set-sop`, lens edits, and
+review-applied changes also bump `updated`; using that would re-synthesize (and risk prose
+loss, §6) on changes that aren't new evidence. `add-evidence` stamps `last_evidence_at`;
+consolidate stamps `consolidated_at`.
 
 **Write split (keeps the discipline):** the sub-agent **authors the node MD directly**
 (node MDs are LLM-owned) and **returns the confirmed findings as structured data**; the
@@ -62,12 +69,17 @@ prose matches the state value. Structured state is authoritative; the MD is its 
 
 ## 6. Re-consolidation, human edits & the prose-vs-state tension
 
-- Consolidate runs **only on dirty nodes** (new evidence). A node a human has reviewed but that
-  has had no new evidence is **not** re-consolidated — so review prose is not silently clobbered.
+- Consolidate runs **only on diagnosis-dirty nodes** (`last_evidence_at > consolidated_at`).
+  A node a human reviewed but that has had **no new evidence** is **not** re-consolidated — so
+  review prose is not silently clobbered by an unrelated `set-sop` or lens edit (this is why the
+  signal must be evidence-specific, §3).
 - When new evidence *does* arrive and re-consolidation runs, the MD is **regenerated from
   state**. Human *substance* survives because review edits flow back into **state** (via Stage 6
-  ingestion); pure prose polish that wasn't a state change may be regenerated. The per-round
-  **change log** (Stage 6) records what moved, so this is visible, not silent.
+  ingestion); pure prose polish that wasn't a state change may be regenerated. The
+  **change log is a hard output of every consolidate and review round** —
+  `engagements/{id}/deliverables/review_log.md`, appended (reviewer/agent, node, item,
+  before→after) — so any regeneration is visible, never silent. This artifact is what makes the
+  "structured wins" tradeoff defensible to a reviewer; it is required, not optional.
 - This is the deliberate consequence of "structured state wins": the MD is a render of state,
   not a parallel source of truth.
 

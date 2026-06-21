@@ -26,6 +26,8 @@ state/register instead of ad-hoc input:
   item **Finding → Recommendation → Effort × Impact → Owner** (the Stream-B DoD), traceable to
   its register ID and evidence ref.
 - Items missing Effort×Impact×Owner are surfaced as needing input, not invented.
+- **Writes back** per node: `improvement.{status,path,rendered_rev,reviewed_rev}` (the Stream-B
+  parallel to `sop.*`; new state field — a build prerequisite for the resumable loop).
 
 ## 2. Stage 6 — Render → Review → Ingest → Output
 
@@ -56,10 +58,15 @@ reports; it never self-finalizes.
    `consult-run` loop. This is how review folds back in without a CSV round-trip.
 
 ### Versioning & traceability
-- Each review round increments a deliverable **rev** and appends to a **review log**
-  (`deliverables/review_log.md` or register `change_notes`): reviewer, item, before→after.
-- Re-runs don't silently overwrite human work: consolidate only touches dirty nodes; review
-  edits live in state; the change log surfaces every move.
+- Each review round increments the deliverable's `rendered_rev`/`reviewed_rev` (per node, per
+  stream — `sop.*` and `improvement.*`).
+- **The change log is a required artifact:** `engagements/{id}/deliverables/review_log.md`,
+  appended every consolidate/review round — `{round, reviewer/agent, node, item, before→after}`.
+  (Per-row provenance also lands in register `change_notes`, but `review_log.md` is the canonical,
+  human-readable record — not an either/or.) This is the safety valve that makes "structured
+  wins / MD regenerated" defensible.
+- Re-runs don't silently overwrite human work: consolidate only touches **diagnosis-dirty**
+  nodes (new evidence, not any edit); review edits live in state; the change log surfaces every move.
 
 ### Output (gates, then assemble)
 Before `final`, the **DoD gates** must pass: `consult-evidence-auditor` ✅ (procedural claims

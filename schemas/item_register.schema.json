@@ -28,7 +28,7 @@
       "additionalProperties": true,
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "type": { "enum": ["improvement", "gap", "screenshot"] },
+        "type": { "enum": ["improvement", "gap", "screenshot", "unmapped"] },
         "tag": { "type": ["string", "null"] },
         "date_identified": { "type": ["string", "null"] },
         "source": { "type": ["string", "null"] },

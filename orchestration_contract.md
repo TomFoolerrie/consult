@@ -51,11 +51,15 @@ manifest + the `classify/` artifacts) that returns, per engagement, the actionab
 so the agent decides what's next from **one compact read**, never by scanning everything:
 
 - ingested docs in the manifest **not yet classified** (no artifact for their hash)
-- nodes with **new evidence since last consolidation** (`node.updated > node.consolidated_at`)
-- nodes needing **gap scan** / with open structural gaps
-- nodes ready to **draft** (covered enough, per DoD) and current `sop.status`
+- **diagnosis-dirty** nodes (`node.last_evidence_at > node.consolidated_at`) — new *evidence*
+  since the last synthesis (NOT generic `updated`, which any edit bumps)
+- nodes needing **gap scan** / with open structural or conflict gaps
+- nodes ready to **draft** (covered enough, per DoD); per-stream progress markers:
+  `sop.status` (Stream A) and `improvement.status` (Stream B) — both carry `rendered_rev` /
+  `reviewed_rev` so the loop can tell "drafted" vs "rendered, awaiting review" vs "review
+  ingested, needs redraft"
 - **gate status**: evidence-auditor pass? open `requires_human_review` / SME items? unmapped
-  rows without an owner?
+  rows not **dispositioned** (not merely owned)?
 - **what needs a human**: contradictions (conflict gaps), review rounds pending, unmapped triage
 
 ## 5. Stage dispatch (readiness → action)
@@ -93,8 +97,12 @@ never duplicates or rots references.
 
 ## 8. Bookkeeping this requires (small additions)
 
-- **`node.consolidated_at`** (state) — to detect nodes with evidence newer than their last
-  synthesis (the "dirty MD" signal).
+- **`node.last_evidence_at`** + **`node.consolidated_at`** (state) — the evidence-specific
+  diagnosis-dirty signal (`last_evidence_at > consolidated_at`). Set by `add-evidence` and
+  consolidate respectively. (Both added to `engagement_state.schema.json`.)
+- **Per-stream progress** — `sop.{rendered_rev,reviewed_rev}` (exists partly via `sop.rev`) and
+  a parallel **`improvement.{status,rendered_rev,reviewed_rev}`** for Stream B (Stream B has no
+  node status today — a build prerequisite for a resumable multi-round loop).
 - **classified set** — derivable from `classify/{hash}.artifact.json` existing vs the manifest's
   active set (no new field needed).
 - The **`status`/`next`** reporting command itself.

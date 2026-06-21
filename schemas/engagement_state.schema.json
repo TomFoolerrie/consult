@@ -90,6 +90,8 @@
           }
         },
         "node_md": { "type": "string" },
+        "last_evidence_at": { "type": ["string", "null"], "description": "Timestamp of the most recent evidence add; drives the diagnosis-dirty signal." },
+        "consolidated_at": { "type": ["string", "null"], "description": "When the node MD was last synthesized; node is diagnosis-dirty when last_evidence_at > consolidated_at." },
         "updated": { "type": "string" }
       }
     }
