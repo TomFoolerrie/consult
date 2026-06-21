@@ -25,6 +25,7 @@ Commands:
   set-sop       Update a node's SOP status / path / rev / render+review markers.
   set-improvement  Update a node's improvement status / path / rev / render+review markers.
   mark-consolidated  Stamp a node's consolidated_at = now (clears diagnosis-dirty).
+  mark-dirty    Stamp a node's last_evidence_at = now (makes it diagnosis-dirty).
   add-item      Add a register row (via improvement_log.py) and resync counts.
 """
 from __future__ import annotations
@@ -89,7 +90,10 @@ INACTIVE_STATUSES = {"archived", "inactive", "deleted_candidate", "deleted",
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    # Microsecond resolution: the diagnosis-dirty signal compares last_evidence_at
+    # > consolidated_at with strict >, so two operations in the same wall-clock
+    # second (e.g. mark-consolidated then mark-dirty/add-evidence) must not tie.
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
 
 def load_taxonomy() -> Dict[str, Any]:
@@ -484,10 +488,14 @@ def _set_node_artifact(eid: str, block: str, key: str, status: str | None,
 
 
 def is_diagnosis_dirty(node: Dict[str, Any]) -> bool:
-    """True when a node has evidence newer than its last consolidation.
+    """True when a node's last diagnostic input is newer than its consolidation.
 
-    A node with no evidence (last_evidence_at is None) is never dirty. A node
-    with evidence but never consolidated (consolidated_at is None) is dirty.
+    `last_evidence_at` is the timestamp of the node's last diagnostic-input
+    change: new evidence (add-evidence) OR an applied review correction
+    (mark-dirty, used by review_ingest after a substance change such as a
+    corrected lens or finding). A node with no diagnostic input
+    (last_evidence_at is None) is never dirty. A node with input but never
+    consolidated (consolidated_at is None) is dirty.
     """
     last_evidence_at = node.get("last_evidence_at")
     if last_evidence_at is None:
@@ -505,6 +513,23 @@ def cmd_mark_consolidated(eid: str, key: str) -> None:
     _touch(state, node)
     _save_state(state_path, state)
     print(f"{key}: consolidated_at={node['consolidated_at']}.")
+
+
+def cmd_mark_dirty(eid: str, key: str) -> None:
+    """Stamp last_evidence_at = now so is_diagnosis_dirty fires.
+
+    Semantics: last_evidence_at = "last time the node's diagnostic input
+    changed" — new evidence OR an applied review correction (set-lens /
+    finding). review_ingest apply calls this for every node it touched with a
+    substance command so the next consult-run re-consolidates it.
+    """
+    state_path, state = load_state(eid)
+    node = _require_node(state, key)
+    node["last_evidence_at"] = now_iso()
+    _touch(state, node)
+    _save_state(state_path, state)
+    print(f"{key}: last_evidence_at={node['last_evidence_at']} "
+          f"(diagnosis-dirty={is_diagnosis_dirty(node)}).")
 
 
 def _next_item_id(eid: str, prefix: str) -> str:
@@ -856,6 +881,14 @@ def main() -> None:
     mc.add_argument("--engagement", required=True)
     mc.add_argument("--node", required=True)
 
+    md = sub.add_parser(
+        "mark-dirty",
+        help="Stamp a node's last_evidence_at = now so it becomes "
+             "diagnosis-dirty. last_evidence_at means 'last diagnostic input "
+             "changed' — new evidence OR an applied review correction.")
+    md.add_argument("--engagement", required=True)
+    md.add_argument("--node", required=True)
+
     st = sub.add_parser("status", help="Read-only status report the orchestrator polls.")
     st.add_argument("--engagement", required=True)
     st.add_argument("--json", action="store_true", help="Emit the machine status object as JSON.")
@@ -899,6 +932,8 @@ def main() -> None:
                            args.bump_rev, args.bump_rendered_rev, args.bump_reviewed_rev)
     elif args.command == "mark-consolidated":
         cmd_mark_consolidated(args.engagement, args.node)
+    elif args.command == "mark-dirty":
+        cmd_mark_dirty(args.engagement, args.node)
     elif args.command == "status":
         cmd_status(args.engagement, args.json)
     elif args.command == "add-item":

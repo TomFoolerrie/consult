@@ -18,9 +18,11 @@ and the engagement state/register commands (`state_machine.py`). Two subcommands
       `{command, args, reviewer, comment_id}`), run each via the existing
       state_machine commands (set-lens / add-item / set-sop / set-improvement),
       capture before→after for the touched node, append the attributed move to
-      `review_log.md`, then **mark the docx hash consumed**. A lens / finding
-      change bumps node state, leaving the node diagnosis-dirty for the next
-      `consult-run` to re-consolidate.
+      `review_log.md`, then **mark the docx hash consumed**. Every node touched
+      by a substance command (set-lens / add-evidence / add-item with --l1/--l2)
+      is then `mark-dirty`'d so the next `consult-run` re-consolidates it; a pure
+      `set-sop --status` carries no diagnostic change and does NOT dirty. The
+      dirtied set is recorded in the review_log apply section.
 
 The docx content hash is the SHA-256 of the raw .docx bytes — a re-render produces
 a new file (new hash), so a fresh review round is never mistaken for a replay.
@@ -48,6 +50,14 @@ STATE_MACHINE = SCRIPTS_DIR / "state_machine.py"
 # (Per the ticket: lens change → set-lens; new finding → add-item; SOP
 # scope/status → set-sop; improvement stream → set-improvement.)
 ALLOWED_COMMANDS = {"set-lens", "add-item", "set-sop", "set-improvement"}
+
+# Substance commands: a successful one changes a node's diagnostic input
+# (lens / evidence / a placed finding), so the touched node must be re-marked
+# diagnosis-dirty for the next consult-run to re-consolidate it. A pure
+# `set-sop --status` (or set-improvement) carries no diagnostic change and so
+# does NOT dirty the node. add-item only counts as substance when it places a
+# finding on an L2 node (has --l1/--l2); a null-node row does not.
+SUBSTANCE_COMMANDS = {"set-lens", "add-evidence", "add-item"}
 
 # Which state_machine arg names carry the node key, per command. Used only to
 # recover the touched node for the before→after snapshot in the review log.
@@ -241,6 +251,29 @@ def _node_key_for_action(args: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _is_substance_action(command: str, args: Dict[str, Any]) -> bool:
+    """True if this command changed a node's diagnostic input (→ dirty it).
+
+    set-lens / add-evidence always; add-item only when it places a finding on an
+    L2 node (--l1/--l2 present). set-sop/set-improvement (status/path/rev only)
+    are NOT substance.
+    """
+    if command not in SUBSTANCE_COMMANDS:
+        return False
+    if command == "add-item":
+        return bool(args.get("l1") and args.get("l2"))
+    return True
+
+
+def _run_mark_dirty(eid: str, node_key: str) -> Tuple[int, str, str]:
+    result = subprocess.run(
+        [sys.executable, str(STATE_MACHINE), "mark-dirty",
+         "--engagement", eid, "--node", node_key],
+        capture_output=True, text=True,
+    )
+    return result.returncode, result.stdout, result.stderr
+
+
 def _get_node_json(eid: str, node_key: str) -> Optional[Dict[str, Any]]:
     result = subprocess.run(
         [sys.executable, str(STATE_MACHINE), "get-node",
@@ -342,6 +375,7 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
 
     applied = 0
     failures: List[str] = []
+    dirty_nodes: List[str] = []  # nodes touched by a successful substance command
     for idx, action in enumerate(actions):
         command = action.get("command")
         args = dict(action.get("args", {}))
@@ -366,12 +400,33 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
 
         after = _node_snapshot(_get_node_json(eid, node_key)) if node_key else {}
         applied += 1
+        if node_key and _is_substance_action(command, args) and node_key not in dirty_nodes:
+            dirty_nodes.append(node_key)
         log_lines.append(
             f"  - **[{comment_id}] {reviewer}** — `{command}` "
             f"on `{node_key}`\n"
             f"    - args: `{json.dumps(args, ensure_ascii=False)}`\n"
             f"    - before: `{json.dumps(before, ensure_ascii=False)}`\n"
             f"    - after:  `{json.dumps(after, ensure_ascii=False)}`\n")
+
+    # Mark every node touched by a substance command diagnosis-dirty, so the
+    # next consult-run re-consolidates it. A pure set-sop --status does not
+    # appear here. Done after all actions applied; record the set in the log.
+    dirty_failures: List[str] = []
+    for node_key in dirty_nodes:
+        rc, out, err = _run_mark_dirty(eid, node_key)
+        if rc != 0:
+            dirty_failures.append(f"mark-dirty {node_key}: {(err or out).strip()}")
+    if dirty_nodes:
+        log_lines.append(
+            f"  - dirtied (re-consolidate next run): "
+            f"{', '.join(f'`{n}`' for n in dirty_nodes)}\n")
+    else:
+        log_lines.append("  - dirtied: none (no substance changes)\n")
+    if dirty_failures:
+        failures.extend(dirty_failures)
+        for fmsg in dirty_failures:
+            log_lines.append(f"  - **FAILED** {fmsg}\n")
 
     append_review_log(eid, log_lines)
 
@@ -385,8 +440,10 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
         return 1
 
     mark_consumed(eid, content_hash, docx_path, round_n, applied)
-    print(f"Applied {applied} action(s); review_log.md updated; "
-          f"docx `{docx_path.name}` (hash {content_hash[:12]}…) marked consumed.")
+    dirtied = (", ".join(dirty_nodes) if dirty_nodes else "none")
+    print(f"Applied {applied} action(s); dirtied node(s): {dirtied}; "
+          f"review_log.md updated; docx `{docx_path.name}` "
+          f"(hash {content_hash[:12]}…) marked consumed.")
     return 0
 
 
