@@ -108,6 +108,85 @@ In the drafting note and Document Profile, explicitly state the selected scope l
 
 Also state why that scope was selected based on the user's request.
 
+## Source from Engagement State
+
+When drafting inside the CONSULT pipeline, do **not** forage across raw docs. The
+review unit is one SOP **per L1 cycle** (use **L1-Level mode**), sourced from
+engagement state/register via a read-only gatherer. See
+`generation_review_contract.md` §1 (5A).
+
+### Step A — Gather the L1 bundle
+
+Run the read-only helper to assemble everything one L1 SOP needs:
+
+```bash
+python3 scripts/draft_inputs.py gather --engagement {id} --l1 {l1} --json
+```
+
+The bundle contains, for every L2 node under the L1:
+
+- `node_md` (path) and `node_md_content` — the per-L2 narrative to build prose on.
+- `lenses` (the 5 diagnostic lenses) and `coverage`.
+- `evidence` — node-level evidence entries.
+- `appendices` — the node's register rows already bucketed to the SOP appendices.
+
+`appendices` (per L2) and the L1-level `appendices` totals are pre-bucketed for
+you; do not re-derive the mapping. `draft_inputs.py` is **read-only** — it never
+writes state, register, or deliverables.
+
+### Step B — Register → appendix mapping
+
+Each register row is bucketed by `type` (and, for improvements, by lens `tag`):
+
+| Register row | SOP appendix |
+| --- | --- |
+| `improvement` with lens `tag = process` (a pain point) | **Appendix A — Risks & Pain Points Log** |
+| `improvement` (any other lens) | **Appendix B — Process Improvement Opportunities** |
+| `gap` | **Appendix C — Gap / Validation Log** |
+| `screenshot` | **Appendix D — Screenshot / Evidence Index** |
+
+This is consistent with Steps 7–9 of the Drafting Workflow and the existing
+Quality Checklist (pain points → A, improvements → B, gaps → C, screenshots → D).
+Carry each row's register `id` into the body gap tags / appendix rows so the
+deliverable is traceable to the register.
+
+### Step C — Render evidence refs inline
+
+Every bucketed row carries an `evidence_ref` (a `path#Lstart-Lend` ref into an
+ingested MD) and an `evidence_tier` (`verbal` / `documentary` / `system_observed`).
+Render the `evidence_ref` inline next to the claim or appendix row it supports so
+a reviewer can trace it back to source.
+
+### Step D — Evidence DoD (verbal-tier control claims)
+
+A control or procedural claim backed only by `evidence_tier = verbal` is **not**
+sufficiently evidenced. Surface every such claim as a **gap** (use
+`[[GAP — CONTROL NOT EVIDENCED]]` / `[[GAP — APPROVAL NOT EVIDENCED]]` in the body
+and a row in **Appendix C**) rather than presenting it as established. Do not
+upgrade a verbal claim to an evidenced control without documentary or
+system-observed support.
+
+### Step E — Write back the SOP status
+
+Write the SOP MD to `deliverables/sop/{l1}.md` (the `sop_path` in the bundle),
+then record the deliverable state via the state machine:
+
+```bash
+python3 scripts/state_machine.py set-sop --engagement {id} --node {l2_key} \
+  --status draft --path deliverables/sop/{l1}.md --bump-rev
+```
+
+`set-sop` updates the node's `sop.status` / `sop.path` / `sop.rev`. Apply it to
+each L2 node covered by the L1 SOP (the L1-Level doc spans them). Confirm with
+`get-node --engagement {id} --node {l2_key}`.
+
+### DoD
+
+The **Quality Checklist** below remains the Definition of Done for the
+deliverable. Source-from-state adds: the bundle came from `draft_inputs.py
+gather`, evidence refs render inline, verbal-tier control claims appear as gaps,
+and `sop.{status,path,rev}` is written back via `set-sop`.
+
 ## Evidence Standard: Balanced
 
 Use balanced evidence discipline.
