@@ -580,6 +580,204 @@ def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
     print(f"Added {item_type} {rid} to {key}.")
 
 
+# --- T04: status / next reporting ------------------------------------------
+DRAFTABLE_COVERAGE = {"partial", "covered"}
+
+
+def _strip_hash(value: str | None) -> str | None:
+    """Normalize a source hash: drop a leading `sha256:` (or any algo:) prefix."""
+    if not value:
+        return None
+    value = str(value).strip()
+    if ":" in value:
+        value = value.split(":", 1)[1]
+    return value or None
+
+
+def _md_source_hash(md_path: Path) -> str | None:
+    """Read the `source_hash` from an ingested MD's YAML front-matter (stripped)."""
+    try:
+        text = md_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if not text.startswith("---"):
+        return None
+    # Front-matter is delimited by the first pair of `---` lines.
+    parts = text.split("\n")
+    if not parts or parts[0].strip() != "---":
+        return None
+    end = None
+    for idx in range(1, len(parts)):
+        if parts[idx].strip() == "---":
+            end = idx
+            break
+    if end is None:
+        return None
+    try:
+        header = yaml.safe_load("\n".join(parts[1:end])) or {}
+    except yaml.YAMLError:
+        return None
+    if not isinstance(header, dict):
+        return None
+    return _strip_hash(header.get("source_hash"))
+
+
+def _classified_hashes(edir: Path) -> set[str]:
+    """Set of source hashes that have a classify artifact (stripped of prefix)."""
+    classify_dir = edir / "classify"
+    if not classify_dir.is_dir():
+        return set()
+    hashes: set[str] = set()
+    for art in classify_dir.glob("*.artifact.json"):
+        # Filename is `{hash}.artifact.json`; the {hash} part is the key.
+        name = art.name[: -len(".artifact.json")]
+        stripped = _strip_hash(name)
+        if stripped:
+            hashes.add(stripped)
+    return hashes
+
+
+def _is_truthy_flag(value: Any) -> bool:
+    """Interpret a register `requires_human_review` value (bool or string)."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"true", "yes", "1"}
+
+
+def _is_active(rec: Dict[str, Any]) -> bool:
+    return str(rec.get("record_status", "active") or "active").lower() not in INACTIVE_STATUSES
+
+
+def build_status(eid: str) -> Dict[str, Any]:
+    """Assemble the read-only status report object for an engagement."""
+    _, state = load_state(eid)
+    records = load_register(eid)
+    nodes: Dict[str, Any] = state["nodes"]
+    edir = engagement_dir(eid)
+
+    # --- un-classified ingested docs ---
+    classified = _classified_hashes(edir)
+    ingested_dir = edir / "ingested"
+    unclassified: List[Dict[str, Any]] = []
+    ingested_count = 0
+    if ingested_dir.is_dir():
+        for md in sorted(ingested_dir.glob("*.md")):
+            ingested_count += 1
+            h = _md_source_hash(md)
+            if h is None or h not in classified:
+                unclassified.append({"path": f"ingested/{md.name}", "source_hash": h})
+
+    # --- diagnosis-dirty nodes ---
+    dirty = sorted(k for k, n in nodes.items() if is_diagnosis_dirty(n))
+
+    # --- gaps (open, from the register) ---
+    open_structural = 0
+    open_conflict = 0
+    conflict_keys: List[str] = []
+    for rec in records:
+        if str(rec.get("type", "")).lower() != "gap" or not _is_active(rec):
+            continue
+        rid = str(rec.get("id") or "")
+        if rid.startswith("GAP-CONFLICT-"):
+            open_conflict += 1
+            conflict_keys.append(rid)
+        elif rid.startswith("GAP-STRUCT-"):
+            open_structural += 1
+
+    # --- draftable nodes ---
+    draftable: List[str] = []
+    for key, node in nodes.items():
+        if node.get("coverage") not in DRAFTABLE_COVERAGE:
+            continue
+        sop_done = node["sop"].get("status") != "not_started"
+        imp_done = node["improvement"].get("status") != "not_started"
+        if not sop_done or not imp_done:
+            draftable.append(key)
+    draftable.sort()
+
+    # --- per-stream status counts ---
+    sop_counts: Dict[str, int] = {}
+    improvement_counts: Dict[str, int] = {}
+    for node in nodes.values():
+        s = node["sop"].get("status", "not_started")
+        sop_counts[s] = sop_counts.get(s, 0) + 1
+        i = node["improvement"].get("status", "not_started")
+        improvement_counts[i] = improvement_counts.get(i, 0) + 1
+
+    # --- needs-human ---
+    rhr_rows = sorted(
+        str(rec.get("id"))
+        for rec in records
+        if _is_active(rec) and _is_truthy_flag(rec.get("requires_human_review"))
+    )
+    unmapped_pending = sorted(
+        str(rec.get("id"))
+        for rec in records
+        if _is_active(rec)
+        and str(rec.get("type", "")).lower() == "unmapped"
+        and str(rec.get("disposition") or "pending").lower() == "pending"
+    )
+    conflict_keys.sort()
+
+    return {
+        "engagement": state["engagement"]["id"],
+        "ingested_docs": ingested_count,
+        "unclassified_docs": {
+            "count": len(unclassified),
+            "docs": unclassified,
+        },
+        "diagnosis_dirty_nodes": {"count": len(dirty), "nodes": dirty},
+        "open_gaps": {
+            "structural": open_structural,
+            "conflict": open_conflict,
+            "total": open_structural + open_conflict,
+        },
+        "draftable_nodes": {"count": len(draftable), "nodes": draftable},
+        "stream_status": {
+            "sop": sop_counts,
+            "improvement": improvement_counts,
+        },
+        "needs_human": {
+            "requires_human_review": {"count": len(rhr_rows), "ids": rhr_rows},
+            "unmapped_pending": {"count": len(unmapped_pending), "ids": unmapped_pending},
+            "conflict_gaps": {"count": len(conflict_keys), "ids": conflict_keys},
+            "total": len(rhr_rows) + len(unmapped_pending) + len(conflict_keys),
+        },
+    }
+
+
+def cmd_status(eid: str, as_json: bool) -> None:
+    report = build_status(eid)
+    if as_json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    uc = report["unclassified_docs"]
+    dd = report["diagnosis_dirty_nodes"]
+    og = report["open_gaps"]
+    dr = report["draftable_nodes"]
+    nh = report["needs_human"]
+    print(f"Engagement: {report['engagement']}")
+    print(f"  Ingested docs: {report['ingested_docs']} | un-classified: {uc['count']}")
+    if uc["docs"]:
+        for d in uc["docs"]:
+            print(f"    - {d['path']} (hash={d['source_hash']})")
+    print(f"  Diagnosis-dirty nodes: {dd['count']}"
+          + (f" ({', '.join(dd['nodes'])})" if dd["nodes"] else ""))
+    print(f"  Open gaps: {og['total']} (structural={og['structural']} conflict={og['conflict']})")
+    print(f"  Draftable nodes: {dr['count']}"
+          + (f" ({', '.join(dr['nodes'])})" if dr["nodes"] else ""))
+    sop = report["stream_status"]["sop"]
+    imp = report["stream_status"]["improvement"]
+    print("  Stream A (sop):    " + " ".join(f"{k}={v}" for k, v in sorted(sop.items())))
+    print("  Stream B (impr):   " + " ".join(f"{k}={v}" for k, v in sorted(imp.items())))
+    print(f"  Needs human: {nh['total']} "
+          f"(requires_human_review={nh['requires_human_review']['count']} "
+          f"unmapped_pending={nh['unmapped_pending']['count']} "
+          f"conflict_gaps={nh['conflict_gaps']['count']})")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Engagement node tracker (state.json).")
     sub = p.add_subparsers(dest="command", required=True)
@@ -642,6 +840,10 @@ def main() -> None:
     mc.add_argument("--engagement", required=True)
     mc.add_argument("--node", required=True)
 
+    st = sub.add_parser("status", help="Read-only status report the orchestrator polls.")
+    st.add_argument("--engagement", required=True)
+    st.add_argument("--json", action="store_true", help="Emit the machine status object as JSON.")
+
     ai = sub.add_parser("add-item", help="Add a register row and resync node counts.")
     ai.add_argument("--engagement", required=True)
     ai.add_argument("--type", required=True,
@@ -679,6 +881,8 @@ def main() -> None:
                            args.bump_rev, args.bump_rendered_rev, args.bump_reviewed_rev)
     elif args.command == "mark-consolidated":
         cmd_mark_consolidated(args.engagement, args.node)
+    elif args.command == "status":
+        cmd_status(args.engagement, args.json)
     elif args.command == "add-item":
         cmd_add_item(args.engagement, args.type, args.l1, args.l2, args.id, args.field)
 
