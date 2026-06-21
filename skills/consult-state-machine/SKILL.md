@@ -239,11 +239,11 @@ python3 scripts/state_machine.py validate --engagement {id}
 
 `sync` (and every mutation command) recomputes a node's `coverage` from its contents (spec §3):
 
-- **`none`** — no evidence **and** no linked active items.
+- **`none`** — no evidence **and** no substantive items.
 - **`covered`** — has evidence **and** all 5 lenses are set.
 - **`partial`** — anything in between (items but no evidence, evidence but incomplete lenses, etc.).
 
-Only **active** register rows count toward `partial`/`covered`; rows in archived/inactive/deleted-pending statuses are excluded by `sync`.
+Only **active** register rows count toward `partial`/`covered`; rows in archived/inactive/deleted-pending statuses are excluded by `sync`. **Gaps are absences and never count toward coverage** — only evidence, lenses, and substantive items (improvements/screenshots) do, so a structural-gap scan never flips an empty node off `coverage: none`.
 
 **Override:** `set-coverage --value {none|partial|covered}` writes `coverage_override`, which **takes precedence and is preserved across `sync`**. `set-coverage --value auto` clears the override and returns to derived coverage.
 

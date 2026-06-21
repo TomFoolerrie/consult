@@ -60,6 +60,11 @@ def schema_check(instance: Dict[str, Any], schema_path: Path) -> List[str]:
 LENSES = ["current_state", "process", "automation", "capability", "operating_model"]
 ITEM_BUCKETS = ["improvements", "gaps", "screenshots"]
 TYPE_TO_BUCKET = {"improvement": "improvements", "gap": "gaps", "screenshot": "screenshots"}
+# Buckets that count as "content" for coverage derivation. Gaps are absences
+# (open questions / todos), NOT coverage — they must never lift a node out of
+# `none`, or writing structural gaps (gap_report.py) would flip every empty node
+# to `partial` and break the "empty node ↔ coverage:none" invariant.
+COVERAGE_BUCKETS = ["improvements", "screenshots"]
 # Allowed values per diagnostic lens (mirrors engagement_state.schema.json).
 LENS_VALUES = {
     "current_state": ["present", "absent"],
@@ -204,9 +209,10 @@ def load_register(eid: str) -> List[Dict[str, Any]]:
 def derive_coverage(node: Dict[str, Any]) -> str:
     """Derive a node's coverage from its contents.
 
-    A manual `coverage_override` (set via the planned set-coverage command) takes
-    precedence and is preserved across sync. Otherwise:
-      - none    : no evidence AND no linked items
+    A manual `coverage_override` (set via the set-coverage command) takes
+    precedence and is preserved across sync. Otherwise (gaps never count as
+    content — they are absences, see COVERAGE_BUCKETS):
+      - none    : no evidence AND no substantive items (improvements/screenshots)
       - covered : has evidence AND all 5 lenses set
       - partial : anything in between (items but no evidence, evidence but
                   incomplete lenses, etc.)
@@ -215,7 +221,7 @@ def derive_coverage(node: Dict[str, Any]) -> str:
     if override:
         return override
     has_evidence = bool(node.get("evidence"))
-    has_items = any(node["counts"].get(b, 0) for b in ITEM_BUCKETS)
+    has_items = any(node["counts"].get(b, 0) for b in COVERAGE_BUCKETS)
     all_lenses = all(node["lenses"].get(lens) for lens in LENSES)
     if not has_evidence and not has_items:
         return "none"

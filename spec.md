@@ -111,10 +111,15 @@ L2 at init (even if empty / `coverage: none` — an empty node *is* a finding). 
 Validated against `schemas/engagement_state.schema.json`. ✅
 
 **Coverage is derived** (by `sync`) from node contents, unless `coverage_override` is set
-(which takes precedence and is preserved across sync):
-- `none` — no evidence **and** no linked items
+(which takes precedence and is preserved across sync). **Gaps are absences (open
+questions/todos) and never count toward coverage** — only evidence, lenses, and
+substantive items (improvements/screenshots) do:
+- `none` — no evidence **and** no substantive items
 - `covered` — has evidence **and** all 5 lenses set
 - `partial` — anything in between (items but no evidence, evidence but incomplete lenses)
+
+> This is what keeps the "empty node ↔ coverage:none" invariant true even after a
+> structural-gap scan writes a gap row onto every empty node.
 
 > **Region note:** the *taxonomy* regional variant was dropped (§2), but each engagement
 > still carries a `region` attribute (`init --region NA`) — it's an engagement property,
