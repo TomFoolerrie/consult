@@ -300,7 +300,9 @@ artifact: which L2 nodes it touches, candidate evidence spans, lens signals, can
 findings, and **`unmapped`** content that fits no L2 node. The orchestrator applies the
 artifact into state via the granular mutation commands — unmapped content becomes
 `type: unmapped` register rows with an owner (never auto-bucketed into a nearest L2, never
-extends the taxonomy). **Sub-agents never write state.**
+extends the taxonomy). **Sub-agents never write state.** The artifact schema, the
+deterministic merge rules (2b), and a worked example are specified in
+**`classify_contract.md`** (+ `schemas/classify_artifact.schema.json`) ✅ design-drafted.
 
 ### Stage 3 — Consolidate (LLM synthesis) ◻
 Per L2 with new evidence, synthesize merged signals into the node MD — deduped, reconciled,
@@ -567,11 +569,13 @@ prove the triage path) — not just a happy-path single pass.
    applies every state write through the commands. **Open decision — its form:** a
    skill/playbook the agent follows, a Python driver that invokes stages, or `CLAUDE.md`
    instructions. To be decided before/with the vertical slice.
-2. **Classify artifact contract ◻** — the schema a per-doc classifier sub-agent *returns*
-   (never writing state itself): node hits, lens signals (with confidence), evidence spans,
-   candidate findings, and `unmapped` flags — plus the orchestrator's rules for merging
-   conflicting signals across documents. This is the contract everything downstream binds
-   to; design it as the next concrete artifact.
+2. **Classify artifact contract ✅ design-drafted** (`classify_contract.md` +
+   `schemas/classify_artifact.schema.json`) — the per-doc artifact a classifier sub-agent
+   returns, the deterministic Python merge rules (confidence/conflict policy, evidence dedup,
+   staged findings, unmapped→register), and a worked example. Four decisions locked:
+   classify at **L2**; **conflict → null lens + contradiction gap** (never confidently wrong);
+   evidence refs require **line-stable ingest**; **findings staged** for consolidate, only
+   evidence+lenses auto-merged. Build follows the vertical slice.
 
 ### Recommended next move
 

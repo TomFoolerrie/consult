@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cfgi/consult/classify_artifact.schema.json",
+  "title": "Classify Artifact (per-doc, Stage 2)",
+  "description": "DESIGN DRAFT. What one classifier sub-agent returns after reading one ingested document. See classify_contract.md. Not yet wired into code.",
+  "type": "object",
+  "required": ["doc", "node_hits"],
+  "additionalProperties": false,
+  "properties": {
+    "doc": {
+      "type": "object",
+      "required": ["source"],
+      "additionalProperties": true,
+      "properties": {
+        "source": { "type": "string", "description": "Path to the ingested MD this artifact describes." },
+        "doc_type": { "type": "string" },
+        "classified_at": { "type": "string" }
+      }
+    },
+    "node_hits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node_hit" }
+    },
+    "unmapped": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unmapped" }
+    }
+  },
+  "$defs": {
+    "confidence": { "enum": ["high", "med", "low"] },
+    "evidence_ref": {
+      "type": "string",
+      "pattern": "#L[0-9]+(-[0-9]+)?$",
+      "description": "path#Lstart-Lend into an ingested MD (line-stable)."
+    },
+    "node_hit": {
+      "type": "object",
+      "required": ["node", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "node": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$",
+          "description": "{l1_id}.{l2_id}; must exist in taxonomy.yaml."
+        },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "rationale": { "type": "string" },
+        "l3_hints": { "type": "array", "items": { "type": "string" } },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ref"],
+            "additionalProperties": false,
+            "properties": {
+              "ref": { "$ref": "#/$defs/evidence_ref" },
+              "quote": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "lens_signals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/lens_signal" }
+        },
+        "candidate_findings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/candidate_finding" }
+        }
+      }
+    },
+    "lens_signal": {
+      "type": "object",
+      "required": ["lens", "value", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "lens": { "enum": ["current_state", "process", "automation", "capability", "operating_model"] },
+        "value": {
+          "description": "Value valid for the named lens (see engagement_state.schema.json).",
+          "enum": ["present", "absent", "pain_high", "pain_med", "pain_low", "strength",
+                   "machine", "mixed", "human", "new", "existing", "central", "local"]
+        },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "evidence_ref": { "$ref": "#/$defs/evidence_ref" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "candidate_finding": {
+      "type": "object",
+      "required": ["type", "observation", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["improvement", "gap"] },
+        "tag": { "type": "string", "description": "lens for improvements; gap-tag slug for gaps." },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "observation": { "type": "string" },
+        "recommended_action": { "type": "string" },
+        "evidence_ref": { "$ref": "#/$defs/evidence_ref" }
+      }
+    },
+    "unmapped": {
+      "type": "object",
+      "required": ["summary", "evidence_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "type": "string" },
+        "evidence_ref": { "$ref": "#/$defs/evidence_ref" },
+        "nearest_node": {
+          "type": "string",
+          "description": "Suggestion for the human only; never auto-applied."
+        },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}
