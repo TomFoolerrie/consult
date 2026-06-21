@@ -1,21 +1,30 @@
 ---
 name: consult-improvement-log
-description: Maintain the engagement Item Register (improvements, gaps, screenshot placeholders) by merging edits into JSON and rebuilding the Excel workbook. Outputs updated JSON and XLSX each cycle.
+description: Engine for the engagement Item Register (register.json) — the unified, agent-driven item store for improvements, gaps, screenshots, unmapped content, and themes. Writes are JSON-native upserts; build-xlsx is an optional read-only snapshot. Humans review via Word, not Excel.
 ---
 
-# Skill: Item Register — JSON/CSV/XLSX Sync
+# Skill: Item Register — Agent-Driven JSON Engine
 
 ## Purpose
 
-Maintain a structured **Item Register** across chat sessions using a JSON source of truth, human-edited CSV, and a generated Excel workbook.
+`improvement_log.py` is the engine for the engagement **Item Register** — `register.json`,
+the Layer 2 source of truth. It is a single flat item store, discriminated by `type`,
+that the pipeline writes programmatically. There is **no human CSV/Excel round-trip**:
+agents write structured JSON records; humans review on **Word** (Stage 6), not in a
+spreadsheet.
 
-The register holds every item that hangs off an L2 taxonomy node, discriminated by `type`:
+The register holds every item that hangs off an L2 taxonomy node:
 
 - `improvement` — a process improvement opportunity (Stream B)
 - `gap` — a gap / validation item (from the drafter gap tags)
 - `screenshot` — a screenshot placeholder (SC-IDs)
+- `unmapped` — content that did not map to an L2 node yet (carries `disposition`)
+- `theme` — a cross-cutting finding spanning multiple L2 nodes (carries `related_nodes`)
 
-In a pipeline engagement this file is `engagements/{id}/register.json`; each row links to its taxonomy node via `l1_cycle` / `l2_process` (kebab slugs). Stand-alone, it is the classic `Improvement Log - Source of Truth.json`.
+Node-bound items (`improvement`, `gap`, `screenshot`) link to their taxonomy node via
+`l1_cycle` / `l2_process` (kebab slugs). `unmapped` and `theme` rows are null-node rows.
+
+In a pipeline engagement the file is `engagements/{id}/register.json`.
 
 **Script:** `scripts/improvement_log.py`
 
@@ -23,252 +32,172 @@ In a pipeline engagement this file is `engagements/{id}/register.json`; each row
 
 ## MANDATORY: Always Use the Script
 
-**Never modify the JSON directly with Python or any other method.**
+**Never modify `register.json` directly with Python or any other method.**
 
-All JSON writes — inserts, updates, archives, deletes — MUST go through `improvement_log.py`. This applies even when direct Python manipulation seems faster or simpler. The script handles timestamping, backup-before-overwrite, `record_count` sync, and field validation that raw Python edits silently skip.
-
-The only permitted JSON operations outside the script are **reading** (to inspect records, determine the next ID, or map fields).
-
-If you find yourself writing Python that opens and mutates the JSON file directly: **stop, delete that code, and use the script instead.**
-
----
-
-## Per-Session Workflow
-
-Every session starts with the current JSON. Claude then determines which path applies:
-
-```
-User provides: Improvement Log - Source of Truth.json
-        ↓
-   ┌────┴────┐
-   │         │
-Path A     Path B
-CSV file   Freeform improvements described in chat
-   │         │
-   └────┬────┘
-        ↓
-Claude runs: update-json
-        ↓
-Claude runs: build-xlsx
-        ↓
-Claude presents updated JSON + XLSX
-```
-
-### What Claude produces each cycle (both paths)
-
-1. **Updated JSON** — `Improvement Log - Source of Truth.json` (presented in chat)
-2. **Rebuilt XLSX** — `Improvement Log Review.xlsx` (presented in chat)
-
-The user saves both files to the working folder to replace the prior versions.
+All JSON writes — inserts, updates, archives, deletes — MUST go through
+`improvement_log.py`. The script handles timestamping, backup-before-overwrite,
+`record_count` sync, and soft vocab validation that raw edits silently skip. The only
+permitted direct JSON operation is **reading** (to inspect records or map fields).
 
 ---
 
-## Path A — JSON + CSV
+## How writes happen — agent-driven `upsert-json`
 
-### Step 1 — Receive inputs
-
-User provides:
-1. `Improvement Log - Source of Truth.json`
-2. `Improvement Log Review.csv` (exported from Excel via `File → Save As → CSV UTF-8`)
-
----
-
-### Step 2 — Ask about deletes
-
-Before running `update-json`, ask the user:
-
-> "Does the CSV contain any rows marked `deleted_candidate` that should be hard-deleted? (yes / no)"
-
-- **Yes** → include `--apply-deletes`
-- **No** → omit `--apply-deletes`
-
----
-
-### Step 3 — Merge CSV into JSON
+Writes are JSON-native upserts. The pipeline almost always reaches this through
+`state_machine.py add-item`, which composes the record, mints the id, calls
+`improvement_log.py upsert-json` under the hood, and resyncs node counts. Prefer that
+path so the node tracker and register stay consistent:
 
 ```bash
-python scripts/improvement_log.py update-json \
-  --json "Improvement Log - Source of Truth.json" \
-  --csv "Improvement Log Review.csv" \
-  --out-json "Improvement Log - Source of Truth.json" \
-  --modified-by ""
+python scripts/state_machine.py add-item \
+  --engagement "{id}" \
+  --type improvement \
+  --l1 record-to-report --l2 close \
+  --field observation_pain_point="Manual close checklist in email" \
+  --field recommended_action="Move checklist into the close tool" \
+  --field-json related_nodes='["record-to-report.close"]'
 ```
 
-> Writing to the same `--out-json` path triggers an automatic timestamped backup before overwrite.
+(`--l1`/`--l2` are omitted for `unmapped` / `theme` null-node rows. `--field` takes
+`KEY=VALUE`; `--field-json` parses the value as JSON for array/object fields.)
 
----
-
-## Path B — JSON + Freeform
-
-### Step 1 — Receive inputs
-
-User provides:
-1. `Improvement Log - Source of Truth.json`
-2. Natural language description of one or more improvements to add or update
-
----
-
-### Step 2 — Parse and confirm
-
-Claude reads the JSON to determine the current highest ID (e.g. `PP-024`) and inspects existing records for context.
-
-For each improvement described, Claude maps it to the record schema and presents a structured summary for confirmation before writing anything:
-
-```
-New record — PP-025
-  type:                   improvement
-  tag:                    automation        # lens for improvements; gap tag for gaps
-  l1_cycle:               [value]            # taxonomy L1 slug, e.g. record-to-report
-  l2_process:             [value]            # taxonomy L2 slug, e.g. close
-  l3_activity:            [value]            # optional, matches a taxonomy L3 name
-  observation_pain_point: [value]
-  recommended_action:     [value]
-  priority:               [value]
-  effort:                 [value]
-  owner:                  [value]
-  phase:                  [value]
-  review_status:          needs_review
-  record_status:          active
-```
-
-Ask the user to confirm or correct before proceeding.
-
----
-
-### Step 3 — Synthesize CSV and merge into JSON
-
-**This is the only permitted way to write changes to the JSON.** Do not manipulate the JSON file directly.
-
-Claude constructs a minimal CSV containing **only the affected rows** (new inserts or targeted updates). Untouched records are not included — the script matches by `id` and leaves everything else as-is. Claude writes this minimal CSV to a temporary file, then runs:
+To call the engine directly, use `upsert-json` with records as structured JSON via
+exactly one of `--records-json` (inline) or `--records-file` (a path):
 
 ```bash
-python scripts/improvement_log.py update-json \
-  --json "Improvement Log - Source of Truth.json" \
-  --csv "_freeform_input.csv" \
-  --out-json "Improvement Log - Source of Truth.json" \
-  --modified-by ""
+python scripts/improvement_log.py upsert-json \
+  --json "register.json" \
+  --out-json "register.json" \
+  --records-json '[{"id":"IMP-0001","type":"improvement","dedup_key":"close::manual-checklist","recommended_action":"..."}]' \
+  --modified-by "agent"
 ```
 
-The temporary CSV is discarded after the run.
+**Upsert matching precedence**, per incoming record:
+
+1. If the record carries a non-empty `dedup_key`, match an existing record with the same
+   `dedup_key` and update in place; otherwise insert.
+2. Otherwise match by `id`; update in place if present, else insert.
+
+An insert with no matching `dedup_key` requires a non-empty `id`. `id` is protected —
+it is never overwritten on update. Writing to the same `--out-json` path triggers an
+automatic timestamped backup before overwrite (one per invocation).
+
+`dedup_key` is what makes re-consolidation idempotent: an LLM-confirmed finding re-emitted
+on a later run upserts onto its existing row instead of minting a duplicate id.
 
 ---
 
-## Shared Final Steps (both paths)
+## Validate
 
-### Rebuild Excel
+```bash
+python scripts/improvement_log.py validate --json "register.json"
+```
+
+Reports per-record vocab issues and a count by `type`. Read-only. Add an optional JSON
+Schema check with `--schema`:
+
+```bash
+python scripts/improvement_log.py validate --json "register.json" --schema "schemas/item_register.schema.json"
+```
+
+Vocab validation is **non-fatal**: values outside the controlled sets are flagged (sets
+`requires_human_review=true`, `review_status=needs_review`, appends a note to
+`change_notes`) rather than rejected, so the register stays extensible.
+
+---
+
+## Remove (archive or hard delete)
+
+Prefer archive over hard delete. Archive marks `record_status=archived` and retains the
+row; hard delete drops it.
+
+```bash
+# Archive by ID (retained for history)
+python scripts/improvement_log.py remove \
+  --json "register.json" --ids IMP-0024 \
+  --out-json "register.json" --archive --modified-by "agent"
+
+# Hard delete by ID (omit --archive) — for duplicates, test rows, errors
+python scripts/improvement_log.py remove \
+  --json "register.json" --ids IMP-0024 \
+  --out-json "register.json" --modified-by "agent"
+```
+
+---
+
+## build-xlsx — optional read-only snapshot
 
 ```bash
 python scripts/improvement_log.py build-xlsx \
-  --json "Improvement Log - Source of Truth.json" \
-  --xlsx "Improvement Log Review.xlsx"
+  --json "register.json" \
+  --xlsx "Item Register.xlsx"
 ```
 
-To exclude archived records, add `--active-only`.
+Add `--active-only` to exclude archived/inactive records. The XLSX is a **read-only
+snapshot** of the register for quick inspection — it is **not** a review surface and is
+**never re-imported**. Humans review deliverables in **Word at Stage 6**
+(`consult-docx-builder` renders; `consult-review-comment-resolver` ingests the reviewed
+Word). There is no CSV/Excel review cycle.
 
-### Present outputs
-
-Provide both files to the user for download or local save:
-
-- `Improvement Log - Source of Truth.json`
-- `Improvement Log Review.xlsx`
-
-Report a summary:
-
-```
-Rows updated: X | inserted: X | unchanged: X | archived: X | deleted: X
-```
+> Legacy: a CSV merge command (`update-json`, with `--apply-deletes` / `--delete-missing`)
+> still exists in the script for back-compat with old hand-edited CSV exports. It is **not**
+> the workflow and should not be used for new engagements — use `upsert-json` (via
+> `state_machine.py add-item`).
 
 ---
 
-## Other Commands
+## Register fields
 
-> These script commands are also mandatory for archives and deletes — do not set `record_status` to `archived` or `deleted_candidate` by editing the JSON directly.
+`DEFAULT_RECORD_FIELDS` defines the canonical field order. Records allow additional
+properties for forward-compatibility. Key fields beyond the classic set:
 
-### Archive records by ID
+| Field | Meaning |
+|---|---|
+| `dedup_key` | Stable key for LLM-confirmed findings; upsert matches on this first so re-consolidation updates rather than duplicates. |
+| `evidence_tier` | Defensibility of supporting evidence: `verbal`, `documentary`, `system_observed`. |
+| `disposition` | For `unmapped` rows — how content was resolved: `pending`, `reclassified`, `converted`, `out_of_scope`. The final gate requires non-`pending`. |
+| `related_nodes` | For `theme` rows — list of `l1.l2` node slugs the cross-cutting finding spans. |
 
-```bash
-python scripts/improvement_log.py remove \
-  --json "Improvement Log - Source of Truth.json" \
-  --ids PP-024 \
-  --out-json "Improvement Log - Source of Truth.json" \
-  --archive \
-  --modified-by ""
-```
-
-### Hard-delete records by ID
-
-```bash
-python scripts/improvement_log.py remove \
-  --json "Improvement Log - Source of Truth.json" \
-  --ids PP-024 \
-  --out-json "Improvement Log - Source of Truth.json" \
-  --modified-by ""
-```
-
-### Delete records missing from CSV (use carefully)
-
-```bash
-python scripts/improvement_log.py update-json \
-  --json "Improvement Log - Source of Truth.json" \
-  --csv "Improvement Log Review.csv" \
-  --out-json "Improvement Log - Source of Truth.json" \
-  --delete-missing \
-  --modified-by ""
-```
+Other canonical fields include `id`, `type`, `tag`, `date_identified`, `source`,
+`l1_cycle`, `l2_process`, `l3_activity`, `observation_pain_point`, `root_cause`,
+`recommended_action`, `impact_type`, `estimated_impact_benefit`, `effort`, `priority`,
+`owner`, `phase`, `escalation_status`, `process_owner_contacts`, `notes_next_step`,
+`record_status`, `review_status`, `requires_human_review`, `last_modified_by`,
+`last_modified_at`, `change_notes`. `id` is protected — it is the primary key and is never
+overwritten on upsert.
 
 ---
 
-## Editable Fields
-
-These fields may be changed in the CSV and will be merged into the JSON:
-
-```
-type, tag, l1_cycle, l2_process, l3_activity,
-priority, effort, impact_type, owner, phase, escalation_status,
-process_owner_contacts, notes_next_step,
-review_status, change_notes, record_status
-```
-
-The `id` field is protected — changing it creates a new record.
-
-## Item Types & Tags (controlled vocab)
-
-Validation is **non-fatal**: values outside these sets are flagged (sets `requires_human_review=true`, `review_status=needs_review`, appends a note to `change_notes`) rather than rejected, so the register stays extensible.
+## Controlled vocabulary
 
 | `type` | `tag` holds | Allowed `tag` values |
 |---|---|---|
 | `improvement` | the diagnostic **lens** it addresses | `process`, `automation`, `operating_model`, `capability` |
 | `gap` | a normalized **gap tag** | `not_documented`, `unconfirmed`, `confirm`, `owner_unknown`, `reviewer_unknown`, `approver_unknown`, `system_unknown`, `timing_unknown`, `frequency_unknown`, `input_unknown`, `output_unknown`, `navigation_unknown`, `field_unknown`, `control_not_evidenced`, `approval_not_evidenced`, `evidence_retention_unknown`, `archive_location_unknown`, `exception_handling_unknown`, `downstream_dependency_unknown`, `upstream_dependency_unknown` |
 | `screenshot` | SC status | free text (e.g. `pending`) |
+| `unmapped` | (use `disposition`) | — |
+| `theme` | (use `related_nodes`) | — |
 
-Bracketed drafter tags are auto-normalized on import — e.g. `[[GAP — SYSTEM UNKNOWN]]` → `system_unknown`.
+Bracketed drafter tags are auto-normalized on write — e.g. `[[GAP — SYSTEM UNKNOWN]]`
+→ `system_unknown`.
 
-Other enums: `impact_type` ∈ {cost, time, risk, quality, control} · `effort` ∈ {low, med, high} · `priority` ∈ {p1, p2, p3}.
-
-### Validate the register
-
-```bash
-python scripts/improvement_log.py validate --json "register.json"
-```
-
-Reports per-record vocab issues and a count by `type`. Read-only.
+Other enums: `impact_type` ∈ {cost, time, risk, quality, control} · `effort` ∈ {low,
+med, high} · `priority` ∈ {p1, p2, p3}.
 
 ---
 
-## Record Status Values
+## Record Status & Review Status
 
-| Value | Meaning |
+| `record_status` | Meaning |
 |---|---|
 | `active` | Open or in-progress item |
-| `archived` | No longer active; retained for history |
-| `deleted_candidate` | Hard-deleted on next run if `--apply-deletes` is passed |
+| `archived` / `inactive` | No longer active; retained for history; not rolled into node counts |
+| `deleted_candidate` | Marked for hard delete (legacy CSV path only) |
 
-## Review Status Values
-
-| Value | Meaning |
+| `review_status` | Meaning |
 |---|---|
 | `needs_review` | Newly added or unvalidated |
-| `reviewed` | Human has reviewed |
+| `reviewed` | Human has reviewed (via Word, Stage 6) |
 | `approved` | Accepted into the official log |
 | `rejected` | Not moving forward; retained for history |
 
@@ -276,18 +205,11 @@ Reports per-record vocab issues and a count by `type`. Read-only.
 
 ## Control Rules
 
-1. **Always use the script.** `improvement_log.py` is the only permitted write path for the JSON. Raw Python edits bypass timestamping, backup, and validation — never do them.
-2. **JSON is the source of truth.** Excel and CSV are review/import formats only.
-3. **Never change an existing `id`.** It is the primary key; a changed ID creates a new record.
-4. **Prefer archive over hard delete.** Hard delete is for duplicates, test rows, and errors.
-5. **Use `change_notes`** for any meaningful update — e.g., `"Updated priority to High after client review."`
-
----
-
-## Validation Checklist (before presenting output)
-
-- Every record has a non-empty `id`
-- No duplicate IDs exist
-- `record_count` in metadata matches the records array length
-- `last_modified_at` was updated
-- XLSX can be regenerated cleanly from the updated JSON
+1. **Always use the script.** `improvement_log.py` is the only permitted write path.
+   Prefer `state_machine.py add-item`, which calls `upsert-json` and resyncs node counts.
+2. **JSON is the source of truth.** The XLSX snapshot is read-only and never re-imported.
+3. **No human CSV/Excel review round-trip.** Humans review on Word at Stage 6.
+4. **Never change an existing `id`.** It is the primary key; upsert dedups on `dedup_key`
+   first, then `id`.
+5. **Prefer archive over hard delete.** Hard delete is for duplicates, test rows, errors.
+6. **Use `change_notes`** for any meaningful update.
