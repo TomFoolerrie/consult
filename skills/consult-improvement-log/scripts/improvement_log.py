@@ -373,7 +373,25 @@ def remove_records(json_path: Path, ids: List[str], out_path: Path, modified_by:
     return affected, missing
 
 
-def validate_cmd(json_path: Path) -> int:
+def schema_check(data: Dict[str, Any], schema_path: Path) -> List[str]:
+    """Validate the register against a JSON Schema. Returns error messages.
+
+    Gracefully degrades if jsonschema or the schema file is absent.
+    """
+    if not schema_path.exists():
+        return [f"(skipped: schema not found at {schema_path})"]
+    try:
+        import jsonschema
+    except ImportError:
+        return ["(skipped: jsonschema not installed — pip install jsonschema)"]
+    with schema_path.open("r", encoding="utf-8") as f:
+        schema = json.load(f)
+    validator = jsonschema.Draft7Validator(schema)
+    return [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+            for e in sorted(validator.iter_errors(data), key=lambda e: list(e.path))]
+
+
+def validate_cmd(json_path: Path, schema_path: Path | None = None) -> int:
     data = load_source_json(json_path)
     total_issues = 0
     for rec in data["records"]:
@@ -385,7 +403,17 @@ def validate_cmd(json_path: Path) -> int:
     for rec in data["records"]:
         counts[str(rec.get("type") or "improvement")] = counts.get(str(rec.get("type") or "improvement"), 0) + 1
     print(f"Records: {len(data['records'])} ({', '.join(f'{k}={v}' for k, v in sorted(counts.items()))})")
-    print(f"Vocab issues: {total_issues}")
+    print(f"Vocab issues (flagged, non-fatal): {total_issues}")
+    if schema_path is not None:
+        errors = schema_check(data, schema_path)
+        if errors and errors[0].startswith("(skipped"):
+            print(f"Schema: {errors[0]}")
+        elif errors:
+            print(f"Schema: {len(errors)} error(s):")
+            for e in errors[:20]:
+                print(f"  - {e}")
+        else:
+            print("Schema: OK.")
     return total_issues
 
 
@@ -405,6 +433,7 @@ def main() -> None:
     r.add_argument("--modified-by", default="manual_remove"); r.add_argument("--archive", action="store_true")
     v = sub.add_parser("validate")
     v.add_argument("--json", required=True, type=Path)
+    v.add_argument("--schema", type=Path, default=None, help="Optional JSON Schema to validate against.")
     args = p.parse_args()
     if args.command == "build-xlsx":
         build_xlsx(args.json, args.xlsx, args.active_only)
@@ -417,7 +446,7 @@ def main() -> None:
         affected, missing = remove_records(args.json, args.ids, args.out_json, args.modified_by, args.archive)
         print(f"{'Archived' if args.archive else 'Deleted'} records: {affected}; IDs not found: {missing}; output: {args.out_json}")
     elif args.command == "validate":
-        validate_cmd(args.json)
+        validate_cmd(args.json, args.schema)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cfgi/consult/engagement_state.schema.json",
+  "title": "Engagement State (node tracker)",
+  "description": "Layer 1 source of truth: one node per L2 taxonomy node. Owned by scripts/state_machine.py.",
+  "type": "object",
+  "required": ["engagement", "nodes"],
+  "additionalProperties": true,
+  "properties": {
+    "engagement": {
+      "type": "object",
+      "required": ["id", "created", "updated"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "client": { "type": ["string", "null"] },
+        "region": { "type": ["string", "null"] },
+        "created": { "type": "string" },
+        "updated": { "type": "string" }
+      }
+    },
+    "taxonomy_version": { "type": ["integer", "string", "null"] },
+    "nodes": {
+      "type": "object",
+      "description": "Keyed by {l1_id}.{l2_id}.",
+      "propertyNames": { "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$" },
+      "additionalProperties": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["l1", "l2", "coverage", "lenses", "items", "counts", "sop"],
+      "additionalProperties": true,
+      "properties": {
+        "l1": { "type": "string" },
+        "l1_name": { "type": "string" },
+        "l2": { "type": "string" },
+        "l2_name": { "type": "string" },
+        "coverage": { "enum": ["none", "partial", "covered"] },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "source": { "type": "string" },
+              "loc": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "lenses": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "current_state": { "enum": ["present", "absent", null] },
+            "process": { "enum": ["pain_high", "pain_med", "pain_low", "strength", null] },
+            "automation": { "enum": ["machine", "mixed", "human", null] },
+            "capability": { "enum": ["new", "existing", null] },
+            "operating_model": { "enum": ["central", "mixed", "local", null] }
+          }
+        },
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "improvements": { "type": "array", "items": { "type": "string" } },
+            "gaps": { "type": "array", "items": { "type": "string" } },
+            "screenshots": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "improvements": { "type": "integer", "minimum": 0 },
+            "gaps": { "type": "integer", "minimum": 0 },
+            "screenshots": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "sop": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "status": { "enum": ["not_started", "drafting", "draft", "in_review", "revised", "final"] },
+            "path": { "type": ["string", "null"] },
+            "rev": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "node_md": { "type": "string" },
+        "updated": { "type": "string" }
+      }
+    }
+  }
+}

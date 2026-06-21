@@ -30,6 +30,25 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TAXONOMY_PATH = REPO_ROOT / "reference" / "taxonomy.yaml"
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
+STATE_SCHEMA_PATH = REPO_ROOT / "schemas" / "engagement_state.schema.json"
+
+
+def schema_check(instance: Dict[str, Any], schema_path: Path) -> List[str]:
+    """Validate instance against a JSON Schema. Returns error messages.
+
+    Gracefully returns a single note if jsonschema or the schema file is absent.
+    """
+    if not schema_path.exists():
+        return [f"(skipped: schema not found at {schema_path})"]
+    try:
+        import jsonschema
+    except ImportError:
+        return ["(skipped: jsonschema not installed — pip install jsonschema)"]
+    with schema_path.open("r", encoding="utf-8") as f:
+        schema = json.load(f)
+    validator = jsonschema.Draft7Validator(schema)
+    return [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+            for e in sorted(validator.iter_errors(instance), key=lambda e: list(e.path))]
 
 LENSES = ["current_state", "process", "automation", "capability", "operating_model"]
 ITEM_BUCKETS = ["improvements", "gaps", "screenshots"]
@@ -243,6 +262,18 @@ def cmd_validate(eid: str) -> None:
         print(f"EXTRA nodes not in taxonomy ({len(extra)}): {sorted(extra)}")
     if not missing and not extra:
         print("OK: state nodes exactly match the taxonomy L2 set.")
+
+    state_path, _ = load_state(eid)
+    with state_path.open("r", encoding="utf-8") as f:
+        errors = schema_check(json.load(f), STATE_SCHEMA_PATH)
+    if errors and errors[0].startswith("(skipped"):
+        print(f"Schema: {errors[0]}")
+    elif errors:
+        print(f"Schema: {len(errors)} error(s):")
+        for e in errors[:20]:
+            print(f"  - {e}")
+    else:
+        print("Schema: OK (validates against engagement_state.schema.json).")
 
 
 def main() -> None:
