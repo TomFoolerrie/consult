@@ -1,0 +1,1792 @@
+{
+  "engagement": {
+    "id": "r2r-demo",
+    "client": "Demo Manufacturing Co",
+    "region": "NA",
+    "created": "2026-06-21T21:32:46+00:00",
+    "updated": "2026-06-21T21:46:33+00:00"
+  },
+  "taxonomy_version": 1,
+  "nodes": {
+    "procure-to-pay.master-data-management": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "master-data-management",
+      "l2_name": "Master Data Management",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-master-data-management-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/master-data-management.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "procure-to-pay.sourcing": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "sourcing",
+      "l2_name": "Sourcing",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-sourcing-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/sourcing.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "procure-to-pay.procurement": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "procurement",
+      "l2_name": "Procurement",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-procurement-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/procurement.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "procure-to-pay.receiving": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "receiving",
+      "l2_name": "Receiving",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-receiving-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/receiving.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "procure-to-pay.invoice-processing": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "invoice-processing",
+      "l2_name": "Invoice Processing",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-invoice-processing-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/invoice-processing.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "procure-to-pay.payment": {
+      "l1": "procure-to-pay",
+      "l1_name": "Procure to Pay",
+      "l2": "payment",
+      "l2_name": "Payment",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-procure-to-pay-payment-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/procure-to-pay/payment.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.credit-analysis": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "credit-analysis",
+      "l2_name": "Credit Analysis",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-credit-analysis-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/credit-analysis.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.invoice-customer": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "invoice-customer",
+      "l2_name": "Invoice Customer",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-invoice-customer-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/invoice-customer.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.process-accounts-receivable": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "process-accounts-receivable",
+      "l2_name": "Process Accounts Receivable",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-process-accounts-receivable-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/process-accounts-receivable.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.manage-and-process-collections": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "manage-and-process-collections",
+      "l2_name": "Manage and Process Collections",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-manage-and-process-collections-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/manage-and-process-collections.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.process-adjustments-and-deductions": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "process-adjustments-and-deductions",
+      "l2_name": "Process Adjustments and Deductions",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-process-adjustments-and-deductions-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/process-adjustments-and-deductions.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "order-to-cash.revenue-recognition": {
+      "l1": "order-to-cash",
+      "l1_name": "Order to Cash",
+      "l2": "revenue-recognition",
+      "l2_name": "Revenue Recognition",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-order-to-cash-revenue-recognition-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/order-to-cash/revenue-recognition.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "record-to-report.pre-close-set-up": {
+      "l1": "record-to-report",
+      "l1_name": "Record to Report",
+      "l2": "pre-close-set-up",
+      "l2_name": "Pre-Close Set Up",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-record-to-report-pre-close-set-up-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "draft",
+        "path": "deliverables/sop/record-to-report.md",
+        "rev": 1,
+        "rendered_rev": 1,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/record-to-report/pre-close-set-up.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:46:32+00:00"
+    },
+    "record-to-report.close": {
+      "l1": "record-to-report",
+      "l1_name": "Record to Report",
+      "l2": "close",
+      "l2_name": "Close",
+      "coverage": "partial",
+      "coverage_override": null,
+      "evidence": [
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L23-27",
+          "note": "Close sequence: sub-ledger (AP/AR) then manual accruals in ERP."
+        },
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L25-27",
+          "note": "Accruals fully manual — spreadsheets then re-keyed; identified as primary pain point and source of late adjustments."
+        },
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L27-28",
+          "note": "Account reconciliations decentralized by regional controller."
+        },
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L35-36",
+          "note": "Handoff to consolidation for eliminations and topside entries."
+        },
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L41",
+          "note": "Management review mentioned as next step in close."
+        },
+        {
+          "source": "ingested/2026-06-21_recon-walkthrough.transcript.dd5170b5c7b8.md",
+          "loc": "L30-31",
+          "tier": "verbal",
+          "note": "Recon process described as a relative strength with tool standardization and ownership model."
+        }
+      ],
+      "lenses": {
+        "current_state": "present",
+        "process": null,
+        "automation": "human",
+        "capability": null,
+        "operating_model": "local"
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-CONFLICT-record-to-report-close-process",
+          "GAP-0001",
+          "GAP-0002",
+          "GAP-0003",
+          "GAP-STRUCT-record-to-report-close-incomplete-diagnosis",
+          "GAP-STRUCT-record-to-report-close-sop-not-started"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 6,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "draft",
+        "path": "deliverables/sop/record-to-report.md",
+        "rev": 1,
+        "rendered_rev": 1,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/record-to-report/close.md",
+      "last_evidence_at": "2026-06-21T21:35:38+00:00",
+      "consolidated_at": "2026-06-21T21:38:40+00:00",
+      "updated": "2026-06-21T21:46:32+00:00"
+    },
+    "record-to-report.consolidation": {
+      "l1": "record-to-report",
+      "l1_name": "Record to Report",
+      "l2": "consolidation",
+      "l2_name": "Consolidation",
+      "coverage": "partial",
+      "coverage_override": null,
+      "evidence": [
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L35-36",
+          "note": "Brief mention of eliminations and topside entries; no detail on the consolidation workflow itself."
+        },
+        {
+          "source": "ingested/2026-06-21_recon-walkthrough.transcript.dd5170b5c7b8.md",
+          "loc": "L22-23",
+          "tier": "verbal",
+          "note": "Describes entity data collection into central consolidation system prior to running eliminations."
+        },
+        {
+          "source": "ingested/2026-06-21_recon-walkthrough.transcript.dd5170b5c7b8.md",
+          "loc": "L26-28",
+          "tier": "verbal",
+          "note": "IC eliminations are automated; topside entries remain manual at corporate level."
+        },
+        {
+          "source": "ingested/2026-06-21_recon-walkthrough.transcript.dd5170b5c7b8.md",
+          "loc": "L33-35",
+          "tier": "verbal",
+          "note": "Operating model is explicitly centralized; regions are data providers only."
+        }
+      ],
+      "lenses": {
+        "current_state": "present",
+        "process": null,
+        "automation": "mixed",
+        "capability": null,
+        "operating_model": "central"
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-0004",
+          "GAP-STRUCT-record-to-report-consolidation-incomplete-diagnosis",
+          "GAP-STRUCT-record-to-report-consolidation-sop-not-started"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 3,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "draft",
+        "path": "deliverables/sop/record-to-report.md",
+        "rev": 1,
+        "rendered_rev": 1,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/record-to-report/consolidation.md",
+      "last_evidence_at": "2026-06-21T21:35:38+00:00",
+      "consolidated_at": "2026-06-21T21:38:40+00:00",
+      "updated": "2026-06-21T21:46:32+00:00"
+    },
+    "record-to-report.reporting": {
+      "l1": "record-to-report",
+      "l1_name": "Record to Report",
+      "l2": "reporting",
+      "l2_name": "Reporting",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-record-to-report-reporting-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "draft",
+        "path": "deliverables/sop/record-to-report.md",
+        "rev": 1,
+        "rendered_rev": 1,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/record-to-report/reporting.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:46:33+00:00"
+    },
+    "record-to-report.accounting-policy": {
+      "l1": "record-to-report",
+      "l1_name": "Record to Report",
+      "l2": "accounting-policy",
+      "l2_name": "Accounting Policy",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-record-to-report-accounting-policy-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "draft",
+        "path": "deliverables/sop/record-to-report.md",
+        "rev": 1,
+        "rendered_rev": 1,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/record-to-report/accounting-policy.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:46:33+00:00"
+    },
+    "fpa.strategic-planning-and-budgeting": {
+      "l1": "fpa",
+      "l1_name": "Financial Planning & Analysis",
+      "l2": "strategic-planning-and-budgeting",
+      "l2_name": "Strategic Planning & Budgeting",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-fpa-strategic-planning-and-budgeting-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/fpa/strategic-planning-and-budgeting.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "fpa.forecasting": {
+      "l1": "fpa",
+      "l1_name": "Financial Planning & Analysis",
+      "l2": "forecasting",
+      "l2_name": "Forecasting",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-fpa-forecasting-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/fpa/forecasting.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "fpa.reporting-and-analysis": {
+      "l1": "fpa",
+      "l1_name": "Financial Planning & Analysis",
+      "l2": "reporting-and-analysis",
+      "l2_name": "Reporting & Analysis",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-fpa-reporting-and-analysis-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/fpa/reporting-and-analysis.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "fpa.business-support": {
+      "l1": "fpa",
+      "l1_name": "Financial Planning & Analysis",
+      "l2": "business-support",
+      "l2_name": "Business Support",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-fpa-business-support-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/fpa/business-support.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "fpa.data-management": {
+      "l1": "fpa",
+      "l1_name": "Financial Planning & Analysis",
+      "l2": "data-management",
+      "l2_name": "Data Management",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-fpa-data-management-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/fpa/data-management.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "treasury.cash-management": {
+      "l1": "treasury",
+      "l1_name": "Treasury",
+      "l2": "cash-management",
+      "l2_name": "Cash Management",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-treasury-cash-management-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/treasury/cash-management.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "treasury.investment-management": {
+      "l1": "treasury",
+      "l1_name": "Treasury",
+      "l2": "investment-management",
+      "l2_name": "Investment Management",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-treasury-investment-management-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/treasury/investment-management.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "treasury.liquidity": {
+      "l1": "treasury",
+      "l1_name": "Treasury",
+      "l2": "liquidity",
+      "l2_name": "Liquidity",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-treasury-liquidity-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/treasury/liquidity.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "treasury.financial-risk": {
+      "l1": "treasury",
+      "l1_name": "Treasury",
+      "l2": "financial-risk",
+      "l2_name": "Financial Risk",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-treasury-financial-risk-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/treasury/financial-risk.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "treasury.interest-rate-management": {
+      "l1": "treasury",
+      "l1_name": "Treasury",
+      "l2": "interest-rate-management",
+      "l2_name": "Interest Rate Management",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-treasury-interest-rate-management-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/treasury/interest-rate-management.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "tax.tax-reporting": {
+      "l1": "tax",
+      "l1_name": "Tax",
+      "l2": "tax-reporting",
+      "l2_name": "Tax Reporting",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-tax-tax-reporting-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/tax/tax-reporting.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "tax.income-tax-compliance": {
+      "l1": "tax",
+      "l1_name": "Tax",
+      "l2": "income-tax-compliance",
+      "l2_name": "Income Tax Compliance",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-tax-income-tax-compliance-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/tax/income-tax-compliance.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "tax.indirect-tax": {
+      "l1": "tax",
+      "l1_name": "Tax",
+      "l2": "indirect-tax",
+      "l2_name": "Indirect Tax",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-tax-indirect-tax-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/tax/indirect-tax.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "tax.tax-controversy": {
+      "l1": "tax",
+      "l1_name": "Tax",
+      "l2": "tax-controversy",
+      "l2_name": "Tax Controversy",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-tax-tax-controversy-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/tax/tax-controversy.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "tax.tax-strategy-and-planning": {
+      "l1": "tax",
+      "l1_name": "Tax",
+      "l2": "tax-strategy-and-planning",
+      "l2_name": "Tax Strategy & Planning",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-tax-tax-strategy-and-planning-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/tax/tax-strategy-and-planning.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "risk-policy-controls.policies-and-procedures": {
+      "l1": "risk-policy-controls",
+      "l1_name": "Risk, Policy & Controls",
+      "l2": "policies-and-procedures",
+      "l2_name": "Policies & Procedures",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-risk-policy-controls-policies-and-procedures-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/risk-policy-controls/policies-and-procedures.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "risk-policy-controls.risk-assessment": {
+      "l1": "risk-policy-controls",
+      "l1_name": "Risk, Policy & Controls",
+      "l2": "risk-assessment",
+      "l2_name": "Risk Assessment",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-risk-policy-controls-risk-assessment-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/risk-policy-controls/risk-assessment.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "risk-policy-controls.internal-controls": {
+      "l1": "risk-policy-controls",
+      "l1_name": "Risk, Policy & Controls",
+      "l2": "internal-controls",
+      "l2_name": "Internal Controls",
+      "coverage": "partial",
+      "coverage_override": null,
+      "evidence": [
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L31",
+          "tier": "verbal",
+          "note": "Dual-review control claimed to operate every close — stated verbally by controller."
+        },
+        {
+          "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md",
+          "loc": "L33-35",
+          "tier": "verbal",
+          "note": "Dual-review control is NOT documented in policy or system configuration — tribal knowledge."
+        }
+      ],
+      "lenses": {
+        "current_state": "present",
+        "process": "pain_med",
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-0005",
+          "GAP-STRUCT-risk-policy-controls-internal-controls-incomplete-diagnosis",
+          "GAP-STRUCT-risk-policy-controls-internal-controls-sop-not-started"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 3,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/risk-policy-controls/internal-controls.md",
+      "last_evidence_at": "2026-06-21T21:35:38+00:00",
+      "consolidated_at": "2026-06-21T21:38:40+00:00",
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "risk-policy-controls.monitoring": {
+      "l1": "risk-policy-controls",
+      "l1_name": "Risk, Policy & Controls",
+      "l2": "monitoring",
+      "l2_name": "Monitoring",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-risk-policy-controls-monitoring-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/risk-policy-controls/monitoring.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    },
+    "risk-policy-controls.reporting": {
+      "l1": "risk-policy-controls",
+      "l1_name": "Risk, Policy & Controls",
+      "l2": "reporting",
+      "l2_name": "Reporting",
+      "coverage": "none",
+      "coverage_override": null,
+      "evidence": [],
+      "lenses": {
+        "current_state": null,
+        "process": null,
+        "automation": null,
+        "capability": null,
+        "operating_model": null
+      },
+      "items": {
+        "improvements": [],
+        "gaps": [
+          "GAP-STRUCT-risk-policy-controls-reporting-no-coverage"
+        ],
+        "screenshots": []
+      },
+      "counts": {
+        "improvements": 0,
+        "gaps": 1,
+        "screenshots": 0
+      },
+      "sop": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "improvement": {
+        "status": "not_started",
+        "path": null,
+        "rev": 0,
+        "rendered_rev": 0,
+        "reviewed_rev": 0
+      },
+      "node_md": "nodes/risk-policy-controls/reporting.md",
+      "last_evidence_at": null,
+      "consolidated_at": null,
+      "updated": "2026-06-21T21:45:41+00:00"
+    }
+  }
+}

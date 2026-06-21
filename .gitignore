@@ -13,3 +13,6 @@ __pycache__/
 # T20 Slice-1 e2e scratch engagement (test removes it on exit; ignored as a
 # safety net in case a run is interrupted before cleanup).
 engagements/__t20__/
+
+# Rendered Word deliverables (regenerable from MD via render_deliverables.py)
+*.docx
