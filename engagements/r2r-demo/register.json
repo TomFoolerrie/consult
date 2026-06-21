@@ -2,7 +2,7 @@
   "metadata": {
     "engagement": "r2r-demo",
     "record_count": 54,
-    "last_updated_at": "2026-06-21T21:57:22+00:00",
+    "last_updated_at": "2026-06-21T22:09:59+00:00",
     "last_update_source": "json upsert (add-item)",
     "last_update_deleted_count": 0
   },
@@ -729,10 +729,12 @@
       "priority": "p1",
       "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md#L25-27",
       "record_status": "active",
-      "review_status": "needs_review",
+      "review_status": "accepted",
       "requires_human_review": true,
       "last_modified_by": "add-item",
-      "last_modified_at": "2026-06-21T21:56:52+00:00"
+      "last_modified_at": "2026-06-21T22:09:59+00:00",
+      "owner": "Assistant Controller",
+      "note_reviewer": "Reviewer (SME): accrual owner confirmed as Assistant Controller"
     },
     {
       "id": "IMP-0002",
@@ -745,12 +747,13 @@
       "recommended_action": "Document the dual-review threshold in a formal controls policy and configure the reconciliation tool to enforce the $50K approval requirement systematically, converting the control from verbal to system-observed.",
       "effort": "low",
       "priority": "p1",
-      "source": "ingested/2026-06-21_close-walkthrough.transcript.47023e6a8544.md#L35-36",
+      "source": "review/RTR-04",
       "record_status": "active",
-      "review_status": "needs_review",
-      "requires_human_review": true,
+      "review_status": "accepted",
+      "requires_human_review": false,
       "last_modified_by": "add-item",
-      "last_modified_at": "2026-06-21T21:56:58+00:00"
+      "last_modified_at": "2026-06-21T22:09:58+00:00",
+      "note_reviewer": "Reviewer (Controller): control RTR-04 documented in SOX matrix — evidence tier upgraded to documentary"
     },
     {
       "id": "IMP-0003",

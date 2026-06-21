@@ -4,7 +4,7 @@
     "client": "Demo Manufacturing Co",
     "region": "NA",
     "created": "2026-06-21T21:32:46+00:00",
-    "updated": "2026-06-21T22:06:04+00:00"
+    "updated": "2026-06-21T22:09:59+00:00"
   },
   "taxonomy_version": 1,
   "nodes": {
@@ -52,7 +52,7 @@
       "node_md": "nodes/procure-to-pay/master-data-management.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "procure-to-pay.sourcing": {
       "l1": "procure-to-pay",
@@ -98,7 +98,7 @@
       "node_md": "nodes/procure-to-pay/sourcing.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "procure-to-pay.procurement": {
       "l1": "procure-to-pay",
@@ -144,7 +144,7 @@
       "node_md": "nodes/procure-to-pay/procurement.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "procure-to-pay.receiving": {
       "l1": "procure-to-pay",
@@ -190,7 +190,7 @@
       "node_md": "nodes/procure-to-pay/receiving.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "procure-to-pay.invoice-processing": {
       "l1": "procure-to-pay",
@@ -236,7 +236,7 @@
       "node_md": "nodes/procure-to-pay/invoice-processing.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "procure-to-pay.payment": {
       "l1": "procure-to-pay",
@@ -282,7 +282,7 @@
       "node_md": "nodes/procure-to-pay/payment.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.credit-analysis": {
       "l1": "order-to-cash",
@@ -328,7 +328,7 @@
       "node_md": "nodes/order-to-cash/credit-analysis.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.invoice-customer": {
       "l1": "order-to-cash",
@@ -374,7 +374,7 @@
       "node_md": "nodes/order-to-cash/invoice-customer.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.process-accounts-receivable": {
       "l1": "order-to-cash",
@@ -420,7 +420,7 @@
       "node_md": "nodes/order-to-cash/process-accounts-receivable.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.manage-and-process-collections": {
       "l1": "order-to-cash",
@@ -466,7 +466,7 @@
       "node_md": "nodes/order-to-cash/manage-and-process-collections.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.process-adjustments-and-deductions": {
       "l1": "order-to-cash",
@@ -512,7 +512,7 @@
       "node_md": "nodes/order-to-cash/process-adjustments-and-deductions.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "order-to-cash.revenue-recognition": {
       "l1": "order-to-cash",
@@ -558,7 +558,7 @@
       "node_md": "nodes/order-to-cash/revenue-recognition.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "record-to-report.pre-close-set-up": {
       "l1": "record-to-report",
@@ -604,7 +604,7 @@
       "node_md": "nodes/record-to-report/pre-close-set-up.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T22:06:03+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "record-to-report.close": {
       "l1": "record-to-report",
@@ -648,7 +648,7 @@
       ],
       "lenses": {
         "current_state": "present",
-        "process": null,
+        "process": "pain_med",
         "automation": "human",
         "capability": null,
         "operating_model": "local"
@@ -691,7 +691,7 @@
       "node_md": "nodes/record-to-report/close.md",
       "last_evidence_at": "2026-06-21T21:35:38+00:00",
       "consolidated_at": "2026-06-21T21:38:40+00:00",
-      "updated": "2026-06-21T22:06:03+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "record-to-report.consolidation": {
       "l1": "record-to-report",
@@ -766,7 +766,7 @@
       "node_md": "nodes/record-to-report/consolidation.md",
       "last_evidence_at": "2026-06-21T21:35:38+00:00",
       "consolidated_at": "2026-06-21T21:38:40+00:00",
-      "updated": "2026-06-21T22:06:04+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "record-to-report.reporting": {
       "l1": "record-to-report",
@@ -812,7 +812,7 @@
       "node_md": "nodes/record-to-report/reporting.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T22:06:04+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "record-to-report.accounting-policy": {
       "l1": "record-to-report",
@@ -858,7 +858,7 @@
       "node_md": "nodes/record-to-report/accounting-policy.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T22:06:04+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "fpa.strategic-planning-and-budgeting": {
       "l1": "fpa",
@@ -904,7 +904,7 @@
       "node_md": "nodes/fpa/strategic-planning-and-budgeting.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "fpa.forecasting": {
       "l1": "fpa",
@@ -950,7 +950,7 @@
       "node_md": "nodes/fpa/forecasting.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "fpa.reporting-and-analysis": {
       "l1": "fpa",
@@ -996,7 +996,7 @@
       "node_md": "nodes/fpa/reporting-and-analysis.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "fpa.business-support": {
       "l1": "fpa",
@@ -1042,7 +1042,7 @@
       "node_md": "nodes/fpa/business-support.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "fpa.data-management": {
       "l1": "fpa",
@@ -1088,7 +1088,7 @@
       "node_md": "nodes/fpa/data-management.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "treasury.cash-management": {
       "l1": "treasury",
@@ -1134,7 +1134,7 @@
       "node_md": "nodes/treasury/cash-management.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "treasury.investment-management": {
       "l1": "treasury",
@@ -1180,7 +1180,7 @@
       "node_md": "nodes/treasury/investment-management.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "treasury.liquidity": {
       "l1": "treasury",
@@ -1226,7 +1226,7 @@
       "node_md": "nodes/treasury/liquidity.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "treasury.financial-risk": {
       "l1": "treasury",
@@ -1272,7 +1272,7 @@
       "node_md": "nodes/treasury/financial-risk.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "treasury.interest-rate-management": {
       "l1": "treasury",
@@ -1318,7 +1318,7 @@
       "node_md": "nodes/treasury/interest-rate-management.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "tax.tax-reporting": {
       "l1": "tax",
@@ -1364,7 +1364,7 @@
       "node_md": "nodes/tax/tax-reporting.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "tax.income-tax-compliance": {
       "l1": "tax",
@@ -1410,7 +1410,7 @@
       "node_md": "nodes/tax/income-tax-compliance.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "tax.indirect-tax": {
       "l1": "tax",
@@ -1456,7 +1456,7 @@
       "node_md": "nodes/tax/indirect-tax.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "tax.tax-controversy": {
       "l1": "tax",
@@ -1502,7 +1502,7 @@
       "node_md": "nodes/tax/tax-controversy.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "tax.tax-strategy-and-planning": {
       "l1": "tax",
@@ -1548,7 +1548,7 @@
       "node_md": "nodes/tax/tax-strategy-and-planning.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "risk-policy-controls.policies-and-procedures": {
       "l1": "risk-policy-controls",
@@ -1594,7 +1594,7 @@
       "node_md": "nodes/risk-policy-controls/policies-and-procedures.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "risk-policy-controls.risk-assessment": {
       "l1": "risk-policy-controls",
@@ -1640,7 +1640,7 @@
       "node_md": "nodes/risk-policy-controls/risk-assessment.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "risk-policy-controls.internal-controls": {
       "l1": "risk-policy-controls",
@@ -1701,7 +1701,7 @@
       "node_md": "nodes/risk-policy-controls/internal-controls.md",
       "last_evidence_at": "2026-06-21T21:35:38+00:00",
       "consolidated_at": "2026-06-21T21:38:40+00:00",
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "risk-policy-controls.monitoring": {
       "l1": "risk-policy-controls",
@@ -1747,7 +1747,7 @@
       "node_md": "nodes/risk-policy-controls/monitoring.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     },
     "risk-policy-controls.reporting": {
       "l1": "risk-policy-controls",
@@ -1793,7 +1793,7 @@
       "node_md": "nodes/risk-policy-controls/reporting.md",
       "last_evidence_at": null,
       "consolidated_at": null,
-      "updated": "2026-06-21T21:57:26+00:00"
+      "updated": "2026-06-21T22:09:59+00:00"
     }
   }
 }
