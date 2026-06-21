@@ -103,7 +103,7 @@ L2 at init (even if empty / `coverage: none` — an empty node *is* a finding). 
   "l2": "close", "l2_name": "Close",
   "coverage": "none",                        // none | partial | covered (derived)
   "coverage_override": null,                 // manual override; preserved across sync
-  "evidence": [ { "source": "...", "loc": "L42-58", "note": "..." } ],  // loc format provisional (see §8.1)
+  "evidence": [ { "source": "ingested/kickoff.md", "loc": "L42-58", "note": "..." } ],  // ref = source#loc → ingested/kickoff.md#L42-58
   "lenses": { "current_state": null, "process": null, "automation": null,
               "capability": null, "operating_model": null },
   "items":  { "improvements": [], "gaps": [], "screenshots": [] },  // links to register
@@ -139,6 +139,10 @@ A flat list of every item that hangs off an L2 node, discriminated by `type`:
 - `improvement` — a process improvement opportunity (Stream B)
 - `gap` — a gap / validation item (from the drafter gap tags / structural scan)
 - `screenshot` — a screenshot placeholder (SC-IDs)
+- `unmapped` ◻ — client content that fits **no** L2 node. Node link is null; it carries an
+  `owner` and is surfaced for triage in the gap report. It is **never** auto-bucketed into a
+  nearest L2 — this is the safety net against the taxonomy silently dropping client reality.
+  (Needs schema/code support: a null-node register path + a `gap_report` Triage section.)
 
 Each row links to its node via `l1_cycle` / `l2_process` (taxonomy slugs). The 26-field
 schema (validated against `schemas/item_register.schema.json`):
@@ -178,6 +182,28 @@ L3 activities pulled from the taxonomy.
 **Invariant:** every L2 has exactly one state node and one MD file. ✅ (checked by
 `state_machine.py validate`).
 
+### Precedence & coherence (structured ↔ narrative)
+
+The structured layers and the narrative MD are two representations of one diagnosis and can
+drift, so the rule is explicit:
+
+- **`state.json` / `register.json` are authoritative for *facts*** (lenses, coverage,
+  evidence, findings). The node MD is authoritative for *prose*. **On conflict, structured
+  state wins and the MD is re-rendered** from it.
+- Findings referenced in an MD must cite their **register ID** (not restate the data).
+- `validate` gains a **coherence check** ◻: every register ID cited in a node MD exists, and
+  every lens/finding asserted in prose has a matching state/register record. This is what
+  makes drift *detectable* rather than silent — critical the moment a human edits a Word
+  narrative in review.
+
+### Evidence references
+
+Evidence is recorded as a node-evidence entry (`source` = ingested doc path, `loc` =
+`Lstart-Lend`) and on register rows' `source`, composing to the canonical form
+**`path#Lstart-Lend`** (e.g. `ingested/kickoff.md#L42-58`). Evidence refs **must render
+inline** in the Word review docs — reviewers validate conclusions *with* their source, never
+blind.
+
 ---
 
 ## 4. State-management command surface (token-efficient API)
@@ -192,7 +218,7 @@ and gets compact output — it never round-trips a whole file through context.
 | `init` ✅ | seed | Seed `state.json` + `register.json` + node MD stubs + deliverable dirs from the taxonomy. |
 | `sync` ✅ | derive | Roll **active** register rows (not archived/inactive/deleted-pending) up into node item links/counts; recompute coverage; report orphan rows. |
 | `show` ✅ | read | Coverage summary. |
-| `validate` ✅ | read | Node set vs taxonomy + JSON Schema check. |
+| `validate` ✅ | read | Node set vs taxonomy + JSON Schema check. ◻ adds a coherence check (MD-cited register IDs exist; prose lenses/findings match state). |
 | `get-node` ✅ | discovery | Return one node (compact, or `--json`), not the whole file. |
 | `query` ✅ | discovery | List node keys matching ANDed filters (`--coverage`, `--lens-missing`, `--has-gaps`, `--has-improvements`, `--l1`, `--count`). |
 | `set-lens` ✅ | mutate | Set/clear one lens value on a node (schema-validated). |
@@ -233,24 +259,25 @@ ingests it, and the agent applies every change through the commands:
 2. **Ingest** — drop raw files of any format; `consult-ingest` normalizes each to a clean
    MD with a YAML header under `ingested/` (Python; templates the agent can extend).
 3. **Classify** — fan out one sub-agent per ingested doc; each *reads* the doc and *returns*
-   a structured artifact (which L2 nodes it touches, lens signals, evidence spans,
-   candidate findings, and **`unmapped` flags** for content that fits no L2). The
-   orchestrator applies it via `set-lens` / `add-evidence` / `add-item`. Sub-agents never
-   touch state. The taxonomy is read-only.
+   a structured artifact (which L2 nodes it touches, lens signals, evidence spans `path#L-L`,
+   candidate findings, and **`unmapped`** content that fits no L2). The orchestrator applies
+   it via `set-lens` / `add-evidence` / `add-item` (unmapped → `type: unmapped` register rows
+   with an owner). Sub-agents never touch state. The taxonomy is read-only.
 4. **Consolidate** — per L2 with new evidence, author `nodes/{l1}/{l2}.md`: the narrative
    analysis (what we learned, the 5-lens diagnosis incl. pain points, called-out
    improvements/gaps **referencing register IDs**). Structured facts live in state/register;
    prose lives in the MD; they stay coupled.
 5. **Gap diagnose** — `gap_report.py scan` (structural) + `consult-gap-analyzer` (substantive)
-   → `type: gap` register rows + `gap_report.md`.
+   → `type: gap` register rows + `gap_report.md` (incl. an **unmapped Triage** section).
 6. **Draft** — 5A SOPs (`consult-drafter`) and 5B improvements (`consult-improvement-drafter`)
-   per L2 from state/register.
-7. **Render to Word** — `consult-docx-builder` turns the analysis MDs and deliverables into
-   CFGI-branded Word for human review.
-8. **Human review in Word** — reviewers comment/edit directly in the Word docs.
+   from state/register.
+7. **Render to Word** — `consult-docx-builder` renders the deliverables per **L1 cycle**
+   (the review unit; the drafter's L1-Level mode already does this), with **evidence refs
+   inline** and a reviewer-facing **change log** of what moved since the last round.
+8. **Human review in Word** — reviewers comment/edit the per-L1 docs.
 9. **Ingest the review** — `consult-review-comment-resolver` extracts the reviewed Word
-   (**body text + tracked comments** — an LLM-mediated docx ingestion) into structured
-   updates, which the agent applies back through the commands. No CSV.
+   (**body text + tracked comments** — LLM-mediated docx ingestion), attributes changes to a
+   reviewer, and the agent applies them back through the commands. No CSV.
 10. **Re-run** any stage idempotently; assemble **final output** to Word.
 
 Steps 7–9 are the review loop that replaces the former Excel/CSV reimport.
@@ -270,9 +297,10 @@ templates the agent extends per format**. It **subsumes/calls** `consult-transcr
 ### Stage 2 — Classify (LLM fan-out, "one Sonnet per doc") ◻
 For each ingested doc, launch a sub-agent that **reads it and returns** a compact structured
 artifact: which L2 nodes it touches, candidate evidence spans, lens signals, candidate
-findings, and **`unmapped` flags** for content that fits no L2 node (recorded for triage —
-never auto-extends the taxonomy). The orchestrator applies the artifact into state via the
-granular mutation commands; **sub-agents never write state.**
+findings, and **`unmapped`** content that fits no L2 node. The orchestrator applies the
+artifact into state via the granular mutation commands — unmapped content becomes
+`type: unmapped` register rows with an owner (never auto-bucketed into a nearest L2, never
+extends the taxonomy). **Sub-agents never write state.**
 
 ### Stage 3 — Consolidate (LLM synthesis) ◻
 Per L2 with new evidence, synthesize merged signals into the node MD — deduped, reconciled,
@@ -282,7 +310,8 @@ cited.
 `scripts/gap_report.py scan` mechanically finds structural gaps (nodes with
 `coverage:none`, missing lenses, no evidence, SOP not started) and writes them into the
 register as `type: gap` rows with **stable IDs** (`GAP-STRUCT-{l1}-{l2}-{kind}`), then
-emits `deliverables/gap_report.md`. The LLM (`consult-gap-analyzer`) adds substantive gaps
+emits `deliverables/gap_report.md` (incl. an **Unmapped Triage** section listing
+`type: unmapped` rows with owners). The LLM (`consult-gap-analyzer`) adds substantive gaps
 (contradictions, thin evidence, undocumented controls) as further gap rows.
 
 ### Stage 5 — Draft, two work streams (LLM) — 5A ✅ (drafter) · 5B ◻
@@ -295,12 +324,40 @@ emits `deliverables/gap_report.md`. The LLM (`consult-gap-analyzer`) adds substa
 Both write back `sop.status` / register rows and a deliverable path.
 
 ### Stage 6 — Review & Output
-Render analysis MDs and deliverables to CFGI-branded Word (`consult-docx-builder` ✅).
-Humans review **in Word** (edits + tracked comments). `consult-review-comment-resolver` ✅
-performs the **LLM-mediated docx ingestion** — extracting body text *and* tracked comments
-(needs a docx-comment extraction helper) into structured updates the agent applies back
-through the commands. `consult-evidence-auditor` ✅ QCs evidence completeness. Final
-assembly to Word — one document per work stream, plus the gap report. **No CSV round-trip.**
+Render deliverables to CFGI-branded Word **per L1 cycle** (`consult-docx-builder` ✅; the
+review unit — the drafter's L1-Level mode already produces one doc per cycle). Each render
+carries **evidence refs inline** and a **change log** (reviewer-attributed, what moved since
+the last round). Humans review **in Word** (edits + tracked comments).
+`consult-review-comment-resolver` ✅ performs the **LLM-mediated docx ingestion** —
+extracting body text *and* tracked comments (needs a docx-comment extraction helper) into
+structured updates the agent applies back through the commands, attributed to a reviewer.
+**Gates before `final`:** `consult-evidence-auditor` ✅ passes (procedural claims supported),
+and no open `requires_human_review` / SME-validation items remain. Final assembly to Word —
+one document per work stream, plus the gap report. **No CSV round-trip.**
+
+### Deliverables & Definition of Done
+
+The client receives **three artifacts**: Stream A (SOP / Desktop Procedures), Stream B
+(Process Improvement Opportunities), and the **Gap Report** — all CFGI-branded Word.
+
+**SOP stream DoD** = the drafter's **Quality Checklist** (`consult-drafter/SKILL.md`, *not*
+the handlebars shell in `references/`): scope level stated; canonical section order; Source
+Materials populated; each procedure has A–H sections (or a logged gap); no unsupported
+procedural claims; body gap tags reflected in **Appendix C** (Gap/Validation Log); pain
+points in **Appendix A**; improvements in **Appendix B**; screenshots in **Appendix D**;
+Cross-Reference Matrix populated; ready for docx.
+
+**Improvement stream DoD** = every improvement row has Finding → Recommendation →
+Effort × Impact → Owner (register fields non-empty), tied to a lens.
+
+**Engagement completeness rubric** (not "100% covered" — `coverage:none` is a valid
+finding): every L2 node is *triaged* (covered, or an explicit gap explains why not); zero
+`unmapped` rows left without an owner; all evidence refs resolve; evidence-auditor passes;
+no open SME-validation items. ◻ to wire as gates.
+
+> Cleanup: `references/canonical_sop_deliverable_template.md` is a redundant handlebars
+> variable-catalog shell that contradicts the SKILL.md's "produce completed Markdown"
+> instruction — reconcile or remove.
 
 ---
 
@@ -375,12 +432,18 @@ Resolved:
 4. **Write discipline** — JSON is **agent-written only**, through the state/register
    commands. **No CSV/Excel human round-trip.** Humans review on Word; the LLM ingests the
    reviewed Word (body + comments) and applies updates through the commands.
+5. **Evidence span format** — `path#Lstart-Lend` (node evidence `source` + `loc`; register
+   `source`). Must render inline in review docs.
+6. **Structured↔narrative precedence** — structured state wins on conflict; MD re-rendered;
+   findings cite register IDs; `validate` gains a coherence check (§3).
+7. **`unmapped` content** — first-class register `type: unmapped` (null node, owner), surfaced
+   in the gap report's Unmapped Triage; never auto-bucketed (§3, §5).
+8. **Review unit** — per **L1 cycle** (decoupled from per-L2 storage); the drafter's L1-Level
+   mode already renders this.
 
 Open:
 
-1. **Evidence span format** — proposed `path#Lstart-Lend`; currently provisional: a `loc`
-   string on node evidence and free-text `source` on register rows. Converge when Stage 2 lands.
-2. **Register write primitive → JSON-native** — `add-item`/`gap_report.py` still feed
+1. **Register write primitive → JSON-native** — `add-item`/`gap_report.py` still feed
    `update-json` via a temp CSV. Refactor to a direct JSON upsert so CSV transport is gone
    entirely (human CSV import is already dropped). `build-xlsx` stays only as optional read-only.
 3. **docx comment extraction** — Stage 6 review ingestion needs a helper that pulls **tracked
@@ -394,6 +457,13 @@ Open:
    register or stay solely in the SOP's Appendix D when Stage 5A integration lands.
 7. **Optional L2 taxonomy enrichment** — add per-L2 `description`/`keywords` to aid Stage 2
    classification (additive; see §2).
+8. **Review versioning** — round-over-round diff + reviewer-attributed change log surfaced in
+   the Word render; re-runs must not silently overwrite human edits. Define rev semantics
+   (node-level, beyond `sop.rev`).
+9. **DoD gates** — wire evidence-auditor pass + zero open SME/`requires_human_review` items as
+   hard gates before `final` (§5 Deliverables & DoD).
+10. **Drafter shell template** — reconcile/remove the redundant handlebars
+    `canonical_sop_deliverable_template.md` (§5 cleanup note).
 
 ---
 
@@ -434,6 +504,10 @@ consolidate) and a top-level way to run the whole pipeline as one motion.**
 | `consult-drafter` wiring ◻ | SOP from state/register | S–M | skill exists; predates state model |
 | `consult-improvement-drafter` (5B) ◻ | improvements from lenses + register | M | new |
 | Review ingestion (Stage 6) ◻ | docx **comment** extraction + apply via commands | M | the LLM-mediated Word→state loop |
+| `unmapped` handling ◻ | register `type: unmapped` (null node) + gap-report Triage | S–M | the diagnostic-completeness safety net |
+| `validate` coherence check ◻ | MD-cited IDs exist; prose lenses match state | S | makes structured↔narrative drift detectable |
+| Per-L1 render + evidence-inline + change log ◻ | review-unit rendering with reviewer-attributed diffs | M | review usability |
+| DoD gates ◻ | evidence-auditor + open-SME items block `final` | S | deliverable trust |
 | Output assembly ◻ | per-stream Word + gap report | S | `consult-docx-builder` wiring |
 
 **C. Glue & Infra — what makes it a product, not a toolbox**
@@ -469,6 +543,23 @@ that*, with stubs elsewhere. Rationale: it surfaces the integration seams (the c
 artifact contract and the Word review loop) while they are cheap to change, yields a
 demoable result fastest, and becomes the regression fixture. Building ingest's full format
 zoo before proving classify would be effort at risk.
+
+The slice should deliberately exercise the parts that only bite at scale: a **second review
+round** (to prove versioning / no-silent-overwrite) and at least **one `unmapped` item** (to
+prove the triage path) — not just a happy-path single pass.
+
+### Persona, invocation & success metrics
+
+- **Persona / invocation** — define who runs this (engagement associate vs. lead) and the
+  single entry point they invoke; this is the open **orchestration form** decision (skill /
+  Python driver / `CLAUDE.md`). For a "runs an engagement end to end" product the entry
+  point *is* the product — don't leave it implicit.
+- **Success metrics** — set targets so "good enough to bill on" is falsifiable: classify
+  **precision/recall** (tie to the artifact contract), evidence-support rate (claims with a
+  resolving ref), reviewer-edit rate, and time-to-first-draft. The biggest linked risk is
+  **classification fidelity × the unmapped path × evidence visibility** — if the diagnosis
+  silently mis-buckets or drops content and the reviewer can't see the evidence to catch it,
+  the deliverable is confidently wrong. Treat those three as one risk.
 
 ### Two explicit planned components (newly called out)
 
