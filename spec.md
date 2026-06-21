@@ -1,14 +1,13 @@
 # CONSULT — Full Work Cycle Plugin: Specification
 
-> Status: **Slice 1 complete; Slice 2 core built.** Slice 1 (the one-way pipeline:
-> ingest → classify → merge → consolidate → gaps → draft → synthesis → render) is
-> proven by a deterministic R2R e2e test and a live LLM demo (`engagements/r2r-demo`).
-> Slice 2's human Word-review loop is now built: docx comment extraction →
-> `review_ingest` (extract/apply, idempotent) → review edits mark nodes dirty for
-> re-consolidation; plus a machine-checkable `final` DoD gate (`gates.py`) and a
-> `validate` coherence check. Remaining: review-path conflict detection (T33),
-> state-driven orchestration (T37), doc-debt. Build status inline: ✅ built ·
-> ◻ not yet built. Tickets in `tickets/`.
+> Status: **Both slices complete.** Slice 1 (the one-way pipeline: ingest → classify
+> → merge → consolidate → gaps → draft → synthesis → render) and Slice 2 (the human
+> Word-review loop: docx comments → ingest → apply → re-consolidate → gated `final`)
+> are built, test-verified, and demonstrated on a live R2R sample
+> (`engagements/r2r-demo`). The Slice-1 e2e regression (`tests/test_slice1_e2e.sh`)
+> stays green under all Slice-2 additions. Remaining is optional scope only: the
+> ingest format zoo (PDF/PPTX/XLSX/images) and other §10 deferrals. Build status
+> inline: ✅ built · ◻ deferred/optional. Tickets in `tickets/`.
 > Scope: a Claude Code plugin that runs a finance-consulting engagement end to
 > end: intake → diagnose against the CFGI work taxonomy → output two work streams
 > (1) Desktop Procedures & SOPs, (2) Process Improvement Opportunities.

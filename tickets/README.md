@@ -40,20 +40,26 @@ pass before reporting.** Read the referenced contract sections before building.
 | T19 | `consult-run` orchestration — Slice-1 linear sequence | T04,T10–T18 | skill, scripts |
 | T20 | Synthesized R2R sample + end-to-end Slice-1 integration test (regression fixture) | T19 | tests/, fixtures/ |
 
-## Slice 2 — prove the human loop (backlog; expand when Slice 1 is green)
+## Slice 2 — prove the human loop ✅ COMPLETE
 
-| # | Title | Notes |
+| # | Title | Status |
 |---|---|---|
-| T30 | docx comment extraction helper (OOXML comment anchors + tracked changes) | research spike; size M–L |
-| T31 | Review ingestion wiring (resolver → commands, reviewer attribution) | `generation_review_contract.md` §2 |
-| T32 | Review-round-consumed marker + 2nd-round versioning | adversarial P1 #6 |
-| T33 | Review-path conflict detection (`set-lens` conflict → `GAP-CONFLICT`) | adversarial P2 #11 |
-| T34 | `unmapped` disposition lifecycle + `final` gate (`disposition ≠ pending`) | `classify_contract.md` §5b |
-| T35 | `validate` coherence check (MD-cited IDs exist; prose lenses match state) | spec §3 |
-| T36 | Structural re-scan preserves human `review_status` on `GAP-STRUCT` rows | adversarial P2 #13 |
-| T37 | Generalize orchestration: linear → state-driven readiness loop | `orchestration_contract.md` §3 |
-| T38 | DoD gates wired (evidence-auditor + open-SME + disposition block `final`) | spec §5 DoD |
-| T39 | Register engine doc-debt: rewrite `consult-improvement-log` SKILL.md (no CSV) | spec §10 |
+| T30 | docx comment extraction helper (OOXML comment anchors + tracked changes) | ✅ |
+| T31 | Review ingestion wiring (extract → resolve → apply, log + consumed marker) | ✅ |
+| T32 | Review edits → `mark-dirty` → re-consolidation (+ microsecond-timestamp fix) | ✅ |
+| T33 | Review-path conflict detection (override applied but audited via `GAP-CONFLICT...REVIEW`) | ✅ |
+| T34 | `unmapped` disposition lifecycle + machine-checkable `final` gate (`gates.py`); merges T38 | ✅ |
+| T35 | `validate` coherence check (MD-cited IDs exist; front-matter lenses match state) | ✅ |
+| T36 | Structural re-scan preserves human `review_status`/`owner` on `GAP-STRUCT` rows | ✅ |
+| T37 | State-driven orchestration: review re-entry + gated `final` + `next --all` | ✅ |
+| T39 | Register engine doc-debt: `consult-improvement-log` SKILL rewritten (no CSV) | ✅ |
+
+## Deferred / optional (not blocking a working system)
+
+| Area | Notes |
+|---|---|
+| Ingest format zoo | v2 (PDF/PPTX/XLSX) + v3 (images/OCR) handlers; ingest manifest + supersession |
+| Live full-fan-out hardening | bounded concurrency, atomic artifact writes (per `orchestration_contract.md` §6) |
 
 ## Definition of done (every ticket)
 Code + prescribed tests written and passing; schemas still valid; no scratch artifacts left;
