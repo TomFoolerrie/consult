@@ -1,12 +1,17 @@
 # CONSULT — Full Work Cycle Plugin: Specification
 
-> Status: **Foundation built.** Taxonomy, two-layer state model, unified item
-> register, and JSON Schemas are implemented and tested. The diagnostic/drafting
-> pipeline stages and their skills are partially built (existing skills) or
-> planned. Build status is marked inline: ✅ built · ◻ planned.
+> Status: **Spine built; design complete end to end.** Taxonomy, two-layer state
+> model, unified item register, JSON Schemas, and structural gaps are implemented
+> and tested. Every remaining stage is **design-drafted** in a companion contract
+> (below). Build status is marked inline: ✅ built/drafted · ◻ not yet built.
 > Scope: a Claude Code plugin that runs a finance-consulting engagement end to
 > end: intake → diagnose against the CFGI work taxonomy → output two work streams
 > (1) Desktop Procedures & SOPs, (2) Process Improvement Opportunities.
+>
+> **Design artifacts** (this spec is the index): `ingest_contract.md` (S1) ·
+> `classify_contract.md` (S2) · `consolidate_contract.md` (S3) ·
+> `generation_review_contract.md` (S5–6) · `orchestration_contract.md` (run loop),
+> with draft schemas under `schemas/`.
 
 ---
 
@@ -308,25 +313,30 @@ deterministic merge rules (2b), and a worked example are specified in
 **`classify_contract.md`** (+ `schemas/classify_artifact.schema.json`) ✅ design-drafted.
 
 ### Stage 3 — Consolidate (LLM synthesis) ◻
-Per L2 with new evidence, synthesize merged signals into the node MD — deduped, reconciled,
-cited.
+Per **dirty L2** (new evidence), one sub-agent **confirms staged findings** into the register
+(dedup/judgment gate; IDs assigned *before* the MD cites them) and **authors the node MD**
+(diagnosis narrative citing register IDs + evidence refs), then sets `node.consolidated_at`.
+Structured state wins; the MD is its render. Specified in **`consolidate_contract.md`** ✅
+design-drafted.
 
 ### Stage 4 — Gap Diagnose (Python + LLM) ◻
 `scripts/gap_report.py scan` mechanically finds structural gaps (nodes with
 `coverage:none`, missing lenses, no evidence, SOP not started) and writes them into the
 register as `type: gap` rows with **stable IDs** (`GAP-STRUCT-{l1}-{l2}-{kind}`), then
 emits `deliverables/gap_report.md` (incl. an **Unmapped Triage** section listing
-`type: unmapped` rows with owners). The LLM (`consult-gap-analyzer`) adds substantive gaps
-(contradictions, thin evidence, undocumented controls) as further gap rows.
+`type: unmapped` rows with owners). The LLM `consult-gap-analyzer` runs **after consolidate**
+(it needs the synthesis) and adds substantive gaps (contradictions, thin/single-source
+evidence, undocumented controls, conflicting lens signals) as further gap rows
+(`consolidate_contract.md` §7).
 
-### Stage 5 — Draft, two work streams (LLM) — 5A ✅ (drafter) · 5B ◻
-- **5A SOP / Desktop Procedures** (`consult-drafter` ✅) — per L2: Purpose → Scope →
-  Inputs/Systems → Roles → Step-by-step → Controls → Exceptions → Screenshot placeholders.
-- **5B Improvement Opportunities** (`consult-improvement-drafter` ◻) — per L2, organized
-  by the 4 lenses, driven by `process`/`automation`/`operating_model`/`capability` and the
-  register's improvement rows: Finding → Recommendation → Effort × Impact → Owner.
+### Stage 5 — Draft, two work streams (LLM, per L1) — 5A ✅ (drafter) · 5B ◻
+- **5A SOP / Desktop Procedures** (`consult-drafter` ✅, L1-Level mode) — from the L1's node
+  MDs + lenses + register rows (improvements→App. B, gaps→App. C, screenshots→App. D, pain
+  points→App. A); canonical SOP per the Quality Checklist DoD; writes back `sop.*`.
+- **5B Improvement Opportunities** (`consult-improvement-drafter` ◻) — from register
+  `type:improvement` rows grouped by lens: Finding → Recommendation → Effort × Impact → Owner.
 
-Both write back `sop.status` / register rows and a deliverable path.
+Specified in **`generation_review_contract.md`** ✅ design-drafted.
 
 ### Stage 6 — Review & Output
 Render deliverables to CFGI-branded Word **per L1 cycle** (`consult-docx-builder` ✅; the
@@ -335,10 +345,12 @@ carries **evidence refs inline** and a **change log** (reviewer-attributed, what
 the last round). Humans review **in Word** (edits + tracked comments).
 `consult-review-comment-resolver` ✅ performs the **LLM-mediated docx ingestion** —
 extracting body text *and* tracked comments (needs a docx-comment extraction helper) into
-structured updates the agent applies back through the commands, attributed to a reviewer.
+structured updates the agent applies back through the commands, attributed to a reviewer
+(substance changes mark nodes dirty → re-consolidate/redraft next loop).
 **Gates before `final`:** `consult-evidence-auditor` ✅ passes (procedural claims supported),
-and no open `requires_human_review` / SME-validation items remain. Final assembly to Word —
-one document per work stream, plus the gap report. **No CSV round-trip.**
+no open `requires_human_review` / SME items, every `unmapped` row owned. Final assembly to
+Word — one document per work stream, plus the gap report. **No CSV round-trip.**
+(`generation_review_contract.md`.)
 
 ### Deliverables & Definition of Done
 
@@ -501,16 +513,16 @@ consolidate) and a top-level way to run the whole pipeline as one motion.**
 |---|---|---|---|
 | `consult-ingest` (Stage 1) ◻ | all formats → immutable MD + YAML header (`ingest_contract.md` ✅ drafted) | M–L | format zoo: PDF tables, PPTX, XLSX, images/OCR |
 | `consult-classifier` (Stage 2) ◻ | **keystone**: doc → artifact → state | L | the artifact schema + cross-doc merge + evidence fidelity |
-| `consult-consolidator` (Stage 3) ◻ | per-L2 node-MD synthesis | M | keeping prose ↔ structured coupled |
-| `consult-gap-analyzer` (Stage 4 LLM) ◻ | substantive gaps | S–M | overlap with structural scan |
+| `consult-consolidator` (Stage 3) ◻ | confirm findings + author node MD (`consolidate_contract.md` ✅ drafted) | M | keeping prose ↔ structured coupled |
+| `consult-gap-analyzer` (Stage 4 LLM) ◻ | substantive gaps, post-consolidate (`consolidate_contract.md` §7) | S–M | overlap with structural scan |
 
 **B. Generation & Review — mostly wiring existing skills to the state/register model**
 
 | Item | Role | Size | Note |
 |---|---|---|---|
-| `consult-drafter` wiring ◻ | SOP from state/register | S–M | skill exists; predates state model |
-| `consult-improvement-drafter` (5B) ◻ | improvements from lenses + register | M | new |
-| Review ingestion (Stage 6) ◻ | docx **comment** extraction + apply via commands | M | the LLM-mediated Word→state loop |
+| `consult-drafter` wiring ◻ | SOP from state/register, per L1 (`generation_review_contract.md` ✅ drafted) | S–M | skill exists; predates state model |
+| `consult-improvement-drafter` (5B) ◻ | improvements from lenses + register (`generation_review_contract.md`) | M | new |
+| Review ingestion (Stage 6) ◻ | docx **comment** extraction + apply via commands (`generation_review_contract.md`) | M | the LLM-mediated Word→state loop |
 | `unmapped` handling ◻ | register `type: unmapped` (null node) + gap-report Triage | S–M | the diagnostic-completeness safety net |
 | `validate` coherence check ◻ | MD-cited IDs exist; prose lenses match state | S | makes structured↔narrative drift detectable |
 | Per-L1 render + evidence-inline + change log ◻ | review-unit rendering with reviewer-attributed diffs | M | review usability |
