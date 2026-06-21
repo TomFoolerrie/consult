@@ -53,6 +53,10 @@ def schema_check(instance: Dict[str, Any], schema_path: Path) -> List[str]:
 LENSES = ["current_state", "process", "automation", "capability", "operating_model"]
 ITEM_BUCKETS = ["improvements", "gaps", "screenshots"]
 TYPE_TO_BUCKET = {"improvement": "improvements", "gap": "gaps", "screenshot": "screenshots"}
+# Register rows in these statuses do not roll up into node counts (aligned with
+# improvement_log.py ARCHIVE_STATUSES ∪ DELETE_STATUSES).
+INACTIVE_STATUSES = {"archived", "inactive", "deleted_candidate", "deleted",
+                     "delete", "removed", "remove"}
 
 
 def now_iso() -> str:
@@ -79,6 +83,7 @@ def new_node(l1: str, l1_name: str, l2: str, l2_name: str) -> Dict[str, Any]:
     return {
         "l1": l1, "l1_name": l1_name, "l2": l2, "l2_name": l2_name,
         "coverage": "none",
+        "coverage_override": None,
         "evidence": [],
         "lenses": {lens: None for lens in LENSES},
         "items": {bucket: [] for bucket in ITEM_BUCKETS},
@@ -178,6 +183,18 @@ def load_register(eid: str) -> List[Dict[str, Any]]:
 
 
 def derive_coverage(node: Dict[str, Any]) -> str:
+    """Derive a node's coverage from its contents.
+
+    A manual `coverage_override` (set via the planned set-coverage command) takes
+    precedence and is preserved across sync. Otherwise:
+      - none    : no evidence AND no linked items
+      - covered : has evidence AND all 5 lenses set
+      - partial : anything in between (items but no evidence, evidence but
+                  incomplete lenses, etc.)
+    """
+    override = node.get("coverage_override")
+    if override:
+        return override
     has_evidence = bool(node.get("evidence"))
     has_items = any(node["counts"].get(b, 0) for b in ITEM_BUCKETS)
     all_lenses = all(node["lenses"].get(lens) for lens in LENSES)
@@ -200,7 +217,7 @@ def cmd_sync(eid: str) -> None:
 
     orphans: List[str] = []
     for rec in records:
-        if str(rec.get("record_status", "active")).lower() in {"archived", "inactive"}:
+        if str(rec.get("record_status", "active")).lower() in INACTIVE_STATUSES:
             continue
         l1, l2 = rec.get("l1_cycle"), rec.get("l2_process")
         if not l1 or not l2:

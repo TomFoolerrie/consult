@@ -38,6 +38,7 @@
         "l2": { "type": "string" },
         "l2_name": { "type": "string" },
         "coverage": { "enum": ["none", "partial", "covered"] },
+        "coverage_override": { "enum": ["none", "partial", "covered", null] },
         "evidence": {
           "type": "array",
           "items": {

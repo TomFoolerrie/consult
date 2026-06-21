@@ -95,7 +95,8 @@ L2 at init (even if empty / `coverage: none` — an empty node *is* a finding). 
   "l1": "record-to-report", "l1_name": "Record to Report",
   "l2": "close", "l2_name": "Close",
   "coverage": "none",                        // none | partial | covered (derived)
-  "evidence": [ { "source": "...", "loc": "L42-58", "note": "..." } ],
+  "coverage_override": null,                 // manual override; preserved across sync
+  "evidence": [ { "source": "...", "loc": "L42-58", "note": "..." } ],  // loc format provisional (see §8.1)
   "lenses": { "current_state": null, "process": null, "automation": null,
               "capability": null, "operating_model": null },
   "items":  { "improvements": [], "gaps": [], "screenshots": [] },  // links to register
@@ -108,6 +109,16 @@ L2 at init (even if empty / `coverage: none` — an empty node *is* a finding). 
 
 `sop.status` enum: `not_started → drafting → draft → in_review → revised → final`.
 Validated against `schemas/engagement_state.schema.json`. ✅
+
+**Coverage is derived** (by `sync`) from node contents, unless `coverage_override` is set
+(which takes precedence and is preserved across sync):
+- `none` — no evidence **and** no linked items
+- `covered` — has evidence **and** all 5 lenses set
+- `partial` — anything in between (items but no evidence, evidence but incomplete lenses)
+
+> **Region note:** the *taxonomy* regional variant was dropped (§2), but each engagement
+> still carries a `region` attribute (`init --region NA`) — it's an engagement property,
+> not a taxonomy axis.
 
 ### Layer 2 — unified item register `register.json` ✅ (owned by `improvement_log.py`)
 
@@ -164,14 +175,14 @@ and gets compact output — it never round-trips a whole file through context.
 | Command | Kind | Purpose |
 |---|---|---|
 | `init` ✅ | seed | Seed `state.json` + `register.json` + node MD stubs + deliverable dirs from the taxonomy. |
-| `sync` ✅ | derive | Roll active register rows up into node item links/counts; recompute coverage; report orphan rows. |
+| `sync` ✅ | derive | Roll **active** register rows (not archived/inactive/deleted-pending) up into node item links/counts; recompute coverage; report orphan rows. |
 | `show` ✅ | read | Coverage summary. |
 | `validate` ✅ | read | Node set vs taxonomy + JSON Schema check. |
 | `get-node` ◻ | discovery | Return one node (compact), not the whole file. |
 | `query` ◻ | discovery | List node keys matching filters (`--coverage none`, `--lens-missing X`, `--has-gaps`). |
 | `set-lens` ◻ | mutate | Set one lens value on a node. |
 | `add-evidence` ◻ | mutate | Append an evidence span to a node. |
-| `set-coverage` ◻ | mutate | Manual coverage override. |
+| `set-coverage` ◻ | mutate | Manual coverage override (writes `coverage_override`; `sync` preserves it). |
 | `set-sop` ◻ | mutate | Update SOP deliverable status/path/rev. |
 
 ### `improvement_log.py` (item register) ✅
@@ -215,7 +226,7 @@ register as `type: gap` rows with **stable IDs** (`GAP-STRUCT-{l1}-{l2}-{kind}`)
 emits `deliverables/gap_report.md`. The LLM (`consult-gap-analyzer`) adds substantive gaps
 (contradictions, thin evidence, undocumented controls) as further gap rows.
 
-### Stage 5 — Draft, two work streams (LLM) ◻ / ✅ (drafter exists)
+### Stage 5 — Draft, two work streams (LLM) — 5A ✅ (drafter) · 5B ◻
 - **5A SOP / Desktop Procedures** (`consult-drafter` ✅) — per L2: Purpose → Scope →
   Inputs/Systems → Roles → Step-by-step → Controls → Exceptions → Screenshot placeholders.
 - **5B Improvement Opportunities** (`consult-improvement-drafter` ◻) — per L2, organized
@@ -257,7 +268,9 @@ Planned ◻:
 
 ---
 
-## 7. Repo layout (actual)
+## 7. Repo layout (current + planned)
+
+> ✅ paths exist on disk; ◻ paths are planned. `engagements/` is created on first `init`.
 
 ```
 /
@@ -301,9 +314,12 @@ Resolved:
 
 Open:
 
-1. **Evidence span format** — proposed `path#Lstart-Lend`; currently stored as a `loc`
-   string on node evidence and free-text `source` on register rows. Finalize when Stage 2
-   lands.
+1. **Evidence span format** — proposed `path#Lstart-Lend`; currently provisional: a `loc`
+   string on node evidence and free-text `source` on register rows. Converge on one format
+   when Stage 2 lands.
+4. **Machine-record ID schemes** — only structural gaps have a defined stable-ID scheme
+   (`GAP-STRUCT-{l1}-{l2}-{kind}`). Improvement and screenshot ID schemes are still
+   ad hoc; define stable prefixes before Stage 5B / Stage 5A screenshot integration.
 2. **Engagement state in git** — kept in-repo per decision. Decide later whether real
    client engagements are committed or git-ignored per-engagement (backups already ignored).
 3. **Screenshot items** — supported as a register `type`; decide whether they live in the
