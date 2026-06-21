@@ -28,9 +28,21 @@
     }
   },
   "$defs": {
+    "artifact": {
+      "type": "object",
+      "description": "Per-node deliverable status (sop or improvement): drafting status, file path, content rev, and the render/review progress markers.",
+      "additionalProperties": true,
+      "properties": {
+        "status": { "enum": ["not_started", "drafting", "draft", "in_review", "revised", "final"] },
+        "path": { "type": ["string", "null"] },
+        "rev": { "type": "integer", "minimum": 0 },
+        "rendered_rev": { "type": "integer", "minimum": 0 },
+        "reviewed_rev": { "type": "integer", "minimum": 0 }
+      }
+    },
     "node": {
       "type": "object",
-      "required": ["l1", "l2", "coverage", "lenses", "items", "counts", "sop"],
+      "required": ["l1", "l2", "coverage", "lenses", "items", "counts", "sop", "improvement"],
       "additionalProperties": true,
       "properties": {
         "l1": { "type": "string" },
@@ -81,15 +93,8 @@
             "screenshots": { "type": "integer", "minimum": 0 }
           }
         },
-        "sop": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "status": { "enum": ["not_started", "drafting", "draft", "in_review", "revised", "final"] },
-            "path": { "type": ["string", "null"] },
-            "rev": { "type": "integer", "minimum": 0 }
-          }
-        },
+        "sop": { "$ref": "#/$defs/artifact" },
+        "improvement": { "$ref": "#/$defs/artifact" },
         "node_md": { "type": "string" },
         "last_evidence_at": { "type": ["string", "null"], "description": "Timestamp of the most recent evidence add; drives the diagnosis-dirty signal." },
         "consolidated_at": { "type": ["string", "null"], "description": "When the node MD was last synthesized; node is diagnosis-dirty when last_evidence_at > consolidated_at." },

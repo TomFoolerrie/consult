@@ -22,7 +22,9 @@ Commands:
   set-lens      Set or clear one of the 5 diagnostic lenses on a node.
   add-evidence  Append an evidence entry to a node.
   set-coverage  Set/clear a manual coverage override (or recompute via auto).
-  set-sop       Update a node's SOP status / path / rev.
+  set-sop       Update a node's SOP status / path / rev / render+review markers.
+  set-improvement  Update a node's improvement status / path / rev / render+review markers.
+  mark-consolidated  Stamp a node's consolidated_at = now (clears diagnosis-dirty).
   add-item      Add a register row (via improvement_log.py) and resync counts.
 """
 from __future__ import annotations
@@ -113,8 +115,13 @@ def new_node(l1: str, l1_name: str, l2: str, l2_name: str) -> Dict[str, Any]:
         "lenses": {lens: None for lens in LENSES},
         "items": {bucket: [] for bucket in ITEM_BUCKETS},
         "counts": {bucket: 0 for bucket in ITEM_BUCKETS},
-        "sop": {"status": "not_started", "path": None, "rev": 0},
+        "sop": {"status": "not_started", "path": None, "rev": 0,
+                "rendered_rev": 0, "reviewed_rev": 0},
+        "improvement": {"status": "not_started", "path": None, "rev": 0,
+                        "rendered_rev": 0, "reviewed_rev": 0},
         "node_md": f"nodes/{l1}/{l2}.md",
+        "last_evidence_at": None,
+        "consolidated_at": None,
         "updated": now_iso(),
     }
 
@@ -445,21 +452,57 @@ def cmd_set_coverage(eid: str, key: str, value: str) -> None:
     print(f"{key}: coverage={node['coverage']} override={node.get('coverage_override')}.")
 
 
-def cmd_set_sop(eid: str, key: str, status: str | None, path: str | None, bump_rev: bool) -> None:
-    if status is None and path is None and not bump_rev:
-        raise SystemExit("set-sop requires at least one of --status, --path, --bump-rev.")
+def _set_node_artifact(eid: str, block: str, key: str, status: str | None,
+                       path: str | None, bump_rev: bool,
+                       bump_rendered_rev: bool, bump_reviewed_rev: bool) -> None:
+    """Shared mutator for the `sop` and `improvement` node blocks."""
+    if (status is None and path is None and not bump_rev
+            and not bump_rendered_rev and not bump_reviewed_rev):
+        raise SystemExit(
+            f"set-{block} requires at least one of --status, --path, "
+            "--bump-rev, --bump-rendered-rev, --bump-reviewed-rev.")
     state_path, state = load_state(eid)
     node = _require_node(state, key)
-    sop = node["sop"]
+    art = node[block]
     if status is not None:
-        sop["status"] = status
+        art["status"] = status
     if path is not None:
-        sop["path"] = path
+        art["path"] = path
     if bump_rev:
-        sop["rev"] = int(sop.get("rev", 0)) + 1
+        art["rev"] = int(art.get("rev", 0)) + 1
+    if bump_rendered_rev:
+        art["rendered_rev"] = int(art.get("rendered_rev", 0)) + 1
+    if bump_reviewed_rev:
+        art["reviewed_rev"] = int(art.get("reviewed_rev", 0)) + 1
     _touch(state, node)
     _save_state(state_path, state)
-    print(f"{key}: sop status={sop.get('status')} rev={sop.get('rev')} path={sop.get('path')}.")
+    print(f"{key}: {block} status={art.get('status')} rev={art.get('rev')} "
+          f"rendered_rev={art.get('rendered_rev')} reviewed_rev={art.get('reviewed_rev')} "
+          f"path={art.get('path')}.")
+
+
+def is_diagnosis_dirty(node: Dict[str, Any]) -> bool:
+    """True when a node has evidence newer than its last consolidation.
+
+    A node with no evidence (last_evidence_at is None) is never dirty. A node
+    with evidence but never consolidated (consolidated_at is None) is dirty.
+    """
+    last_evidence_at = node.get("last_evidence_at")
+    if last_evidence_at is None:
+        return False
+    consolidated_at = node.get("consolidated_at")
+    if consolidated_at is None:
+        return True
+    return last_evidence_at > consolidated_at
+
+
+def cmd_mark_consolidated(eid: str, key: str) -> None:
+    state_path, state = load_state(eid)
+    node = _require_node(state, key)
+    node["consolidated_at"] = now_iso()
+    _touch(state, node)
+    _save_state(state_path, state)
+    print(f"{key}: consolidated_at={node['consolidated_at']}.")
 
 
 def _next_item_id(eid: str, prefix: str) -> str:
@@ -584,13 +627,20 @@ def main() -> None:
     sc.add_argument("--node", required=True)
     sc.add_argument("--value", required=True, choices=["none", "partial", "covered", "auto"])
 
-    ss = sub.add_parser("set-sop", help="Update a node's SOP status/path/rev.")
-    ss.add_argument("--engagement", required=True)
-    ss.add_argument("--node", required=True)
-    ss.add_argument("--status", choices=["not_started", "drafting", "draft",
-                                         "in_review", "revised", "final"])
-    ss.add_argument("--path")
-    ss.add_argument("--bump-rev", action="store_true")
+    for cmd_name, block_help in (("set-sop", "SOP"), ("set-improvement", "improvement")):
+        sa = sub.add_parser(cmd_name, help=f"Update a node's {block_help} status/path/rev.")
+        sa.add_argument("--engagement", required=True)
+        sa.add_argument("--node", required=True)
+        sa.add_argument("--status", choices=["not_started", "drafting", "draft",
+                                             "in_review", "revised", "final"])
+        sa.add_argument("--path")
+        sa.add_argument("--bump-rev", action="store_true")
+        sa.add_argument("--bump-rendered-rev", action="store_true")
+        sa.add_argument("--bump-reviewed-rev", action="store_true")
+
+    mc = sub.add_parser("mark-consolidated", help="Stamp a node's consolidated_at = now.")
+    mc.add_argument("--engagement", required=True)
+    mc.add_argument("--node", required=True)
 
     ai = sub.add_parser("add-item", help="Add a register row and resync node counts.")
     ai.add_argument("--engagement", required=True)
@@ -622,7 +672,13 @@ def main() -> None:
     elif args.command == "set-coverage":
         cmd_set_coverage(args.engagement, args.node, args.value)
     elif args.command == "set-sop":
-        cmd_set_sop(args.engagement, args.node, args.status, args.path, args.bump_rev)
+        _set_node_artifact(args.engagement, "sop", args.node, args.status, args.path,
+                           args.bump_rev, args.bump_rendered_rev, args.bump_reviewed_rev)
+    elif args.command == "set-improvement":
+        _set_node_artifact(args.engagement, "improvement", args.node, args.status, args.path,
+                           args.bump_rev, args.bump_rendered_rev, args.bump_reviewed_rev)
+    elif args.command == "mark-consolidated":
+        cmd_mark_consolidated(args.engagement, args.node)
     elif args.command == "add-item":
         cmd_add_item(args.engagement, args.type, args.l1, args.l2, args.id, args.field)
 
