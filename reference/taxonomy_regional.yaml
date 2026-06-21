@@ -1,0 +1,402 @@
+# CFGI Business Cycle Taxonomies — Regional
+# Source: BT_Business_Cycle_Taxonmies_Regional.pdf (© 2023 CFGI, All Rights Reserved)
+# Schema: meta > regional_dimension > domains[L1 > L2 > L3[]]
+# Note: "Regional" variant — see ambiguities section at bottom
+
+meta:
+  source_doc: BT_Business_Cycle_Taxonmies_Regional.pdf
+  publisher: CFGI
+  year: 2023
+  practice: Business Transformation
+  total_l1_domains: 6
+  regional_dimension:
+    observation: >
+      Despite the filename indicating a "Regional" variant, the rendered pages contain
+      NO explicit regional breakdowns (no country/region columns, no regional L3 variants,
+      no region-specific notes or contacts). The taxonomy structure is identical to a
+      standard global CFGI taxonomy. Either (a) the regional content exists on pages not
+      rendered by the PDF reader (the file is 213KB suggesting possible additional pages),
+      or (b) "Regional" in the title refers to CFGI regional office use rather than
+      geographic process variants.
+    regions_covered: null          # None found in rendered content
+    region_specific_l3s: null      # None found in rendered content
+    region_specific_notes: null    # None found in rendered content
+    human_verify_required: true
+
+domains:
+  - id: "1.0"
+    name: Record-to-Report
+    abbrev: RTR
+    theme: Close the Books
+    description: >
+      Preparation activities and execution of month-end close,
+      management reporting, and business/stakeholder support
+    l2s:
+      - id: "1.1"
+        name: Pre-Close Set Up
+        l3s:
+          - "1.1.1 Master Data Configuration"
+          - "1.1.2 Ledger Configuration"
+          - "1.1.3 Data Governance"
+          - "1.1.4 Cost and Profit Center Reporting"
+          - "1.1.5 Develop & Maintain Close Checklist & Calendar"
+          - "1.1.6 Hold Pre-Close Meetings"
+      - id: "1.2"
+        name: Close
+        notes: "Sub-Ledger Close includes Fixed Assets, Inventory, Payroll Accounting/Bonuses/Commissions, etc."
+        l3s:
+          - "1.2.1 Sub-Ledger Close"
+          - "1.2.2 Intercompany & Allocations"
+          - "1.2.3 Accruals"
+          - "1.2.4 Non-Standard Journal Entries"
+          - "1.2.5 Trial Balance & GL Close"
+          - "1.2.6 Account Reconciliations"
+          - "1.2.7 Prepare Local Financials"
+          - "1.2.8 Management Review & Analysis"
+      - id: "1.3"
+        name: Consolidation
+        l3s:
+          - "1.3.1 Collect Data"
+          - "1.3.2 IC Eliminations"
+          - "1.3.3 Equity Accounting"
+          - "1.3.4 Topside Entries"
+          - "1.3.5 Consolidate Information"
+          - "1.3.6 Corporate Review"
+          - "1.3.7 Variance Analysis"
+          - "1.3.8 Analytic Driven Review"
+      - id: "1.4"
+        name: Reporting
+        l3s:
+          - "1.4.1 Management Reporting"
+          - "1.4.2 Consolidated Financial Statements"
+          - "1.4.3 Prepare Regulatory Reports"
+          - "1.4.4 Investor Relations Support"
+          - "1.4.5 Treasury Support"
+          - "1.4.6 Close & Reporting Analytics"
+      - id: "1.5"
+        name: Accounting Policy
+        l3s:
+          - "1.5.1 Baseline Accounting Policies & Procedures"
+          - "1.5.2 Revenue Recognition (606)"
+          - "1.5.3 Lease Accounting (842)"
+          - "1.5.4 New Accounting Standards"
+          - "1.5.5 Manage User Access Rights (SOD)"
+          - "1.5.6 Division of Labor and Responsibilities"
+
+  - id: "2.0"
+    name: Quote-to-Cash
+    abbrev: QTC
+    theme: Sales & Revenue
+    description: >
+      Sales enablement, order fulfillment & cash collections,
+      customer feedback & sales adjustments, and revenue recognition
+    l2s:
+      - id: "2.1"
+        name: Sales Strategy & Demand Forecasting
+        l3s:
+          - "2.1.1 Demand and Revenue Forecasting"
+      - id: "2.2"
+        name: Pricing & Order Management
+        l3s:
+          - "2.2.1 Quote Process"
+          - "2.2.2 Order Process"
+          - "2.2.3 Customer Relationship Management (CRM)"
+          - "2.2.4 Contract Management"
+      - id: "2.3"
+        name: Credit Analysis
+        l3s:
+          - "2.3.1 Review Existing Accounts"
+          - "2.3.2 Analyze/Approve new account applications"
+          - "2.3.3 Produce credit / collections reports"
+          - "2.3.4 Customer Credit Analytics"
+          - "2.3.5 Reinstate / suspend accounts based on credit policies"
+      - id: "2.4"
+        name: Invoice Customer
+        l3s:
+          - "2.4.1 Execute and complete service delivery"
+          - "2.4.2 Maintain customer/product master files"
+          - "2.4.3 Generate customer billing data"
+          - "2.4.4 Transmit billing data to customers"
+          - "2.4.5 Post receivable entries"
+          - "2.4.6 Resolve customer billing inquiries"
+      - id: "2.5"
+        name: Process Accounts Receivable
+        l3s:
+          - "2.5.1 Receive/Deposit customer payments"
+          - "2.5.2 Apply Cash remittances"
+          - "2.5.3 Prepare AR reports"
+          - "2.5.4 Post AR activity to the general ledger"
+      - id: "2.6"
+        name: Manage and Process Collections
+        l3s:
+          - "2.6.1 Analyze delinquent account balances"
+          - "2.6.2 Correspond/Negotiate w/ delinquent accounts"
+          - "2.6.3 Discuss account resolution with internal parties"
+          - "2.6.4 Process adjustments/write off balances"
+          - "2.6.5 Collections Monitoring Analytics"
+      - id: "2.7"
+        name: Process Adjustments and Deductions
+        l3s:
+          - "2.7.1 Analyze adjustments"
+          - "2.7.2 Correspond/Negotiate with customer"
+          - "2.7.3 Discuss resolution with internal parties"
+          - "2.7.4 Prepare chargeback invoices"
+          - "2.7.5 Process related entries"
+      - id: "2.8"
+        name: Revenue Recognition
+        l3s:
+          - "2.8.1 Obtain Revenue Data Source"
+          - "2.8.2 Reconcile source data to internal data (GL)"
+          - "2.8.3 Reconcile deferred revenue or contra-asset schedules"
+          - "2.8.4 Prepare and process related entries"
+      - id: "2.9"
+        name: QTC Policies & Governance
+        l3s:
+          - "2.9.1 Establish Credit Policies"
+          - "2.9.2 Establish AR Policies"
+          - "2.9.3 Establish policies for delinquent accounts"
+          - "2.9.4 Establish policies/procedures for adjustments"
+          - "2.9.5 Establish policies/procedures for revenue recognition"
+
+  - id: "3.0"
+    name: Source-to-Pay
+    abbrev: STP
+    theme: Buy, Expend, Cost & Pay
+    description: >
+      Vendor Onboarding & Maintenance, Sourcing, Procurement,
+      Receiving/Logistics, and Invoice Processing
+    l2s:
+      - id: "3.1"
+        name: Master Data Management
+        l3s:
+          - "3.1.1 Vendor Data Management"
+          - "3.1.2 Item Master Maintenance"
+          - "3.1.3 Workflow Maintenance"
+          - "3.1.4 Master Data Monitoring"
+          - "3.1.5 Cost Accounting"
+          - "3.1.6 Fixed Assets Sub-Ledger Maintenance"
+      - id: "3.2"
+        name: Sourcing
+        l3s:
+          - "3.2.1 Spend Category Management"
+          - "3.2.2 Vendor Relationship Management"
+          - "3.2.3 Contract Management"
+          - "3.2.4 Spend Management"
+          - "3.2.5 Demand Forecasting"
+          - "3.2.6 Sourcing Strategy"
+          - "3.2.7 Vendor Quality Analysis"
+          - "3.2.8 Fixed Assets Planning"
+      - id: "3.3"
+        name: Procurement
+        l3s:
+          - "3.3.1 Purchase Requisition"
+          - "3.3.2 Purchase Order"
+          - "3.3.3 Purchase Card"
+      - id: "3.4"
+        name: Receiving
+        l3s:
+          - "3.4.1 Receipt of Goods / Materials (Direct & Indirect)"
+          - "3.4.2 Receipt of Services"
+          - "3.4.3 Discrepancy Resolution"
+          - "3.4.4 Warehouse Management & Logistics"
+      - id: "3.5"
+        name: Invoice Processing
+        l3s:
+          - "3.5.1 Invoice Receiving"
+          - "3.5.2 Invoice Matching"
+          - "3.5.3 Invoice Approval"
+          - "3.5.4 Invoice Discrepancy Resolution"
+          - "3.5.5 Non-PO Invoice Processing"
+          - "3.5.6 Expense Reimbursement"
+          - "3.5.7 AP Aging Review"
+      - id: "3.6"
+        name: Payment & Entry
+        l3s:
+          - "3.6.1 Vendor Payment"
+          - "3.6.2 1099 Reporting"
+          - "3.6.3 Open PO Clearing"
+          - "3.6.4 Clear Unmatched Invoices and Receipts"
+          - "3.6.5 Payment Strategies (e.g., terms negotiation)"
+      - id: "3.7"
+        name: PTP Policies & Governance
+        l3s:
+          - "3.7.1 KPI Tracking"
+          - "3.7.2 Procurement Governance (Delegation of Authority)"
+          - "3.7.3 Procurement & Expenses Policies"
+
+  - id: "4.0"
+    name: Financial Planning & Analysis
+    abbrev: FP&A
+    theme: Strategic Finance
+    description: >
+      Strategic financial solutions deployed through analytics
+      and data governance and transformation
+    l2s:
+      - id: "4.1"
+        name: Strategic Planning & Budgeting
+        l3s:
+          - "4.1.1 Retire old planning/budgeting report, and develop new year strategic plan"
+          - "4.1.2 Develop content management governance over Strategic Plan/Budget"
+          - "4.1.3 Develop adaptive/agile strategy"
+          - "4.1.4 Goal/objective establishment"
+          - "4.1.5 Establish strategy sprints, related to plan/budget period"
+          - "4.1.6 FP&A functional capability assessment"
+          - "4.1.7 Business partnering - Understanding various parts of business and working with them through the cycle"
+      - id: "4.2"
+        name: Forecasting
+        l3s:
+          - "4.2.1 Retire old forecast/report, and develop new year forecast"
+          - "4.2.2 Develop content management governance over Forecast reports"
+          - "4.2.3 Business partnering - Understanding various parts of business and working with them through the cycle"
+          - "4.2.4 13 Week Cash Forecast"
+          - "4.2.5 Prepare Local Financials"
+      - id: "4.3"
+        name: Reporting & Analytics
+        l3s:
+          - "4.3.1 Retire old reports, and develop, implement, and communicate new reports to all business functional users"
+          - "4.3.2 Develop content management governance over Financial reports & Analysis"
+          - "4.3.3 Preparation of decks for periodic Operations Reviews"
+          - "4.3.4 Monthly Bank Reporting"
+          - "4.3.5 Monthly/Quarterly/Annual Management Discussion and Analysis"
+          - "4.3.6 Board Deck preparation"
+      - id: "4.4"
+        name: Business Support
+        l3s:
+          - "4.4.1 Business x FP&A define and establish scope of reports, frequency of support, etc."
+          - "4.4.2 Organizational and job function definitions established"
+          - "4.4.3 Preparation of pro forma models to support business development"
+      - id: "4.5"
+        name: Strategic Finance & Analytics Governing Principles and Capabilities
+        l3s:
+          - "4.5.1 KPI Development & Monitoring"
+          - "4.5.2 Monthly and real-time reporting (ad-hoc, management, and executive reporting)"
+      - id: "4.6"
+        name: Data Management & Analytics
+        l3s:
+          - "4.6.1 Data Architecture (Schema design, Primary/Foreign Key creation)"
+          - "4.6.2 Metadata standardization (e.g., date, file naming formats) and management (who/what/where/when/why)"
+          - "4.6.3 Data Storage (local vs cloud, backups, security, controls, speed & performance, capacity)"
+          - "4.6.4 Data Process Automation"
+          - "4.6.5 Data Visualization"
+
+  - id: "5.0"
+    name: Hire-to-Retire
+    abbrev: HTR
+    theme: Workforce, Human Resources, and Payroll
+    description: >
+      Optimizing the workforce through labor planning and hiring needs
+      through employee separation, and payroll and tax reporting
+    status: PLACEHOLDER — L3s not released in this document version
+    l2s:
+      - id: "5.1"
+        name: Human Capital Planning
+        l3s: []
+      - id: "5.2"
+        name: Talent Acquisition & Recruiting
+        l3s: []
+      - id: "5.3"
+        name: Preboarding & Onboarding
+        l3s: []
+      - id: "5.4"
+        name: Manage Employee Information
+        l3s: []
+      - id: "5.5"
+        name: Employee Relations
+        l3s: []
+      - id: "5.6"
+        name: Compensation, Total Rewards, and Retention
+        l3s: []
+      - id: "5.7"
+        name: Payroll & Absence Management
+        l3s: []
+      - id: "5.8"
+        name: Separation & Offboarding
+        l3s: []
+      - id: "5.9"
+        name: Payroll Tax & Reporting
+        l3s: []
+
+  - id: "6.0"
+    name: Acquire-to-Retire
+    abbrev: ATR
+    theme: ~
+    description: Fixed asset lifecycle from capital planning through retirement
+    status: L2s listed in overview only; L3 detail page not present in rendered document
+    l2s:
+      - id: "6.1"
+        name: Capital Planning & Budgeting
+        l3s: []
+      - id: "6.2"
+        name: Project Setup
+        l3s: []
+      - id: "6.3"
+        name: Project Cost Accumulation & Reporting
+        l3s: []
+      - id: "6.4"
+        name: Asset Identification
+        l3s: []
+      - id: "6.5"
+        name: Capitalization, Depreciation, Retirement, Impairment
+        l3s: []
+      - id: "6.6"
+        name: Asset Reporting
+        l3s: []
+      - id: "6.7"
+        name: Capital and Fixed Assets Governance
+        l3s: []
+      - id: "6.8"
+        name: System Maintenance
+        l3s: []
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPARISON vs. STANDARD 7-DOMAIN TAXONOMY (as described in the task brief)
+# ─────────────────────────────────────────────────────────────────────────────
+# Standard brief mentions 7 L1s: Procure to Pay, Order to Cash, Record to Report,
+# FP&A, Treasury, Tax, Risk/Policy/Controls
+#
+# This document uses 6 L1s with different naming conventions:
+#   RTR  = Record-to-Report          (matches)
+#   QTC  = Quote-to-Cash             (≈ Order to Cash; also covers Sales Strategy)
+#   STP  = Source-to-Pay             (≈ Procure to Pay; broader scope)
+#   FP&A = Financial Planning & Anal (matches)
+#   HTR  = Hire-to-Retire            (NEW — not in standard 7-domain brief)
+#   ATR  = Acquire-to-Retire         (NEW — not in standard 7-domain brief)
+#
+# MISSING vs. standard brief:
+#   - Treasury  (partially covered via 1.4.5, 4.2.4 but no standalone L1)
+#   - Tax       (partially covered via 3.6.2 1099, 5.9 Payroll Tax; no standalone L1)
+#   - Risk/Policy/Controls (embedded in governance nodes; no standalone L1)
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# AMBIGUITIES — HUMAN REVIEW REQUIRED
+# ─────────────────────────────────────────────────────────────────────────────
+ambiguities:
+  - id: A1
+    issue: >
+      No regional content found. The PDF filename contains "Regional" but all
+      7 rendered pages are standard taxonomy slides with no geographic variants.
+      Possible explanations: (1) pages beyond p.7 contain regional content but
+      were not rendered by the tool; (2) a later version of this file exists;
+      (3) "Regional" refers to CFGI regional teams, not geographic process variants.
+    action: Obtain and re-read the full PDF using a native PDF reader to confirm page count and regional content.
+  - id: A2
+    issue: >
+      5.0 HTR L3s are explicitly marked "Placeholder for later release" in the source.
+      All L3 boxes are empty on the slide.
+    action: Obtain updated HTR L3 content when released.
+  - id: A3
+    issue: >
+      6.0 ATR detail page was not present in rendered content (only L2s from overview).
+    action: Confirm whether ATR L3 detail page exists in full document.
+  - id: A4
+    issue: >
+      Standard 7-domain brief includes Treasury, Tax, and Risk/Policy/Controls as
+      standalone L1s. This document omits them. These may be in a companion document
+      or represent an alternate taxonomy version.
+    action: Reconcile with the primary taxonomy document and any Tax/Treasury/Risk supplements.
+  - id: A5
+    issue: >
+      3.6.2 references "1099 Reporting" — a US-specific tax form. If this is truly
+      a regional variant, equivalent non-US mechanisms (e.g., VAT returns, withholding
+      tax filings) may be missing or intentionally excluded.
+    action: Confirm whether non-US payment reporting equivalents are addressed elsewhere.

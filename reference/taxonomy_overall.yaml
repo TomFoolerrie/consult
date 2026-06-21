@@ -1,0 +1,1119 @@
+# CFGI Work Taxonomy — Overall
+# Source: Work Taxonomy High-Level Overview deck
+# Maps encoded per node (where determinable from color coding):
+#   pain_point: high | med | low | strength   (red=pain point, white/light=strength)
+#   automation:  machine | mixed | human       (dark blue=machine, light=mixed, white=human)
+#   capability:  new | existing                (green=new, white=existing)
+#   operating_model: central | mixed | local   (dark purple=central, light=mixed/local, white=local)
+# Omitted ratings where color was ambiguous or not applied in source slides.
+# "new_capability" items appear in New Capabilities and Operating Model maps but not Current State.
+
+domains:
+
+  - id: procure_to_pay
+    name: Procure to Pay
+    description: Purchase raw materials and services; receive goods/services and pay bills
+    contacts: []
+    l2:
+      - name: Master Data Management
+        l3:
+          - name: Vendor Data Maintenance
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Item Master Maintenance
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Workflow Maintenance
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Master Data Monitoring
+            capability: new
+            operating_model: central
+
+      - name: Sourcing
+        l3:
+          - name: Spend Category Management
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Vendor Relationship Management
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Contract Management
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Spend Management
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Demand Forecasting
+            capability: new
+            operating_model: mixed
+          - name: Sourcing Strategy
+            capability: new
+            operating_model: central
+
+      - name: Procurement
+        l3:
+          - name: Purchase Requisition
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Purchase Order
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Purchase Card
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: KPI Tracking
+            capability: new
+            operating_model: central
+
+      - name: Receiving
+        l3:
+          - name: Receipt of Goods / Materials (Direct & Indirect)
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Receipt of Services
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: local
+          - name: Discrepancy Resolution
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: mixed
+
+      - name: Invoice Processing
+        l3:
+          - name: Invoice Receiving
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Invoice Matching
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Invoice Approval
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Invoice Discrepancy Resolution
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Non-PO Invoice Processing
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: AP Aging Review
+            capability: new
+            operating_model: central
+
+      - name: Payment
+        l3:
+          - name: Vendor Payment
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: 1099 Reporting
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Open PO Clearing
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Clear Unmatched Invoices and Receipts
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Payment Strategies (e.g., terms negotiation)
+            capability: new
+            operating_model: central
+          - name: Payment Tracking & Analytics
+            capability: new
+            operating_model: central
+
+  - id: order_to_cash
+    name: Order to Cash
+    description: Receive and fulfill customer requests; process orders and collect cash
+    contacts: []
+    l2:
+      - name: Credit Analysis
+        l3:
+          - name: Establish credit policies
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Review existing accounts
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Analyze/Approve new account applications
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Produce credit / collections reports
+            capability: new
+            operating_model: central
+          - name: Customer Credit Analytics
+            capability: new
+            operating_model: central
+          - name: Reinstate / suspend accounts based on credit policies
+            capability: new
+            operating_model: mixed
+
+      - name: Invoice Customer
+        l3:
+          - name: Maintain customer/product master files
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Generate customer billing data
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Transmit billing data to customers
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Post receivable entries
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Resolve customer billing inquiries
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Demand and Revenue Forecasting
+            capability: new
+            operating_model: central
+
+      - name: Process Accounts Receivable
+        l3:
+          - name: Establish AR policies
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Receive/Deposit customer payments
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Apply cash remittances
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Prepare AR reports
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Post AR activity to the general ledger
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+
+      - name: Manage and Process Collections
+        l3:
+          - name: Establish policies for delinquent accounts
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Analyze delinquent account balances
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Correspond/Negotiate with delinquent accounts
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Discuss account resolution with internal parties
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Process adjustments/write off balances
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Collections Monitoring Analytics
+            capability: new
+            operating_model: central
+
+      - name: Process Adjustments and Deductions
+        l3:
+          - name: Establish policies/procedures for adjustments
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Analyze adjustments
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Correspond/Negotiate with customer
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Discuss resolution with internal parties
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Prepare chargeback invoices
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Process related entries
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+
+      - name: Revenue Recognition
+        l3:
+          - name: Obtain Revenue Data Source
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Reconcile source data to internal data (GL)
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Review and reconcile deferred revenue schedules
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Prepare and process related entries
+            pain_point: med
+            automation: med
+            capability: existing
+            operating_model: central
+
+  - id: record_to_report
+    name: Record to Report
+    description: Collect, process, and present accurate financial data; close the books
+    contacts: []
+    l2:
+      - name: Pre-Close Set Up
+        l3:
+          - name: Master Data Configuration
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Ledger Configuration
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Cost and Profit Center Reporting
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Manage User Access Rights (SOD)
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Division of Labor and Responsibilities
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Close Checklist
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Pre-Close Meetings
+            capability: new
+            operating_model: mixed
+          - name: Data Governance
+            capability: new
+            operating_model: central
+
+      - name: Close
+        l3:
+          - name: Sub-Ledger Close
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Intercompany & Allocations
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Accruals
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Non-Standard Journal Entries
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: local
+          - name: Trial Balance & GL Close
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Account Reconciliations
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Prepare Local Financials
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Management Review
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: local
+
+      - name: Consolidation
+        l3:
+          - name: Collect Data
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Intercompany Eliminations (Asset, Debt, Income, Inventory)
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Equity Accounting
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Topside Entries
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Consolidate Information
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Corporate Review
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Variance Analysis
+            capability: new
+            operating_model: central
+          - name: Analytic Driven Review
+            capability: new
+            operating_model: central
+
+      - name: Reporting
+        l3:
+          - name: Management Reporting
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Consolidated Financial Statements
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Prepare Regulatory Reports
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Investor Relations Support
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Close & Reporting Analytics
+            capability: new
+            operating_model: central
+
+      - name: Accounting Policy
+        l3:
+          - name: Baseline Accounting Policies & Procedures
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Revenue Recognition (606)
+            capability: new
+            operating_model: central
+          - name: Lease Accounting (842)
+            capability: new
+            operating_model: central
+          - name: New Accounting Standards
+            capability: new
+            operating_model: central
+
+  - id: fpa
+    name: Financial Planning & Analysis
+    description: Budgeting, forecast, and analyze the organization's financial health
+    contacts:
+      - Rob Winslow
+      - John Cornelio
+      - John McCabe
+    l2:
+      - name: Strategic Planning & Budgeting
+        l3:
+          - name: Alignment w/ Corporate Initiatives
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Annual Operating Plan
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Headcount Planning
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: CapEx Planning
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Incentive/Commission Planning
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Long-range target planning
+            capability: new
+            operating_model: mixed
+
+      - name: Forecasting
+        l3:
+          - name: Cash flow analysis
+            pain_point: low
+            automation: mixed
+            capability: existing
+            operating_model: mixed
+          - name: Point-In-Time Forecasting
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Scenario / what-if analysis
+            capability: new
+            operating_model: mixed
+          - name: Trend Analysis
+            capability: new
+            operating_model: mixed
+          - name: Predictive Analytics
+            capability: new
+            operating_model: mixed
+          - name: Rolling Forecasts
+            capability: new
+            operating_model: mixed
+
+      - name: Reporting & Analysis
+        l3:
+          - name: KPIs
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: mixed
+          - name: Variance analysis
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Management Reporting
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: External Reporting
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Benchmarking
+            capability: new
+            operating_model: central
+          - name: Data Visualization
+            capability: new
+            operating_model: mixed
+          - name: Dashboarding
+            capability: new
+            operating_model: central
+          - name: Self-Service Reporting
+            capability: new
+            operating_model: mixed
+
+      - name: Business Support
+        l3:
+          - name: Project Management
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: ROI Tracking
+            capability: new
+            operating_model: central
+          - name: Business Case Development
+            capability: new
+            operating_model: mixed
+          - name: Cost & Profitability Analysis
+            capability: new
+            operating_model: mixed
+
+      - name: Data Management
+        l3:
+          - name: Data Collection
+            pain_point: low
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Data Governance
+            capability: new
+            operating_model: central
+          - name: Master data management (Single Source of Truth)
+            capability: new
+            operating_model: central
+
+  - id: treasury
+    name: Treasury
+    description: Ensure sufficient cash to fund the business; manage cash, investments, and liquidity
+    contacts:
+      - Rob Winslow
+      - Caleb Mutti
+    l2:
+      - name: Cash Management
+        l3:
+          - name: Entity structure
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Funding/capital markets
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: FX
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Working capital
+            pain_point: low
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Reporting
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+
+      - name: Investment Management
+        l3:
+          - name: Sweeps
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Pooling (physical/notional)
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: ALM
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Portfolio management
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Reporting
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: KPI
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: BI & Dashboarding
+            capability: new
+            operating_model: mixed
+
+      - name: Liquidity
+        l3:
+          - name: Intraday liquidity
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Daily liquidity
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: local
+          - name: Stressed liquidity
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Concentration (generally only for banks)
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: local
+          - name: Reporting
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Analytics and Predictive AI
+            capability: new
+            operating_model: mixed
+
+      - name: Financial Risk
+        l3:
+          - name: Liquidity risk
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Counterparty risk
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Interest Rate risk
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Reporting
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Limits/KRI/EWI
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Advanced Controls
+            capability: new
+            operating_model: mixed
+          - name: Real-time KPIs and Business Impacts
+            capability: new
+            operating_model: central
+          - name: Threat Intelligence
+            capability: new
+            operating_model: mixed
+
+      - name: Interest Rate Management
+        l3:
+          - name: Hedging (forwards, futures, swaps, options, swaptions)
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Forecast
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: mixed
+          - name: Reporting
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+
+  - id: tax
+    name: Tax
+    description: Deliver efficient, credible tax planning, reporting, and compliance; pay the right amount of tax
+    contacts:
+      - Joel Gardosik
+      - Prapti Patel
+      - John McCabe
+    l2:
+      - name: Tax Reporting
+        l3:
+          - name: Tax Payables / Receivables
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Tax Expense / Benefit Deferred
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Tax Basis in Assets and Liabilities
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Tax Reconciliations
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Effective Tax Rates
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Statutory Accounts and Filings
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Predictive Analytics on Effective Tax Rates
+            capability: new
+            operating_model: central
+
+      - name: Income Tax Compliance
+        l3:
+          - name: Local Tax Filings
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: local
+          - name: Financial Statement True-Up Entries
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Tax Payments
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Taxable Presence Risk
+            capability: new
+            operating_model: central
+          - name: Tax Compliance Analytics
+            capability: new
+            operating_model: central
+          - name: Monitoring of Emerging Tax Laws and Regulations
+            capability: new
+            operating_model: central
+
+      - name: Indirect Tax
+        l3:
+          - name: Indirect Tax Determination
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Indirect Tax Return Filings
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Indirect Tax Payments
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Indirect Tax Recovery
+            capability: new
+            operating_model: mixed
+          - name: Indirect Tax Analytics
+            capability: new
+            operating_model: mixed
+
+      - name: Tax Controversy
+        l3:
+          - name: Tax Authority Correspondence
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Data Supporting Tax Positions
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Tax Audit Management
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Analytics on Reporting to Tax Authorities
+            capability: new
+            operating_model: central
+
+      - name: Tax Strategy & Planning
+        l3:
+          - name: Tax Opportunity Planning
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Transfer Pricing
+            pain_point: low
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Business Transaction Tax Advice
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Tax Structure Planning
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Tax Risk Monitoring
+            pain_point: med
+            automation: mixed
+            capability: existing
+            operating_model: mixed
+          - name: Global Mobility
+            capability: new
+            operating_model: local
+          - name: Tax Scenario Planning
+            capability: new
+            operating_model: mixed
+          - name: Analytics-Enabled Tax Monitoring
+            capability: new
+            operating_model: central
+
+  - id: risk_policy_controls
+    name: Risk, Policy & Controls
+    description: Assess and manage risk through effective oversight, policy, and controls; minimize risk using internal controls
+    contacts:
+      - Rob Winslow
+      - John McCabe
+    l2:
+      - name: Policies & Procedures
+        l3:
+          - name: Board of directors and audit committee
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Code of Ethics
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Roles and responsibility for internal controls
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Business process objectives and risks
+            pain_point: low
+            automation: mixed
+            capability: existing
+            operating_model: local
+          - name: Entity/unit risk tolerances
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: local
+
+      - name: Risk Assessment
+        l3:
+          - name: Risk identification
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Vulnerability assessment
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Impact analysis
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: mixed
+          - name: Mitigation strategy
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Risk Analytics
+            capability: new
+            operating_model: central
+          - name: Cyber Security
+            capability: new
+            operating_model: mixed
+
+      - name: Internal Controls
+        l3:
+          - name: Separation of Duties
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: System Access Controls
+            pain_point: high
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Physical Audits of Assets
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Standardized Documentation
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Daily or Weekly Trial Balances
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Periodic Reconciliations in Systems
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Approval Authority Requirements
+            pain_point: med
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: System-Driven Controls
+            capability: new
+            operating_model: central
+
+      - name: Monitoring
+        l3:
+          - name: Periodic evaluation and testing of controls by internal audit
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Continuous monitoring programs built into information systems
+            pain_point: low
+            automation: machine
+            capability: existing
+            operating_model: central
+          - name: Supervisory reviews of controls
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: central
+          - name: Self-assessments by boards and management
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Audit committee inquiries of internal and external auditors
+            pain_point: high
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Quality assurance reviews of the internal audit department
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Analytics and Predictive AI
+            capability: new
+            operating_model: central
+          - name: Real-time KPIs and Business Impacts
+            capability: new
+            operating_model: mixed
+
+      - name: Reporting
+        l3:
+          - name: Report to external auditors
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Report to regulators, share-/debtholders, securities exchanges, etc.
+            pain_point: high
+            automation: mixed
+            capability: existing
+            operating_model: central
+          - name: Report to third parties (e.g., business partners)
+            pain_point: med
+            automation: human
+            capability: existing
+            operating_model: mixed
+          - name: Report to internal management
+            pain_point: low
+            automation: human
+            capability: existing
+            operating_model: mixed
