@@ -397,16 +397,28 @@ def cmd_set_lens(eid: str, key: str, lens: str, value: str) -> None:
     print(f"{key}: lens {lens}={resolved}; coverage={node['coverage']}.")
 
 
-def cmd_add_evidence(eid: str, key: str, source: str, loc: str | None, note: str | None) -> None:
+def cmd_add_evidence(eid: str, key: str, source: str, loc: str | None,
+                     note: str | None, tier: str | None) -> None:
     state_path, state = load_state(eid)
     node = _require_node(state, key)
+    evidence = node.setdefault("evidence", [])
+    # Dedup by ref: an entry is identified by (source, loc). If the same ref is
+    # already present, this is a no-op (no append, no timestamp bump).
+    for existing in evidence:
+        if existing.get("source") == source and existing.get("loc") == (loc or None):
+            print(f"{key}: evidence already present (source={source}, loc={loc}); "
+                  f"no-op (count={len(evidence)}).")
+            return
     entry: Dict[str, Any] = {"source": source}
     if loc:
         entry["loc"] = loc
+    if tier:
+        entry["tier"] = tier
     if note:
         entry["note"] = note
-    node.setdefault("evidence", []).append(entry)
+    evidence.append(entry)
     node["coverage"] = derive_coverage(node)
+    node["last_evidence_at"] = now_iso()
     _touch(state, node)
     _save_state(state_path, state)
     print(f"{key}: added evidence (count={len(node['evidence'])}); coverage={node['coverage']}.")
@@ -549,6 +561,7 @@ def main() -> None:
     ae.add_argument("--source", required=True)
     ae.add_argument("--loc")
     ae.add_argument("--note")
+    ae.add_argument("--tier", choices=["verbal", "documentary", "system_observed"])
 
     sc = sub.add_parser("set-coverage", help="Set/clear coverage override (or auto).")
     sc.add_argument("--engagement", required=True)
@@ -588,7 +601,7 @@ def main() -> None:
     elif args.command == "set-lens":
         cmd_set_lens(args.engagement, args.node, args.lens, args.value)
     elif args.command == "add-evidence":
-        cmd_add_evidence(args.engagement, args.node, args.source, args.loc, args.note)
+        cmd_add_evidence(args.engagement, args.node, args.source, args.loc, args.note, args.tier)
     elif args.command == "set-coverage":
         cmd_set_coverage(args.engagement, args.node, args.value)
     elif args.command == "set-sop":
