@@ -204,3 +204,64 @@ already-consumed docx is a no-op (no double-apply).
 Lens/finding changes bump node state, leaving the node **diagnosis-dirty** — the
 next `consult-run` re-consolidates and redraws it. That is how review folds back in
 without a CSV round-trip; `review_log.md` is the canonical human-readable trail.
+
+## Disposing of `unmapped` content (T34)
+
+A `type:unmapped` row is content the pipeline captured but could **not** auto-place
+on the taxonomy (the pipeline never auto-buckets). Every active `unmapped` row must
+be **dispositioned** by a human before the engagement is done — an owner is not
+enough; the row must carry a `disposition` other than `pending`. Set it through the
+existing `add-item` upsert-by-id (no new state command exists — re-adding the same
+`--id` updates the row in place):
+
+| `disposition` | Meaning | Flow |
+|---|---|---|
+| `reclassified` | The content does belong on the taxonomy after all; a human supplies the target `{l1}.{l2}`. | See the two-step flow below. |
+| `converted` | The content became a real register item (improvement/gap/screenshot); the unmapped row is now redundant. | `add-item --type unmapped --id UNM-NNNN --field disposition=converted --field note=...` (and add the real item separately). |
+| `out_of_scope` | The content is genuinely outside this engagement's scope. | `add-item --type unmapped --id UNM-NNNN --field disposition=out_of_scope --field note=...` |
+
+**Reclassify flow** (two commands — disposition + archive, then mark the target
+dirty so it is re-diagnosed; the pipeline never auto-buckets, so the human names the
+target):
+
+```
+# 1. set disposition=reclassified AND archive the now-redundant unmapped row
+python3 scripts/state_machine.py add-item --engagement E \
+    --type unmapped --id UNM-NNNN \
+    --field disposition=reclassified \
+    --field record_status=archived \
+    --field note="reclassified to {l1}.{l2} by <human>"
+
+# 2. mark the target node diagnosis-dirty so the next consult-run re-consolidates it
+python3 scripts/state_machine.py mark-dirty --engagement E --node {l1}.{l2}
+```
+
+Archiving the row removes it from the active set (so it no longer fails the gate),
+and `mark-dirty` makes the target node show up in `state_machine.py status`
+(`diagnosis_dirty_nodes`) → the orchestrator re-consolidates it.
+
+## Gate before `final`: `gates.py final-check` must pass
+
+Before any deliverable on a node is set `final` (`set-sop`/`set-improvement
+--status final`), the engagement must pass the read-only Definition-of-Done gates:
+
+```
+python3 scripts/gates.py final-check --engagement E [--json]
+```
+
+It exits **0 only when every gate passes** (nonzero otherwise), so wire it in front
+of any `final` step and **do not bless `final` while it FAILs**. The gates:
+
+- **unmapped_dispositioned** — every active `type:unmapped` row has
+  `disposition != pending` (use the dispositions above).
+- **no_open_human_review** — zero active rows with `requires_human_review` true
+  (archived rows excluded). This is why an open `SME VALIDATION REQUIRED` /
+  `requires_human_review=true` item **blocks `final`** until closed.
+- **evidence_refs_resolve** — (best-effort) every node-evidence `source` ref
+  resolves to a readable file under the engagement dir.
+- **final_artifacts_have_path** — no node whose `sop.status` / `improvement.status`
+  is `final` lacks a `path`.
+
+`gates.py` is strictly read-only (it never writes `state.json` / `register.json`);
+it only reports. Fix the failing items via the normal `state_machine.py` commands,
+then re-run.
