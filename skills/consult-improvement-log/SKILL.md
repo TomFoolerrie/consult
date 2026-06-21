@@ -1,13 +1,21 @@
 ---
 name: consult-improvement-log
-description: Maintain the Improvement Log by merging edits into JSON and rebuilding the Excel workbook. Outputs updated JSON and XLSX each cycle.
+description: Maintain the engagement Item Register (improvements, gaps, screenshot placeholders) by merging edits into JSON and rebuilding the Excel workbook. Outputs updated JSON and XLSX each cycle.
 ---
 
-# Skill: Improvement Log — JSON/CSV/XLSX Sync
+# Skill: Item Register — JSON/CSV/XLSX Sync
 
 ## Purpose
 
-Maintain a structured process improvement log across chat sessions using a JSON source of truth, human-edited CSV, and a generated Excel workbook.
+Maintain a structured **Item Register** across chat sessions using a JSON source of truth, human-edited CSV, and a generated Excel workbook.
+
+The register holds every item that hangs off an L2 taxonomy node, discriminated by `type`:
+
+- `improvement` — a process improvement opportunity (Stream B)
+- `gap` — a gap / validation item (from the drafter gap tags)
+- `screenshot` — a screenshot placeholder (SC-IDs)
+
+In a pipeline engagement this file is `engagements/{id}/register.json`; each row links to its taxonomy node via `l1_cycle` / `l2_process` (kebab slugs). Stand-alone, it is the classic `Improvement Log - Source of Truth.json`.
 
 **Script:** `scripts/improvement_log.py`
 
@@ -108,8 +116,11 @@ For each improvement described, Claude maps it to the record schema and presents
 
 ```
 New record — PP-025
-  l1_cycle:               [value]
-  l2_process:             [value]
+  type:                   improvement
+  tag:                    automation        # lens for improvements; gap tag for gaps
+  l1_cycle:               [value]            # taxonomy L1 slug, e.g. record-to-report
+  l2_process:             [value]            # taxonomy L2 slug, e.g. close
+  l3_activity:            [value]            # optional, matches a taxonomy L3 name
   observation_pain_point: [value]
   recommended_action:     [value]
   priority:               [value]
@@ -212,12 +223,35 @@ python scripts/improvement_log.py update-json \
 These fields may be changed in the CSV and will be merged into the JSON:
 
 ```
-priority, effort, owner, phase, escalation_status,
-process_owner_contacts, date_updated, notes_next_step,
+type, tag, l1_cycle, l2_process, l3_activity,
+priority, effort, impact_type, owner, phase, escalation_status,
+process_owner_contacts, notes_next_step,
 review_status, change_notes, record_status
 ```
 
 The `id` field is protected — changing it creates a new record.
+
+## Item Types & Tags (controlled vocab)
+
+Validation is **non-fatal**: values outside these sets are flagged (sets `requires_human_review=true`, `review_status=needs_review`, appends a note to `change_notes`) rather than rejected, so the register stays extensible.
+
+| `type` | `tag` holds | Allowed `tag` values |
+|---|---|---|
+| `improvement` | the diagnostic **lens** it addresses | `process`, `automation`, `operating_model`, `capability` |
+| `gap` | a normalized **gap tag** | `not_documented`, `unconfirmed`, `confirm`, `owner_unknown`, `reviewer_unknown`, `approver_unknown`, `system_unknown`, `timing_unknown`, `frequency_unknown`, `input_unknown`, `output_unknown`, `navigation_unknown`, `field_unknown`, `control_not_evidenced`, `approval_not_evidenced`, `evidence_retention_unknown`, `archive_location_unknown`, `exception_handling_unknown`, `downstream_dependency_unknown`, `upstream_dependency_unknown` |
+| `screenshot` | SC status | free text (e.g. `pending`) |
+
+Bracketed drafter tags are auto-normalized on import — e.g. `[[GAP — SYSTEM UNKNOWN]]` → `system_unknown`.
+
+Other enums: `impact_type` ∈ {cost, time, risk, quality, control} · `effort` ∈ {low, med, high} · `priority` ∈ {p1, p2, p3}.
+
+### Validate the register
+
+```bash
+python scripts/improvement_log.py validate --json "register.json"
+```
+
+Reports per-record vocab issues and a count by `type`. Read-only.
 
 ---
 

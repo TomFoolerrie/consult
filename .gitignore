@@ -1,0 +1,11 @@
+# Engagement register backups (auto-created by improvement_log.py)
+engagements/**/register.backup-*.json
+engagements/**/*.backup-*.json
+
+# Build artifacts
+*.zip
+__pycache__/
+*.pyc
+
+# Generated workbooks
+*.xlsx

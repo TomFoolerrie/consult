@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
-"""improvement_log_sync.py
+"""improvement_log.py — unified Item Register sync utility.
 
-JSON source-of-truth <-> Excel/CSV sync utility for the Improvement Log.
+JSON source-of-truth <-> Excel/CSV sync for the engagement Item Register.
+
+The register holds every item that hangs off an L2 taxonomy node, discriminated
+by `type`:
+  - improvement : a process improvement opportunity (Stream B)
+  - gap         : a gap / validation item (from the drafter gap tags)
+  - screenshot  : a screenshot placeholder (SC-IDs)
+
+Each item links back to its taxonomy node via l1_cycle / l2_process (kebab slugs).
 
 Commands:
   build-xlsx   Build an Excel review workbook from JSON.
   update-json  Merge a CSV review file back into JSON.
   remove       Archive or hard-delete records by ID.
+  validate     Check records against the controlled vocab; report issues.
 
 Removal behavior:
   - Safe removal/archive: set record_status=archived, or use remove --archive.
   - Hard delete from CSV: set record_status=deleted_candidate and pass --apply-deletes.
   - Hard delete missing rows: pass --delete-missing to update-json. Use carefully.
   - Hard delete by ID: use remove without --archive.
+
+Validation is non-fatal: unknown/invalid values are flagged (requires_human_review
+set True, review_status=needs_review, note appended to change_notes) rather than
+rejected, so the register stays extensible.
 """
 from __future__ import annotations
 
@@ -28,40 +41,125 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 DEFAULT_RECORD_FIELDS = [
-    "id", "date_identified", "source", "l1_cycle", "l2_process",
-    "observation_pain_point", "root_cause", "recommended_action", "impact_type",
-    "estimated_impact_benefit", "effort", "priority", "owner", "phase",
-    "escalation_status", "process_owner_contacts", "date_updated", "notes_next_step",
-    "record_status", "review_status", "requires_human_review", "last_modified_by",
-    "last_modified_at", "change_notes",
+    "id", "type", "tag", "date_identified", "source",
+    "l1_cycle", "l2_process", "l3_activity",
+    "observation_pain_point", "root_cause", "recommended_action",
+    "impact_type", "estimated_impact_benefit", "effort", "priority",
+    "owner", "phase", "escalation_status", "process_owner_contacts",
+    "notes_next_step", "record_status", "review_status", "requires_human_review",
+    "last_modified_by", "last_modified_at", "change_notes",
 ]
 PROTECTED_FIELDS = {"id"}
-DATE_FIELDS = {"date_identified", "date_updated"}
+DATE_FIELDS = {"date_identified"}
 BOOL_FIELDS = {"requires_human_review"}
 DELETE_STATUSES = {"deleted_candidate", "delete", "deleted", "remove", "removed"}
 ARCHIVE_STATUSES = {"archived", "inactive"}
+
+# ---- Controlled vocabulary -------------------------------------------------
+# Validation is soft: values outside these sets are flagged, not rejected.
+ITEM_TYPES = {"improvement", "gap", "screenshot"}
+
+# For type=improvement, `tag` names the diagnostic lens the item addresses.
+LENS_TAGS = {"process", "automation", "operating_model", "capability"}
+
+# For type=gap, `tag` is a normalized gap tag; each maps to a reporting category.
+GAP_TAG_CATEGORY = {
+    "not_documented": "general", "unconfirmed": "general", "confirm": "general",
+    "owner_unknown": "ownership", "reviewer_unknown": "ownership",
+    "approver_unknown": "ownership",
+    "system_unknown": "process", "timing_unknown": "process",
+    "frequency_unknown": "process", "input_unknown": "process",
+    "output_unknown": "process", "navigation_unknown": "process",
+    "field_unknown": "process",
+    "control_not_evidenced": "controls", "approval_not_evidenced": "controls",
+    "evidence_retention_unknown": "controls", "archive_location_unknown": "controls",
+    "exception_handling_unknown": "exceptions",
+    "downstream_dependency_unknown": "exceptions",
+    "upstream_dependency_unknown": "exceptions",
+}
+# Map the drafter's literal bracketed tags onto normalized slugs (for ingestion).
+GAP_TAG_ALIASES = {
+    "gap — not documented": "not_documented",
+    "unconfirmed — validate": "unconfirmed",
+    "confirm": "confirm",
+    "gap — owner unknown": "owner_unknown",
+    "gap — reviewer unknown": "reviewer_unknown",
+    "gap — approver unknown": "approver_unknown",
+    "gap — system unknown": "system_unknown",
+    "gap — timing unknown": "timing_unknown",
+    "gap — frequency unknown": "frequency_unknown",
+    "gap — input unknown": "input_unknown",
+    "gap — output unknown": "output_unknown",
+    "gap — navigation path unknown": "navigation_unknown",
+    "gap — field / parameter unknown": "field_unknown",
+    "gap — control not evidenced": "control_not_evidenced",
+    "gap — approval not evidenced": "approval_not_evidenced",
+    "gap — evidence retention unknown": "evidence_retention_unknown",
+    "gap — archive location unknown": "archive_location_unknown",
+    "gap — exception handling unknown": "exception_handling_unknown",
+    "gap — downstream dependency unknown": "downstream_dependency_unknown",
+    "gap — upstream dependency unknown": "upstream_dependency_unknown",
+}
+IMPACT_TYPES = {"cost", "time", "risk", "quality", "control"}
+EFFORT_LEVELS = {"low", "med", "high"}
+PRIORITY_LEVELS = {"p1", "p2", "p3"}
 
 
 def now_iso() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
+def normalize_tag(value: Any) -> Any:
+    """Normalize a raw tag (possibly a bracketed drafter tag) to a slug."""
+    if value is None:
+        return None
+    txt = str(value).strip().strip("[]").strip().lower()
+    if not txt:
+        return None
+    if txt in GAP_TAG_ALIASES:
+        return GAP_TAG_ALIASES[txt]
+    return re.sub(r"[^0-9a-z]+", "_", txt).strip("_")
+
+
 def normalize_header(header: str) -> str:
-    h = str(header or "").strip().replace("\ufeff", "")
+    h = str(header or "").strip().replace("﻿", "")
     mapping = {
-        "ID": "id", "Date Identified": "date_identified", "Source": "source",
-        "L1 Cycle": "l1_cycle", "L2 Process": "l2_process",
+        "ID": "id", "Type": "type", "Tag": "tag",
+        "Date Identified": "date_identified", "Source": "source",
+        "L1 Cycle": "l1_cycle", "L2 Process": "l2_process", "L3 Activity": "l3_activity",
         "Observation / Pain Point": "observation_pain_point", "Root Cause": "root_cause",
         "Recommended Action": "recommended_action", "Impact Type": "impact_type",
         "Est. Impact / Benefit": "estimated_impact_benefit", "Effort": "effort",
         "Priority": "priority", "Owner": "owner", "Phase": "phase",
-        "Escalation Status": "escalation_status", "Process Owner Contact(s)": "process_owner_contacts",
-        "Date Updated": "date_updated", "Notes / Next Step": "notes_next_step",
+        "Escalation Status": "escalation_status",
+        "Process Owner Contact(s)": "process_owner_contacts",
+        "Notes / Next Step": "notes_next_step",
     }
     if h in mapping:
         return mapping[h]
     h = h.replace("/", " ").replace("&", " and ")
     return re.sub(r"[^0-9A-Za-z]+", "_", h).strip("_").lower()
+
+
+def validate_record(rec: Dict[str, Any]) -> List[str]:
+    """Return a list of human-readable vocab issues for one record (non-fatal)."""
+    issues: List[str] = []
+    rtype = str(rec.get("type") or "improvement").lower()
+    if rtype not in ITEM_TYPES:
+        issues.append(f"unknown type '{rtype}'")
+    tag = rec.get("tag")
+    if tag:
+        tag = str(tag).lower()
+        if rtype == "improvement" and tag not in LENS_TAGS:
+            issues.append(f"improvement tag '{tag}' not a known lens")
+        elif rtype == "gap" and tag not in GAP_TAG_CATEGORY:
+            issues.append(f"gap tag '{tag}' not a known gap tag")
+    for field, allowed in (("impact_type", IMPACT_TYPES), ("effort", EFFORT_LEVELS),
+                           ("priority", PRIORITY_LEVELS)):
+        val = rec.get(field)
+        if val and str(val).lower() not in allowed:
+            issues.append(f"{field} '{val}' not in {sorted(allowed)}")
+    return issues
 
 
 def load_source_json(path: Path) -> Dict[str, Any]:
@@ -106,6 +204,8 @@ def clean_value(value: Any, field: str) -> Any:
         if txt in {"true", "yes", "y", "1"}: return True
         if txt in {"false", "no", "n", "0"}: return False
         return value
+    if field == "tag":
+        return normalize_tag(value)
     if field in DATE_FIELDS:
         dt = pd.to_datetime(value, errors="coerce")
         if not pd.isna(dt):
@@ -132,10 +232,10 @@ def build_xlsx(json_path: Path, xlsx_path: Path, active_only: bool = False) -> N
         records = [r for r in records if str(r.get("record_status", "active")).lower() not in ARCHIVE_STATUSES]
     fields = field_order(data)
     pd.DataFrame([{f: r.get(f) for f in fields} for r in records], columns=fields).to_excel(
-        xlsx_path, index=False, sheet_name="Improvement Log", engine="openpyxl"
+        xlsx_path, index=False, sheet_name="Item Register", engine="openpyxl"
     )
     wb = load_workbook(xlsx_path)
-    ws = wb["Improvement Log"]
+    ws = wb["Item Register"]
     ws.freeze_panes = "A2"
     fill = PatternFill("solid", fgColor="D9EAF7")
     for cell in ws[1]:
@@ -145,10 +245,11 @@ def build_xlsx(json_path: Path, xlsx_path: Path, active_only: bool = False) -> N
             cell.alignment = Alignment(wrap_text=True, vertical="top")
     if ws.max_row >= 2:
         ref = f"A1:{ws.cell(row=ws.max_row, column=ws.max_column).coordinate}"
-        tab = Table(displayName="ImprovementLog", ref=ref)
+        tab = Table(displayName="ItemRegister", ref=ref)
         tab.tableStyleInfo = TableStyleInfo(name="TableStyleMedium2", showRowStripes=True, showFirstColumn=False, showLastColumn=False, showColumnStripes=False)
         ws.add_table(tab)
-    widths = {"id":12, "date_identified":15, "source":20, "l1_cycle":24, "l2_process":28,
+    widths = {"id":12, "type":13, "tag":24, "date_identified":15, "source":20,
+              "l1_cycle":22, "l2_process":26, "l3_activity":26,
               "observation_pain_point":60, "root_cause":50, "recommended_action":60,
               "estimated_impact_benefit":42, "notes_next_step":60, "change_notes":40}
     for i, f in enumerate(fields, 1):
@@ -168,6 +269,17 @@ def read_csv_rows(csv_path: Path) -> List[Dict[str, Any]]:
             if any(v not in (None, "") for v in row.values()):
                 rows.append(row)
         return rows
+
+
+def flag_issues(rec: Dict[str, Any], ts: str) -> None:
+    """If a record has vocab issues, flag it for human review (non-fatal)."""
+    issues = validate_record(rec)
+    if issues:
+        rec["requires_human_review"] = True
+        rec["review_status"] = "needs_review"
+        note = f"[{ts}] vocab check: " + "; ".join(issues)
+        existing = str(rec.get("change_notes") or "").strip()
+        rec["change_notes"] = (existing + "\n" + note).strip() if existing else note
 
 
 def update_json(json_path: Path, csv_path: Path, out_path: Path, modified_by: str, apply_deletes: bool, delete_missing: bool) -> Tuple[int,int,int,int,int]:
@@ -204,6 +316,7 @@ def update_json(json_path: Path, csv_path: Path, out_path: Path, modified_by: st
                     archived += 1
                 target["last_modified_by"] = modified_by
                 target["last_modified_at"] = ts
+                flag_issues(target, ts)
                 updated += 1
             else:
                 unchanged += 1
@@ -211,11 +324,13 @@ def update_json(json_path: Path, csv_path: Path, out_path: Path, modified_by: st
             if status in DELETE_STATUSES:
                 unchanged += 1
                 continue
+            clean.setdefault("type", "improvement")
             clean.setdefault("record_status", "active")
             clean.setdefault("review_status", "needs_review")
             clean.setdefault("requires_human_review", True)
             clean["last_modified_by"] = modified_by
             clean["last_modified_at"] = ts
+            flag_issues(clean, ts)
             data["records"].append(clean)
             by_id[rec_id] = clean
             inserted += 1
@@ -258,8 +373,24 @@ def remove_records(json_path: Path, ids: List[str], out_path: Path, modified_by:
     return affected, missing
 
 
+def validate_cmd(json_path: Path) -> int:
+    data = load_source_json(json_path)
+    total_issues = 0
+    for rec in data["records"]:
+        issues = validate_record(rec)
+        if issues:
+            total_issues += len(issues)
+            print(f"  {rec.get('id')}: " + "; ".join(issues))
+    counts: Dict[str, int] = {}
+    for rec in data["records"]:
+        counts[str(rec.get("type") or "improvement")] = counts.get(str(rec.get("type") or "improvement"), 0) + 1
+    print(f"Records: {len(data['records'])} ({', '.join(f'{k}={v}' for k, v in sorted(counts.items()))})")
+    print(f"Vocab issues: {total_issues}")
+    return total_issues
+
+
 def main() -> None:
-    p = argparse.ArgumentParser(description="Sync Improvement Log JSON with XLSX/CSV, including archive/delete support.")
+    p = argparse.ArgumentParser(description="Sync the Item Register JSON with XLSX/CSV; archive/delete/validate support.")
     sub = p.add_subparsers(dest="command", required=True)
     b = sub.add_parser("build-xlsx")
     b.add_argument("--json", required=True, type=Path); b.add_argument("--xlsx", required=True, type=Path)
@@ -272,6 +403,8 @@ def main() -> None:
     r = sub.add_parser("remove")
     r.add_argument("--json", required=True, type=Path); r.add_argument("--ids", nargs="+", required=True); r.add_argument("--out-json", required=True, type=Path)
     r.add_argument("--modified-by", default="manual_remove"); r.add_argument("--archive", action="store_true")
+    v = sub.add_parser("validate")
+    v.add_argument("--json", required=True, type=Path)
     args = p.parse_args()
     if args.command == "build-xlsx":
         build_xlsx(args.json, args.xlsx, args.active_only)
@@ -283,6 +416,8 @@ def main() -> None:
     elif args.command == "remove":
         affected, missing = remove_records(args.json, args.ids, args.out_json, args.modified_by, args.archive)
         print(f"{'Archived' if args.archive else 'Deleted'} records: {affected}; IDs not found: {missing}; output: {args.out_json}")
+    elif args.command == "validate":
+        validate_cmd(args.json)
 
 if __name__ == "__main__":
     main()
