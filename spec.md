@@ -1,9 +1,12 @@
 # CONSULT — Full Work Cycle Plugin: Specification
 
-> Status: **Spine built; design complete end to end.** Taxonomy, two-layer state
-> model, unified item register, JSON Schemas, and structural gaps are implemented
-> and tested. Every remaining stage is **design-drafted** in a companion contract
-> (below). Build status is marked inline: ✅ built/drafted · ◻ not yet built.
+> Status: **Slice 1 built end to end.** The full one-way pipeline — ingest →
+> classify → merge → consolidate → gaps → draft (SOP + improvements) → synthesis →
+> render to Word — is implemented and proven by a deterministic R2R end-to-end
+> regression test (`tests/test_slice1_e2e.sh`, idempotent), on the correctness floor
+> (idempotent evidence/findings, unmapped, dirty signal). **Slice 2** (the human
+> Word-review loop) is design-drafted, not built. Build status inline: ✅ built ·
+> ◻ not yet built. Tickets in `tickets/`.
 > Scope: a Claude Code plugin that runs a finance-consulting engagement end to
 > end: intake → diagnose against the CFGI work taxonomy → output two work streams
 > (1) Desktop Procedures & SOPs, (2) Process Improvement Opportunities.
@@ -428,16 +431,23 @@ Existing ✅:
 | `consult-review-comment-resolver` | Stage 6 — resolve reviewer comments |
 | `consult-docx-builder` | Stage 6 — MD → CFGI-branded Word |
 
-Planned ◻:
+Built in Slice 1 ✅:
 
 | Skill | Role |
 |-------|------|
-| `consult-run` | Orchestration — state-driven engagement loop + `status`/`next` (`orchestration_contract.md`) |
-| `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`; `ingest_contract.md`) |
-| `consult-classifier` | Stage 2 — fan-out one sub-agent per doc → artifact → merge (`classify_contract.md`) |
-| `consult-consolidator` | Stage 3 — per-L2 synthesis into node MD; confirm staged findings |
-| `consult-gap-analyzer` | Stage 4 — substantive gaps (structural gaps are `gap_report.py`) |
-| `consult-improvement-drafter` | Stage 5B — improvement opportunities |
+| `consult-run` | Orchestration — Slice-1 linear `orchestrate.py next` advisor + playbook |
+| `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`, immutable hashed MD) |
+| `consult-classifier` | Stage 2 — one sub-agent per doc → artifact (+ `validate_artifact.py`); merge = `classify_merge.py` |
+| `consult-consolidator` | Stage 3 — confirm findings + author node MD (`consolidate_inputs.py`) |
+| `consult-gap-analyzer` | Stage 4 — substantive gaps (structural = `gap_report.py`) |
+| `consult-improvement-drafter` | Stage 5B — improvements by lens (`draft_inputs.py`) |
+| `consult-synthesizer` | Stage 5C — synthesis.md + `type:theme` (`synthesis_inputs.py`) |
+
+Planned ◻ (Slice 2):
+
+| Skill | Role |
+|-------|------|
+| review ingestion | docx comment extraction → resolver → apply via commands (T30–T33) |
 
 ---
 
@@ -542,12 +552,19 @@ Open:
 
 ### Status snapshot
 
-The **spine is built and tested**: taxonomy, Layer 1 state machine (full discovery +
-mutation API), Layer 2 unified register, JSON schemas, `gap_report.py` (Stage 4
-structural), node-MD seeding, and the `consult-state-machine` skill. Today you can init an
-engagement, hand-drive a diagnosis, scan structural gaps, and (via existing skills) draft
-SOPs and build Word. **Not yet built: the automated intake/diagnosis (ingest → classify →
-consolidate) and a top-level way to run the whole pipeline as one motion.**
+**Slice 1 is built end to end** (tickets `T01–T20`, all green): the correctness floor
+(idempotent `add-evidence`, register write-path/upsert, node status, `status`/`next`), the
+full pipeline (`consult-ingest` → `consult-classifier` + `classify_merge.py` →
+`consult-consolidator` → `gap_report.py` + `consult-gap-analyzer` → `consult-drafter` +
+`consult-improvement-drafter` → `consult-synthesizer` → `render_deliverables.py`), the
+`consult-run` linear orchestration advisor, and a deterministic R2R end-to-end regression
+test (`tests/test_slice1_e2e.sh`, idempotent). All S1 build-hardening items below are done.
+
+**What remains: Slice 2** — the human Word-review loop (T30–T39): docx comment extraction,
+review ingestion + reconciliation, versioning/`review_log`, the `unmapped` disposition gate,
+the `validate` coherence check, the DoD `final` gates, and generalizing orchestration from
+linear to the state-driven readiness loop. Plus deferred infra (full ingest format zoo,
+ingest manifest, the `consult-improvement-log` CSV-doc rewrite).
 
 ### Remaining work (size: S/M/L · risk)
 
