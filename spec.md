@@ -178,18 +178,19 @@ and gets compact output — it never round-trips a whole file through context.
 | `sync` ✅ | derive | Roll **active** register rows (not archived/inactive/deleted-pending) up into node item links/counts; recompute coverage; report orphan rows. |
 | `show` ✅ | read | Coverage summary. |
 | `validate` ✅ | read | Node set vs taxonomy + JSON Schema check. |
-| `get-node` ◻ | discovery | Return one node (compact), not the whole file. |
-| `query` ◻ | discovery | List node keys matching filters (`--coverage none`, `--lens-missing X`, `--has-gaps`). |
-| `set-lens` ◻ | mutate | Set one lens value on a node. |
-| `add-evidence` ◻ | mutate | Append an evidence span to a node. |
-| `set-coverage` ◻ | mutate | Manual coverage override (writes `coverage_override`; `sync` preserves it). |
-| `set-sop` ◻ | mutate | Update SOP deliverable status/path/rev. |
+| `get-node` ✅ | discovery | Return one node (compact, or `--json`), not the whole file. |
+| `query` ✅ | discovery | List node keys matching ANDed filters (`--coverage`, `--lens-missing`, `--has-gaps`, `--has-improvements`, `--l1`, `--count`). |
+| `set-lens` ✅ | mutate | Set/clear one lens value on a node (schema-validated). |
+| `add-evidence` ✅ | mutate | Append an evidence entry to a node. |
+| `set-coverage` ✅ | mutate | Manual coverage override (writes `coverage_override`; `sync` preserves it; `auto` clears it). |
+| `set-sop` ✅ | mutate | Update SOP deliverable status/path/rev. |
+| `add-item` ✅ | mutate | Add a register row through `improvement_log.py` then auto-`sync`; stable auto IDs (`IMP-/GAP-/SC-NNNN`); orphan node keys rejected. |
 
 ### `improvement_log.py` (item register) ✅
 
-`build-xlsx` · `update-json` · `remove` · `validate`. A thin `add-item` ◻ convenience
-(build a row → route through `update-json` → auto-`sync`) will keep additions granular and
-keep node counts consistent automatically.
+`build-xlsx` · `update-json` · `remove` · `validate`. The granular `add-item` ✅ convenience
+lives in `state_machine.py` (builds a row → routes through `update-json` → auto-`sync`),
+keeping additions granular and node counts consistent automatically.
 
 ---
 
@@ -250,6 +251,7 @@ Existing ✅:
 |-------|------------------|
 | `consult-transcript-cleaner` | Stage 1 — transcript → clean MD (`clean_vtt.py`) |
 | `consult-improvement-log` | Layer 2 — the unified item register engine (`improvement_log.py`) |
+| `consult-state-machine` | Layer 1 — single skill surface over `state_machine.py` + register (discovery + mutation; orchestrator-driven) |
 | `consult-drafter` | Stage 5A — SOP drafting (templates + evidence/gap rules) |
 | `consult-evidence-auditor` | Stage 6 — evidence completeness audit |
 | `consult-review-comment-resolver` | Stage 6 — resolve reviewer comments |
@@ -259,7 +261,6 @@ Planned ◻:
 
 | Skill | Role |
 |-------|------|
-| `consult-state-machine` | Layer 1 — single skill surface over `state_machine.py` + register (discovery + mutation; orchestrator-driven, not a sub-agent) |
 | `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`) |
 | `consult-classifier` | Stage 2 — fan-out Sonnet-per-doc → state |
 | `consult-consolidator` | Stage 3 — per-L2 synthesis into node MD |
@@ -317,9 +318,10 @@ Open:
 1. **Evidence span format** — proposed `path#Lstart-Lend`; currently provisional: a `loc`
    string on node evidence and free-text `source` on register rows. Converge on one format
    when Stage 2 lands.
-4. **Machine-record ID schemes** — only structural gaps have a defined stable-ID scheme
-   (`GAP-STRUCT-{l1}-{l2}-{kind}`). Improvement and screenshot ID schemes are still
-   ad hoc; define stable prefixes before Stage 5B / Stage 5A screenshot integration.
+4. **Machine-record ID schemes** — `add-item` defines stable prefixes for manual register
+   rows (`IMP-/GAP-/SC-NNNN`); structural gaps from `gap_report.py` will use
+   `GAP-STRUCT-{l1}-{l2}-{kind}`. Open: confirm the two gap-ID spaces (`GAP-NNNN` manual vs
+   `GAP-STRUCT-*` machine) coexist cleanly when Stage 4 lands.
 2. **Engagement state in git** — kept in-repo per decision. Decide later whether real
    client engagements are committed or git-ignored per-engagement (backups already ignored).
 3. **Screenshot items** — supported as a register `type`; decide whether they live in the
