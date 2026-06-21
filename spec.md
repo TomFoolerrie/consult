@@ -18,11 +18,13 @@ of truth** in between.
 
 Design principles:
 
-1. **State files are the source of truth; Python owns every write.** Structured
-   state lives in `.json` files. These are **only ever mutated by the state-management
-   Python scripts** — never hand-edited by the model and never edited by a human
-   directly. Humans review and edit via **Excel round-trip** (export to xlsx → edit →
-   re-import through the script). One Markdown file per **L2** node holds the
+1. **State files are the source of truth; the agent owns every write.** Structured
+   state lives in `.json` files, **only ever mutated by the agent through the
+   state/register Python commands** — never hand-edited, never edited by a human
+   directly, and **never via a CSV/Excel round-trip** (that mechanism is dropped).
+   Humans review on **Word documents** rendered from the analysis MDs and deliverables;
+   the LLM **ingests the reviewed Word (body + comments)** and applies the resulting
+   updates back through the same commands. One Markdown file per **L2** node holds the
    human-readable synthesis (LLM-owned narrative).
 2. **Token efficiency through granular Python.** The model must never load a whole
    state file into context to make a change. The scripts expose **granular discovery**
@@ -78,6 +80,11 @@ Centralization (People), Human & Machine (Technology), Capability Build (New Wor
 
 > The "Regional" taxonomy variant was dropped: the source PDF contained no regional
 > content (different L1 naming, no region columns). `taxonomy.yaml` is the sole authority.
+
+> **Optional enrichment (classification aid):** L1 carries a `description`; L2 does not.
+> Adding a short `description` (and optional `keywords`/synonyms) per L2 would improve
+> Stage 2 match precision. Purely additive — the only taxonomy change worth considering,
+> and even that is optional. The taxonomy is never modified at pipeline runtime.
 
 ---
 
@@ -154,9 +161,12 @@ The drafter's bracketed tags auto-normalize on import (`[[GAP — SYSTEM UNKNOWN
 row for human review (`requires_human_review=true`) rather than rejecting it, keeping the
 register extensible.
 
-**The register is the human-reviewable surface:** export to xlsx → human edits → re-import
-via `update-json` (with timestamped backups). `state.json` is internal machinery — humans
-never edit it directly; they edit the register and the node MDs.
+**Register writes are agent-driven** through the state/register commands (`add-item`,
+`update-json` as an internal write primitive) — there is **no human CSV/Excel
+round-trip**. The human-review surface is the **Word renderings** (per-L2 analysis MDs
+and the SOP/improvement deliverables); reviewed Word docs are ingested by
+`consult-review-comment-resolver` and applied back through the commands. `state.json`
+is internal machinery — humans never edit it directly.
 
 ### Layer 3 — per-L2 synthesis `nodes/{l1}/{l2}.md` ✅ (LLM-owned)
 
@@ -193,9 +203,12 @@ and gets compact output — it never round-trips a whole file through context.
 
 ### `improvement_log.py` (item register) ✅
 
-`build-xlsx` · `update-json` · `remove` · `validate`. The granular `add-item` ✅ convenience
-lives in `state_machine.py` (builds a row → routes through `update-json` → auto-`sync`),
-keeping additions granular and node counts consistent automatically.
+`update-json` · `remove` · `validate` remain as **agent-driven** write/QC primitives. The
+granular `add-item` ✅ convenience lives in `state_machine.py` (routes through `update-json`
+→ auto-`sync`). The **human CSV import path is dropped** — `update-json` is now only an
+internal write primitive (target: refactor to a JSON-native upsert so CSV transport goes
+away entirely). `build-xlsx` is retained only as an optional read-only snapshot, **not** a
+review round-trip.
 
 ---
 
@@ -205,21 +218,61 @@ keeping additions granular and node counts consistent automatically.
    INGEST → CLASSIFY → CONSOLIDATE → GAP DIAGNOSE → DRAFT(×2) → REVIEW → OUTPUT
    [py]      [llm]       [llm]          [py+llm]      [llm]      [llm]    [py]
      \________________ all read/write state via state_machine.py / register __________/
+                                                        ▲                  │
+                                        Word review (body + comments) ◀─────┘
+                                  ingested by consult-review-comment-resolver,
+                                  applied back through the agent commands
 ```
+
+### Essential workflow (the human-in-the-loop loop)
+
+The end-to-end loop, with **no CSV/Excel round-trip** — humans review on Word, the LLM
+ingests it, and the agent applies every change through the commands:
+
+1. **Init** the engagement (`state_machine.py init`).
+2. **Ingest** — drop raw files of any format; `consult-ingest` normalizes each to a clean
+   MD with a YAML header under `ingested/` (Python; templates the agent can extend).
+3. **Classify** — fan out one sub-agent per ingested doc; each *reads* the doc and *returns*
+   a structured artifact (which L2 nodes it touches, lens signals, evidence spans,
+   candidate findings, and **`unmapped` flags** for content that fits no L2). The
+   orchestrator applies it via `set-lens` / `add-evidence` / `add-item`. Sub-agents never
+   touch state. The taxonomy is read-only.
+4. **Consolidate** — per L2 with new evidence, author `nodes/{l1}/{l2}.md`: the narrative
+   analysis (what we learned, the 5-lens diagnosis incl. pain points, called-out
+   improvements/gaps **referencing register IDs**). Structured facts live in state/register;
+   prose lives in the MD; they stay coupled.
+5. **Gap diagnose** — `gap_report.py scan` (structural) + `consult-gap-analyzer` (substantive)
+   → `type: gap` register rows + `gap_report.md`.
+6. **Draft** — 5A SOPs (`consult-drafter`) and 5B improvements (`consult-improvement-drafter`)
+   per L2 from state/register.
+7. **Render to Word** — `consult-docx-builder` turns the analysis MDs and deliverables into
+   CFGI-branded Word for human review.
+8. **Human review in Word** — reviewers comment/edit directly in the Word docs.
+9. **Ingest the review** — `consult-review-comment-resolver` extracts the reviewed Word
+   (**body text + tracked comments** — an LLM-mediated docx ingestion) into structured
+   updates, which the agent applies back through the commands. No CSV.
+10. **Re-run** any stage idempotently; assemble **final output** to Word.
+
+Steps 7–9 are the review loop that replaces the former Excel/CSV reimport.
 
 ### Stage 0 — Init ✅
 `python scripts/state_machine.py init --engagement X --region NA` seeds `state.json`,
 `register.json`, and empty node MDs for every L2.
 
 ### Stage 1 — Ingest (Python, "standardize to MD") ◻
-Inputs: VTT/transcripts, DOCX, PDF, PPTX, XLSX/CSV, images. `scripts/ingest_normalize.py`
-converts each raw artifact to clean Markdown under `engagements/{id}/ingested/`.
-`consult-transcript-cleaner` ✅ already handles transcript formats.
+A **single `consult-ingest` skill** takes raw files of any format (VTT/transcripts, DOCX,
+PDF, PPTX, XLSX/CSV, images) and emits, for each, a clean Markdown file with a **YAML
+header** (source filename, doc type, date, detected hints) under
+`engagements/{id}/ingested/`. Driven by `scripts/ingest_normalize.py` with **seeded Python
+templates the agent extends per format**. It **subsumes/calls** `consult-transcript-cleaner`
+(`clean_vtt.py` ✅) as the transcript handler rather than duplicating it.
 
 ### Stage 2 — Classify (LLM fan-out, "one Sonnet per doc") ◻
-For each normalized doc, launch a Sonnet sub-agent returning a compact map of: which L2
-nodes it touches, candidate evidence spans, lens signals. The orchestrator merges these
-into `state.json` via the granular mutation commands.
+For each ingested doc, launch a sub-agent that **reads it and returns** a compact structured
+artifact: which L2 nodes it touches, candidate evidence spans, lens signals, candidate
+findings, and **`unmapped` flags** for content that fits no L2 node (recorded for triage —
+never auto-extends the taxonomy). The orchestrator applies the artifact into state via the
+granular mutation commands; **sub-agents never write state.**
 
 ### Stage 3 — Consolidate (LLM synthesis) ◻
 Per L2 with new evidence, synthesize merged signals into the node MD — deduped, reconciled,
@@ -242,9 +295,12 @@ emits `deliverables/gap_report.md`. The LLM (`consult-gap-analyzer`) adds substa
 Both write back `sop.status` / register rows and a deliverable path.
 
 ### Stage 6 — Review & Output
-Review/audit skills run over drafts: `consult-evidence-auditor` ✅,
-`consult-review-comment-resolver` ✅, `consult-improvement-log` ✅. Final assembly via
-`consult-docx-builder` ✅ into CFGI-branded Word — one per work stream, plus the gap report.
+Render analysis MDs and deliverables to CFGI-branded Word (`consult-docx-builder` ✅).
+Humans review **in Word** (edits + tracked comments). `consult-review-comment-resolver` ✅
+performs the **LLM-mediated docx ingestion** — extracting body text *and* tracked comments
+(needs a docx-comment extraction helper) into structured updates the agent applies back
+through the commands. `consult-evidence-auditor` ✅ QCs evidence completeness. Final
+assembly to Word — one document per work stream, plus the gap report. **No CSV round-trip.**
 
 ---
 
@@ -296,7 +352,7 @@ Planned ◻:
 └── engagements/                     ← STATE LIVES HERE, in-repo
     └── {engagement_id}/
         ├── state.json               ← Layer 1 (machine)
-        ├── register.json            ← Layer 2 (machine; xlsx round-trip for humans)
+        ├── register.json            ← Layer 2 (machine; agent-written, no CSV round-trip)
         ├── ingested/                ← normalized MD per raw artifact
         ├── nodes/{l1}/{l2}.md       ← Layer 3 (human-readable, LLM-owned)
         └── deliverables/
@@ -316,21 +372,28 @@ Resolved:
    that file is the naming authority. State keys are `{l1_id}.{l2_id}`.
 3. **Improvement/gap unification** — one register, discriminated by `type`; gaps and
    improvements (and screenshots) are first-class rows, not node-embedded strings.
-4. **Write discipline** — JSON is script-only; humans round-trip the register via Excel.
+4. **Write discipline** — JSON is **agent-written only**, through the state/register
+   commands. **No CSV/Excel human round-trip.** Humans review on Word; the LLM ingests the
+   reviewed Word (body + comments) and applies updates through the commands.
 
 Open:
 
 1. **Evidence span format** — proposed `path#Lstart-Lend`; currently provisional: a `loc`
-   string on node evidence and free-text `source` on register rows. Converge on one format
-   when Stage 2 lands.
-4. **Machine-record ID schemes** — `add-item` defines stable prefixes for manual register
-   rows (`IMP-/GAP-/SC-NNNN`); structural gaps from `gap_report.py` will use
-   `GAP-STRUCT-{l1}-{l2}-{kind}`. Open: confirm the two gap-ID spaces (`GAP-NNNN` manual vs
-   `GAP-STRUCT-*` machine) coexist cleanly when Stage 4 lands.
-2. **Engagement state in git** — kept in-repo per decision. Decide later whether real
-   client engagements are committed or git-ignored per-engagement (backups already ignored).
-3. **Screenshot items** — supported as a register `type`; decide whether they live in the
+   string on node evidence and free-text `source` on register rows. Converge when Stage 2 lands.
+2. **Register write primitive → JSON-native** — `add-item`/`gap_report.py` still feed
+   `update-json` via a temp CSV. Refactor to a direct JSON upsert so CSV transport is gone
+   entirely (human CSV import is already dropped). `build-xlsx` stays only as optional read-only.
+3. **docx comment extraction** — Stage 6 review ingestion needs a helper that pulls **tracked
+   comments** (not just body text) out of reviewed Word docs for `consult-review-comment-resolver`.
+4. **Machine-record ID schemes** — `add-item` uses `IMP-/GAP-/SC-NNNN`; structural gaps use
+   `GAP-STRUCT-{l1}-{l2}-{kind}`. Confirm the manual (`GAP-NNNN`) and machine (`GAP-STRUCT-*`)
+   gap-ID spaces coexist cleanly (they do today; keep an eye as Stage 4 integrates).
+5. **Engagement state in git** — kept in-repo. Decide whether real client engagements are
+   committed or git-ignored per-engagement (backups already ignored).
+6. **Screenshot items** — supported as a register `type`; decide whether they live in the
    register or stay solely in the SOP's Appendix D when Stage 5A integration lands.
+7. **Optional L2 taxonomy enrichment** — add per-L2 `description`/`keywords` to aid Stage 2
+   classification (additive; see §2).
 
 ---
 

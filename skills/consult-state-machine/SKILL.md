@@ -32,7 +32,7 @@ The only permitted direct operation on the JSON files is **reading** — and eve
 
 What **is** directly editable:
 - **Node MDs** (`nodes/{l1}/{l2}.md`) are **LLM-owned narrative** — edit them directly.
-- The **register is the human-reviewable surface**: round-trip via Excel — `build-xlsx` → human edits the workbook → `update-json` → `sync`. `state.json` is internal machinery; humans never touch it directly.
+- **All register/state writes are agent-driven** through these commands. There is **no CSV/Excel human round-trip** (that mechanism is dropped). Humans review on **Word** documents rendered from the analysis MDs and deliverables; reviewed Word (body + tracked comments) is ingested by `consult-review-comment-resolver` and applied back through these commands. `state.json` is internal machinery; humans never touch it directly.
 
 If you find yourself opening a JSON state file to mutate it: **stop, and use a command below instead.**
 
@@ -62,7 +62,7 @@ If you find yourself opening a JSON state file to mutate it: **stop, and use a c
 - Record a finding/gap/screenshot against a node (`add-item`).
 - Set diagnostic lenses or attach evidence to a node (`set-lens`, `add-evidence`).
 - Inspect or steer state (`get-node`, `query`, `show`, `validate`, `set-coverage`, `set-sop`).
-- Drive the human review cycle on the register (`build-xlsx` → `update-json` → `sync`).
+- Apply updates that come back from Word review (via `consult-review-comment-resolver`) through the mutation commands.
 
 **Do NOT use it for:**
 - Writing narrative — that goes in the node MDs, edited directly.
@@ -165,33 +165,29 @@ python3 scripts/state_machine.py sync --engagement __skilltest__
 
 ## Command Reference — Register (`improvement_log.py`)
 
-The register is the human-reviewable surface. These four commands are the ones this skill leans on; see the `consult-improvement-log` skill for the full controlled-vocab and field reference.
+These are **agent-driven** register primitives; see the `consult-improvement-log` skill for the full controlled-vocab and field reference. There is **no human CSV/Excel round-trip** — prefer `add-item` for new rows.
 
 | Command | Purpose |
 |---|---|
-| `build-xlsx` | Build the Excel review workbook from `register.json` (`--active-only` to drop archived rows). |
-| `update-json` | Merge a CSV (Excel export) back into `register.json`; auto-backup when out path == in path. |
+| `update-json` | Internal write primitive — upsert rows by `id` (auto-backup when out path == in path). `add-item` routes through it; not a human CSV import. |
 | `remove` | Archive (`--archive`) or hard-delete register rows by `--ids`. |
 | `validate` | Report per-record vocab issues + counts by type (read-only); `--schema` adds a JSON Schema check. |
+| `build-xlsx` | Optional read-only Excel snapshot of `register.json` — a view, **not** a review round-trip. |
 
 ```bash
 REG=engagements/__skilltest__/register.json
 
-# build-xlsx — produce the human review workbook
-python3 skills/consult-improvement-log/scripts/improvement_log.py build-xlsx \
-  --json "$REG" --xlsx engagements/__skilltest__/register_review.xlsx
-
-# update-json — merge the human-edited CSV back in (writing to the same path auto-backs-up first)
-python3 skills/consult-improvement-log/scripts/improvement_log.py update-json \
-  --json "$REG" --csv register_review.csv --out-json "$REG" --modified-by "human-review"
-
 # remove --archive — retire a row but keep history (sync then drops it from counts)
 python3 skills/consult-improvement-log/scripts/improvement_log.py remove \
-  --json "$REG" --ids SC-0001 --out-json "$REG" --archive --modified-by "human-review"
+  --json "$REG" --ids SC-0001 --out-json "$REG" --archive --modified-by "review"
 
 # validate — read-only vocab + schema check
 python3 skills/consult-improvement-log/scripts/improvement_log.py validate \
   --json "$REG" --schema schemas/item_register.schema.json
+
+# build-xlsx — OPTIONAL read-only snapshot (a view, not a review round-trip)
+python3 skills/consult-improvement-log/scripts/improvement_log.py build-xlsx \
+  --json "$REG" --xlsx engagements/__skilltest__/register_snapshot.xlsx
 ```
 
 > After any register edit (`update-json` / `remove`), run `state_machine.py sync` to re-roll counts and recompute coverage. `add-item` already syncs for you.
@@ -218,12 +214,15 @@ python3 scripts/state_machine.py set-lens --engagement {id} --node record-to-rep
 python3 scripts/state_machine.py add-evidence --engagement {id} --node record-to-report.close --source "ingested/kickoff.md" --loc "L42-58"
 ```
 
-**(d) Human review cycle**
+**(d) Human review cycle (Word, no CSV)**
 ```bash
-python3 skills/consult-improvement-log/scripts/improvement_log.py build-xlsx --json engagements/{id}/register.json --xlsx engagements/{id}/register_review.xlsx
-# human edits register_review.xlsx, exports to register_review.csv (File → Save As → CSV UTF-8)
-python3 skills/consult-improvement-log/scripts/improvement_log.py update-json --json engagements/{id}/register.json --csv register_review.csv --out-json engagements/{id}/register.json --modified-by "human-review"
-python3 scripts/state_machine.py sync --engagement {id}
+# 1. render analysis MDs / deliverables to Word (consult-docx-builder)
+# 2. humans review in Word (edits + tracked comments)
+# 3. consult-review-comment-resolver ingests the reviewed Word (body + comments)
+#    into structured updates, which the agent applies through these commands, e.g.:
+python3 scripts/state_machine.py set-lens --engagement {id} --node record-to-report.close --lens process --value pain_med
+python3 scripts/state_machine.py add-item --engagement {id} --type gap --l1 record-to-report --l2 close --field tag=owner_unknown
+# (sync runs automatically on add-item; run it explicitly after any bulk register edit)
 ```
 
 **(e) Status check / QC**
