@@ -402,3 +402,88 @@ Open:
 - `Work_Taxonomy__Overall.pdf` → `reference/taxonomy.yaml` (+ `taxonomy_baselines.yaml`).
 - `BT_Business_Cycle_Taxonomies_Regional.pdf` → dropped (no regional content).
 - `CFGI_Brand_Identity.md` → `reference/cfgi_brand_identity.md` (colors, type, tables, callouts).
+
+---
+
+## 10. Roadmap & build plan
+
+### Status snapshot
+
+The **spine is built and tested**: taxonomy, Layer 1 state machine (full discovery +
+mutation API), Layer 2 unified register, JSON schemas, `gap_report.py` (Stage 4
+structural), node-MD seeding, and the `consult-state-machine` skill. Today you can init an
+engagement, hand-drive a diagnosis, scan structural gaps, and (via existing skills) draft
+SOPs and build Word. **Not yet built: the automated intake/diagnosis (ingest → classify →
+consolidate) and a top-level way to run the whole pipeline as one motion.**
+
+### Remaining work (size: S/M/L · risk)
+
+**A. Intake & Diagnosis — the unique IP, and the riskiest**
+
+| Item | Role | Size | Key risk |
+|---|---|---|---|
+| `consult-ingest` (Stage 1) ◻ | all formats → MD + YAML header | M–L | format zoo: PDF tables, PPTX, XLSX, images/OCR |
+| `consult-classifier` (Stage 2) ◻ | **keystone**: doc → artifact → state | L | the artifact schema + cross-doc merge + evidence fidelity |
+| `consult-consolidator` (Stage 3) ◻ | per-L2 node-MD synthesis | M | keeping prose ↔ structured coupled |
+| `consult-gap-analyzer` (Stage 4 LLM) ◻ | substantive gaps | S–M | overlap with structural scan |
+
+**B. Generation & Review — mostly wiring existing skills to the state/register model**
+
+| Item | Role | Size | Note |
+|---|---|---|---|
+| `consult-drafter` wiring ◻ | SOP from state/register | S–M | skill exists; predates state model |
+| `consult-improvement-drafter` (5B) ◻ | improvements from lenses + register | M | new |
+| Review ingestion (Stage 6) ◻ | docx **comment** extraction + apply via commands | M | the LLM-mediated Word→state loop |
+| Output assembly ◻ | per-stream Word + gap report | S | `consult-docx-builder` wiring |
+
+**C. Glue & Infra — what makes it a product, not a toolbox**
+
+| Item | Role | Size |
+|---|---|---|
+| **Orchestration** ◻ | top-level "run the engagement" entry; idempotent stage sequencing | M–L |
+| `update-json` → JSON-native upsert ◻ | kill CSV transport (see §8) | S |
+| `consult-improvement-log` rewrite ◻ | recast as the agent-driven register JSON engine (doc-debt) | S–M |
+| `templates/` dir ◻ | SOP / improvement / gap-report / node-synthesis skeletons | S |
+| Dev/repro setup ◻ | `requirements.txt` + SessionStart hook (pandas/openpyxl/pyyaml/jsonschema) | S |
+| End-to-end sample engagement ◻ | proof + regression fixture | S–M |
+
+### Critical path
+
+```
+ingest ─▶ classify ─▶ consolidate ─▶ gap-analyzer ─▶ draft(5A/5B) ─▶ render Word ─▶ review ingest ─▶ output
+  │           │                                                                          │
+  └ transcripts already cleanable (classify can be prototyped without full ingest)       └ needs docx comment extraction
+                        orchestration wraps the whole line (skeleton early to lock contracts)
+```
+
+**Classify is the keystone and the gate** — consolidate, gap-analyzer, and both drafters all
+consume the state it produces. Its real deliverable is not code volume but the **artifact
+contract** (see below); design that before building it.
+
+### Build strategy: vertical slice first
+
+Prefer a **narrow vertical slice end-to-end** over finishing each stage horizontally across
+all 37 L2s. Pick a couple of real transcripts for one L1 (e.g. Record-to-Report) and get
+`init → classify → consolidate → gap → draft → Word → review → output` working on *just
+that*, with stubs elsewhere. Rationale: it surfaces the integration seams (the classify
+artifact contract and the Word review loop) while they are cheap to change, yields a
+demoable result fastest, and becomes the regression fixture. Building ingest's full format
+zoo before proving classify would be effort at risk.
+
+### Two explicit planned components (newly called out)
+
+1. **Orchestration ◻** — the top-level entry that sequences the stages idempotently and
+   applies every state write through the commands. **Open decision — its form:** a
+   skill/playbook the agent follows, a Python driver that invokes stages, or `CLAUDE.md`
+   instructions. To be decided before/with the vertical slice.
+2. **Classify artifact contract ◻** — the schema a per-doc classifier sub-agent *returns*
+   (never writing state itself): node hits, lens signals (with confidence), evidence spans,
+   candidate findings, and `unmapped` flags — plus the orchestrator's rules for merging
+   conflicting signals across documents. This is the contract everything downstream binds
+   to; design it as the next concrete artifact.
+
+### Recommended next move
+
+Design the **classify artifact contract**, then build the **Record-to-Report vertical
+slice** through it — proving classify → consolidate → draft on real transcript input before
+widening ingest or going horizontal.
