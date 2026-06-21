@@ -144,11 +144,36 @@ Map to the real `state_machine.py` subcommands only (`set-lens`, `add-item`,
 | Prose-only edit (wording, no state change) | CLARIFICATION, CLIENT PREFERENCE | Edit the node MD (`engagements/E/nodes/L1/L2.md`) directly; no state command |
 | Duplicate / no action | DUPLICATE / NO ACTION | none — record in the log only |
 
-A lens change that **conflicts with an evidence-backed value** (e.g. a reviewer
-overrides a lens the system_observed evidence supports) should raise a
-`GAP-CONFLICT` instead of silently overwriting. Full conflict detection is **T33**;
-until then, flag it for human review (`add-item ... --field requires_human_review=true`)
-and note it in the log rather than applying the conflicting `set-lens`.
+### Review-override conflict: applied but audited (T33)
+
+The reviewer is **authoritative** (human > machine), so a review `set-lens`
+**always applies** — even when it contradicts an existing, evidence-backed lens
+value. But an override of a non-null value is **not silent**: `apply` records it so
+the disagreement is visible. For every `set-lens` action, `apply` checks the node's
+current lens value *before* applying and then:
+
+| Current lens value | New (reviewer) value | Behaviour |
+|---|---|---|
+| `null` | anything | Apply normally (first assertion — no conflict). |
+| non-null, **equals** new | same | Apply (idempotent no-op-ish — no conflict). |
+| non-null, **differs** from new | different | **Apply the reviewer's value** AND upsert a `GAP-CONFLICT` audit row. |
+
+The audit row is a normal register row (added through `add-item`, never by hand):
+
+- `type:gap`, `tag:unconfirmed`, `source:review`
+- stable `dedup_key` = `conflict|{node}|{lens}|review` — so **re-applying the same
+  override in a later round upserts the one row**, never a duplicate. (This key is
+  deliberately distinct from the classify-side `GAP-CONFLICT-{l1}-{l2}-{lens}`, which
+  is a *different* conflict — signals disagreeing across documents, lens left null.)
+- `observation_pain_point` records the `{node, lens, prior_value, reviewer_value,
+  reviewer, comment_id}` so the override is fully attributed.
+
+The override is noted in `review_log.md` (an `OVERRIDE AUDITED` line under the
+action). The conflict row surfaces in `state_machine.py status` as an open gap for a
+human to confirm later; `apply` does **not** auto-resolve it — the human reviewer
+already made the call, this row only audits that they overrode evidence. You do
+**not** need to hand-build this row or pre-flag the action: emit the `set-lens`
+action normally and `apply` handles the detection, the override, and the audit.
 
 ### 4. Emit the actions JSON
 

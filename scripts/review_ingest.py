@@ -288,6 +288,74 @@ def _get_node_json(eid: str, node_key: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Review-path conflict detection (T33): the reviewer is authoritative (human >
+# machine), so a review `set-lens` always APPLIES. But when it overrides a
+# *non-null* state lens with a *different* value, that disagreement is not silent
+# — we record a GAP-CONFLICT audit row so the override is visible. (The
+# classify-side conflict, where signals disagree and the lens is left null, is a
+# different mechanism owned by classify_merge.py / GAP-CONFLICT-{l1}-{l2}-{lens}.)
+def _node_lens_value(node: Optional[Dict[str, Any]], lens: str) -> Optional[Any]:
+    """The current value of one lens on a node, or None if absent/unset."""
+    if not node:
+        return None
+    return (node.get("lenses") or {}).get(lens)
+
+
+def _review_conflict_dedup_key(node_key: str, lens: str) -> str:
+    """Stable dedup_key for a review-override conflict row.
+
+    Distinct from the classify-side id (GAP-CONFLICT-{l1}-{l2}-{lens}) by the
+    trailing `|review`, so a review override and a classify contradiction on the
+    same (node, lens) are tracked as two separate audit rows.
+    """
+    return f"conflict|{node_key}|{lens}|review"
+
+
+def _review_conflict_id(node_key: str, lens: str) -> str:
+    """Stable, flat register id for a review-override conflict row.
+
+    Mirrors the classify-side GAP-CONFLICT id but suffixed `-REVIEW` so the two
+    sources never collide on a single id (both carry distinct dedup_keys too)."""
+    flat_node = node_key.replace(".", "-")
+    return f"GAP-CONFLICT-{flat_node}-{lens}-REVIEW"
+
+
+def _upsert_review_conflict(eid: str, node_key: str, lens: str,
+                            prior_value: Any, reviewer_value: Any,
+                            reviewer: str, comment_id: Any) -> Tuple[int, str, str]:
+    """Upsert a GAP-CONFLICT register row recording a reviewer override.
+
+    type:gap, tag:unconfirmed, source:review, stable dedup_key
+    `conflict|{node}|{lens}|review` (so re-applying the same override in a later
+    round upserts the one row rather than minting a duplicate). The override
+    facts (prior_value/reviewer_value/reviewer/comment_id) live in
+    observation_pain_point. Goes through add-item like every other mutation.
+    """
+    l1, _, l2 = node_key.partition(".")
+    dedup_key = _review_conflict_dedup_key(node_key, lens)
+    gap_id = _review_conflict_id(node_key, lens)
+    observation = (
+        f"Review override on lens '{lens}' for node '{node_key}': reviewer "
+        f"'{reviewer}' (comment {comment_id}) set value to '{reviewer_value}', "
+        f"overriding the prior evidence-backed value '{prior_value}'. The "
+        f"reviewer's value was applied (human > machine); this row audits the "
+        f"override for human review."
+    )
+    args: Dict[str, Any] = {
+        "type": "gap",
+        "l1": l1, "l2": l2,
+        "id": gap_id,
+        "field": {
+            "tag": "unconfirmed",
+            "dedup_key": dedup_key,
+            "source": "review",
+            "observation_pain_point": observation,
+        },
+    }
+    return _run_state_command(eid, "add-item", args)
+
+
 def _node_snapshot(node: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """A compact, comparable view of the fields review actions move."""
     if node is None:
@@ -388,7 +456,17 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
             continue
 
         node_key = _node_key_for_action(args)
-        before = _node_snapshot(_get_node_json(eid, node_key)) if node_key else {}
+        before_node = _get_node_json(eid, node_key) if node_key else None
+        before = _node_snapshot(before_node) if node_key else {}
+
+        # Review-path conflict detection (T33): for a set-lens action, capture the
+        # node's CURRENT lens value before applying. The reviewer is authoritative
+        # so the value is always applied; but if the prior value is non-null and
+        # DIFFERS, the override must be audited (a GAP-CONFLICT row), not silent.
+        conflict_lens = args.get("lens") if command == "set-lens" else None
+        prior_lens_value = (
+            _node_lens_value(before_node, conflict_lens) if conflict_lens else None
+        )
 
         rc, out, err = _run_state_command(eid, command, args)
         if rc != 0:
@@ -400,6 +478,32 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
 
         after = _node_snapshot(_get_node_json(eid, node_key)) if node_key else {}
         applied += 1
+
+        # Audit the override if it changed a non-null lens to a different value.
+        # (current null → first assertion, no conflict; current == new → no-op-ish,
+        # no conflict.) The reviewer's value is already applied above.
+        if conflict_lens is not None and node_key:
+            new_lens_value = args.get("value")
+            if (prior_lens_value is not None
+                    and str(prior_lens_value) != str(new_lens_value)):
+                crc, cout, cerr = _upsert_review_conflict(
+                    eid, node_key, conflict_lens, prior_lens_value,
+                    new_lens_value, reviewer, comment_id)
+                if crc != 0:
+                    failures.append(
+                        f"action {idx} (conflict-audit {node_key}.{conflict_lens}): "
+                        f"{(cerr or cout).strip()}")
+                    log_lines.append(
+                        f"    - **FAILED to audit override** "
+                        f"{node_key}.{conflict_lens} — {(cerr or cout).strip()}\n")
+                else:
+                    log_lines.append(
+                        f"    - **OVERRIDE AUDITED**: lens `{conflict_lens}` "
+                        f"`{prior_lens_value}` → `{new_lens_value}` overrode a "
+                        f"non-null evidence-backed value; upserted GAP-CONFLICT "
+                        f"`{_review_conflict_id(node_key, conflict_lens)}` "
+                        f"(dedup_key `{_review_conflict_dedup_key(node_key, conflict_lens)}`, "
+                        f"source review).\n")
         if node_key and _is_substance_action(command, args) and node_key not in dirty_nodes:
             dirty_nodes.append(node_key)
         log_lines.append(
