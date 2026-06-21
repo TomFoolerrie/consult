@@ -60,6 +60,13 @@ Shape (full contract: `classify_contract.md` §3):
   - `candidate_findings[]` — `{ type: improvement|gap, tag, confidence,
     observation, recommended_action?, evidence_ref }`. The `tag` doubles as a
     proposed `dedup_key` seed for consolidate; pick a stable lens/gap-tag slug.
+    **Type sharply — don't default to `gap`:** `improvement` = an actionable
+    process-change opportunity (automate / centralize / standardize / build
+    capability; signalled by pain points, "manual/re-keyed", "decentralized",
+    missing capability) — `tag` = the lens, give a `recommended_action`.
+    `gap` = missing info/documentation/evidence to fill. A single observation
+    can yield **both** (e.g. an undocumented manual control → an `automation`
+    improvement *and* a `control_not_evidenced` gap).
 - `unmapped[]` — `{ summary, evidence_ref, nearest_node?, reason }` for content
   that fits **no** L2. `nearest_node` is a hint for the human, never a
   destination the merge writes to.

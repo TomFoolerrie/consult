@@ -108,7 +108,22 @@ This is the gate that keeps the register clean: judgments, not raw signals.
      deterministic so re-consolidation **upserts** the same row instead of
      minting a new `IMP-/GAP-NNNN`. This is the LLM-finding analogue of stable
      gap ids — **without it a 2nd evidence wave duplicates every finding**.
-   - **`type`** — `improvement` or `gap`.
+   - **`type`** — `improvement` or `gap`. **Distinguish sharply (do not default
+     everything to `gap`):**
+     - **`improvement`** = an *actionable opportunity to change the process* —
+       automate, centralize, standardize, or build capability. Signals: a pain
+       point (process lens), "it's manual / re-keyed / spreadsheet-based"
+       (automation lens), "decentralized / inconsistent across regions"
+       (operating_model), or a missing capability (capability lens). Tag = the
+       **lens** it addresses; give a `recommended_action` and `effort`/`priority`
+       (directional). *Example: manual spreadsheet accruals → `improvement`,
+       tag `automation`, action "automate the accrual workflow."*
+     - **`gap`** = *missing information/documentation/evidence* needed to complete
+       the diagnosis or evidence a control (an absence to fill, not a process
+       change). Tag = a gap-tag.
+     - **One observation can yield BOTH:** an undocumented manual control is an
+       `improvement` (tag `automation`/`process` — document & system-enforce it)
+       **and** a `gap` (`control_not_evidenced`). Emit two records when both apply.
    - **`tag`** — the diagnostic **lens** for improvements; the **gap-tag** for
      gaps (reuse the controlled vocab).
    - **`source`** — the evidence ref (`path#L-L`); merge multiple refs if you
