@@ -55,6 +55,7 @@
             "properties": {
               "ref": { "$ref": "#/$defs/evidence_ref" },
               "quote": { "type": "string" },
+              "tier": { "enum": ["verbal", "documentary", "system_observed", null] },
               "note": { "type": "string" }
             }
           }
