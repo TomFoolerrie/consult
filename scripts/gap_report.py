@@ -51,7 +51,7 @@ STRUCT_PREFIX = "GAP-STRUCT-"
 # CSV columns written to the register (a subset of the register fields).
 CSV_FIELDS = ["id", "type", "tag", "l1_cycle", "l2_process",
               "observation_pain_point", "source", "record_status",
-              "review_status", "requires_human_review"]
+              "review_status", "requires_human_review", "owner"]
 SOURCE = "structural-scan"
 
 
@@ -148,18 +148,51 @@ def detect_gaps(state: Dict[str, Any]) -> List[Dict[str, str]]:
 
 def build_csv_rows(detected: List[Dict[str, str]],
                    existing: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-    """Build the CSV rows: detected gaps (active) + stale struct rows (archived)."""
+    """Build the CSV rows: detected gaps (active) + stale struct rows (archived).
+
+    For a detected gap whose id already exists as an *active* GAP-STRUCT row in
+    the loaded register, the human-review fields (review_status,
+    requires_human_review, owner) are carried over from that existing row rather
+    than reset to the insert-time defaults — so a re-scan never silently re-opens
+    a gap a human has already reviewed/dispositioned. The observation text still
+    refreshes. Newly-detected gaps (no active existing row) get the defaults.
+    """
     detected_ids = {g["id"] for g in detected}
+    # Index existing *active* GAP-STRUCT rows by id, so a re-scan preserves the
+    # human-review state of rows already present (archived rows don't preserve;
+    # a node re-becoming a gap is a fresh detection that gets the defaults).
+    active_existing: Dict[str, Dict[str, Any]] = {}
+    for rec in existing:
+        rid = str(rec.get("id") or "")
+        if not rid.startswith(STRUCT_PREFIX):
+            continue
+        if str(rec.get("record_status") or "active").lower() in ("archived", "inactive"):
+            continue
+        active_existing[rid] = rec
     rows: List[Dict[str, str]] = []
 
     for g in detected:
-        rows.append({
+        prior = active_existing.get(g["id"])
+        if prior is not None:
+            # Carry the human-review fields forward from the existing active row.
+            review_status = prior.get("review_status") or "needs_review"
+            rhr = prior.get("requires_human_review")
+            requires_human_review = "true" if rhr is None else str(rhr).lower()
+            owner = prior.get("owner")
+        else:
+            review_status = "needs_review"
+            requires_human_review = "true"
+            owner = None
+        row = {
             "id": g["id"], "type": "gap", "tag": g["tag"],
             "l1_cycle": g["l1"], "l2_process": g["l2"],
             "observation_pain_point": g["observation"], "source": SOURCE,
-            "record_status": "active", "review_status": "needs_review",
-            "requires_human_review": "true",
-        })
+            "record_status": "active", "review_status": review_status,
+            "requires_human_review": requires_human_review,
+        }
+        if owner is not None:
+            row["owner"] = owner
+        rows.append(row)
 
     # Self-heal: any existing GAP-STRUCT-* row not freshly detected is stale.
     for rec in existing:
@@ -168,13 +201,20 @@ def build_csv_rows(detected: List[Dict[str, str]],
             continue
         if str(rec.get("record_status") or "").lower() == "archived":
             continue  # already archived; no churn needed
-        rows.append({
+        arch_row = {
             "id": rid, "type": "gap", "tag": rec.get("tag") or "not_documented",
             "l1_cycle": rec.get("l1_cycle") or "", "l2_process": rec.get("l2_process") or "",
             "observation_pain_point": rec.get("observation_pain_point") or "",
             "source": SOURCE, "record_status": "archived",
             "review_status": "needs_review", "requires_human_review": "true",
-        })
+        }
+        # Don't wipe a row's owner when archiving it (owner is in CSV_FIELDS, so a
+        # blank cell would normalize to None and overwrite). Self-heal behavior is
+        # otherwise unchanged.
+        arch_owner = rec.get("owner")
+        if arch_owner is not None:
+            arch_row["owner"] = arch_owner
+        rows.append(arch_row)
     return rows
 
 
