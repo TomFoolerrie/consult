@@ -384,9 +384,10 @@ Planned ◻:
 
 | Skill | Role |
 |-------|------|
-| `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`) |
-| `consult-classifier` | Stage 2 — fan-out Sonnet-per-doc → state |
-| `consult-consolidator` | Stage 3 — per-L2 synthesis into node MD |
+| `consult-run` | Orchestration — state-driven engagement loop + `status`/`next` (`orchestration_contract.md`) |
+| `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`; `ingest_contract.md`) |
+| `consult-classifier` | Stage 2 — fan-out one sub-agent per doc → artifact → merge (`classify_contract.md`) |
+| `consult-consolidator` | Stage 3 — per-L2 synthesis into node MD; confirm staged findings |
 | `consult-gap-analyzer` | Stage 4 — substantive gaps (structural gaps are `gap_report.py`) |
 | `consult-improvement-drafter` | Stage 5B — improvement opportunities |
 
@@ -520,7 +521,7 @@ consolidate) and a top-level way to run the whole pipeline as one motion.**
 
 | Item | Role | Size |
 |---|---|---|
-| **Orchestration** ◻ | top-level "run the engagement" entry; idempotent stage sequencing | M–L |
+| **Orchestration** (`consult-run`) ◻ | state-driven "run the engagement" loop + `status`/`next` command (`orchestration_contract.md` ✅ drafted) | M–L |
 | `update-json` → JSON-native upsert ◻ | kill CSV transport (see §8) | S |
 | `consult-improvement-log` rewrite ◻ | recast as the agent-driven register JSON engine (doc-debt) | S–M |
 | `templates/` dir ◻ | SOP / improvement / gap-report / node-synthesis skeletons | S |
@@ -556,10 +557,10 @@ prove the triage path) — not just a happy-path single pass.
 
 ### Persona, invocation & success metrics
 
-- **Persona / invocation** — define who runs this (engagement associate vs. lead) and the
-  single entry point they invoke; this is the open **orchestration form** decision (skill /
-  Python driver / `CLAUDE.md`). For a "runs an engagement end to end" product the entry
-  point *is* the product — don't leave it implicit.
+- **Persona / invocation** ✅ — an engagement associate/lead (not a developer) invokes one
+  entry, `consult-run` ("run/continue engagement {id}"); the agent advances the state-driven
+  loop to the next human gate and reports what it needs. (Form decided — see
+  `orchestration_contract.md`.)
 - **Success metrics** — set targets so "good enough to bill on" is falsifiable: classify
   **precision/recall** (tie to the artifact contract), evidence-support rate (claims with a
   resolving ref), reviewer-edit rate, and time-to-first-draft. The biggest linked risk is
@@ -569,10 +570,11 @@ prove the triage path) — not just a happy-path single pass.
 
 ### Two explicit planned components (newly called out)
 
-1. **Orchestration ◻** — the top-level entry that sequences the stages idempotently and
-   applies every state write through the commands. **Open decision — its form:** a
-   skill/playbook the agent follows, a Python driver that invokes stages, or `CLAUDE.md`
-   instructions. To be decided before/with the vertical slice.
+1. **Orchestration ✅ design-drafted** (`orchestration_contract.md`) — **decided**: a
+   `consult-run` skill the **agent** follows (only the agent can spawn the LLM stages'
+   sub-agents), **state-driven not linear** (asks "what does state need next?" → resumable +
+   idempotent across sessions). Backed by Python helpers and a `status`/`next` reporting
+   command. Build follows the vertical slice.
 2. **Classify artifact contract ✅ design-drafted** (`classify_contract.md` +
    `schemas/classify_artifact.schema.json`) — the per-doc artifact a classifier sub-agent
    returns, the deterministic Python merge rules (confidence/conflict policy, evidence dedup,
