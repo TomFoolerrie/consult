@@ -289,10 +289,13 @@ Steps 7–9 are the review loop that replaces the former Excel/CSV reimport.
 ### Stage 1 — Ingest (Python, "standardize to MD") ◻
 A **single `consult-ingest` skill** takes raw files of any format (VTT/transcripts, DOCX,
 PDF, PPTX, XLSX/CSV, images) and emits, for each, a clean Markdown file with a **YAML
-header** (source filename, doc type, date, detected hints) under
-`engagements/{id}/ingested/`. Driven by `scripts/ingest_normalize.py` with **seeded Python
-templates the agent extends per format**. It **subsumes/calls** `consult-transcript-cleaner`
-(`clean_vtt.py` ✅) as the transcript handler rather than duplicating it.
+header** under `engagements/{id}/ingested/`. Driven by `scripts/ingest_normalize.py` with
+**seeded Python handlers the agent extends per format**; it **subsumes** `consult-transcript-cleaner`
+(`clean_vtt.py` ✅) as the transcript handler. Ingested MDs are **immutable, source-hashed
+artifacts** (one source → one MD, never rewritten) with **provenance markers** back to the
+original (page/slide/sheet) — this is what satisfies Stage 2's `path#Lstart-Lend`
+line-stability requirement. Format/handler details, the header schema, phasing, and a worked
+example are in **`ingest_contract.md`** (+ `schemas/ingested_header.schema.json`) ✅ design-drafted.
 
 ### Stage 2 — Classify (LLM fan-out, "one Sonnet per doc") ◻
 For each ingested doc, launch a sub-agent that **reads it and returns** a compact structured
@@ -435,7 +438,8 @@ Resolved:
    commands. **No CSV/Excel human round-trip.** Humans review on Word; the LLM ingests the
    reviewed Word (body + comments) and applies updates through the commands.
 5. **Evidence span format** — `path#Lstart-Lend` (node evidence `source` + `loc`; register
-   `source`). Must render inline in review docs.
+   `source`). Must render inline in review docs. Line-stability guaranteed by **immutable,
+   source-hashed ingest artifacts** (`ingest_contract.md`).
 6. **Structured↔narrative precedence** — structured state wins on conflict; MD re-rendered;
    findings cite register IDs; `validate` gains a coherence check (§3).
 7. **`unmapped` content** — first-class register `type: unmapped` (null node, owner), surfaced
@@ -494,7 +498,7 @@ consolidate) and a top-level way to run the whole pipeline as one motion.**
 
 | Item | Role | Size | Key risk |
 |---|---|---|---|
-| `consult-ingest` (Stage 1) ◻ | all formats → MD + YAML header | M–L | format zoo: PDF tables, PPTX, XLSX, images/OCR |
+| `consult-ingest` (Stage 1) ◻ | all formats → immutable MD + YAML header (`ingest_contract.md` ✅ drafted) | M–L | format zoo: PDF tables, PPTX, XLSX, images/OCR |
 | `consult-classifier` (Stage 2) ◻ | **keystone**: doc → artifact → state | L | the artifact schema + cross-doc merge + evidence fidelity |
 | `consult-consolidator` (Stage 3) ◻ | per-L2 node-MD synthesis | M | keeping prose ↔ structured coupled |
 | `consult-gap-analyzer` (Stage 4 LLM) ◻ | substantive gaps | S–M | overlap with structural scan |
