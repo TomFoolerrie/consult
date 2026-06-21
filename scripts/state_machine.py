@@ -30,7 +30,7 @@ Commands:
 """
 from __future__ import annotations
 
-import argparse, json, subprocess, sys
+import argparse, json, re, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -87,6 +87,11 @@ IMPROVEMENT_LOG = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts"
 # improvement_log.py ARCHIVE_STATUSES ∪ DELETE_STATUSES).
 INACTIVE_STATUSES = {"archived", "inactive", "deleted_candidate", "deleted",
                      "delete", "removed", "remove"}
+# Register-id citations the coherence check extracts from node MDs. The longer
+# GAP-STRUCT / GAP-CONFLICT prefixes are listed first so the alternation prefers
+# them over a bare GAP (greedy [\w-]+ would capture the same full id either way,
+# but ordering keeps the matched prefix accurate).
+CITATION_RE = re.compile(r"\b(GAP-STRUCT|GAP-CONFLICT|IMP|GAP|SC|UNM|THM)-[\w-]+")
 
 
 def now_iso() -> str:
@@ -220,6 +225,99 @@ def load_register(eid: str) -> List[Dict[str, Any]]:
         return json.load(f).get("records", [])
 
 
+def _md_frontmatter(text: str) -> Dict[str, Any] | None:
+    """Parse the leading YAML front-matter block from a node MD.
+
+    Returns the parsed dict, or None if there is no well-formed `---`-delimited
+    front-matter at the top of the file.
+    """
+    if not text.startswith("---"):
+        return None
+    lines = text.split("\n")
+    if not lines or lines[0].strip() != "---":
+        return None
+    end = None
+    for idx in range(1, len(lines)):
+        if lines[idx].strip() == "---":
+            end = idx
+            break
+    if end is None:
+        return None
+    try:
+        header = yaml.safe_load("\n".join(lines[1:end])) or {}
+    except yaml.YAMLError:
+        return None
+    return header if isinstance(header, dict) else None
+
+
+def check_coherence(eid: str) -> Dict[str, Any]:
+    """Cross-check node MD narratives against state + register (T35).
+
+    For every node MD referenced by state:
+      1. Cited register ids ((IMP|GAP|SC|UNM|THM|GAP-STRUCT|GAP-CONFLICT)-...)
+         must exist in register.json (any status — active or archived).
+      2. Each non-null `lenses:` value in the MD front-matter must equal the
+         state node's lens value (a mismatch flags a stale narrative left behind
+         after a state change).
+
+    Returns a structured report; pure (no I/O beyond reads).
+    """
+    _, state = load_state(eid)
+    edir = engagement_dir(eid)
+    # All register ids (every status) for dangling-citation membership.
+    known_ids = {str(rec.get("id")) for rec in load_register(eid) if rec.get("id")}
+
+    nodes = state["nodes"]
+    md_checked = 0
+    md_missing: List[str] = []
+    dangling: List[Dict[str, str]] = []
+    lens_mismatches: List[Dict[str, Any]] = []
+
+    for key in sorted(nodes):
+        node = nodes[key]
+        rel = node.get("node_md") or f"nodes/{node.get('l1')}/{node.get('l2')}.md"
+        md_path = edir / rel
+        if not md_path.exists():
+            md_missing.append(rel)
+            continue
+        text = md_path.read_text(encoding="utf-8")
+        md_checked += 1
+
+        # (1) Dangling citations. Dedup per (node, id) so a repeated cite is one
+        # finding.
+        seen: set[str] = set()
+        for m in CITATION_RE.finditer(text):
+            cid = m.group(0)
+            if cid in seen:
+                continue
+            seen.add(cid)
+            if cid not in known_ids:
+                dangling.append({"node": key, "md": rel, "id": cid})
+
+        # (2) Front-matter lens drift.
+        fm = _md_frontmatter(text)
+        fm_lenses = (fm or {}).get("lenses") or {}
+        if isinstance(fm_lenses, dict):
+            state_lenses = node.get("lenses", {})
+            for lens in LENSES:
+                fm_val = fm_lenses.get(lens)
+                if fm_val is None:
+                    continue
+                state_val = state_lenses.get(lens)
+                if fm_val != state_val:
+                    lens_mismatches.append({
+                        "node": key, "md": rel, "lens": lens,
+                        "md_value": fm_val, "state_value": state_val,
+                    })
+
+    return {
+        "md_checked": md_checked,
+        "md_missing": md_missing,
+        "dangling": dangling,
+        "lens_mismatches": lens_mismatches,
+    }
+
+
 def derive_coverage(node: Dict[str, Any]) -> str:
     """Derive a node's coverage from its contents.
 
@@ -310,18 +408,22 @@ def cmd_show(eid: str) -> None:
                   f"imp={c['improvements']} gap={c['gaps']} sc={c['screenshots']} sop={node['sop']['status']}")
 
 
-def cmd_validate(eid: str) -> None:
+def _validate_structure(eid: str) -> bool:
+    """Existing node-set + schema checks. Returns True if any issue was found."""
     _, state = load_state(eid)
     taxonomy = load_taxonomy()
     expected = {node_key(l1, l2) for l1, _, l2, _, _ in iter_l2(taxonomy)}
     actual = set(state["nodes"].keys())
     missing = expected - actual
     extra = actual - expected
+    issues = False
     print(f"Taxonomy L2 nodes: {len(expected)} | state nodes: {len(actual)}")
     if missing:
         print(f"MISSING nodes ({len(missing)}): {sorted(missing)}")
+        issues = True
     if extra:
         print(f"EXTRA nodes not in taxonomy ({len(extra)}): {sorted(extra)}")
+        issues = True
     if not missing and not extra:
         print("OK: state nodes exactly match the taxonomy L2 set.")
 
@@ -334,8 +436,49 @@ def cmd_validate(eid: str) -> None:
         print(f"Schema: {len(errors)} error(s):")
         for e in errors[:20]:
             print(f"  - {e}")
+        issues = True
     else:
         print("Schema: OK (validates against engagement_state.schema.json).")
+    return issues
+
+
+def _validate_coherence(eid: str) -> bool:
+    """Coherence section (T35): citations exist + front-matter lenses match state.
+
+    Returns True if any dangling citation or lens mismatch was found.
+    """
+    report = check_coherence(eid)
+    dangling = report["dangling"]
+    mismatches = report["lens_mismatches"]
+    missing = report["md_missing"]
+
+    print(f"Coherence: {report['md_checked']} node MD(s) checked | "
+          f"{len(dangling)} dangling citation(s) | "
+          f"{len(mismatches)} lens mismatch(es).")
+    if missing:
+        print(f"  ({len(missing)} node MD(s) referenced by state but absent on disk)")
+    if dangling:
+        print(f"  Dangling citations ({len(dangling)}):")
+        for d in dangling:
+            print(f"    - {d['node']}: {d['id']} not in register ({d['md']})")
+    if mismatches:
+        print(f"  Lens mismatches ({len(mismatches)}):")
+        for m in mismatches:
+            print(f"    - {m['node']}: lens {m['lens']} md={m['md_value']!r} "
+                  f"state={m['state_value']!r} ({m['md']})")
+    if not dangling and not mismatches:
+        print("  OK: all citations resolve and front-matter lenses match state.")
+    return bool(dangling or mismatches)
+
+
+def cmd_validate(eid: str, coherence_only: bool = False, strict: bool = False) -> None:
+    issues = False
+    if not coherence_only:
+        issues = _validate_structure(eid)
+    coherence_issues = _validate_coherence(eid)
+    issues = issues or coherence_issues
+    if strict and issues:
+        raise SystemExit(1)
 
 
 def _save_state(state_path: Path, state: Dict[str, Any]) -> None:
@@ -828,10 +971,18 @@ def main() -> None:
     i.add_argument("--region", default="NA")
     i.add_argument("--force", action="store_true", help="Reseed even if state.json exists.")
     for name, help_text in (("sync", "Roll register rows into nodes; recompute coverage."),
-                            ("show", "Print coverage summary."),
-                            ("validate", "Check node set against the taxonomy.")):
+                            ("show", "Print coverage summary.")):
         s = sub.add_parser(name, help=help_text)
         s.add_argument("--engagement", required=True)
+
+    v = sub.add_parser(
+        "validate",
+        help="Check node set + schema, then narrative↔state coherence.")
+    v.add_argument("--engagement", required=True)
+    v.add_argument("--coherence-only", action="store_true", dest="coherence_only",
+                   help="Run only the coherence section (skip node-set + schema).")
+    v.add_argument("--strict", action="store_true",
+                   help="Exit nonzero if any validation issue is found.")
 
     gn = sub.add_parser("get-node", help="Print one node (compact, or --json).")
     gn.add_argument("--engagement", required=True)
@@ -912,7 +1063,7 @@ def main() -> None:
     elif args.command == "show":
         cmd_show(args.engagement)
     elif args.command == "validate":
-        cmd_validate(args.engagement)
+        cmd_validate(args.engagement, args.coherence_only, args.strict)
     elif args.command == "get-node":
         cmd_get_node(args.engagement, args.node, args.json)
     elif args.command == "query":
