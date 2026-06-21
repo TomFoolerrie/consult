@@ -70,8 +70,9 @@ reports; it never self-finalizes.
 
 ### Output (gates, then assemble)
 Before `final`, the **DoD gates** must pass: `consult-evidence-auditor` ✅ (procedural claims
-supported), zero open `requires_human_review` / SME items, every `unmapped` row owned, all
-evidence refs resolve. Then assemble the final Word — **one document per work stream + the gap
+supported), zero open `requires_human_review` / SME items, every `unmapped` row **dispositioned**
+(`disposition ≠ pending`, machine-checkable — not merely "owned"), all evidence refs resolve.
+Then assemble the final Word — **one document per work stream + the gap
 report** — and set deliverable statuses to `final`.
 
 ## 3. Decisions locked here
@@ -79,8 +80,8 @@ report** — and set deliverable statuses to `final`.
 - **Review unit = per L1** (decoupled from per-L2 storage; the drafter's L1-Level mode).
 - **Comment → action mapping** is owned by the resolver + orchestrator; the agent applies, the
   reviewer's intent is attributed and logged.
-- **Gates are hard**: evidence-auditor + open SME/`requires_human_review` + unowned unmapped
-  block `final`.
+- **Gates are hard**: evidence-auditor + open SME/`requires_human_review` + any `unmapped`
+  with `disposition = pending` block `final`.
 - **No CSV** anywhere — Word in, commands out.
 
 ## 4. To validate during the vertical slice

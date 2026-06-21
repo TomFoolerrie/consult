@@ -47,6 +47,7 @@
             "properties": {
               "source": { "type": "string" },
               "loc": { "type": "string" },
+              "tier": { "enum": ["verbal", "documentary", "system_observed", null] },
               "note": { "type": "string" }
             }
           }

@@ -54,7 +54,12 @@ runs after step 1 so IDs exist.
   supports it; otherwise leave blank and set `requires_human_review=true` (don't invent
   Effort×Impact).
 - Confirmed improvements/gaps get `add-item`'d with their evidence ref in `source`
-  (`path#L-L`) and `tag` (lens for improvements, gap-tag for gaps).
+  (`path#L-L`), `evidence_tier`, and `tag` (lens for improvements, gap-tag for gaps).
+- **Upsert by `dedup_key`, not fresh id.** Each confirmed finding carries a stable
+  `dedup_key` (deterministic from `{node}+{type}+{primary evidence ref / normalized
+  observation}`); consolidate **upserts** on it. Without this, re-consolidation (a 2nd evidence
+  wave) re-confirms the same finding under a *new* `IMP-/GAP-NNNN` and duplicates it — unlike
+  self-healing structural gaps. This is the LLM-finding analogue of stable gap ids.
 - A finding the LLM judges *unmappable to this L2* is left for the unmapped path, not forced.
 
 ## 5. The node MD (what it must contain)

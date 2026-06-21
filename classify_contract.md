@@ -11,7 +11,8 @@ Stage 2 turns ingested documents into structured diagnosis. It has **two halves*
 
 - **2a — fan-out (LLM):** one sub-agent per ingested MD. Each *reads its one document* and a
   taxonomy slice, and emits a **per-doc artifact** (this contract). It writes the artifact to
-  `engagements/{id}/classify/{doc}.artifact.json` and returns a one-line summary. **A
+  `engagements/{id}/classify/{hash}.artifact.json` (keyed by source hash, written atomically)
+  and returns a one-line summary. **A
   sub-agent never touches `state.json` / `register.json`** — its artifact file is its output,
   not state.
 - **2b — merge (Python):** a deterministic `classify_merge.py` reads *all* artifacts, resolves
@@ -102,8 +103,12 @@ for the human*, never a destination the merge writes to.
 - **Inputs:** exactly one ingested MD (with stable line numbers) + a **taxonomy slice** —
   L1/L2 ids, names, and the optional per-L2 `description`/`keywords` enrichment (which is why
   that enrichment is worth doing alongside this). Optionally the L3 lists for `l3_hints`.
-- **Output:** one artifact validating against the schema, written to
-  `classify/{doc}.artifact.json`; the sub-agent returns only a one-line summary.
+- **Output:** one artifact validating against the schema, written **atomically**
+  (temp + rename) to `classify/{hash}.artifact.json` — keyed by the source **hash** (matching
+  the ingest manifest), so the "classified set = artifacts vs manifest active hashes" derivation
+  holds across re-ingest. A doc counts as classified only when its artifact exists **and
+  schema-validates** (a truncated artifact must be retried, not silently dropped). The sub-agent
+  returns a one-line summary.
 - **Guarantees:** read-only w.r.t. state; cites real line ranges (no invented refs); never
   emits a `node` not in the taxonomy (anything that doesn't fit → `unmapped`); confidence is
   honest (don't assert `high` to be helpful).
@@ -112,7 +117,9 @@ for the human*, never a destination the merge writes to.
 
 Reads every `classify/*.artifact.json` and resolves per node:
 
-**Evidence** — for each `node_hit.evidence[].ref`, `add-evidence` if that exact ref isn't
+**Evidence** — for each `node_hit.evidence[].ref`, the merge first **checks the ref resolves**
+to real lines in the cited (immutable) MD — a hallucinated `#L9999` is dropped/flagged here, not
+discovered at the final gate as a phantom citation. Then `add-evidence` if that exact ref isn't
 already on the node. **`add-evidence` must dedup by ref string** (a node never holds the same
 ref twice) — this is a **required behavior** the merge's idempotency depends on, implemented in
 the command itself (not in `classify_merge.py`), so every caller benefits. *Prerequisite build

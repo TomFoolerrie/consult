@@ -28,8 +28,12 @@
       "additionalProperties": true,
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "type": { "enum": ["improvement", "gap", "screenshot", "unmapped"] },
+        "type": { "enum": ["improvement", "gap", "screenshot", "unmapped", "theme"] },
         "tag": { "type": ["string", "null"] },
+        "dedup_key": { "type": ["string", "null"], "description": "Stable key for LLM-confirmed findings so re-consolidation upserts instead of minting a duplicate id." },
+        "evidence_tier": { "enum": ["verbal", "documentary", "system_observed", null], "description": "Defensibility tier of the supporting evidence." },
+        "disposition": { "enum": ["pending", "reclassified", "converted", "out_of_scope", null], "description": "For unmapped rows: how the content was resolved. The final gate requires non-pending, not merely an owner." },
+        "related_nodes": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$" }, "description": "For type:theme cross-cutting findings spanning multiple L2 nodes." },
         "date_identified": { "type": ["string", "null"] },
         "source": { "type": ["string", "null"] },
         "l1_cycle": { "type": ["string", "null"] },

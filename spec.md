@@ -70,6 +70,12 @@ generic color-coded ratings (`pain_point` / `automation` / `capability` /
 join back to the core. These are **generic deck baselines, not engagement-specific** —
 engagement lens values are filled per engagement into `state.json`.
 
+> **Hard guardrail (credibility):** baselines **never** seed a lens value or a finding, and are
+> **never** shown to a classifier/consolidate sub-agent as a prior (anchoring risk). If
+> surfaced at all, only as a clearly-labeled **external benchmark**, visually separate from the
+> observed lens — never merged into a client finding. Asserting a generic "high pain" rating
+> the client never voiced destroys trust in the whole deck.
+
 The 5 diagnostic lenses (the deck's 5 maps), filled per engagement at the **L2** level:
 
 | Lens | Question | Values |
@@ -210,6 +216,14 @@ Evidence is recorded as a node-evidence entry (`source` = ingested doc path, `lo
 inline** in the Word review docs — reviewers validate conclusions *with* their source, never
 blind.
 
+**Evidence tiering (defensibility):** each evidence entry / finding carries an `evidence_tier`
+— `verbal` (a transcript assertion), `documentary` (a policy/doc), or `system_observed`. A
+transcript line is *traceable* but a single uncorroborated assertion. **Control claims and
+procedure-critical steps require ≥ `documentary`** or carry an open validation gap — a control
+attested only verbally must not look identical to one backed by a policy/system. Effort × Impact
+on improvements is **`directional` pending SME sizing** unless a quantified source exists
+(never a hard number from LLM judgment).
+
 ---
 
 ## 4. State-management command surface (token-efficient API)
@@ -339,6 +353,16 @@ evidence, undocumented controls, conflicting lens signals) as further gap rows
 
 Specified in **`generation_review_contract.md`** ✅ design-drafted.
 
+### Stage 5C — Synthesis & themes (LLM, the decision layer) ◻
+The 5A/5B streams are bottom-up enumerations; a client pays for a **point of view**. Stage 5C
+produces `deliverables/synthesis.md`: an **executive summary**, an **effort × impact
+prioritization** of all improvements (quick-wins vs. 0–6mo vs. 6–18mo **roadmap**, using the
+register `effort`/`priority`/`phase` fields as the sequencing spine), and a per-L1
+**current → future operating model** summary driven off the lens scores (esp. `capability:new`).
+It also lifts **cross-cutting findings** the per-L2 grid would shred (e.g. "no master-data
+single source of truth across cycles") into `type:theme` register rows that **reference
+multiple nodes** (`related_nodes[]`). This is what turns the binder into a recommendation.
+
 ### Stage 6 — Review & Output
 Render deliverables to CFGI-branded Word **per L1 cycle** (`consult-docx-builder` ✅; the
 review unit — the drafter's L1-Level mode already produces one doc per cycle). Each render
@@ -349,13 +373,15 @@ extracting body text *and* tracked comments (needs a docx-comment extraction hel
 structured updates the agent applies back through the commands, attributed to a reviewer
 (substance changes mark nodes dirty → re-consolidate/redraft next loop).
 **Gates before `final`:** `consult-evidence-auditor` ✅ passes (procedural claims supported),
-no open `requires_human_review` / SME items, every `unmapped` row owned. Final assembly to
+no open `requires_human_review` / SME items, every `unmapped` row **dispositioned**
+(`disposition ≠ pending` — a machine-checkable field, *not* merely "has an owner"). Final assembly to
 Word — one document per work stream, plus the gap report. **No CSV round-trip.**
 (`generation_review_contract.md`.)
 
 ### Deliverables & Definition of Done
 
-The client receives **three artifacts**: Stream A (SOP / Desktop Procedures), Stream B
+The client receives **four artifacts**: the **Synthesis** (exec summary + prioritized roadmap +
+current→future, Stage 5C — the lead document), Stream A (SOP / Desktop Procedures), Stream B
 (Process Improvement Opportunities), and the **Gap Report** — all CFGI-branded Word.
 
 **SOP stream DoD** = the drafter's **Quality Checklist** (`consult-drafter/SKILL.md`, *not*
@@ -366,7 +392,14 @@ points in **Appendix A**; improvements in **Appendix B**; screenshots in **Appen
 Cross-Reference Matrix populated; ready for docx.
 
 **Improvement stream DoD** = every improvement row has Finding → Recommendation →
-Effort × Impact → Owner (register fields non-empty), tied to a lens.
+Effort × Impact → Owner (register fields non-empty), tied to a lens; Effort×Impact labeled
+`directional` unless quantified-source-backed.
+
+**Synthesis DoD** = exec summary present; every improvement placed on the effort×impact /
+roadmap; per-L1 current→future stated; cross-cutting `type:theme` findings surfaced.
+
+**Evidence DoD** = every control claim and procedure-critical step is ≥ `documentary` tier or
+carries an open validation gap (a verbal-only control is not "done").
 
 **Engagement completeness rubric** (not "100% covered" — `coverage:none` is a valid
 finding): every L2 node is *triaged* (covered, or an explicit gap explains why not); every
@@ -433,8 +466,11 @@ Planned ◻:
         ├── register.json            ← Layer 2 (machine; agent-written, no CSV round-trip)
         ├── ingested/                ← normalized MD per raw artifact
         ├── nodes/{l1}/{l2}.md       ← Layer 3 (human-readable, LLM-owned)
+        ├── classify/                ← per-doc artifacts {hash}.artifact.json (Stage 2)
         └── deliverables/
+            ├── synthesis.(md|docx)  ← decision layer (Stage 5C, lead doc)
             ├── gap_report.(md|docx)
+            ├── review_log.md        ← required change log (every consolidate/review round)
             ├── sop/                 ← Stream A
             └── improvements/        ← Stream B
 ```
@@ -530,6 +566,8 @@ consolidate) and a top-level way to run the whole pipeline as one motion.**
 |---|---|---|---|
 | `consult-drafter` wiring ◻ | SOP from state/register, per L1 (`generation_review_contract.md` ✅ drafted) | S–M | skill exists; predates state model |
 | `consult-improvement-drafter` (5B) ◻ | improvements from lenses + register (`generation_review_contract.md`) | M | new |
+| `consult-synthesizer` (5C) ◻ | exec summary + effort×impact roadmap + current→future + `type:theme` cross-cutting findings | M | the "binder → recommendation" lift; leads Slice 1 |
+| Evidence tiering ◻ | `evidence_tier` on evidence/findings; control claims need ≥documentary | S | defensibility |
 | Review ingestion (Stage 6) ◻ | docx **comment** extraction + apply via commands (`generation_review_contract.md`) | M | the LLM-mediated Word→state loop |
 | `unmapped` handling ◻ | register `type: unmapped` (null node) + gap-report Triage | S–M | the diagnostic-completeness safety net |
 | `validate` coherence check ◻ | MD-cited IDs exist; prose lenses match state | S | makes structured↔narrative drift detectable |
@@ -561,26 +599,64 @@ ingest ─▶ classify ─▶ consolidate ─▶ gap-analyzer ─▶ draft(5A/5B
 consume the state it produces. Its real deliverable is not code volume but the **artifact
 contract** (see below); design that before building it.
 
-### Build strategy: vertical slice first
+### Build strategy: two vertical slices (thesis first)
 
-Prefer a **narrow vertical slice end-to-end** over finishing each stage horizontally across
-all 37 L2s. Pick a couple of real transcripts for one L1 (e.g. Record-to-Report) and get
-`init → classify → consolidate → gap → draft → Word → review → output` working on *just
-that*, with stubs elsewhere. Rationale: it surfaces the integration seams (the classify
-artifact contract and the Word review loop) while they are cheap to change, yields a
-demoable result fastest, and becomes the regression fixture. Building ingest's full format
-zoo before proving classify would be effort at risk.
+Narrow vertical slices over horizontal completion — but **split into two**, because the full-
+design review found the single-slice plan was scoped to test the *product*, not the *thesis*,
+re-importing the most speculative third (the review-ingestion subsystem) before the core was
+proven.
 
-The slice's **acceptance criteria** (not "also include") are the parts that only bite at scale
-and where the design is thinnest: a **second review round** (proves versioning /
-no-silent-overwrite / evidence-specific dirty) and at least **one `unmapped` item** carried
-through to **disposition** (proves the safety net). A green light on a happy single pass would
-validate only the parts that already work.
+**Slice 1 — prove the thesis, one-way.** On one L1 (Record-to-Report) with a synthesized R2R
+transcript sample: `init → ingest(v1) → classify → consolidate → gap → draft(5A/5B) → 5C
+synthesis → render Word → STOP`. A human *reads* a credible SOP + improvement + synthesis. **No
+review-ingestion loop.** Acceptance: the output reads like real consulting (synthesis present,
+evidence inline, ≥1 `unmapped` item *captured* and surfaced in Triage), and a re-run is
+idempotent (no duplicate evidence/findings). This is the falsifiable core and the regression
+fixture.
 
-**Sequence the three prereq build tasks first** (§8 open #11) — `unmapped` null-node add path,
-`add-evidence` dedup, and the evidence-specific dirty signal + Stream-B status. They are
-S-sized, on the critical path, and currently written in the contracts as if they exist; build
-them before the slice's integration test, not during it.
+**Slice 2 — prove the human loop.** Adds Stage 6 review ingestion (docx comments → commands),
+a **second review round** (versioning / no-silent-overwrite), and the full `unmapped`
+**disposition** lifecycle as a gate. This is where the coherence check, the evidence-specific
+dirty signal's protective role, `review_log`, and review-path conflict detection earn their cost.
+
+**Build the correctness floor before Slice 1's integration test** — see the hardening checklist
+below; the review found these are not optional hardening but the load-bearing floor the
+contracts already assume.
+
+### Build-hardening checklist (from the full-design review)
+
+The architecture is sound; these are the seams the contracts assert as if implemented. **(S1)**
+= required for Slice 1, **(S2)** = Slice 2.
+
+- **(S1) `add-evidence`: dedup by ref + stamp `last_evidence_at`.** Without dedup, routine merge
+  re-runs duplicate every evidence entry. Without the stamp, the diagnosis-dirty predicate
+  (`last_evidence_at > consolidated_at`) **can never fire → consolidate never runs → silent
+  stall.** Build with a re-run assertion.
+- **(S1) `unmapped` null-node add path** — `add-item --type unmapped` with no `--l1/--l2`,
+  explicitly carrying `type` (the CSV path defaults missing type → `improvement`); **and `sync`
+  must exclude null-node `unmapped` rows from the orphan list** (else every one is flagged an
+  orphan forever, burying real misroutes).
+- **(S1) Stable `dedup_key` / upsert for LLM-confirmed findings** — confirmed findings get fresh
+  `IMP-/GAP-NNNN` ids today, so re-consolidation **duplicates** them (unlike self-healing
+  structural gaps). Consolidate must upsert by `dedup_key`.
+- **(S1) Atomic, schema-validated classify artifacts** — a truncated/invalid artifact currently
+  counts as "classified" and its content is dropped; a partial fan-out must not let a node be
+  marked `covered`/drafted from an incomplete evidence set. Write temp+rename; validate before
+  counting done; gate coverage on fan-out completeness.
+- **(S1) Merge-time evidence-ref-resolves check** — verify each `path#L-L` points to real lines
+  in the cited MD before writing (the schema only checks shape; an LLM `#L9999` otherwise sails
+  through to a phantom citation a reviewer "validates").
+- **(S1) `update-json`/`add-item` JSON-native refactor** — kill the temp-CSV transport;
+  **fix the insert path that force-sets `requires_human_review=true` on every row** (it silently
+  overrides consolidate's judgment); stop the backup-file-per-write churn.
+- **(S1) Decide the seam: classify artifact filename key = `{hash}`** (not `{doc}`), so the
+  "classified set = artifacts vs manifest active hashes" derivation works across re-ingest.
+- **(S2) Review-round-consumed marker** — a crash mid-ingest must not re-apply comments 1–8 on
+  the next loop (duplicate `add-item`s). Gate re-ingest on a "round N consumed" flag.
+- **(S2) Review-path conflict detection** — a review `set-lens` that contradicts an
+  evidence-backed value should raise `GAP-CONFLICT`, not silently overwrite.
+- **(S2) Structural re-scan must not reset a human's `review_status`** on `GAP-STRUCT` rows
+  (gap_report should set review fields on insert only, preserving human dispositions).
 
 ### Persona, invocation & success metrics
 
