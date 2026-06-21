@@ -77,7 +77,9 @@ LENS_VALUES = {
 }
 # ID prefix per register item type (for auto-generating add-item ids).
 TYPE_TO_PREFIX = {"improvement": "IMP", "gap": "GAP", "screenshot": "SC",
-                  "unmapped": "UNM"}
+                  "unmapped": "UNM", "theme": "THM"}
+# Types that do NOT sit on a single L2 node (no --l1/--l2; null-node rows).
+NODELESS_TYPES = {"unmapped", "theme"}
 IMPROVEMENT_LOG = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts"
                    / "improvement_log.py")
 # Register rows in these statuses do not roll up into node counts (aligned with
@@ -517,15 +519,16 @@ def _next_item_id(eid: str, prefix: str) -> str:
 
 
 def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
-                 item_id: str | None, fields: List[str]) -> None:
-    is_unmapped = item_type == "unmapped"
+                 item_id: str | None, fields: List[str],
+                 fields_json: List[str] | None = None) -> None:
+    is_nodeless = item_type in NODELESS_TYPES
 
-    if is_unmapped:
-        # Null-node row: content not yet placed on the taxonomy. l1/l2 stay null
-        # and are NOT validated against the taxonomy.
+    if is_nodeless:
+        # Null-node row (unmapped/theme): not placed on a single L2. l1/l2 stay
+        # null and are NOT validated against the taxonomy.
         if l1 or l2:
-            raise SystemExit("--type unmapped does not take --l1/--l2 (it is a null-node row).")
-        key = "(unmapped)"
+            raise SystemExit(f"--type {item_type} does not take --l1/--l2 (it is a null-node row).")
+        key = f"({item_type})"
     else:
         if not l1 or not l2:
             raise SystemExit(f"--type {item_type} requires --l1 and --l2.")
@@ -545,6 +548,19 @@ def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
             raise SystemExit(f"Invalid --field '{spec}'; empty key.")
         extra[fkey] = fval
 
+    # --field-json values are parsed as JSON (arrays/objects, e.g. related_nodes).
+    for spec in (fields_json or []):
+        if "=" not in spec:
+            raise SystemExit(f"Invalid --field-json '{spec}'; expected KEY=JSON.")
+        fkey, fval = spec.split("=", 1)
+        fkey = fkey.strip()
+        if not fkey:
+            raise SystemExit(f"Invalid --field-json '{spec}'; empty key.")
+        try:
+            extra[fkey] = json.loads(fval)
+        except json.JSONDecodeError as e:
+            raise SystemExit(f"Invalid --field-json '{spec}'; value is not valid JSON: {e}")
+
     prefix = TYPE_TO_PREFIX[item_type]
     rid = item_id or _next_item_id(eid, prefix)
 
@@ -554,7 +570,7 @@ def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
         "id": rid, "type": item_type,
         "l1_cycle": l1 or None, "l2_process": l2 or None,
     }
-    if is_unmapped:
+    if item_type == "unmapped":
         # Null-node defaults for unmapped rows (caller --field can override).
         row.setdefault("disposition", "pending")
         row.setdefault("owner", "TBD")
@@ -847,11 +863,13 @@ def main() -> None:
     ai = sub.add_parser("add-item", help="Add a register row and resync node counts.")
     ai.add_argument("--engagement", required=True)
     ai.add_argument("--type", required=True,
-                    choices=["improvement", "gap", "screenshot", "unmapped"])
-    ai.add_argument("--l1", help="Required unless --type unmapped (null-node row).")
-    ai.add_argument("--l2", help="Required unless --type unmapped (null-node row).")
+                    choices=["improvement", "gap", "screenshot", "unmapped", "theme"])
+    ai.add_argument("--l1", help="Required unless --type unmapped/theme (null-node row).")
+    ai.add_argument("--l2", help="Required unless --type unmapped/theme (null-node row).")
     ai.add_argument("--id")
     ai.add_argument("--field", action="append", default=[], help="KEY=VALUE register field (repeatable).")
+    ai.add_argument("--field-json", action="append", default=[], dest="field_json",
+                    help="KEY=JSON register field, value parsed as JSON (e.g. related_nodes='[\"a.b\"]').")
 
     args = p.parse_args()
     if args.command == "init":
@@ -884,7 +902,7 @@ def main() -> None:
     elif args.command == "status":
         cmd_status(args.engagement, args.json)
     elif args.command == "add-item":
-        cmd_add_item(args.engagement, args.type, args.l1, args.l2, args.id, args.field)
+        cmd_add_item(args.engagement, args.type, args.l1, args.l2, args.id, args.field, args.field_json)
 
 
 if __name__ == "__main__":

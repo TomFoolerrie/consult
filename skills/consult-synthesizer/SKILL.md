@@ -121,43 +121,31 @@ many nodes (e.g. "manual spreadsheet close steps across record-to-report") — i
 **every `{l1}.{l2}` node it spans**, with a **stable `dedup_key`** so re-running
 synthesis upserts the one row instead of minting duplicates.
 
-### The working invocation (related_nodes must land as a JSON array)
+### The invocation (related_nodes lands as a JSON array)
 
 `related_nodes` is an **array** of `{l1}.{l2}` node keys (see
 `schemas/item_register.schema.json` — `related_nodes: array, items pattern
-^[a-z0-9-]+\.[a-z0-9-]+$`). The `state_machine.py add-item --field KEY=VALUE`
-path stores each `--field` value as a **scalar string** and its `--type` choices
-do **not** include `theme`; it therefore cannot produce a `theme` row with an
-array `related_nodes`. Use the register's JSON-native upsert path directly — this
-is exactly what `add-item` wraps (`improvement_log.py upsert-json`), so it is the
-same write path, just passing `related_nodes` as a real array:
+^[a-z0-9-]+\.[a-z0-9-]+$`). Use `add-item --type theme` with **`--field-json`**
+(values parsed as JSON, so arrays land as arrays). Theme is a **null-node** type:
+do **not** pass `--l1/--l2`.
 
 ```bash
-python3 skills/consult-improvement-log/scripts/improvement_log.py upsert-json \
-  --json engagements/{E}/register.json \
-  --out-json engagements/{E}/register.json \
-  --modified-by add-item \
-  --records-json '[{
-    "id": "THM-0001",
-    "type": "theme",
-    "dedup_key": "theme|manual-spreadsheet-close",
-    "related_nodes": ["record-to-report.close", "record-to-report.consolidation", "procure-to-pay.procurement"],
-    "observation_pain_point": "Core close steps run in manual spreadsheets across cycles",
-    "recommended_action": "Standardize and automate the cross-cycle close checklist",
-    "effort": "med",
-    "priority": "p1",
-    "record_status": "active"
-  }]'
+python3 scripts/state_machine.py add-item --engagement {E} --type theme \
+  --field-json related_nodes='["record-to-report.close","record-to-report.consolidation","procure-to-pay.procurement"]' \
+  --field dedup_key="theme|manual-spreadsheet-close" \
+  --field observation_pain_point="Core close steps run in manual spreadsheets across cycles" \
+  --field recommended_action="Standardize and automate the cross-cycle close checklist" \
+  --field effort=med --field priority=p1
 ```
 
-- `related_nodes` is passed as a **JSON array literal** inside `--records-json`,
-  so it is stored as an array (verified to schema-validate against the
-  `related_nodes` array type). It is **not** a comma-joined string.
+- `--field-json` stores `related_nodes` as a real **JSON array** (schema-validates
+  against the `related_nodes` array type); plain `--field` would store a scalar
+  string. Scalar fields still use `--field KEY=VALUE`.
 - `dedup_key` makes the row **idempotent**: re-running synthesis with the same
-  `dedup_key` (even under a different candidate `id`) **upserts the one row** —
-  it does not create a second THM-NNNN.
-- Use `THM-NNNN` ids for theme rows (any unique id is accepted; pick the next
-  free `THM-` number).
+  `dedup_key` **upserts the one row** — it does not mint a second THM-NNNN. The
+  `THM-` id is auto-assigned.
+- `add-item` auto-assigns the `THM-NNNN` id (pass `--id` only to target a
+  specific existing row).
 - Validate after lifting:
 
 ```bash
