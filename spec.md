@@ -1,8 +1,11 @@
 # CONSULT — Full Work Cycle Plugin: Specification
 
-> Status: **DRAFT spec — no code scaffolded yet.** This document is the agreed design.
-> Scope: a Claude Code plugin that runs a finance-consulting engagement end to end:
-> intake → diagnose against the CFGI work taxonomy → output two work streams
+> Status: **Foundation built.** Taxonomy, two-layer state model, unified item
+> register, and JSON Schemas are implemented and tested. The diagnostic/drafting
+> pipeline stages and their skills are partially built (existing skills) or
+> planned. Build status is marked inline: ✅ built · ◻ planned.
+> Scope: a Claude Code plugin that runs a finance-consulting engagement end to
+> end: intake → diagnose against the CFGI work taxonomy → output two work streams
 > (1) Desktop Procedures & SOPs, (2) Process Improvement Opportunities.
 
 ---
@@ -15,205 +18,268 @@ of truth** in between.
 
 Design principles:
 
-1. **State machine + MD files are the source of truth.** Everything else is derived
-   and reproducible. A `.json` state machine (manipulated by Python) holds structured
-   status; one Markdown file per **L2** taxonomy node holds the human-readable synthesis.
-2. **Python for token efficiency.** Deterministic, repetitive, or bulk work (parsing,
-   normalizing, state CRUD, validation, assembly) is done in Python scripts — not by
-   burning model tokens. The agent **writes/extends Python as needed**; we provide
-   starting templates, not a frozen toolset.
+1. **State files are the source of truth; Python owns every write.** Structured
+   state lives in `.json` files. These are **only ever mutated by the state-management
+   Python scripts** — never hand-edited by the model and never edited by a human
+   directly. Humans review and edit via **Excel round-trip** (export to xlsx → edit →
+   re-import through the script). One Markdown file per **L2** node holds the
+   human-readable synthesis (LLM-owned narrative).
+2. **Token efficiency through granular Python.** The model must never load a whole
+   state file into context to make a change. The scripts expose **granular discovery**
+   (query/get a slice) and **granular mutation** (set one field per call). Deterministic,
+   repetitive, or bulk work (parsing, normalizing, state CRUD, validation, assembly) is
+   done in Python — not by burning model tokens. The agent **writes/extends Python as
+   needed**; we provide starting templates, not a frozen toolset.
 3. **LLM for judgment.** Classification, synthesis, gap reasoning, and drafting are done
    by the model. Bulk/parallel reading is **fanned out to Sonnet sub-agents** — one per
-   document — each returning a compact structured artifact (yaml/json/md).
-4. **Idempotent stages.** Each stage reads state, does its job, writes state back. Re-running
-   a stage is safe and only updates what changed.
+   document — each returning a compact structured artifact (yaml/json/md). State
+   mutation is *not* a sub-agent task: it is deterministic Python the orchestrator calls
+   directly.
+4. **Idempotent stages.** Each stage reads state, does its job, writes state back.
+   Re-running a stage is safe and only updates what changed. Machine-generated records
+   (e.g. structural gaps) use **stable IDs** so re-runs update rather than duplicate.
 5. **Everything lives in this repo**, including engagement state (under `engagements/`).
 
 ---
 
-## 2. The Taxonomy (diagnostic backbone)
+## 2. The Taxonomy (diagnostic backbone) ✅
 
-Source: CFGI Work Taxonomy deck + Regional companion (simplified into
-`reference/taxonomy_overall.yaml` and `reference/taxonomy_regional.yaml`).
+Single source of truth: **`reference/taxonomy.yaml`** — structure only.
+Counts: **7 L1 domains · 37 L2 sub-functions · 212 L3 activities.**
 
 Hierarchy:
 
-- **L1** — 7 finance domains:
-  Procure to Pay · Order to Cash · Record to Report · FP&A · Treasury · Tax · Risk, Policy & Controls
-- **L2** — sub-functions within each L1 (e.g. R2R → Pre-Close Set-Up, Close, Consolidation,
-  Reporting, Accounting Policy). ~35–40 total. **This is the unit of work** — one MD file
-  and one state node per L2.
-- **L3** — detailed activities within each L2 (the "Detailed View" boxes).
+- **L1** — 7 finance domains (kebab-case `id`):
+  `procure-to-pay` · `order-to-cash` · `record-to-report` · `fpa` · `treasury` ·
+  `tax` · `risk-policy-controls`
+- **L2** — sub-functions within each L1, each with a kebab-case `id`. **This is the
+  unit of work** — one MD file and one state node per L2. State-node keys are
+  `{l1_id}.{l2_id}` (e.g. `record-to-report.close`).
+- **L3** — detailed activities within each L2, a free-form list of names.
 
-Each node carries up to **5 diagnostic lenses** (the deck's 5 maps):
+**Baseline ratings sidecar: `reference/taxonomy_baselines.yaml`.** The CFGI deck's
+generic color-coded ratings (`pain_point` / `automation` / `capability` /
+`operating_model`) are preserved here, keyed by `{l1_id}.{l2_id}` then L3 name so they
+join back to the core. These are **generic deck baselines, not engagement-specific** —
+engagement lens values are filled per engagement into `state.json`.
+
+The 5 diagnostic lenses (the deck's 5 maps), filled per engagement at the **L2** level:
 
 | Lens | Question | Values |
 |------|----------|--------|
 | `current_state` | What work is done today? | present / absent |
-| `process` | Pain point or strength? | pain_high / pain_med / strength |
+| `process` | Pain point or strength? | pain_high / pain_med / pain_low / strength |
 | `automation` | Machine vs human? | machine / mixed / human |
 | `capability` | New vs existing work? | new / existing |
-| `operating_model` | Central vs local? | central / local |
+| `operating_model` | Central vs local? | central / mixed / local |
 
-These lenses map directly onto the engagement framework: **Standardization (Process),
+These map onto the engagement framework: **Standardization (Process),
 Centralization (People), Human & Machine (Technology), Capability Build (New Work).**
+
+> The "Regional" taxonomy variant was dropped: the source PDF contained no regional
+> content (different L1 naming, no region columns). `taxonomy.yaml` is the sole authority.
 
 ---
 
-## 3. Source of Truth: two coupled artifacts
+## 3. Source of Truth: a three-layer model
 
-### 3a. State machine — `engagements/{engagement_id}/state.json`
+Per engagement, under `engagements/{engagement_id}/`:
 
-Python-owned. One entry per L2 node, keyed `{l1_slug}.{l2_slug}`. Conceptual shape:
+### Layer 1 — node tracker `state.json` ✅ (owned by `scripts/state_machine.py`)
+
+The diagnostic backbone. One node per L2, keyed `{l1_id}.{l2_id}`, seeded for **every**
+L2 at init (even if empty / `coverage: none` — an empty node *is* a finding). Per node:
 
 ```jsonc
-{
-  "engagement": { "id": "...", "client": "...", "region": "NA", "created": "...", "updated": "..." },
-  "nodes": {
-    "record-to-report.close": {
-      "coverage": "partial",                       // none | partial | covered
-      "evidence": [                                 // pointers into ingested MD
-        { "source": "transcripts/2026-03-01_close.md", "loc": "L42-58", "note": "..." }
-      ],
-      "lenses": {
-        "process": "pain_high",
-        "automation": "human",
-        "capability": "existing",
-        "operating_model": "local"
-      },
-      "gaps": ["no documented close checklist", "accrual cutoff undefined"],
-      "sop": { "status": "draft", "path": "deliverables/sop/r2r-close.md", "rev": 2 },
-      "improvement": { "status": "not_started", "path": null },
-      "updated": "2026-06-21T00:00:00Z"
-    }
-  }
+"record-to-report.close": {
+  "l1": "record-to-report", "l1_name": "Record to Report",
+  "l2": "close", "l2_name": "Close",
+  "coverage": "none",                        // none | partial | covered (derived)
+  "evidence": [ { "source": "...", "loc": "L42-58", "note": "..." } ],
+  "lenses": { "current_state": null, "process": null, "automation": null,
+              "capability": null, "operating_model": null },
+  "items":  { "improvements": [], "gaps": [], "screenshots": [] },  // links to register
+  "counts": { "improvements": 0, "gaps": 0, "screenshots": 0 },
+  "sop":    { "status": "not_started", "path": null, "rev": 0 },
+  "node_md": "nodes/record-to-report/close.md",
+  "updated": "..."
 }
 ```
 
-`status` enums (both `sop` and `improvement`): `not_started → drafting → draft → in_review → revised → final`.
+`sop.status` enum: `not_started → drafting → draft → in_review → revised → final`.
+Validated against `schemas/engagement_state.schema.json`. ✅
 
-Validated against `schemas/engagement_state.schema.json`.
+### Layer 2 — unified item register `register.json` ✅ (owned by `improvement_log.py`)
 
-### 3b. Per-L2 synthesis — `engagements/{engagement_id}/nodes/{l1}/{l2}.md`
+A flat list of every item that hangs off an L2 node, discriminated by `type`:
 
-LLM-owned. The consolidated narrative for one L2: what we learned, evidence digest,
-diagnosis across the 5 lenses, open gaps. The drafters read this + the state node to
-produce deliverables. Markdown with a small YAML frontmatter block mirroring the state
-node's key fields (so it's self-describing and diffable).
+- `improvement` — a process improvement opportunity (Stream B)
+- `gap` — a gap / validation item (from the drafter gap tags / structural scan)
+- `screenshot` — a screenshot placeholder (SC-IDs)
 
-**Invariant:** every L2 in the taxonomy has exactly one state node and one MD file,
-created at engagement init (even if empty/`coverage: none`). This is what makes gaps
-visible — an empty node *is* a finding.
+Each row links to its node via `l1_cycle` / `l2_process` (taxonomy slugs). The 26-field
+schema (validated against `schemas/item_register.schema.json`):
+
+```
+id, type, tag, date_identified, source,
+l1_cycle, l2_process, l3_activity,
+observation_pain_point, root_cause, recommended_action,
+impact_type, estimated_impact_benefit, effort, priority,
+owner, phase, escalation_status, process_owner_contacts,
+notes_next_step, record_status, review_status, requires_human_review,
+last_modified_by, last_modified_at, change_notes
+```
+
+`tag` is polymorphic: for `improvement` it names the **lens** addressed
+(`process`/`automation`/`operating_model`/`capability`); for `gap` it is a normalized
+**gap tag** (e.g. `system_unknown`, `owner_unknown`) mapped to a reporting category.
+The drafter's bracketed tags auto-normalize on import (`[[GAP — SYSTEM UNKNOWN]]` →
+`system_unknown`). Controlled-vocab validation is **non-fatal**: invalid values flag the
+row for human review (`requires_human_review=true`) rather than rejecting it, keeping the
+register extensible.
+
+**The register is the human-reviewable surface:** export to xlsx → human edits → re-import
+via `update-json` (with timestamped backups). `state.json` is internal machinery — humans
+never edit it directly; they edit the register and the node MDs.
+
+### Layer 3 — per-L2 synthesis `nodes/{l1}/{l2}.md` ✅ (LLM-owned)
+
+The consolidated narrative for one L2: what we learned, evidence digest, diagnosis across
+the 5 lenses, open gaps. Markdown with a small YAML frontmatter block mirroring the state
+node's key fields (self-describing and diffable). Seeded as a stub at init with the L2's
+L3 activities pulled from the taxonomy.
+
+**Invariant:** every L2 has exactly one state node and one MD file. ✅ (checked by
+`state_machine.py validate`).
 
 ---
 
-## 4. Pipeline (stages)
+## 4. State-management command surface (token-efficient API)
+
+All state/register reads and writes go through Python. The model issues narrow commands
+and gets compact output — it never round-trips a whole file through context.
+
+### `scripts/state_machine.py` (node tracker)
+
+| Command | Kind | Purpose |
+|---|---|---|
+| `init` ✅ | seed | Seed `state.json` + `register.json` + node MD stubs + deliverable dirs from the taxonomy. |
+| `sync` ✅ | derive | Roll active register rows up into node item links/counts; recompute coverage; report orphan rows. |
+| `show` ✅ | read | Coverage summary. |
+| `validate` ✅ | read | Node set vs taxonomy + JSON Schema check. |
+| `get-node` ◻ | discovery | Return one node (compact), not the whole file. |
+| `query` ◻ | discovery | List node keys matching filters (`--coverage none`, `--lens-missing X`, `--has-gaps`). |
+| `set-lens` ◻ | mutate | Set one lens value on a node. |
+| `add-evidence` ◻ | mutate | Append an evidence span to a node. |
+| `set-coverage` ◻ | mutate | Manual coverage override. |
+| `set-sop` ◻ | mutate | Update SOP deliverable status/path/rev. |
+
+### `improvement_log.py` (item register) ✅
+
+`build-xlsx` · `update-json` · `remove` · `validate`. A thin `add-item` ◻ convenience
+(build a row → route through `update-json` → auto-`sync`) will keep additions granular and
+keep node counts consistent automatically.
+
+---
+
+## 5. Pipeline (stages)
 
 ```
    INGEST → CLASSIFY → CONSOLIDATE → GAP DIAGNOSE → DRAFT(×2) → REVIEW → OUTPUT
    [py]      [llm]       [llm]          [py+llm]      [llm]      [llm]    [py]
-     \________________ all read/write state.json + node MDs _____________/
+     \________________ all read/write state via state_machine.py / register __________/
 ```
 
-### Stage 0 — Init
-`python scripts/state_machine.py init --engagement X --region NA` seeds `state.json`
-and empty node MDs for every L2 from `reference/taxonomy_*.yaml`.
+### Stage 0 — Init ✅
+`python scripts/state_machine.py init --engagement X --region NA` seeds `state.json`,
+`register.json`, and empty node MDs for every L2.
 
-### Stage 1 — Ingest (Python, "standardize to MD")
-Inputs: **all sorts** — VTT/transcripts, DOCX, PDF, PPTX, XLSX/CSV, images.
-`scripts/ingest_normalize.py` converts each raw artifact to clean Markdown under
-`engagements/{id}/ingested/`, stripping timestamps/speaker noise/boilerplate for token
-efficiency. The agent extends this script for new formats as needed.
+### Stage 1 — Ingest (Python, "standardize to MD") ◻
+Inputs: VTT/transcripts, DOCX, PDF, PPTX, XLSX/CSV, images. `scripts/ingest_normalize.py`
+converts each raw artifact to clean Markdown under `engagements/{id}/ingested/`.
+`consult-transcript-cleaner` ✅ already handles transcript formats.
 
-### Stage 2 — Classify (LLM fan-out, "one Sonnet per doc")
-For each normalized doc, **launch a Sonnet sub-agent** that reads it and returns a
-compact structured map (yaml/json/md) of: which L2 nodes it touches, candidate evidence
-spans, and lens signals. The orchestrator merges these into `state.json`. Parallel,
-bounded context per agent.
+### Stage 2 — Classify (LLM fan-out, "one Sonnet per doc") ◻
+For each normalized doc, launch a Sonnet sub-agent returning a compact map of: which L2
+nodes it touches, candidate evidence spans, lens signals. The orchestrator merges these
+into `state.json` via the granular mutation commands.
 
-### Stage 3 — Consolidate (LLM synthesis)
-Per L2 with new evidence, synthesize the merged signals into the node MD — deduped,
-reconciled, cited. This is the "single source of truth" write.
+### Stage 3 — Consolidate (LLM synthesis) ◻
+Per L2 with new evidence, synthesize merged signals into the node MD — deduped, reconciled,
+cited.
 
-### Stage 4 — Gap Diagnose (Python + LLM)
-`scripts/gap_report.py` mechanically finds structural gaps (nodes with `coverage:none`,
-missing lenses, no evidence). The LLM adds substantive gaps (contradictions, thin
-evidence, undocumented controls). Emits `deliverables/gap_report.md` and updates each
-node's `gaps[]`.
+### Stage 4 — Gap Diagnose (Python + LLM) ◻
+`scripts/gap_report.py scan` mechanically finds structural gaps (nodes with
+`coverage:none`, missing lenses, no evidence, SOP not started) and writes them into the
+register as `type: gap` rows with **stable IDs** (`GAP-STRUCT-{l1}-{l2}-{kind}`), then
+emits `deliverables/gap_report.md`. The LLM (`consult-gap-analyzer`) adds substantive gaps
+(contradictions, thin evidence, undocumented controls) as further gap rows.
 
-### Stage 5 — Draft, two work streams (LLM)
-- **5A SOP / Desktop Procedures** — per L2: Purpose → Scope → Inputs/Systems → Roles →
-  Step-by-step procedure → Controls → Exceptions → Screenshot placeholders.
-- **5B Improvement Opportunities** — per L2, organized by the 4 lenses: Finding →
-  Recommendation → Effort × Impact → Owner. Driven by `process`/`automation`/
-  `operating_model`/`capability` scores.
+### Stage 5 — Draft, two work streams (LLM) ◻ / ✅ (drafter exists)
+- **5A SOP / Desktop Procedures** (`consult-drafter` ✅) — per L2: Purpose → Scope →
+  Inputs/Systems → Roles → Step-by-step → Controls → Exceptions → Screenshot placeholders.
+- **5B Improvement Opportunities** (`consult-improvement-drafter` ◻) — per L2, organized
+  by the 4 lenses, driven by `process`/`automation`/`operating_model`/`capability` and the
+  register's improvement rows: Finding → Recommendation → Effort × Impact → Owner.
 
-Both write back `sop.status` / `improvement.status` and a deliverable path.
+Both write back `sop.status` / register rows and a deliverable path.
 
 ### Stage 6 — Review & Output
-Review/audit skills run over drafts (evidence completeness, comment resolution,
-improvement log). Final assembly via the DOCX builder into CFGI-branded Word documents —
-one per work stream, plus the gap report.
+Review/audit skills run over drafts: `consult-evidence-auditor` ✅,
+`consult-review-comment-resolver` ✅, `consult-improvement-log` ✅. Final assembly via
+`consult-docx-builder` ✅ into CFGI-branded Word — one per work stream, plus the gap report.
 
 ---
 
-## 5. Skills (capabilities) — target set
+## 6. Skills (capabilities)
 
-Existing (already seeded), to be wired into the pipeline:
+Existing ✅:
 
 | Skill | Role in pipeline |
 |-------|------------------|
-| `consult-transcript-cleaner` | Stage 1 — VTT → clean MD (`clean_vtt.py`) |
+| `consult-transcript-cleaner` | Stage 1 — transcript → clean MD (`clean_vtt.py`) |
+| `consult-improvement-log` | Layer 2 — the unified item register engine (`improvement_log.py`) |
 | `consult-drafter` | Stage 5A — SOP drafting (templates + evidence/gap rules) |
 | `consult-evidence-auditor` | Stage 6 — evidence completeness audit |
 | `consult-review-comment-resolver` | Stage 6 — resolve reviewer comments |
-| `consult-improvement-log` | Stage 6 — track improvements/changes |
 | `consult-docx-builder` | Stage 6 — MD → CFGI-branded Word |
 
-New (to be designed later — NOT in this spec's scope to build):
+Planned ◻:
 
 | Skill | Role |
 |-------|------|
-| `consult-ingest` | Stage 1 — multi-format normalizer (orchestrates `ingest_normalize.py`) |
+| `consult-state-machine` | Layer 1 — single skill surface over `state_machine.py` + register (discovery + mutation; orchestrator-driven, not a sub-agent) |
+| `consult-ingest` | Stage 1 — multi-format normalizer (`ingest_normalize.py`) |
 | `consult-classifier` | Stage 2 — fan-out Sonnet-per-doc → state |
 | `consult-consolidator` | Stage 3 — per-L2 synthesis into node MD |
-| `consult-gap-analyzer` | Stage 4 — structural + substantive gaps |
+| `consult-gap-analyzer` | Stage 4 — substantive gaps (structural gaps are `gap_report.py`) |
 | `consult-improvement-drafter` | Stage 5B — improvement opportunities |
 
 ---
 
-## 6. Templates to provide (not freeze)
-
-- `templates/sop_desktop_procedure.md` — SOP skeleton (already partly in consult-drafter).
-- `templates/improvement_opportunity.md` — per-L2 improvement block (4 lenses).
-- `templates/node_synthesis.md` — the per-L2 MD with YAML frontmatter.
-- `templates/gap_report.md` — gap roll-up.
-- Python templates: `state_machine.py`, `ingest_normalize.py`, `gap_report.py` —
-  documented, extensible starting points; the agent scripts further Python ad hoc.
-
----
-
-## 7. Proposed repo layout
+## 7. Repo layout (actual)
 
 ```
 /
 ├── .claude-plugin/plugin.json
 ├── spec.md                          ← this file
-├── reference/                       ← CFGI IP, static (simplified from source PDFs)
-│   ├── taxonomy_overall.yaml
-│   ├── taxonomy_regional.yaml
+├── .gitignore                       ← register backups, workbooks, build artifacts
+├── reference/                       ← CFGI IP, static
+│   ├── taxonomy.yaml                ← ✅ single source of truth (structure)
+│   ├── taxonomy_baselines.yaml      ← ✅ deck baseline ratings sidecar
 │   └── cfgi_brand_identity.md
-├── schemas/
+├── schemas/                         ← ✅
 │   ├── engagement_state.schema.json
-│   └── node_synthesis.schema.json
-├── templates/                       ← starting points, agent extends
-├── scripts/                         ← Python: state CRUD, ingest, gap report
-├── skills/                          ← existing + new (see §5)
+│   └── item_register.schema.json
+├── scripts/                         ← ✅ state_machine.py (+ ingest/gap_report planned)
+├── templates/                       ← ◻ SOP / improvement / gap-report skeletons
+├── skills/                          ← existing + planned (see §6)
 └── engagements/                     ← STATE LIVES HERE, in-repo
     └── {engagement_id}/
-        ├── state.json               ← source of truth (machine)
+        ├── state.json               ← Layer 1 (machine)
+        ├── register.json            ← Layer 2 (machine; xlsx round-trip for humans)
         ├── ingested/                ← normalized MD per raw artifact
-        ├── nodes/{l1}/{l2}.md       ← source of truth (human, per L2)
+        ├── nodes/{l1}/{l2}.md       ← Layer 3 (human-readable, LLM-owned)
         └── deliverables/
             ├── gap_report.(md|docx)
             ├── sop/                 ← Stream A
@@ -222,25 +288,31 @@ New (to be designed later — NOT in this spec's scope to build):
 
 ---
 
-## 8. Open items to resolve before building
+## 8. Resolved decisions & open items
 
-1. **Region model** — `taxonomy_regional.yaml` was processed and contains **no regional
-   content** — it is a 6-L1 global taxonomy variant that uses different L1 naming
-   (RTR, QTC, STP, FP&A, HTR, ATR) vs. the 7-domain overall deck. The "regional" label
-   may indicate a different business unit or the PDF may have more pages than were
-   rendered. **A human must verify the source PDF's full page count.** Until confirmed,
-   `taxonomy_overall.yaml` is the authoritative taxonomy. Default: single `region` field
-   per engagement.
-2. **Evidence span format** — line ranges vs anchors. Proposed: `path#Lstart-Lend`.
-3. **Engagement state in git** — kept in-repo per decision. Decide later whether real
-   client engagements are committed or git-ignored per-engagement.
-4. **L2 slug canonicalization** — generate slugs from `reference/taxonomy_overall.yaml`
-   once finalized; that file is the naming authority.
+Resolved:
+
+1. **Region model** — dropped; `taxonomy.yaml` (7 L1) is the sole authority.
+2. **L2 slug canonicalization** — kebab-case `id` generated per node in `taxonomy.yaml`;
+   that file is the naming authority. State keys are `{l1_id}.{l2_id}`.
+3. **Improvement/gap unification** — one register, discriminated by `type`; gaps and
+   improvements (and screenshots) are first-class rows, not node-embedded strings.
+4. **Write discipline** — JSON is script-only; humans round-trip the register via Excel.
+
+Open:
+
+1. **Evidence span format** — proposed `path#Lstart-Lend`; currently stored as a `loc`
+   string on node evidence and free-text `source` on register rows. Finalize when Stage 2
+   lands.
+2. **Engagement state in git** — kept in-repo per decision. Decide later whether real
+   client engagements are committed or git-ignored per-engagement (backups already ignored).
+3. **Screenshot items** — supported as a register `type`; decide whether they live in the
+   register or stay solely in the SOP's Appendix D when Stage 5A integration lands.
 
 ---
 
 ## 9. Source documents
 
-- `Work_Taxonomy__Overall.pdf` → `reference/taxonomy_overall.yaml` (7 L1 × ~5 L2 × L3 + 5 lenses).
-- `BT_Business_Cycle_Taxonomies_Regional.pdf` → `reference/taxonomy_regional.yaml`.
+- `Work_Taxonomy__Overall.pdf` → `reference/taxonomy.yaml` (+ `taxonomy_baselines.yaml`).
+- `BT_Business_Cycle_Taxonomies_Regional.pdf` → dropped (no regional content).
 - `CFGI_Brand_Identity.md` → `reference/cfgi_brand_identity.md` (colors, type, tables, callouts).
