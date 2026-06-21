@@ -41,7 +41,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 DEFAULT_RECORD_FIELDS = [
-    "id", "type", "tag", "date_identified", "source",
+    "id", "type", "tag", "dedup_key", "disposition", "date_identified", "source",
     "l1_cycle", "l2_process", "l3_activity",
     "observation_pain_point", "root_cause", "recommended_action",
     "impact_type", "estimated_impact_benefit", "effort", "priority",
@@ -57,7 +57,7 @@ ARCHIVE_STATUSES = {"archived", "inactive"}
 
 # ---- Controlled vocabulary -------------------------------------------------
 # Validation is soft: values outside these sets are flagged, not rejected.
-ITEM_TYPES = {"improvement", "gap", "screenshot"}
+ITEM_TYPES = {"improvement", "gap", "screenshot", "unmapped", "theme"}
 
 # For type=improvement, `tag` names the diagnostic lens the item addresses.
 LENS_TAGS = {"process", "automation", "operating_model", "capability"}
@@ -213,11 +213,11 @@ def clean_value(value: Any, field: str) -> Any:
     return value
 
 
-def save_json(data: Dict[str, Any], json_path: Path, out_path: Path) -> None:
+def save_json(data: Dict[str, Any], json_path: Path, out_path: Path, backup: bool = True) -> None:
     data.setdefault("metadata", {})["record_count"] = len(data["records"])
-    if out_path.resolve() == json_path.resolve():
-        backup = json_path.with_suffix(f".backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
-        shutil.copy2(json_path, backup)
+    if backup and out_path.resolve() == json_path.resolve():
+        backup_path = json_path.with_suffix(f".backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
+        shutil.copy2(json_path, backup_path)
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     check = load_source_json(out_path)
@@ -348,6 +348,86 @@ def update_json(json_path: Path, csv_path: Path, out_path: Path, modified_by: st
     return updated, inserted, unchanged, archived, len(to_delete)
 
 
+def upsert_records(json_path: Path, records: List[Dict[str, Any]], out_path: Path,
+                   modified_by: str) -> Tuple[int, int, int]:
+    """JSON-native upsert. Upsert a list of record dicts into the register.
+
+    Matching precedence per incoming record:
+      1. If the record carries a non-empty `dedup_key`, match an existing record
+         with the same `dedup_key` (update in place; else insert).
+      2. Otherwise match by `id` (update in place; else insert).
+
+    Unlike the CSV path this does NOT clean/normalize via header maps — it takes
+    records as already-structured dicts (only light per-field cleaning is applied
+    so booleans/blank strings behave). Returns (updated, inserted, unchanged).
+    """
+    data = load_source_json(json_path)
+    by_id = {r["id"]: r for r in data["records"]}
+    # Index existing records by dedup_key (last write wins on collision; the
+    # register is validated to have unique ids, dedup_key collisions are merged).
+    by_dedup: Dict[str, Dict[str, Any]] = {}
+    for r in data["records"]:
+        dk = r.get("dedup_key")
+        if dk:
+            by_dedup[str(dk)] = r
+
+    updated = inserted = unchanged = 0
+    ts = now_iso()
+
+    for raw in records:
+        if not isinstance(raw, dict):
+            raise ValueError("Each upsert record must be an object/dict.")
+        clean = {k: clean_value(v, k) for k, v in raw.items()}
+        dedup_key = clean.get("dedup_key")
+        target = None
+        if dedup_key and str(dedup_key) in by_dedup:
+            target = by_dedup[str(dedup_key)]
+        elif clean.get("id") and clean["id"] in by_id:
+            target = by_id[clean["id"]]
+
+        if target is not None:
+            before = deepcopy(target)
+            for k, v in clean.items():
+                if k in PROTECTED_FIELDS:
+                    continue  # never overwrite an existing id
+                target[k] = v
+            if target != before:
+                target["last_modified_by"] = modified_by
+                target["last_modified_at"] = ts
+                flag_issues(target, ts)
+                updated += 1
+            else:
+                unchanged += 1
+        else:
+            rec_id = clean.get("id")
+            if not rec_id:
+                raise ValueError("Upsert insert requires a non-empty id when no "
+                                 "matching dedup_key exists.")
+            if rec_id in by_id:
+                raise ValueError(f"Duplicate id on insert: {rec_id}")
+            clean.setdefault("type", "improvement")
+            clean.setdefault("record_status", "active")
+            clean.setdefault("review_status", "needs_review")
+            # Honor a caller-provided requires_human_review; default true only
+            # when the caller omitted it entirely.
+            if "requires_human_review" not in clean or clean.get("requires_human_review") is None:
+                clean["requires_human_review"] = True
+            clean["last_modified_by"] = modified_by
+            clean["last_modified_at"] = ts
+            flag_issues(clean, ts)
+            data["records"].append(clean)
+            by_id[rec_id] = clean
+            dk = clean.get("dedup_key")
+            if dk:
+                by_dedup[str(dk)] = clean
+            inserted += 1
+
+    data.setdefault("metadata", {})["last_updated_at"] = ts
+    data["metadata"]["last_update_source"] = f"json upsert ({modified_by})"
+    save_json(data, json_path, out_path)  # one backup per invocation
+    return updated, inserted, unchanged
+
+
 def remove_records(json_path: Path, ids: List[str], out_path: Path, modified_by: str, archive: bool) -> Tuple[int,int]:
     data = load_source_json(json_path)
     ids = set(ids)
@@ -428,6 +508,15 @@ def main() -> None:
     u.add_argument("--modified-by", default="csv_update")
     u.add_argument("--apply-deletes", action="store_true", help="Hard-delete rows with record_status=deleted_candidate/delete/deleted/remove/removed.")
     u.add_argument("--delete-missing", action="store_true", help="Hard-delete JSON records absent from the CSV. Use carefully.")
+    uj = sub.add_parser("upsert-json", help="JSON-native upsert (by dedup_key, else id). "
+                        "Records come from --records-json (inline) or --records-file.")
+    uj.add_argument("--json", required=True, type=Path)
+    uj.add_argument("--out-json", required=True, type=Path)
+    uj.add_argument("--records-json", help="Inline JSON: a list of record dicts (or an "
+                    "object with a 'records' list).")
+    uj.add_argument("--records-file", type=Path, help="Path to a JSON file holding a list "
+                    "of record dicts (or an object with a 'records' list).")
+    uj.add_argument("--modified-by", default="json_upsert")
     r = sub.add_parser("remove")
     r.add_argument("--json", required=True, type=Path); r.add_argument("--ids", nargs="+", required=True); r.add_argument("--out-json", required=True, type=Path)
     r.add_argument("--modified-by", default="manual_remove"); r.add_argument("--archive", action="store_true")
@@ -442,6 +531,23 @@ def main() -> None:
         a,b,c,d,e = update_json(args.json, args.csv, args.out_json, args.modified_by, args.apply_deletes, args.delete_missing)
         print(f"Updated JSON: {args.out_json}")
         print(f"Rows updated: {a}; inserted: {b}; unchanged: {c}; archived: {d}; deleted: {e}")
+    elif args.command == "upsert-json":
+        if bool(args.records_json) == bool(args.records_file):
+            raise SystemExit("upsert-json requires exactly one of --records-json / --records-file.")
+        if args.records_file:
+            with args.records_file.open("r", encoding="utf-8") as f:
+                payload = json.load(f)
+        else:
+            payload = json.loads(args.records_json)
+        if isinstance(payload, dict) and isinstance(payload.get("records"), list):
+            records = payload["records"]
+        elif isinstance(payload, list):
+            records = payload
+        else:
+            raise SystemExit("upsert records must be a JSON list, or an object with a 'records' list.")
+        a, b, c = upsert_records(args.json, records, args.out_json, args.modified_by)
+        print(f"Upserted JSON: {args.out_json}")
+        print(f"Rows updated: {a}; inserted: {b}; unchanged: {c}")
     elif args.command == "remove":
         affected, missing = remove_records(args.json, args.ids, args.out_json, args.modified_by, args.archive)
         print(f"{'Archived' if args.archive else 'Deleted'} records: {affected}; IDs not found: {missing}; output: {args.out_json}")

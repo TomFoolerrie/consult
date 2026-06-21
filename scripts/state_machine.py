@@ -27,7 +27,7 @@ Commands:
 """
 from __future__ import annotations
 
-import argparse, csv, json, subprocess, sys, tempfile
+import argparse, json, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -74,7 +74,8 @@ LENS_VALUES = {
     "operating_model": ["central", "mixed", "local"],
 }
 # ID prefix per register item type (for auto-generating add-item ids).
-TYPE_TO_PREFIX = {"improvement": "IMP", "gap": "GAP", "screenshot": "SC"}
+TYPE_TO_PREFIX = {"improvement": "IMP", "gap": "GAP", "screenshot": "SC",
+                  "unmapped": "UNM"}
 IMPROVEMENT_LOG = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts"
                    / "improvement_log.py")
 # Register rows in these statuses do not roll up into node counts (aligned with
@@ -244,7 +245,13 @@ def cmd_sync(eid: str) -> None:
     for rec in records:
         if str(rec.get("record_status", "active")).lower() in INACTIVE_STATUSES:
             continue
+        rtype = str(rec.get("type", "improvement")).lower()
         l1, l2 = rec.get("l1_cycle"), rec.get("l2_process")
+        # A type:unmapped row with a null node is a deliberate null-node row
+        # (content not yet placed on the taxonomy), NOT an orphan. Skip it: it
+        # is neither reported nor rolled into any node bucket.
+        if rtype == "unmapped" and (not l1 or not l2):
+            continue
         if not l1 or not l2:
             orphans.append(f"{rec.get('id')} (missing l1_cycle/l2_process)")
             continue
@@ -253,7 +260,7 @@ def cmd_sync(eid: str) -> None:
         if node is None:
             orphans.append(f"{rec.get('id')} -> {key} (not in taxonomy)")
             continue
-        bucket = TYPE_TO_BUCKET.get(str(rec.get("type", "improvement")).lower(), "improvements")
+        bucket = TYPE_TO_BUCKET.get(rtype, "improvements")
         node["items"][bucket].append(rec.get("id"))
         node["counts"][bucket] += 1
 
@@ -466,13 +473,24 @@ def _next_item_id(eid: str, prefix: str) -> str:
     return f"{prefix}-{highest + 1:04d}"
 
 
-def cmd_add_item(eid: str, item_type: str, l1: str, l2: str, item_id: str | None,
-                 fields: List[str]) -> None:
-    taxonomy = load_taxonomy()
-    valid = {node_key(d1, d2) for d1, _, d2, _, _ in iter_l2(taxonomy)}
-    key = node_key(l1, l2)
-    if key not in valid:
-        raise SystemExit(f"Orphan: node '{key}' is not in the taxonomy; refusing to add item.")
+def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
+                 item_id: str | None, fields: List[str]) -> None:
+    is_unmapped = item_type == "unmapped"
+
+    if is_unmapped:
+        # Null-node row: content not yet placed on the taxonomy. l1/l2 stay null
+        # and are NOT validated against the taxonomy.
+        if l1 or l2:
+            raise SystemExit("--type unmapped does not take --l1/--l2 (it is a null-node row).")
+        key = "(unmapped)"
+    else:
+        if not l1 or not l2:
+            raise SystemExit(f"--type {item_type} requires --l1 and --l2.")
+        taxonomy = load_taxonomy()
+        valid = {node_key(d1, d2) for d1, _, d2, _, _ in iter_l2(taxonomy)}
+        key = node_key(l1, l2)
+        if key not in valid:
+            raise SystemExit(f"Orphan: node '{key}' is not in the taxonomy; refusing to add item.")
 
     extra: Dict[str, str] = {}
     for spec in fields:
@@ -487,35 +505,33 @@ def cmd_add_item(eid: str, item_type: str, l1: str, l2: str, item_id: str | None
     prefix = TYPE_TO_PREFIX[item_type]
     rid = item_id or _next_item_id(eid, prefix)
 
-    headers = ["id", "type", "l1_cycle", "l2_process"] + [k for k in extra if k not in
-               {"id", "type", "l1_cycle", "l2_process"}]
-    row = {"id": rid, "type": item_type, "l1_cycle": l1, "l2_process": l2}
+    # Always carry the caller-provided type explicitly so the write path never
+    # defaults it away. l1_cycle/l2_process are null for unmapped rows.
+    row: Dict[str, Any] = {
+        "id": rid, "type": item_type,
+        "l1_cycle": l1 or None, "l2_process": l2 or None,
+    }
+    if is_unmapped:
+        # Null-node defaults for unmapped rows (caller --field can override).
+        row.setdefault("disposition", "pending")
+        row.setdefault("owner", "TBD")
+    # Caller-supplied --field values take precedence over defaults above.
     row.update(extra)
 
     register_path = engagement_dir(eid) / "register.json"
     if not register_path.exists():
         raise SystemExit(f"No register.json for engagement '{eid}'. Run init first.")
 
-    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False,
-                                     newline="", encoding="utf-8") as tmp:
-        writer = csv.DictWriter(tmp, fieldnames=headers)
-        writer.writeheader()
-        writer.writerow({h: row.get(h, "") for h in headers})
-        csv_path = Path(tmp.name)
-
-    try:
-        result = subprocess.run(
-            [sys.executable, str(IMPROVEMENT_LOG), "update-json",
-             "--json", str(register_path), "--csv", str(csv_path),
-             "--out-json", str(register_path), "--modified-by", "add-item"],
-            capture_output=True, text=True,
-        )
-    finally:
-        csv_path.unlink(missing_ok=True)
+    result = subprocess.run(
+        [sys.executable, str(IMPROVEMENT_LOG), "upsert-json",
+         "--json", str(register_path), "--out-json", str(register_path),
+         "--records-json", json.dumps([row]), "--modified-by", "add-item"],
+        capture_output=True, text=True,
+    )
     if result.returncode != 0:
         sys.stderr.write(result.stdout)
         sys.stderr.write(result.stderr)
-        raise SystemExit(f"improvement_log.py update-json failed for {rid}.")
+        raise SystemExit(f"improvement_log.py upsert-json failed for {rid}.")
 
     cmd_sync(eid)
     print(f"Added {item_type} {rid} to {key}.")
@@ -578,9 +594,10 @@ def main() -> None:
 
     ai = sub.add_parser("add-item", help="Add a register row and resync node counts.")
     ai.add_argument("--engagement", required=True)
-    ai.add_argument("--type", required=True, choices=["improvement", "gap", "screenshot"])
-    ai.add_argument("--l1", required=True)
-    ai.add_argument("--l2", required=True)
+    ai.add_argument("--type", required=True,
+                    choices=["improvement", "gap", "screenshot", "unmapped"])
+    ai.add_argument("--l1", help="Required unless --type unmapped (null-node row).")
+    ai.add_argument("--l2", help="Required unless --type unmapped (null-node row).")
     ai.add_argument("--id")
     ai.add_argument("--field", action="append", default=[], help="KEY=VALUE register field (repeatable).")
 
