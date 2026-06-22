@@ -83,7 +83,7 @@ ingest → classify → merge → consolidate → gap-scan → draft → synthes
 **One-time setup**
 
 ```bash
-pip install pandas openpyxl pyyaml jsonschema python-docx
+pip install -r requirements.txt
 ```
 
 **Run an engagement** (drive interactively via the `consult-run` skill, or by hand):
