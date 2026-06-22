@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cfgi/consult/ingested_header.schema.json",
+  "title": "Ingested Document YAML Header (Stage 1)",
+  "description": "DESIGN DRAFT. The YAML frontmatter on every engagements/{id}/ingested/*.md file. See ingest_contract.md. Not yet wired into code.",
+  "type": "object",
+  "required": ["source", "source_hash", "doc_type", "ingested_at", "immutable"],
+  "additionalProperties": true,
+  "properties": {
+    "source": { "type": "string", "description": "Original source file path/name." },
+    "source_hash": { "type": "string", "description": "Hash of the raw source bytes, e.g. sha256:...." },
+    "doc_type": { "enum": ["transcript", "docx", "pdf", "pptx", "xlsx", "csv", "image", "text"] },
+    "ingested_at": { "type": "string" },
+    "ingester": { "type": "string", "description": "Handler + version, e.g. ingest_normalize.py/transcript@1." },
+    "title": { "type": "string" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pages": { "type": ["integer", "null"] },
+        "slides": { "type": ["integer", "null"] },
+        "sheets": { "type": ["array", "null"], "items": { "type": "string" } }
+      }
+    },
+    "hints": {
+      "type": "object",
+      "description": "Best-effort, NON-authoritative signals for the classifier.",
+      "additionalProperties": true,
+      "properties": {
+        "client": { "type": ["string", "null"] },
+        "systems": { "type": "array", "items": { "type": "string" } },
+        "people": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "immutable": { "const": true }
+  }
+}

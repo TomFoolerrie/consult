@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+<v Associate>This session is about the account reconciliation and consolidation side of Record to Report. Walk me through what happens after the close locks.</v>
+
+00:00:10.000 --> 00:00:24.000
+<v SeniorAccountant>Once the trial balance is final, each entity submits its reconciliations into the consolidation system. We collect data from every ledger and load it centrally before we run eliminations.</v>
+
+00:00:24.000 --> 00:00:38.000
+<v Associate>How are the intercompany eliminations handled — manually or by the system?</v>
+
+00:00:38.000 --> 00:00:52.000
+<v SeniorAccountant>The consolidation tool runs the intercompany eliminations automatically based on matched IC accounts. It's a fairly mature, machine-driven step. Topside entries are still booked manually by corporate, though.</v>
+
+00:00:52.000 --> 00:01:06.000
+<v Associate>And reconciliations themselves — is that a strong process or a weak one in your view?</v>
+
+00:01:06.000 --> 00:01:20.000
+<v SeniorAccountant>Reconciliations are actually one of our stronger areas. The recon tool is standardized, every account has an owner, and aging items get escalated. I'd call it a real strength relative to the rest of the close.</v>
+
+00:01:20.000 --> 00:01:34.000
+<v Associate>Is consolidation centralized or does each region run their own?</v>
+
+00:01:34.000 --> 00:01:48.000
+<v SeniorAccountant>Consolidation is fully centralized at corporate. Regions feed data in, but the actual consolidation and corporate review happen in one central team.</v>
+
+00:01:48.000 --> 00:02:02.000
+<v SeniorAccountant>One unrelated thing while you're here — the company's annual charitable-giving match program for employees opens next month, and HR asked whether finance can publicize the donation portal to staff.</v>
+
+00:02:02.000 --> 00:02:14.000
+<v Associate>That charitable-giving match is outside what we're scoping here, but I'll capture it so it doesn't get lost. Thanks for the walkthrough.</v>
