@@ -89,6 +89,11 @@ validate, no merge cursor (T42); add `add-evidence` to allowlist + minimal idemp
 gates synthesize (T45); document the docx headers/footers limitation, don't extend (T47);
 **Option A** — finish removing pandas/CSV (T50).
 
+### Follow-up (surfaced during Slice 3 review)
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T51 | `validate` also schema-checks `register.json` (report-only; soft vocab contract preserved) | — | state_machine.py, tests/ |
+
 > **Highest-priority real bugs** (do first within their wave): T44 (`add-evidence`
 > unreachable), T46 (`--l1` no-op validation), T44 (review re-apply double-write),
 > T41 (`cmd_init` dir ordering).
