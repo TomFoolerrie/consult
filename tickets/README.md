@@ -98,6 +98,23 @@ gates synthesize (T45); document the docx headers/footers limitation, don't exte
 > unreachable), T46 (`--l1` no-op validation), T44 (review re-apply double-write),
 > T41 (`cmd_init` dir ordering).
 
+## Slice 4 — Cost & Runtime Efficiency (from field run: 3 real artifacts, ~$10)
+
+Surfaced running the suite on real client artifacts. Strong prior: T54 is the dominant cost
+driver; T55 is reliability + a secondary token trim; T56 makes both measurable. **Resolve T54's
+runtime fork (sub-agent capability — Claude Code/SDK vs Desktop) before building it.**
+
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T54 | Orchestrator delegation enforcement (stop inline self-execution; runtime fork A/B) | — | skills/consult-run/SKILL.md |
+| T55 | Classify artifact emit efficiency (drop redundant `quote`; NDJSON option; constrained-emit deferred to API path) | — | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
+| T56 | Per-phase cost/size instrumentation (content-free; feeds T54/T55 acceptance) | — | orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+
+> **Note (Desktop runtime):** the user's measured run was in **Claude Desktop**, where skills run
+> in the main conversation. If Desktop exposes no sub-agent primitive, T54 inlining is *forced*
+> (branch B) and constrained-output emission (T55) is unavailable — both fixes then differ from
+> the Claude Code / SDK path. Confirm the runtime first.
+
 ## Deferred / optional (not blocking a working system)
 
 | Area | Notes |
