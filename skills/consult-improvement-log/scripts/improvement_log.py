@@ -35,8 +35,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-import pandas as pd
-from openpyxl import load_workbook
+from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
@@ -107,6 +106,37 @@ PRIORITY_LEVELS = {"p1", "p2", "p3"}
 
 def now_iso() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+# Date formats accepted for DATE_FIELDS (replaces pandas' lenient parser). The
+# value is normalized to an ISO date (YYYY-MM-DD); unparseable values pass
+# through unchanged (mirrors the old errors="coerce" → leave-as-is behavior).
+_DATE_FORMATS = (
+    "%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y", "%m-%d-%Y",
+    "%d/%m/%Y", "%d-%m-%Y", "%m/%d/%y", "%d-%b-%Y", "%d %b %Y", "%B %d, %Y",
+)
+
+
+def parse_date(value: Any):
+    """Parse a date-ish value to a datetime, or None if unparseable."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    txt = str(value).strip()
+    if not txt:
+        return None
+    # ISO first (handles date and datetime, with or without time component).
+    try:
+        return datetime.fromisoformat(txt)
+    except ValueError:
+        pass
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(txt, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def normalize_tag(value: Any) -> Any:
@@ -193,7 +223,7 @@ def field_order(data: Dict[str, Any]) -> List[str]:
 def clean_value(value: Any, field: str) -> Any:
     if value is None:
         return None
-    if isinstance(value, float) and pd.isna(value):
+    if isinstance(value, float) and value != value:  # NaN
         return None
     if isinstance(value, str):
         value = value.strip()
@@ -207,8 +237,8 @@ def clean_value(value: Any, field: str) -> Any:
     if field == "tag":
         return normalize_tag(value)
     if field in DATE_FIELDS:
-        dt = pd.to_datetime(value, errors="coerce")
-        if not pd.isna(dt):
+        dt = parse_date(value)
+        if dt is not None:
             return dt.date().isoformat()
     return value
 
@@ -225,17 +255,27 @@ def save_json(data: Dict[str, Any], json_path: Path, out_path: Path, backup: boo
         raise ValueError("Validation failed: metadata.record_count does not match records length.")
 
 
+def _xlsx_cell(value: Any) -> Any:
+    """Coerce a register value to something openpyxl can write to a cell.
+    Scalars (str/int/float/bool) and None pass through; lists/dicts (e.g. nested
+    fields) are JSON-serialized so the workbook stays writable."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return json.dumps(value, ensure_ascii=False)
+
+
 def build_xlsx(json_path: Path, xlsx_path: Path, active_only: bool = False) -> None:
     data = load_source_json(json_path)
     records = data["records"]
     if active_only:
         records = [r for r in records if str(r.get("record_status", "active")).lower() not in ARCHIVE_STATUSES]
     fields = field_order(data)
-    pd.DataFrame([{f: r.get(f) for f in fields} for r in records], columns=fields).to_excel(
-        xlsx_path, index=False, sheet_name="Item Register", engine="openpyxl"
-    )
-    wb = load_workbook(xlsx_path)
-    ws = wb["Item Register"]
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Item Register"
+    ws.append(fields)  # header row
+    for r in records:
+        ws.append([_xlsx_cell(r.get(f)) for f in fields])
     ws.freeze_panes = "A2"
     fill = PatternFill("solid", fgColor="D9EAF7")
     for cell in ws[1]:
