@@ -56,10 +56,14 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 
 **Phase 1 — trim (do first; independent of T54):**
 1. `consult-classifier/SKILL.md`: stop emitting `quote`; require a concise `note` per evidence
-   entry; keep `ref` exact. Update the worked example (~lines 140-186) to match.
+   entry; keep `ref` exact. Update **both** `quote` references: the worked example (~lines 140-186)
+   **and the inline evidence-schema contract line at `:62`** (`` `evidence[]` — `{ ref, quote, note }` ``).
+   Editing only the example leaves `:62` still advertising `quote`.
 2. `schemas/classify_artifact.schema.json`: keep `quote` **permitted but discouraged** (old
-   artifacts still validate), or remove if no committed fixture relies on it (check first). Don't
-   make `note` strictly required if that breaks valid fixtures; prefer "ref + (note|quote)".
+   artifacts still validate). **Do NOT remove `quote` from the schema** without a full fixture
+   sweep — `additionalProperties: false` (`:54`) means a lingering `quote` in any committed fixture
+   would then fail validation. Don't make `note` strictly required if that breaks valid fixtures;
+   prefer "ref + (note|quote)".
 3. `classify_merge.py`: confirm the `note → quote` fallback (`:323`) is fine when `quote` is
    absent (`ev.get("quote") → None` — already graceful); add a comment marking `quote` legacy.
 4. `validate_artifact.py`: absence of `quote` is not an error; guidance points at missing `note`.
@@ -68,9 +72,12 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 - In the fan-out workflow's classify stage, pass the artifact JSON Schema to `agent({schema})`.
   Load the schema from `schemas/classify_artifact.schema.json` so there is **one** source of truth
   (the StructuredOutput schema and the `validate_artifact.py` schema must not drift).
-- The workflow writes the returned validated object atomically (temp file + `os.rename`) to
-  `classify/{hash}.artifact.json`, then runs `validate_artifact.py` for the **cross-field** gate.
-  Preserve the "artifact exists + validates ⇒ doc classified" readiness predicate.
+- **Write owner (reconciled with T57):** on the schema path the **workflow** persists the returned
+  validated object atomically (temp file + `os.rename`) to `classify/{hash}.artifact.json` (the
+  classifier sub-agent returns the object; the workflow writes it), then runs `validate_artifact.py`
+  for the **cross-field** gate. Preserve the "artifact exists + validates ⇒ doc classified"
+  readiness predicate. (On the standalone hand-authored path the classifier writes its own file, as
+  today.)
 - Keep the classifier SKILL usable **standalone** (hand-authored path) for non-workflow runs —
   the schema is the contract either way.
 
@@ -78,8 +85,15 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 
 ## Tests
 
-- **Trim:** an artifact with `ref` + `note` and **no** `quote` validates and merges identically
-  (same evidence note applied; state side byte-identical) to the pre-trim form.
+- **Trim (note-bearing):** an artifact with `ref` + `note` and **no** `quote` validates and merges
+  identically (same evidence note applied; **state side** byte-identical) to the pre-trim form. Use
+  a `note`-bearing fixture — the byte-identity holds only when `note` is present.
+- **Trim (quote-only, the behavioral edge):** an evidence row with `quote` but **no** `note` merges
+  **note-less** after the trim (the `note → quote` fallback has nothing to fall back to). Assert
+  this expected, non-identical outcome rather than pretending it's identical.
+- **Back-compat:** a legacy `quote`-bearing artifact still **schema-validates** after Phase 1
+  (since `quote` stays declared in the schema). Guards the "don't delete `quote` from the schema"
+  rule.
 - **Enum trap regression:** `process: machine` still fails `validate_artifact.py` (cross-field
   gate not loosened) — this must hold on **both** the hand-authored and constrained paths.
 - **Constrained path (Phase 2):** the workflow classify stage returns an object that schema-

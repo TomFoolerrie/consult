@@ -114,10 +114,10 @@ overlap once T57's seams exist.
 | # | Title | Depends | Touches |
 |---|---|---|---|
 | T54 | Orchestrator delegation enforcement — blocking prose + content-starvation (Tier 1) + wire `consult-run` to the T57 workflow (Tier 2) | T57 (for Tier 2) | skills/consult-run |
-| T57 | **Fan-out Workflow scaffold** (foundation) — stage-parameterized deterministic driver: one `agent()` per target, classify `then_script`, schema + budget seams, `null`-tolerant partial completion, human-gate guard | — | .claude/workflows (new) |
+| T57 | **Fan-out Workflow scaffold** (foundation) — stage-parameterized driver with the correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1), classify `merge` + consolidate apply post-steps, schema + budget seams, `null`-tolerant partial completion, structural human-gate guard. NB: draft/synth workers DO write state (via `state_machine.py`). | — | .claude/workflows (new) |
 | T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained `agent({schema})` emission (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
 | T56 | Per-phase cost instrumentation — `budget.spent()` deltas (real output tokens) + content-free input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
-| T58 | **Slice-4 integration & regression** (build last) — workflow path == prose path (byte-identical state/deliverables), constrained emission validates, gates fire, cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
+| T58 | **Slice-4 integration & regression** (build last) — given identical *stubbed* LLM outputs, the workflow and prose dispatch paths produce byte-identical **spine** output (state/register/render, normalized); LLM-authored MDs validate structurally only; constrained emission validates; gates fire; cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
 
 > **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
 > output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool

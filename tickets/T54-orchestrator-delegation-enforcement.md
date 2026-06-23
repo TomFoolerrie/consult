@@ -18,8 +18,12 @@ Touches: `skills/consult-run/SKILL.md`, dispatch contract docs. (The workflow it
 ## Problem
 
 `consult-run` is **prose** describing a dispatch loop ("if `kind == llm_fanout`, spawn the named
-sub-agent once per target"). Nothing **structurally** forces delegation, so on small batches the
-model inlines the work. Cost consequence, compounding:
+sub-agent once per target"). The prose already routes content through read-only gatherers to the
+sub-agents and never tells the orchestrator to read documents itself (SKILL.md: "each fronted by a
+read-only input gatherer the sub-agent consumes, so it does not forage"). So the defect is **drift
+against prose that already implies delegation**, not bad instructions. The gap is that nothing
+**structurally** *forces* delegation — so on small batches the model inlines anyway. Cost
+consequence, compounding:
 
 1. **Context bloat, re-billed every turn.** Every stage's full inputs (ingested MD, taxonomy
    slice, per-doc reasoning) pile into the **single** orchestrator context instead of isolated
@@ -33,9 +37,12 @@ model inlines the work. Cost consequence, compounding:
 
 Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T56.**
 
-- **Tier 1 — prose hardening + content-starvation (cheap stopgap, do regardless).** Make
-  `consult-run` dispatch **imperative + blocking**, and forbid the orchestrator from reading
-  content itself. Weaker (adherence-dependent) but a one-skill change with immediate effect.
+- **Tier 1 — prose hardening (cheap stopgap, do regardless).** Make `consult-run` dispatch
+  **imperative + blocking** and add an explicit prohibition on the orchestrator reading content
+  itself. **Be honest about its teeth:** a Markdown skill cannot *physically* prevent the model
+  from reading files — Tier 1 only makes inlining an explicit contract violation and removes any
+  standing invitation. It is **not** structural; it is adherence-dependent. Only Tier 2 makes
+  delegation structural. One-skill change, immediate, but a nudge, not a guarantee.
 - **Tier 2 — deterministic Workflow fan-out (the real fix — chosen as the target).** Replace
   "spawn N sub-agents via prose" for each `llm_fanout` stage with a committed **Workflow** the
   orchestrator invokes. The workflow loops `agent()` per target in a JS driver — delegation is
@@ -54,17 +61,27 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
   for `kind == llm_fanout` the orchestrator **MUST** delegate; performing classify / consolidate
   / draft / synthesize reasoning itself is a **contract violation**, not a shortcut for small
   batches. State the *reason* (context isolation / cost) so it isn't "optimized" away.
-- **Content-starvation:** forbid the orchestrator from reading `ingested/*.md`, taxonomy slices,
-  or calling the input-gatherers (`consolidate_inputs.py`, `draft_inputs.py`,
-  `synthesis_inputs.py`) **itself** — those feed the delegated workers. Starved of content, it
-  cannot inline. It handles only `orchestrate.py next` output (`{action, kind, targets}`) + the
-  workers' one-line summaries.
+- **Explicit content prohibition:** forbid the orchestrator from reading `ingested/*.md`, taxonomy
+  slices, or calling the input-gatherers (`consolidate_inputs.py`, `draft_inputs.py`,
+  `synthesis_inputs.py`) **itself** — those feed the delegated workers. The orchestrator handles
+  only `orchestrate.py next` output (`{action, kind, targets}`) + the workers' one-line summaries.
+  (This is a *rule*, not a physical gate — the structural enforcement is Tier 2, where the
+  loop-level model never receives the content in the first place.)
 
 **Tier 2 (the keystone — wiring; the workflow is built in T57):**
 - Wire `consult-run` so that for each `llm_fanout` action it **invokes the deterministic fan-out
   workflow (T57)** with `{engagement, stage, targets}` from `orchestrate.py next --json`, instead
   of hand-spawning N sub-agents via prose. The workflow returns per-target one-line summaries;
   `consult-run` then re-runs `orchestrate.py next` and proceeds to the next action / human gate.
+- **Pin the invocation surface (build-blocking — resolve jointly with T57).** Specify *exactly how*
+  `consult-run` (a skill) calls the workflow: a Workflow-tool call vs an inline script reference vs
+  a committed `.claude/workflows/consult-fanout` invoked by name — with the arg shape. Neither T54
+  nor T57 nailed this; a build agent cannot write the wiring without it.
+- **Field mapping:** `orchestrate.py next` emits the stage under the key `action` (not `stage`);
+  `consult-run` maps `action → stage` when calling the workflow.
+- **`then_script` / merge ownership moves to the workflow** for the Tier-2 path: post-Tier-2 the
+  classify `merge` (and the consolidate apply step) run **inside** the T57 workflow, so `consult-run`
+  must **stop** running `classify_merge.py merge` itself (else the merge runs twice or zero times).
 - `consult-run` remains the **interactive, gate-respecting** layer: it owns the render gate and the
   `status.needs_human` stops; the workflow only handles the bounded per-stage fan-out (see T57's
   human-in-the-loop guard). `orchestrate.py` stays read-only; the action contract (`kind`,
@@ -76,8 +93,10 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
 
 - `orchestrate.py next --json` still emits `kind` + `targets` per stage (dispatch contract intact)
   — exercise via the Slice-1 e2e fixture.
-- Grep/lint: `consult-run` no longer instructs the orchestrator to read `ingested/*.md` or invoke
-  the gatherers directly; the blocking-delegation language is present.
+- Grep/lint (**positive** assertion — the prohibition must be *present*, not merely absent; the
+  orchestrator was never instructed to self-read, so asserting absence tests nothing): `consult-run`
+  contains the explicit "MUST delegate / reading content is a contract violation" language and the
+  named content prohibition (`ingested/*.md`, taxonomy slices, the gatherers).
 - **Delegation wiring (Tier 2):** for an `llm_fanout` action, `consult-run` invokes the T57
   workflow (with the action's `targets`) rather than reading content itself. (The per-target
   `agent()` call-count assertion lives in T57.)
