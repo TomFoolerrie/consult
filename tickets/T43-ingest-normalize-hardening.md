@@ -8,8 +8,8 @@ import surface of `clean_vtt.py` — coordinate if another ticket touches it)
    regex-rewrites its path assignments (only the first match), and `exec`s it. Refactor
    `clean_vtt.py` to expose a `clean(input_path, output_path)` (or `clean_text(str)->str`)
    function and **import** it. Remove the regex/`exec` path entirely.
-2. **Atomic write + dedup TOCTOU** — route the MD write through `_io.write_text_atomic`;
-   take `_io.locked` over the ingested dir across the dedup-check→write window so two
+2. **Atomic write + dedup TOCTOU** — route the MD write through `consult_io.write_text_atomic`;
+   take `consult_io.locked` over the ingested dir across the dedup-check→write window so two
    concurrent ingests of identical bytes don't both write.
 3. **`iter_sources` excludes own output** — `rglob("*")` will re-ingest `ingested/*.md` when
    `--source` points at the engagement dir. Skip the `ingested/` subtree.

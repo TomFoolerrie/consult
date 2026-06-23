@@ -63,7 +63,7 @@ share a file are placed in different waves (per the same-file-sequential rule ab
 ### Wave 1 — foundation (build first, alone)
 | # | Title | Touches |
 |---|---|---|
-| T40 | Shared atomic-write + advisory-lock IO util | `scripts/_io.py` (new) |
+| T40 | Shared atomic-write + advisory-lock IO util | `scripts/consult_io.py` (new) |
 
 ### Wave 2 — parallel (depend only on T40 where noted; mutually disjoint files)
 | # | Title | Depends | Touches |

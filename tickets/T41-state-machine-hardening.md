@@ -8,8 +8,8 @@
    loop happens to create the dir. A zero-L2 taxonomy → `FileNotFoundError`. Move `edir.mkdir`
    to the top of `cmd_init`.
 2. **Atomic writes + engagement-level lock** — route `_save_state`, `cmd_init` state write,
-   and the register write through `_io.write_json_atomic`; wrap each mutating command's
-   read-modify-write in `_io.locked(<engagement>)` (single engagement lock per T40, **not**
+   and the register write through `consult_io.write_json_atomic`; wrap each mutating command's
+   read-modify-write in `consult_io.locked(<engagement>)` (single engagement lock per T40, **not**
    per-file). The lock must span the whole `add-item` → `improvement_log.py` subprocess →
    `cmd_sync` sequence; rely on T40's reentrancy so the nested `cmd_sync` doesn't re-block.
    `_next_item_id` (fix 4) must read the register *inside* that same held lock to close the

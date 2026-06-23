@@ -1,6 +1,6 @@
 # T40 — Shared atomic-write + advisory-lock IO util
 
-**Slice 3 (Remediation & Hardening) · Wave 1 (foundation) · Depends: — · Touches: `scripts/_io.py` (new)**
+**Slice 3 (Remediation & Hardening) · Wave 1 (foundation) · Depends: — · Touches: `scripts/consult_io.py` (new)**
 
 ## Problem
 Every engine that writes `state.json` / `register.json` / temp CSVs does a direct
@@ -9,7 +9,7 @@ writes everywhere; no advisory lock; read-modify-write races between sibling sub
 calls). A crash mid-write truncates the file; concurrent mutations silently lose updates.
 
 ## Build
-Add a tiny dependency-free helper module `scripts/_io.py` exposing:
+Add a tiny dependency-free helper module `scripts/consult_io.py` exposing:
 - `write_json_atomic(path, obj)` — write to `path + ".tmp.<pid>"`, `flush`+`fsync`, then
   `os.replace` onto the target (atomic on POSIX). Same for `write_text_atomic`.
 - `locked(eid_or_dir)` — context manager taking an advisory `flock` on a **single
