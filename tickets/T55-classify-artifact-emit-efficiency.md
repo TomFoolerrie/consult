@@ -1,101 +1,99 @@
-# T55 — Classify artifact: emit efficiency (payload trim + NDJSON option)
+# T55 — Classify artifact: emit efficiency (constrained emission + payload trim)
 
 **Slice 4 (Cost & Runtime Efficiency) · Follow-up · From field run (3 real artifacts) ·
-Depends: — · Touches: `schemas/classify_artifact.schema.json`, `skills/consult-classifier/SKILL.md`,
-`scripts/classify_merge.py` (reader), `scripts/validate_artifact.py`, `tests/`.**
+Depends: T54 Tier 2 (for constrained emission) · Touches:
+`schemas/classify_artifact.schema.json`, `skills/consult-classifier/SKILL.md`,
+`.claude/workflows/consult-fanout.*` (the classify `agent()` call), `scripts/classify_merge.py`,
+`scripts/validate_artifact.py`, `tests/`.**
 
-> **Field observation.** "JSON proved difficult for models to always match." The instinct that
-> this is *not purely* a format problem is correct — it is three stacked costs (free-decoding a
-> deep nested structure, a full-artifact rewrite on validation failure, and redundant payload).
-> **Scope note:** the *only* model-hand-authored JSON-against-schema in the suite is the
-> classifier's `classify/{hash}.artifact.json`. Consolidate/draft outputs are **Markdown**; state
-> writes go through the **command path** (`state_machine.py`). So this ticket is scoped to that
-> one artifact — do not chase a JSON-everywhere problem that does not exist.
+> **Runtime correction.** Earlier I deferred constrained/tool-call emission "to the API/SDK path,
+> not available in Desktop." **That was wrong** — you run **Claude Code**, whose **Workflow
+> `agent(prompt, {schema})`** forces a StructuredOutput tool call and returns a **schema-validated
+> object** (confirmed against the live Workflow tool contract, not just docs). So valid-by-
+> construction emission is **available now**, under T54's Tier-2 fan-out workflow. This is the
+> primary fix; the `quote` trim is a secondary token win that helps on either path.
+
+> **Scope note.** The *only* model-hand-authored JSON-against-schema in the suite is the
+> classifier's `classify/{hash}.artifact.json`. Consolidate/draft outputs are Markdown; state
+> writes go through the command path. Keep this ticket to that one artifact.
 
 ## Problem
 
 `consult-classifier` hand-authors a deep nested artifact (`node_hits → evidence → lens_signals →
 candidate_findings`) that must validate against `schemas/classify_artifact.schema.json` **and**
-pass `validate_artifact.py` cross-field checks. Three costs:
+pass `validate_artifact.py` cross-field checks. Three stacked costs:
 
 1. **Free-decoding nested JSON with fumble-able enums.** The lens `value` is a *flat union* of all
-   lenses' allowed values, so `process: machine` validates structurally but is semantically
-   invalid (the validator + merge reject it). The model gets nesting/enums wrong, fails the gate,
-   and the skill says "fix and rewrite" → it re-emits the **whole** artifact. That rewrite loop
-   is the token waste, not the braces.
-2. **Redundant payload — the biggest single trim.** Each evidence entry carries both a `ref`
-   (`…#L42-48`, **required**) *and* a verbatim `quote` (**optional**). The ref already locates the
-   text in the **immutable** ingested MD; the `quote` is duplicated data the model must reproduce
-   **exactly** or risk drift, and it is a fat token sink on every evidence row. Confirmed: schema
-   requires only `ref`; the merge already falls back `note → quote` (`classify_merge.py:323`), so
-   `quote` is pure redundancy when a short `note` is present.
-3. **All-or-nothing retries.** Because the artifact is one nested document, a single bad
-   node/evidence row forces a full re-emit instead of re-emitting just the offending record.
+   lenses' allowed values, so `process: machine` passes the schema structurally but is rejected by
+   the cross-field check. Wrong nesting/enums → fail the gate → the skill says "fix and rewrite" →
+   re-emit the **whole** artifact. **That rewrite loop is the token waste, not the braces.**
+2. **Redundant payload.** Each evidence entry carries both a `ref` (`…#L42-48`, **required**) *and*
+   a verbatim `quote` (**optional**). The ref already locates the text in the **immutable** MD; the
+   `quote` is duplicated data the model must reproduce **exactly**, a fat token sink per row.
+   Confirmed: schema requires only `ref`; merge already falls back `note → quote`
+   (`classify_merge.py:323`), so `quote` is pure redundancy when a short `note` is present.
+3. **All-or-nothing retries** — one bad row forces a full re-emit.
 
 ## Decision (recorded)
 
-- **Drop `quote` from the emit contract — chosen.** Keep `ref` (required, resolves to the real
-  lines) + a short `note`. Highest value-to-change ratio: cuts the #1 matching-failure surface
-  and the biggest per-row token cost. Merge already prefers `note`; `quote` removal is
-  near-zero-risk.
-- **NDJSON / shallow records for retry isolation — chosen as an *option to evaluate*, not a
-  mandate.** Emitting one record per line (denormalized: a `node_hit` row, then its `evidence` /
-  `lens` / `finding` rows keyed by node) makes a malformed line re-emittable **alone** and lets
-  the validator point at a line. It does **not** fix schema-matching (each line still must
-  conform) and it costs a merge-reader rewrite. Treat as a measured follow-up gated on whether
-  the trim alone (item above) closes enough of the gap.
-- **Constrained / tool-call emission (valid-by-construction) — noted, deferred.** The strongest
-  reliability fix (emit via a StructuredOutput tool whose input schema *is* the artifact schema →
-  no validate-fix-rewrite loop) **requires the API/SDK or Claude Code runtime**; it is **not**
-  available to a Claude Desktop skill that writes a file. Record it as the eventual fix for the
-  API path; out of scope while the user runs in Desktop.
+- **(1) Constrained emission via Workflow `agent({schema})` — chosen, primary.** When classify
+  fan-out runs under T54's Tier-2 workflow, the per-doc `agent()` call passes
+  `{schema: <classify_artifact.schema>}`. The runtime forces a StructuredOutput tool call and
+  returns a validated object; the workflow writes it to `classify/{hash}.artifact.json`. The
+  write→validate→rewrite loop (#1, #3) **disappears** — there is no hand-authored file to fail.
+  `validate_artifact.py`'s *cross-field* checks (lens-value-valid-for-its-lens, evidence-ref
+  resolves) still run as a post-write gate (schema-validity alone doesn't catch the flat-union
+  trap).
+- **(2) Drop `quote` from the emit contract — chosen, independent.** Keep `ref` + a short `note`.
+  Highest value-to-change ratio; helps tokens on **both** the constrained and the legacy hand-
+  authored path. Near-zero risk (merge already prefers `note`).
+- **(3) NDJSON shallow records — demoted to fallback.** Only worthwhile if T54 Tier 2 is *not*
+  adopted (no constrained emission), to localize retries on the hand-authored path. With (1) in
+  place the rewrite loop is gone, so NDJSON's main benefit evaporates. Keep as a documented
+  fallback, don't build speculatively.
 
 ## Build
 
-**Phase 1 — trim (do first, measure before doing Phase 2):**
-1. `consult-classifier/SKILL.md`: stop emitting `quote`. Require a concise `note` on each
-   evidence entry instead; keep `ref` exact. Update the worked example (lines ~140-186) to match
-   (drop `quote`, keep `ref` + `note`).
-2. `schemas/classify_artifact.schema.json`: keep `quote` **permitted but discouraged** (so old
-   artifacts still validate) — or remove it if no committed fixture relies on it (check first).
-   Do not make `note` strictly required if that breaks existing valid fixtures; prefer "ref +
-   (note|quote)" so the merge's existing fallback stays satisfied.
-3. `classify_merge.py`: confirm the `note → quote` fallback (`:323`) still behaves when `quote`
-   is absent (it already does — `ev.get("quote")` → `None`). No functional change expected;
-   add a comment noting `quote` is legacy/optional.
-4. `validate_artifact.py`: ensure absence of `quote` is not an error; if it emits guidance,
-   point at the missing `note` instead.
+**Phase 1 — trim (do first; independent of T54):**
+1. `consult-classifier/SKILL.md`: stop emitting `quote`; require a concise `note` per evidence
+   entry; keep `ref` exact. Update the worked example (~lines 140-186) to match.
+2. `schemas/classify_artifact.schema.json`: keep `quote` **permitted but discouraged** (old
+   artifacts still validate), or remove if no committed fixture relies on it (check first). Don't
+   make `note` strictly required if that breaks valid fixtures; prefer "ref + (note|quote)".
+3. `classify_merge.py`: confirm the `note → quote` fallback (`:323`) is fine when `quote` is
+   absent (`ev.get("quote") → None` — already graceful); add a comment marking `quote` legacy.
+4. `validate_artifact.py`: absence of `quote` is not an error; guidance points at missing `note`.
 
-**Phase 2 — NDJSON (only if Phase 1 measurement shows retries/size still dominate):**
-- Define a flat record grammar (one JSON object per line; `kind` discriminator: `node_hit` /
-  `evidence` / `lens` / `finding` / `unmapped`; each keyed by `node`). Write to
-  `classify/{hash}.artifact.jsonl`.
-- Rewrite the merge reader + `validate_artifact.py` to consume NDJSON, validating **per line** and
-  reporting the offending line number. Keep the existing nested `.json` reader for back-compat or
-  migrate fixtures in the same change.
-- Preserve the atomic-write contract (temp file + `os.rename`) and the "artifact exists +
-  validates ⇒ doc classified" readiness predicate the orchestrator depends on.
+**Phase 2 — constrained emission (with T54 Tier 2):**
+- In the fan-out workflow's classify stage, pass the artifact JSON Schema to `agent({schema})`.
+  Load the schema from `schemas/classify_artifact.schema.json` so there is **one** source of truth
+  (the StructuredOutput schema and the `validate_artifact.py` schema must not drift).
+- The workflow writes the returned validated object atomically (temp file + `os.rename`) to
+  `classify/{hash}.artifact.json`, then runs `validate_artifact.py` for the **cross-field** gate.
+  Preserve the "artifact exists + validates ⇒ doc classified" readiness predicate.
+- Keep the classifier SKILL usable **standalone** (hand-authored path) for non-workflow runs —
+  the schema is the contract either way.
+
+**Phase 3 — NDJSON:** build only if Phase 2 is declined; otherwise document as deferred fallback.
 
 ## Tests
 
-- **Trim (Phase 1):** an artifact with `ref` + `note` and **no** `quote` validates and merges
-  identically (same evidence note applied) to the pre-trim form. A committed fixture re-classified
-  produces a merge result byte-identical on the state side (evidence/lens/findings unchanged).
-- **Enum trap regression:** an artifact with a wrong-lens value (`process: machine`) still fails
-  `validate_artifact.py` (the trim must not loosen the cross-field gate).
-- **NDJSON (Phase 2, if built):** a malformed single line is the only thing reported (line number
-  cited); the other records still merge; re-emitting just that line passes. Atomic write + dedup
-  readiness unchanged.
-- **No regression:** Slice-1 e2e green; the classify fan-out fixture still drives the same merged
-  state.
+- **Trim:** an artifact with `ref` + `note` and **no** `quote` validates and merges identically
+  (same evidence note applied; state side byte-identical) to the pre-trim form.
+- **Enum trap regression:** `process: machine` still fails `validate_artifact.py` (cross-field
+  gate not loosened) — this must hold on **both** the hand-authored and constrained paths.
+- **Constrained path (Phase 2):** the workflow classify stage returns an object that schema-
+  validates; a deliberately schema-violating model attempt is auto-retried by the runtime, never
+  written half-formed; the written artifact passes the cross-field gate; one schema source (no
+  drift between StructuredOutput and validator).
+- **No regression:** Slice-1 e2e green; the classify fan-out fixture drives the same merged state.
 
 ## DoD
 
-- `quote` removed from the classifier emit contract; `ref` + `note` carry evidence; merge +
-  validator behave identically; existing fixtures still validate and merge byte-identically on the
-  state side.
-- A re-measure (T56) records the token/size delta of the trim on a representative doc.
-- NDJSON either shipped with a per-line validator + rewritten reader, or explicitly deferred with
-  the measured reason it wasn't needed.
-- Constrained/tool-call emission documented as the API/SDK-path fix; not attempted in the Desktop
-  runtime.
+- `quote` removed from the emit contract; `ref` + `note` carry evidence; merge + validator behave
+  identically; existing fixtures validate + merge byte-identically on the state side.
+- Under T54 Tier 2, classify emission is schema-validated by construction — no write→validate→
+  rewrite loop — with cross-field checks still enforced and a single schema source of truth.
+- NDJSON either unneeded (constrained path adopted) or documented as the fallback for the hand-
+  authored path.
+- A re-measure (T56) records the token delta of the trim + constrained emission on a sample doc.

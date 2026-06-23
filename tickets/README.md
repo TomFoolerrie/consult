@@ -100,20 +100,23 @@ gates synthesize (T45); document the docx headers/footers limitation, don't exte
 
 ## Slice 4 — Cost & Runtime Efficiency (from field run: 3 real artifacts, ~$10)
 
-Surfaced running the suite on real client artifacts. Strong prior: T54 is the dominant cost
-driver; T55 is reliability + a secondary token trim; T56 makes both measurable. **Resolve T54's
-runtime fork (sub-agent capability — Claude Code/SDK vs Desktop) before building it.**
+Surfaced running the suite on real client artifacts. **Runtime confirmed: Claude Code hosted in
+the Claude Desktop app** — has sub-agents, skills-in-sub-agents, and the **Workflow** tool. The
+keystone is **T54 Tier 2**: drive each fan-out stage with a deterministic Workflow. That single
+move makes delegation structural (T54), unlocks schema-validated emission (T55), and exposes
+`budget.spent()` per-phase cost (T56) — all three tickets hang off it.
 
 | # | Title | Depends | Touches |
 |---|---|---|---|
-| T54 | Orchestrator delegation enforcement (stop inline self-execution; runtime fork A/B) | — | skills/consult-run/SKILL.md |
-| T55 | Classify artifact emit efficiency (drop redundant `quote`; NDJSON option; constrained-emit deferred to API path) | — | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
-| T56 | Per-phase cost/size instrumentation (content-free; feeds T54/T55 acceptance) | — | orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+| T54 | Orchestrator delegation enforcement — blocking prose + content-starvation (Tier 1) + deterministic Workflow fan-out (Tier 2, keystone) | — | skills/consult-run, .claude/workflows (new) |
+| T55 | Classify artifact emit efficiency — drop redundant `quote` + constrained `agent({schema})` emission (NDJSON = fallback) | T54 Tier 2 | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
+| T56 | Per-phase cost instrumentation — `budget.spent()` deltas (real output tokens) + content-free input-size complement | T54 Tier 2 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
 
-> **Note (Desktop runtime):** the user's measured run was in **Claude Desktop**, where skills run
-> in the main conversation. If Desktop exposes no sub-agent primitive, T54 inlining is *forced*
-> (branch B) and constrained-output emission (T55) is unavailable — both fixes then differ from
-> the Claude Code / SDK path. Confirm the runtime first.
+> **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
+> output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool
+> provides `agent({schema})` (valid-by-construction JSON) and a `budget` object (`budget.spent()`),
+> confirmed against the live tool contract. Human-in-the-loop is preserved by scoping each Workflow
+> to **one fan-out stage**, never the whole engagement (the render gate stays a human hand-off).
 
 ## Deferred / optional (not blocking a working system)
 
