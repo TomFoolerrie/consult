@@ -3,15 +3,16 @@
 **Slice 3 · Wave 2 (parallel) · Depends: T40 · Touches: `scripts/review_ingest.py`**
 
 ## Fixes (from review)
-1. **`add-evidence` unreachable** (priority) — `SUBSTANCE_COMMANDS` includes `add-evidence`
-   but `ALLOWED_COMMANDS` does not (`:52` vs `:60`), so the action is rejected at `:453`
-   despite the docstring promising it. Decide and make consistent: either add `add-evidence`
-   to `ALLOWED_COMMANDS` (preferred — reviewers should be able to add evidence) or remove it
-   from `SUBSTANCE_COMMANDS` + docstring.
-2. **Re-apply double-write** — if state commands succeed but a `mark-dirty` fails, the docx
-   is not marked consumed and a re-run re-applies every already-committed action (no
-   per-action idempotency) → duplicate evidence/items. Either make `mark-dirty` failures
-   non-fatal to the consumed marker, or record per-action applied-state so replay is a no-op.
+1. **`add-evidence` unreachable** (priority) — **DECISION: add `add-evidence` to
+   `ALLOWED_COMMANDS`** (`:52`) so reviewers can add evidence as the docstring promises.
+   `cmd_add_evidence` exists in `state_machine.py`. Confirm the resolver emits `{"node": ...}`
+   (handled by `_node_key_for_action`'s `"node"` branch); `cmd_add_evidence(eid, key, ...)`
+   takes `--node`. Delete the dead `NODE_ARG` (fix 4) rather than resurrecting it.
+2. **Re-apply double-write** — **DECISION: minimal fix.** (a) Add a **pre-flight validation
+   pass** so the batch only starts applying once all actions are well-formed; (b) make
+   `mark-dirty` failures **non-fatal to the consumed marker** (a node failing to dirty is
+   logged but doesn't block marking the docx consumed). Do **not** build a per-action ledger.
+   Document the narrowed contract: consumed-marking now tolerates mark-dirty failures only.
 3. **Unguarded `json.load(actions)`** (`:431`) — wrap in a clean error like the isinstance
    check right after.
 4. **Dead code** — remove the `_args_to_argv` leftover first two lines (`:379-381`) and the

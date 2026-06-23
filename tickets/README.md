@@ -77,11 +77,17 @@ share a file are placed in different waves (per the same-file-sequential rule ab
 | T47 | `gap_report.py` + `docx_comments.py` fixes (malformed node, temp-CSV leak, tag preserve, comment-range balance, headers) | — | gap_report.py, docx_comments.py |
 | T48 | Documentation & schema drift reconciliation (stale banners, schema desc, SKILL path, template removal) | — | docs/schemas only |
 
-### Wave 3 — after Wave 2
+### Wave 3 — after Wave 2 (run T50 before T49)
 | # | Title | Depends | Touches |
 |---|---|---|---|
-| T49 | Test coverage hardening (schema-validate assertion, lens-conflict, phantom-ref, Slice-2 e2e, xlsx) | T41–T47 | tests/, fixtures/ |
-| T50 | Resolve CSV-transport contradiction (**decision required**: code↔docs) | T47, T48 | improvement_log.py, gap_report.py, spec.md, README.md |
+| T50 | Finish removing CSV transport (**Option A decided**) | T47, T48 | improvement_log.py, gap_report.py, spec.md, README.md, requirements.txt |
+| T49 | Test coverage hardening (schema-validate assertion, lens-conflict, phantom-ref, Slice-2 e2e, xlsx) | T41–T47, T50 | tests/, fixtures/ |
+
+**Decisions locked** (post-review): engagement-level lock (T40); fail-closed pre-flight
+validate, no merge cursor (T42); add `add-evidence` to allowlist + minimal idempotency
+(non-fatal mark-dirty + pre-flight validate, no per-action ledger) (T44); `drafted_any`
+gates synthesize (T45); document the docx headers/footers limitation, don't extend (T47);
+**Option A** — finish removing pandas/CSV (T50).
 
 > **Highest-priority real bugs** (do first within their wave): T44 (`add-evidence`
 > unreachable), T46 (`--l1` no-op validation), T44 (review re-apply double-write),

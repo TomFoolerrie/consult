@@ -17,15 +17,17 @@
 5. **Unbalanced comment ranges** (`:144-152`) — an unmatched `commentRangeEnd` leaves an id
    permanently active, vacuuming all later runs into it. Guard against unbalanced start/end.
 6. **Headers/footers/footnotes missed** (`:193-205`) — only `word/document.xml` is read.
-   Either extend to `header*/footer*/footnotes.xml` or document the limitation explicitly in
-   the SKILL + docstring.
+   **DECISION: document the limitation** (do not extend extraction). Add a one-line note in
+   the SKILL + `docx_comments.py` docstring that comments anchored in headers/footers/
+   footnotes are out of scope, and an explicit test asserting that limitation (below). Matches
+   the spike-level intent of T30.
 
 ## Tests
 - `tests/test_gap_rescan_tag.sh`: a human-edited tag survives a structural re-scan;
   a malformed node is reported, not emitted as `GAP-STRUCT-None`.
 - `tests/test_docx_comments_edge.sh`: a doc with an unbalanced comment range doesn't
-  mis-attribute trailing text; a header-anchored comment is either extracted or the
-  documented limitation is asserted.
+  mis-attribute trailing text; a header-anchored comment is **not** extracted (assert the
+  documented limitation).
 
 ## DoD
 Tests pass; Slice-1 gap stage + Slice-2 comment extraction still green; no scratch left.

@@ -5,11 +5,11 @@ Touches: `*_contract.md`, `spec.md`, `README.md`, `schemas/*.json` descriptions,
 `skills/consult-improvement-log/SKILL.md`, `skills/.../canonical_sop_deliverable_template.md`**
 
 ## Fixes (from review)
-1. **Stale "no code yet" banners** — `classify_contract.md:3`, `ingest_contract.md:3`,
-   `consolidate_contract.md:3`, `generation_review_contract.md:3`, `orchestration_contract.md:3`,
-   plus `classify_artifact.schema.json:5` and `ingested_header.schema.json:5`
-   ("Not yet wired into code"). All these stages are built. Update banners to reflect built
-   status + the implementing script.
+1. **Stale banners** — the contracts say **"DESIGN DRAFT (no code yet)"** (`*_contract.md:3`)
+   and the two schemas say **"DESIGN DRAFT … Not yet wired into code"** (`:5`). All stages are
+   built. Update banners to reflect built status + the implementing script. The grep-lint
+   (below) must match the **actual strings** (`DESIGN DRAFT`, `Not yet wired into code`), not
+   the paraphrase.
 2. **Schema description drift** — `item_register.schema.json:5` top-line says
    "improvements, gaps, screenshots" but the `type` enum has 5 (`unmapped`, `theme`). Fix the
    description; keep the node-level `items`/`counts` shape as-is (intentional).
@@ -18,8 +18,12 @@ Touches: `*_contract.md`, `spec.md`, `README.md`, `schemas/*.json` descriptions,
    `skills/consult-improvement-log/scripts/improvement_log.py`. Fix to the full path
    (match `consult-state-machine/SKILL.md`).
 4. **Remove the contradictory SOP template** — `canonical_sop_deliverable_template.md` is an
-   all-`{{handlebars}}` shell that contradicts `consult-drafter/SKILL.md:285` ("not a shell
-   template"); spec Open-item 10 already flags removal. Remove it (and any references).
+   all-`{{handlebars}}` shell that contradicts `consult-drafter/SKILL.md:285`. **It has a
+   LOAD-BEARING reference at `consult-drafter/SKILL.md:12`** ("output must follow
+   `references/canonical_sop_deliverable_template.md`") — that mandate must be **rewritten**
+   (point at the prose guidance / completed-MD instruction), not just dropped. Also update
+   `spec.md:415`, `:472`/`:603` (deliverables-tree note), and `:539-540` (Open-item 10).
+   Confirm no other refs via grep before deleting.
 5. **Status honesty** — README:153 / spec.md:1-10 "green and idempotent": add the
    `pip install -r requirements.txt` precondition (without pandas/jsonschema the e2e fails).
 

@@ -14,11 +14,14 @@
 
 ## gates.py
 4. **Evidence path-escape** (`:84`) — `edir / source` isn't normalized; a `../..`-style
-   `source` resolves outside the engagement. Add `resolve().is_relative_to(edir)` and fail the
-   gate on escape.
+   `source` resolves outside the engagement. **Mirror the existing idiom** in
+   `consolidate_inputs.py:168-170` / `draft_inputs.py:89-91` (`(edir/rel).resolve()` +
+   `try: relative_to(edir.resolve())`), not `is_relative_to`, for consistency. Fail the gate
+   on escape.
 5. **`final` artifacts never existence-checked** (`:99`) — `final_artifacts_have_path` only
    checks `path` truthiness. Assert the file exists (symmetry with the evidence-file gate).
-6. **Unused imports** — drop unused `Path`/`sys` (`:30-31`).
+6. **Unused import** — drop unused `Path` (`:31`). NOTE: `sys` is **not** imported in gates.py
+   (the original ticket text was wrong); only `Path` is unused. `Dict/List/Any` are used.
 
 ## Tests
 `tests/test_render_gates.sh`:
