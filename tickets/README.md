@@ -54,6 +54,50 @@ pass before reporting.** Read the referenced contract sections before building.
 | T37 | State-driven orchestration: review re-entry + gated `final` + `next --all` | ✅ |
 | T39 | Register engine doc-debt: `consult-improvement-log` SKILL rewritten (no CSV) | ✅ |
 
+## Slice 3 — Remediation & Hardening (from codebase review)
+
+Bug fixes + robustness + doc-drift cleanup. **Grouped into waves for parallel execution.**
+Tickets in the same wave touch disjoint files and can be built concurrently; tickets that
+share a file are placed in different waves (per the same-file-sequential rule above).
+
+### Wave 1 — foundation (build first, alone)
+| # | Title | Touches |
+|---|---|---|
+| T40 | Shared atomic-write + advisory-lock IO util | `scripts/consult_io.py` (new) |
+
+### Wave 2 — parallel (depend only on T40 where noted; mutually disjoint files)
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T41 | `state_machine.py` hardening (init order, atomic writes, malformed-node guards, id race, ISO compare) | T40 | state_machine.py |
+| T42 | `classify_merge.py` hardening (rollback/re-entrancy, conflict-gap guard, evidence path canon, silent-drop report, unmapped dedup) | T40 | classify_merge.py |
+| T43 | `ingest_normalize.py` hardening (remove `exec` hack, atomic write, exclude own output, per-file isolation, table newlines) | T40 | ingest_normalize.py, clean_vtt.py |
+| T44 | `review_ingest.py` bug fixes (`add-evidence` allowlist, re-apply idempotency, json guard, dead code) | T40 | review_ingest.py |
+| T45 | `orchestrate.py` predicate unification + guards | — | orchestrate.py |
+| T46 | `render_deliverables.py` + `gates.py` fixes (`--l1` validation, partial render, path-escape, final-file existence) | T40 | render_deliverables.py, gates.py |
+| T47 | `gap_report.py` + `docx_comments.py` fixes (malformed node, temp-CSV leak, tag preserve, comment-range balance, headers) | — | gap_report.py, docx_comments.py |
+| T48 | Documentation & schema drift reconciliation (stale banners, schema desc, SKILL path, template removal) | — | docs/schemas only |
+
+### Wave 3 — after Wave 2 (run T50 before T49)
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T50 | Finish removing CSV transport (**Option A decided**) | T47, T48 | improvement_log.py, gap_report.py, spec.md, README.md, requirements.txt |
+| T49 | Test coverage hardening (schema-validate assertion, lens-conflict, phantom-ref, Slice-2 e2e, xlsx) | T41–T47, T50 | tests/, fixtures/ |
+
+**Decisions locked** (post-review): engagement-level lock (T40); fail-closed pre-flight
+validate, no merge cursor (T42); add `add-evidence` to allowlist + minimal idempotency
+(non-fatal mark-dirty + pre-flight validate, no per-action ledger) (T44); `drafted_any`
+gates synthesize (T45); document the docx headers/footers limitation, don't extend (T47);
+**Option A** — finish removing pandas/CSV (T50).
+
+### Follow-up (surfaced during Slice 3 review)
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T51 | `validate` also schema-checks `register.json` (report-only; soft vocab contract preserved) | — | state_machine.py, tests/ |
+
+> **Highest-priority real bugs** (do first within their wave): T44 (`add-evidence`
+> unreachable), T46 (`--l1` no-op validation), T44 (review re-apply double-write),
+> T41 (`cmd_init` dir ordering).
+
 ## Deferred / optional (not blocking a working system)
 
 | Area | Notes |

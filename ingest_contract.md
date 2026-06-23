@@ -1,6 +1,6 @@
 # CONSULT — Ingest Contract (Stage 1)
 
-> Status: **DESIGN DRAFT** (no code yet). Companion schema:
+> Status: **BUILT** (implemented by `scripts/ingest_normalize.py`). Companion schema:
 > `schemas/ingested_header.schema.json`. See `spec.md` §5 Stage 1. Downstream consumer:
 > `classify_contract.md` (Stage 2) — which imposes the line-stability constraint below.
 

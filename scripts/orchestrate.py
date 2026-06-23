@@ -118,7 +118,10 @@ def _l1s_of_nodes(state: Dict[str, Any], node_keys: List[str]) -> List[str]:
     seen: List[str] = []
     for key in node_keys:
         node = state["nodes"].get(key)
-        l1 = node.get("l1") if node else (key.split(".", 1)[0] if "." in key else key)
+        # Fall back to the key-derived L1 when the node is absent OR present but
+        # lacks/`None`s `l1` (a malformed node must not silently drop from the
+        # draft target). Read-only command -> fall back, never raise.
+        l1 = (node or {}).get("l1") or (key.split(".", 1)[0] if "." in key else key)
         if l1 and l1 not in seen:
             seen.append(l1)
     return seen
@@ -130,8 +133,11 @@ def _deliverable_exists(eid: str, rel: str) -> bool:
 
 def _l1_ids(state: Dict[str, Any]) -> List[str]:
     seen: List[str] = []
-    for node in state["nodes"].values():
-        l1 = node.get("l1")
+    for key, node in state["nodes"].items():
+        # Same fallback as `_l1s_of_nodes`: a node present but lacking/`None`-ing
+        # `l1` falls back to its key-derived L1 rather than being dropped (it
+        # drives render targets, so a drop would silently skip a stream).
+        l1 = (node or {}).get("l1") or (key.split(".", 1)[0] if "." in key else key)
         if l1 and l1 not in seen:
             seen.append(l1)
     return seen
@@ -140,127 +146,15 @@ def _l1_ids(state: Dict[str, Any]) -> List[str]:
 def decide_next(eid: str) -> Dict[str, Any]:
     """Derive the single next Slice-1 action + its targets. READ-ONLY.
 
-    Readiness is a first-match walk down SLICE1_ORDER. Each predicate is a pure
-    function of `status` (T04) + on-disk classify artifacts + deliverable MDs —
-    so re-running re-derives the same answer until the agent advances the state.
+    The single next action is `frontier(eid)[0]` — the first ready action in
+    ORDER. `decide_next` and `frontier` therefore share ONE ordered builder
+    (`frontier`), so they can never drift on a predicate (e.g. the `synthesize`
+    gate, which requires `drafted_any` AND no `synthesis.md`): `next` reports
+    exactly the head of the same frontier `next --all` lists. The frontier is
+    never empty (the terminal `done`/`final`/`gate_blocked` always closes it), so
+    indexing [0] is total.
     """
-    status = build_status(eid)
-    _, state = load_state(eid)
-    nodes = state["nodes"]
-
-    ingested = status["ingested_docs"]
-    unclassified = status["unclassified_docs"]
-    dirty = status["diagnosis_dirty_nodes"]
-    draftable = status["draftable_nodes"]
-    artifacts = _classify_artifacts(eid)
-
-    # --- 1. ingest: nothing ingested yet ---
-    if ingested == 0:
-        action = "ingest"
-        return _action(action, status,
-                       targets={"docs": []},
-                       summary="No ingested documents. Run ingest first.")
-
-    # --- 2. classify: ingested docs without a classify artifact (fan-out) ---
-    if unclassified["count"] > 0:
-        return _action("classify", status,
-                       targets={"docs": unclassified["docs"]},
-                       summary=(f"{unclassified['count']} ingested doc(s) lack a "
-                                "classify artifact; fan out one classifier per doc."))
-
-    # --- 3. merge: artifacts present, not yet merged (no evidence applied) ---
-    # After ingest+classify, every ingested doc has an artifact (count above is
-    # 0). If the merge has not yet applied those facts, no node carries evidence.
-    if artifacts and not _any_evidence(state):
-        return _action("merge", status,
-                       targets={"artifacts": artifacts},
-                       summary=(f"{len(artifacts)} classify artifact(s) present and "
-                                "unmerged; run classify_merge to apply evidence + lenses."))
-
-    # --- 4. consolidate: diagnosis-dirty nodes (new evidence since synthesis) ---
-    if dirty["count"] > 0:
-        return _action("consolidate", status,
-                       targets={"nodes": dirty["nodes"]},
-                       summary=(f"{dirty['count']} diagnosis-dirty node(s); fan out one "
-                                "consolidator per node."))
-
-    # --- 5. gap: consolidated; run the structural gap scan (deterministic) ---
-    # Slice-1 linear runs the scan once consolidation has settled (no dirty
-    # nodes) and evidence exists. The scan is idempotent (self-healing upsert),
-    # so it fires until structural rows exist; thereafter draftables take over.
-    open_gaps = status["open_gaps"]["total"]
-    if _any_evidence(state) and open_gaps == 0 and draftable["count"] > 0:
-        return _action("gap", status,
-                       targets={"scope": "engagement"},
-                       summary="Diagnosis consolidated; run gap_report scan "
-                               "(structural + unmapped triage).")
-
-    # --- 6. draft: covered/partial nodes whose SOP/improvement not started ---
-    if draftable["count"] > 0:
-        l1s = _l1s_of_nodes(state, draftable["nodes"])
-        return _action("draft", status,
-                       targets={"nodes": draftable["nodes"], "l1s": l1s},
-                       summary=(f"{draftable['count']} draftable node(s) across "
-                                f"{len(l1s)} L1(s); fan out drafter + improvement-drafter "
-                                "per L1 bundle."))
-
-    # --- 7. synthesize: streams drafted; lead synthesis.md not yet authored ---
-    if not _deliverable_exists(eid, "synthesis.md"):
-        return _action("synthesize", status,
-                       targets={"scope": "engagement"},
-                       summary="Bottom-up streams drafted; author the lead "
-                               "synthesis.md (cross-cutting point of view).")
-
-    # --- 8. render: deliverables built (or redrafted), not yet rendered ---
-    # Fires for a first render (MD exists, no .docx) AND for the review re-entry
-    # path (a per-L1 stream redrafted past its last render: rev > rendered_rev).
-    rendered = _rendered_targets(eid, state)
-    pending_render = [
-        t for t in rendered
-        if (t["md_exists"] and not t["docx_exists"]) or t.get("stale")
-    ]
-    if pending_render:
-        stale_any = any(t.get("stale") for t in pending_render)
-        return _action("render", status,
-                       targets={"deliverables": pending_render},
-                       summary=(("Redrafted deliverable(s) stale vs last render "
-                                 "(rev > rendered_rev); re-render, " if stale_any
-                                 else "Deliverable MD(s) not yet rendered to .docx; ")
-                                + "run render_deliverables, then present the Word "
-                                "for human review (no auto-finalize)."),
-                       gate="render")
-
-    # --- 9. final gate: everything rendered/reviewed -> gates.py final-check ---
-    # All built MDs are rendered and no stream is stale. The terminal step is
-    # gated by the DoD checks. If they all pass, recommend `final` (the agent
-    # applies it: sets deliverable statuses `final`). If any gate fails, return
-    # `gate_blocked` naming the failing gates — do NOT advance to `final`.
-    report = run_final_check(eid)
-    if not report["passed"]:
-        failing = [g for g in report["gates"] if not g["passed"]]
-        return _action("gate_blocked", status,
-                       targets={"failing_gates": failing},
-                       summary=("DoD final-check FAILED ("
-                                + ", ".join(g["gate"] for g in failing)
-                                + "); refusing to advance to `final`. Clear the "
-                                "failing gate(s) above (run gates.py final-check "
-                                "for detail), then re-run."),
-                       gate="final")
-
-    # Gates pass. If the deliverables are already blessed final, we're done;
-    # otherwise recommend the terminal `final` action for the agent to apply.
-    if _all_deliverables_final(state):
-        return _action("done", status,
-                       targets={},
-                       summary="All deliverables are final and the DoD gates "
-                               "pass. Engagement complete; nothing left to do.",
-                       gate="final")
-    return _action("final", status,
-                   targets={"deliverables": _finalizable_streams(state)},
-                   summary="All deliverables rendered/reviewed and DoD final-check "
-                           "PASSED; apply the terminal `final` action (set deliverable "
-                           "statuses `final` via set-sop/set-improvement --status final).",
-                   gate="final")
+    return frontier(eid)[0]
 
 
 def _all_deliverables_final(state: Dict[str, Any]) -> bool:
@@ -306,6 +200,10 @@ def frontier(eid: str) -> List[Dict[str, Any]]:
     empty (nothing left to ingest/classify/merge/consolidate/gap/draft/synthesize
     and nothing to render), so the gate is never reported prematurely.
     """
+    # Clean guard for a bad --engagement (otherwise build_status/load_state raise
+    # mid-walk). Read-only: matches render_deliverables.py's existence check.
+    if not engagement_dir(eid).exists():
+        raise SystemExit(f"No engagement '{eid}' at {engagement_dir(eid)}.")
     status = build_status(eid)
     _, state = load_state(eid)
 

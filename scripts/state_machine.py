@@ -37,6 +37,8 @@ from typing import Any, Dict, List, Tuple
 
 import yaml
 
+import consult_io
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TAXONOMY_PATH = REPO_ROOT / "reference" / "taxonomy.yaml"
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
@@ -174,37 +176,41 @@ def cmd_init(eid: str, client: str, region: str, force: bool) -> None:
     state_path = edir / "state.json"
     if state_path.exists() and not force:
         raise SystemExit(f"state.json already exists at {state_path}; pass --force to reseed.")
-    taxonomy = load_taxonomy()
-    ts = now_iso()
-    nodes: Dict[str, Any] = {}
-    for l1, l1_name, l2, l2_name, l3 in iter_l2(taxonomy):
-        key = node_key(l1, l2)
-        nodes[key] = new_node(l1, l1_name, l2, l2_name)
-        md_path = edir / "nodes" / l1 / f"{l2}.md"
-        md_path.parent.mkdir(parents=True, exist_ok=True)
-        if force or not md_path.exists():
-            md_path.write_text(node_md_stub(l1, l1_name, l2, l2_name, l3), encoding="utf-8")
-
-    state = {
-        "engagement": {
-            "id": eid, "client": client, "region": region,
-            "created": ts, "updated": ts,
-        },
-        "taxonomy_version": taxonomy.get("version"),
-        "nodes": nodes,
-    }
+    # Create the engagement directory tree BEFORE any write that depends on it.
+    # A zero-L2 taxonomy means the node-MD loop below never runs, so we must not
+    # rely on it to create edir (would FileNotFoundError on the state write).
     edir.mkdir(parents=True, exist_ok=True)
     (edir / "deliverables" / "sop").mkdir(parents=True, exist_ok=True)
     (edir / "deliverables" / "improvements").mkdir(parents=True, exist_ok=True)
     (edir / "ingested").mkdir(parents=True, exist_ok=True)
-    with state_path.open("w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
 
-    register_path = edir / "register.json"
-    if force or not register_path.exists():
-        register = {"metadata": {"engagement": eid, "record_count": 0}, "records": []}
-        with register_path.open("w", encoding="utf-8") as f:
-            json.dump(register, f, ensure_ascii=False, indent=2)
+    with consult_io.locked(edir):
+        taxonomy = load_taxonomy()
+        ts = now_iso()
+        nodes: Dict[str, Any] = {}
+        for l1, l1_name, l2, l2_name, l3 in iter_l2(taxonomy):
+            key = node_key(l1, l2)
+            nodes[key] = new_node(l1, l1_name, l2, l2_name)
+            md_path = edir / "nodes" / l1 / f"{l2}.md"
+            md_path.parent.mkdir(parents=True, exist_ok=True)
+            if force or not md_path.exists():
+                consult_io.write_text_atomic(
+                    md_path, node_md_stub(l1, l1_name, l2, l2_name, l3))
+
+        state = {
+            "engagement": {
+                "id": eid, "client": client, "region": region,
+                "created": ts, "updated": ts,
+            },
+            "taxonomy_version": taxonomy.get("version"),
+            "nodes": nodes,
+        }
+        consult_io.write_json_atomic(state_path, state)
+
+        register_path = edir / "register.json"
+        if force or not register_path.exists():
+            register = {"metadata": {"engagement": eid, "record_count": 0}, "records": []}
+            consult_io.write_json_atomic(register_path, register)
 
     print(f"Initialized engagement '{eid}' with {len(nodes)} L2 nodes at {edir}")
 
@@ -318,6 +324,23 @@ def check_coherence(eid: str) -> Dict[str, Any]:
     }
 
 
+# Keys every well-formed node carries (always emitted by new_node). A node
+# missing any of these is externally-corrupted state — raise a clean runtime
+# error (not a bare KeyError) and point the user at `validate`. This is a
+# runtime guard, NOT a `validate` rule, so the r2r-demo fixture stays green.
+REQUIRED_NODE_KEYS = ("counts", "lenses", "sop", "improvement")
+
+
+def _require_node_shape(key: str, node: Dict[str, Any]) -> Dict[str, Any]:
+    missing = [k for k in REQUIRED_NODE_KEYS if k not in node]
+    if missing:
+        raise SystemExit(
+            f"Node '{key}' is missing required key(s) {missing}; state.json is "
+            f"corrupted. Re-run `state_machine.py validate --engagement <id>` "
+            f"and reseed/repair the node.")
+    return node
+
+
 def derive_coverage(node: Dict[str, Any]) -> str:
     """Derive a node's coverage from its contents.
 
@@ -329,6 +352,7 @@ def derive_coverage(node: Dict[str, Any]) -> str:
       - partial : anything in between (items but no evidence, evidence but
                   incomplete lenses, etc.)
     """
+    _require_node_shape(node_key(node.get("l1") or "?", node.get("l2") or "?"), node)
     override = node.get("coverage_override")
     if override:
         return override
@@ -381,8 +405,7 @@ def cmd_sync(eid: str) -> None:
         node["updated"] = ts
     state["engagement"]["updated"] = ts
 
-    with state_path.open("w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+    consult_io.write_json_atomic(state_path, state)
 
     linked = sum(sum(n["counts"].values()) for n in nodes.values())
     print(f"Synced {len(records)} register rows into {len(nodes)} nodes; {linked} active items linked.")
@@ -402,6 +425,7 @@ def cmd_show(eid: str) -> None:
     print(f"Engagement: {eng['id']} | client: {eng.get('client')} | region: {eng.get('region')}")
     print(f"Nodes: {len(nodes)} | coverage none={by_cov['none']} partial={by_cov['partial']} covered={by_cov['covered']}")
     for key, node in sorted(nodes.items()):
+        _require_node_shape(key, node)
         c = node["counts"]
         if c["improvements"] or c["gaps"] or c["screenshots"] or node["coverage"] != "none":
             print(f"  {key:48s} {node['coverage']:8s} "
@@ -482,8 +506,7 @@ def cmd_validate(eid: str, coherence_only: bool = False, strict: bool = False) -
 
 
 def _save_state(state_path: Path, state: Dict[str, Any]) -> None:
-    with state_path.open("w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+    consult_io.write_json_atomic(state_path, state)
 
 
 def _require_node(state: Dict[str, Any], key: str) -> Dict[str, Any]:
@@ -522,6 +545,7 @@ def cmd_query(eid: str, coverage: str | None, lens_missing: str | None,
     _, state = load_state(eid)
     matches: List[str] = []
     for key, node in state["nodes"].items():
+        _require_node_shape(key, node)
         if coverage is not None and node.get("coverage") != coverage:
             continue
         if lens_missing is not None and node["lenses"].get(lens_missing) is not None:
@@ -551,53 +575,56 @@ def cmd_set_lens(eid: str, key: str, lens: str, value: str) -> None:
     else:
         raise SystemExit(f"Invalid value '{value}' for lens '{lens}'. "
                          f"Allowed: {', '.join(LENS_VALUES[lens])} (or null/none/clear).")
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    node["lenses"][lens] = resolved
-    node["coverage"] = derive_coverage(node)
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        node["lenses"][lens] = resolved
+        node["coverage"] = derive_coverage(node)
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: lens {lens}={resolved}; coverage={node['coverage']}.")
 
 
 def cmd_add_evidence(eid: str, key: str, source: str, loc: str | None,
                      note: str | None, tier: str | None) -> None:
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    evidence = node.setdefault("evidence", [])
-    # Dedup by ref: an entry is identified by (source, loc). If the same ref is
-    # already present, this is a no-op (no append, no timestamp bump).
-    for existing in evidence:
-        if existing.get("source") == source and existing.get("loc") == (loc or None):
-            print(f"{key}: evidence already present (source={source}, loc={loc}); "
-                  f"no-op (count={len(evidence)}).")
-            return
-    entry: Dict[str, Any] = {"source": source}
-    if loc:
-        entry["loc"] = loc
-    if tier:
-        entry["tier"] = tier
-    if note:
-        entry["note"] = note
-    evidence.append(entry)
-    node["coverage"] = derive_coverage(node)
-    node["last_evidence_at"] = now_iso()
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        evidence = node.setdefault("evidence", [])
+        # Dedup by ref: an entry is identified by (source, loc). If the same ref
+        # is already present, this is a no-op (no append, no timestamp bump).
+        for existing in evidence:
+            if existing.get("source") == source and existing.get("loc") == (loc or None):
+                print(f"{key}: evidence already present (source={source}, loc={loc}); "
+                      f"no-op (count={len(evidence)}).")
+                return
+        entry: Dict[str, Any] = {"source": source}
+        if loc:
+            entry["loc"] = loc
+        if tier:
+            entry["tier"] = tier
+        if note:
+            entry["note"] = note
+        evidence.append(entry)
+        node["coverage"] = derive_coverage(node)
+        node["last_evidence_at"] = now_iso()
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: added evidence (count={len(node['evidence'])}); coverage={node['coverage']}.")
 
 
 def cmd_set_coverage(eid: str, key: str, value: str) -> None:
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    if value == "auto":
-        node["coverage_override"] = None
-        node["coverage"] = derive_coverage(node)
-    else:
-        node["coverage_override"] = value
-        node["coverage"] = value
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        if value == "auto":
+            node["coverage_override"] = None
+            node["coverage"] = derive_coverage(node)
+        else:
+            node["coverage_override"] = value
+            node["coverage"] = value
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: coverage={node['coverage']} override={node.get('coverage_override')}.")
 
 
@@ -610,21 +637,22 @@ def _set_node_artifact(eid: str, block: str, key: str, status: str | None,
         raise SystemExit(
             f"set-{block} requires at least one of --status, --path, "
             "--bump-rev, --bump-rendered-rev, --bump-reviewed-rev.")
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    art = node[block]
-    if status is not None:
-        art["status"] = status
-    if path is not None:
-        art["path"] = path
-    if bump_rev:
-        art["rev"] = int(art.get("rev", 0)) + 1
-    if bump_rendered_rev:
-        art["rendered_rev"] = int(art.get("rendered_rev", 0)) + 1
-    if bump_reviewed_rev:
-        art["reviewed_rev"] = int(art.get("reviewed_rev", 0)) + 1
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        art = node[block]
+        if status is not None:
+            art["status"] = status
+        if path is not None:
+            art["path"] = path
+        if bump_rev:
+            art["rev"] = int(art.get("rev", 0)) + 1
+        if bump_rendered_rev:
+            art["rendered_rev"] = int(art.get("rendered_rev", 0)) + 1
+        if bump_reviewed_rev:
+            art["reviewed_rev"] = int(art.get("reviewed_rev", 0)) + 1
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: {block} status={art.get('status')} rev={art.get('rev')} "
           f"rendered_rev={art.get('rendered_rev')} reviewed_rev={art.get('reviewed_rev')} "
           f"path={art.get('path')}.")
@@ -646,15 +674,32 @@ def is_diagnosis_dirty(node: Dict[str, Any]) -> bool:
     consolidated_at = node.get("consolidated_at")
     if consolidated_at is None:
         return True
-    return last_evidence_at > consolidated_at
+    # Parse to aware datetimes before comparing: a lexical string compare is only
+    # correct while every timestamp is now_iso() (UTC, microsecond precision).
+    # Foreign/hand-edited timestamps (different tz offset, naive, etc.) would
+    # mis-order lexically. Preserve the strict-`>` microsecond tie semantics (T32).
+    return _parse_ts(last_evidence_at) > _parse_ts(consolidated_at)
+
+
+def _parse_ts(value: str) -> datetime:
+    """Parse an ISO-8601 timestamp to an aware UTC datetime.
+
+    A tz-naive timestamp is treated as UTC. Falls back to lexical-but-aware
+    behaviour is unnecessary: now_iso() always emits a valid ISO string.
+    """
+    dt = datetime.fromisoformat(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 def cmd_mark_consolidated(eid: str, key: str) -> None:
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    node["consolidated_at"] = now_iso()
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        node["consolidated_at"] = now_iso()
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: consolidated_at={node['consolidated_at']}.")
 
 
@@ -666,11 +711,12 @@ def cmd_mark_dirty(eid: str, key: str) -> None:
     finding). review_ingest apply calls this for every node it touched with a
     substance command so the next consult-run re-consolidates it.
     """
-    state_path, state = load_state(eid)
-    node = _require_node(state, key)
-    node["last_evidence_at"] = now_iso()
-    _touch(state, node)
-    _save_state(state_path, state)
+    with consult_io.locked(engagement_dir(eid)):
+        state_path, state = load_state(eid)
+        node = _require_node(state, key)
+        node["last_evidence_at"] = now_iso()
+        _touch(state, node)
+        _save_state(state_path, state)
     print(f"{key}: last_evidence_at={node['last_evidence_at']} "
           f"(diagnosis-dirty={is_diagnosis_dirty(node)}).")
 
@@ -730,37 +776,44 @@ def cmd_add_item(eid: str, item_type: str, l1: str | None, l2: str | None,
             raise SystemExit(f"Invalid --field-json '{spec}'; value is not valid JSON: {e}")
 
     prefix = TYPE_TO_PREFIX[item_type]
-    rid = item_id or _next_item_id(eid, prefix)
-
-    # Always carry the caller-provided type explicitly so the write path never
-    # defaults it away. l1_cycle/l2_process are null for unmapped rows.
-    row: Dict[str, Any] = {
-        "id": rid, "type": item_type,
-        "l1_cycle": l1 or None, "l2_process": l2 or None,
-    }
-    if item_type == "unmapped":
-        # Null-node defaults for unmapped rows (caller --field can override).
-        row.setdefault("disposition", "pending")
-        row.setdefault("owner", "TBD")
-    # Caller-supplied --field values take precedence over defaults above.
-    row.update(extra)
 
     register_path = engagement_dir(eid) / "register.json"
     if not register_path.exists():
         raise SystemExit(f"No register.json for engagement '{eid}'. Run init first.")
 
-    result = subprocess.run(
-        [sys.executable, str(IMPROVEMENT_LOG), "upsert-json",
-         "--json", str(register_path), "--out-json", str(register_path),
-         "--records-json", json.dumps([row]), "--modified-by", "add-item"],
-        capture_output=True, text=True,
-    )
-    if result.returncode != 0:
-        sys.stderr.write(result.stdout)
-        sys.stderr.write(result.stderr)
-        raise SystemExit(f"improvement_log.py upsert-json failed for {rid}.")
+    # Single engagement-level lock spanning id-mint -> subprocess -> cmd_sync.
+    # Minting under the held lock closes the concurrent-add-item id race (fix 4);
+    # the nested cmd_sync re-acquires the same lock as a reentrant no-op (T40).
+    # improvement_log.py re-opens the register in the subprocess; holding the
+    # engagement lock here is sufficient (no second lock there).
+    with consult_io.locked(engagement_dir(eid)):
+        rid = item_id or _next_item_id(eid, prefix)
 
-    cmd_sync(eid)
+        # Always carry the caller-provided type explicitly so the write path never
+        # defaults it away. l1_cycle/l2_process are null for unmapped rows.
+        row: Dict[str, Any] = {
+            "id": rid, "type": item_type,
+            "l1_cycle": l1 or None, "l2_process": l2 or None,
+        }
+        if item_type == "unmapped":
+            # Null-node defaults for unmapped rows (caller --field can override).
+            row.setdefault("disposition", "pending")
+            row.setdefault("owner", "TBD")
+        # Caller-supplied --field values take precedence over defaults above.
+        row.update(extra)
+
+        result = subprocess.run(
+            [sys.executable, str(IMPROVEMENT_LOG), "upsert-json",
+             "--json", str(register_path), "--out-json", str(register_path),
+             "--records-json", json.dumps([row]), "--modified-by", "add-item"],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            sys.stderr.write(result.stdout)
+            sys.stderr.write(result.stderr)
+            raise SystemExit(f"improvement_log.py upsert-json failed for {rid}.")
+
+        cmd_sync(eid)
     print(f"Added {item_type} {rid} to {key}.")
 
 
@@ -839,6 +892,8 @@ def build_status(eid: str) -> Dict[str, Any]:
     _, state = load_state(eid)
     records = load_register(eid)
     nodes: Dict[str, Any] = state["nodes"]
+    for key, node in nodes.items():
+        _require_node_shape(key, node)
     edir = engagement_dir(eid)
 
     # --- un-classified ingested docs ---

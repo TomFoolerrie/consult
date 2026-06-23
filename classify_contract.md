@@ -1,6 +1,6 @@
 # CONSULT — Classify Artifact Contract (Stage 2)
 
-> Status: **DESIGN DRAFT** (no code yet). This is the keystone contract: consolidate,
+> Status: **BUILT** (implemented by `scripts/validate_artifact.py` + `scripts/classify_merge.py`). This is the keystone contract: consolidate,
 > gap-analyzer, and both drafters all bind to what classify produces. Companion schema:
 > `schemas/classify_artifact.schema.json`. See `spec.md` §5 Stage 2.
 

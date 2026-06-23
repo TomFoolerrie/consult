@@ -1,6 +1,6 @@
 # CONSULT — Consolidate Contract (Stage 3)
 
-> Status: **DESIGN DRAFT** (no code yet). See `spec.md` §5 Stage 3. Upstream:
+> Status: **BUILT** (implemented by `scripts/consolidate_inputs.py` + `scripts/state_machine.py`). See `spec.md` §5 Stage 3. Upstream:
 > `classify_contract.md` (staged findings, merged lenses/evidence). This is where the
 > **structured ↔ narrative coupling** is enacted.
 

@@ -23,35 +23,34 @@ Detection rules (non-redundant, hierarchical) per node:
   coverage in {partial, covered} AND sop.status == not_started
       -> sop-not-started (tag=not_documented).
 
-Write path: build ONE CSV of all current structural rows (active) plus stale
-rows (archived), route it through improvement_log.py `update-json`
-(backup/validation/upsert-by-id), then state_machine.py `sync` so node gap
-counts update.
+Write path: build ONE list of row dicts for all current structural rows (active)
+plus stale rows (archived), upsert them through improvement_log.py
+`upsert_records` (backup/validation/upsert-by-id), then state_machine.py `sync`
+so node gap counts update.
 
 Command:
   scan --engagement E [--dry-run]
 """
 from __future__ import annotations
 
-import argparse, csv, json, subprocess, sys, tempfile
+import argparse, json, subprocess, sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
-IMPROVEMENT_LOG = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts"
-                   / "improvement_log.py")
+IMPROVEMENT_LOG_DIR = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts")
 STATE_MACHINE = REPO_ROOT / "scripts" / "state_machine.py"
-REGISTER_SCHEMA = REPO_ROOT / "schemas" / "item_register.schema.json"
+
+# The register engine is the single chokepoint for register.json writes; import
+# its JSON-native upsert directly (no CSV transport, no subprocess fan-out).
+sys.path.insert(0, str(IMPROVEMENT_LOG_DIR))
+from improvement_log import upsert_records  # noqa: E402
 
 # Mirror state_machine.py's data model (kept local to avoid import coupling).
 LENSES = ["current_state", "process", "automation", "capability", "operating_model"]
 
 STRUCT_PREFIX = "GAP-STRUCT-"
-# CSV columns written to the register (a subset of the register fields).
-CSV_FIELDS = ["id", "type", "tag", "l1_cycle", "l2_process",
-              "observation_pain_point", "source", "record_status",
-              "review_status", "requires_human_review", "owner"]
 SOURCE = "structural-scan"
 
 
@@ -100,6 +99,14 @@ def detect_gaps(state: Dict[str, Any]) -> List[Dict[str, str]]:
     gaps: List[Dict[str, str]] = []
     for key, node in state.get("nodes", {}).items():
         l1, l2 = node.get("l1"), node.get("l2")
+        # Malformed-node guard: a node missing l1/l2 would produce a degenerate
+        # id like GAP-STRUCT-None-None-...; skip it and report on stderr rather
+        # than emit a junk gap row.
+        if not l1 or not l2:
+            sys.stderr.write(
+                f"gap_report: skipping malformed node '{key}' "
+                f"(missing l1/l2: l1={l1!r}, l2={l2!r}).\n")
+            continue
         l2_name = node.get("l2_name", l2)
         l1_name = node.get("l1_name", l1)
         label = f"{l1_name} — {l2_name}"
@@ -173,18 +180,25 @@ def build_csv_rows(detected: List[Dict[str, str]],
 
     for g in detected:
         prior = active_existing.get(g["id"])
+        tag = g["tag"]
         if prior is not None:
             # Carry the human-review fields forward from the existing active row.
             review_status = prior.get("review_status") or "needs_review"
             rhr = prior.get("requires_human_review")
             requires_human_review = "true" if rhr is None else str(rhr).lower()
             owner = prior.get("owner")
+            # Preserve a human-edited tag: if the existing active row's tag
+            # differs from the detector's default, a human changed it — keep it
+            # rather than overwrite on re-scan (mirrors review_status/owner).
+            prior_tag = prior.get("tag")
+            if prior_tag and prior_tag != g["tag"]:
+                tag = prior_tag
         else:
             review_status = "needs_review"
             requires_human_review = "true"
             owner = None
         row = {
-            "id": g["id"], "type": "gap", "tag": g["tag"],
+            "id": g["id"], "type": "gap", "tag": tag,
             "l1_cycle": g["l1"], "l2_process": g["l2"],
             "observation_pain_point": g["observation"], "source": SOURCE,
             "record_status": "active", "review_status": review_status,
@@ -208,9 +222,9 @@ def build_csv_rows(detected: List[Dict[str, str]],
             "source": SOURCE, "record_status": "archived",
             "review_status": "needs_review", "requires_human_review": "true",
         }
-        # Don't wipe a row's owner when archiving it (owner is in CSV_FIELDS, so a
-        # blank cell would normalize to None and overwrite). Self-heal behavior is
-        # otherwise unchanged.
+        # Don't wipe a row's owner when archiving it: only carry owner forward
+        # when the existing row has one (an absent key leaves the stored owner
+        # untouched on upsert). Self-heal behavior is otherwise unchanged.
         arch_owner = rec.get("owner")
         if arch_owner is not None:
             arch_row["owner"] = arch_owner
@@ -225,27 +239,16 @@ def write_register(eid: str, csv_rows: List[Dict[str, str]]) -> None:
     if not csv_rows:
         return
 
-    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False,
-                                     newline="", encoding="utf-8") as tmp:
-        writer = csv.DictWriter(tmp, fieldnames=CSV_FIELDS)
-        writer.writeheader()
-        for row in csv_rows:
-            writer.writerow({h: row.get(h, "") for h in CSV_FIELDS})
-        csv_path = Path(tmp.name)
-
+    # JSON-native upsert (by id; these rows carry no dedup_key). The rows are
+    # already structured register-field dicts, so pass them straight to the
+    # register engine — no temp CSV, no subprocess. upsert_records upserts by id
+    # in-place (preserving the human-review fields build_csv_rows carried over).
     try:
-        result = subprocess.run(
-            [sys.executable, str(IMPROVEMENT_LOG), "update-json",
-             "--json", str(register_path), "--csv", str(csv_path),
-             "--out-json", str(register_path), "--modified-by", "gap-report"],
-            capture_output=True, text=True,
-        )
-        if result.returncode != 0:
-            sys.stderr.write(result.stdout)
-            sys.stderr.write(result.stderr)
-            raise SystemExit("improvement_log.py update-json failed.")
-    finally:
-        csv_path.unlink(missing_ok=True)
+        upsert_records(register_path, [dict(r) for r in csv_rows],
+                       register_path, "gap-report")
+    except Exception as exc:  # surface the engine error, don't leak a traceback
+        sys.stderr.write(f"improvement_log upsert failed: {exc}\n")
+        raise SystemExit("improvement_log upsert_records failed.")
 
     sync = subprocess.run(
         [sys.executable, str(STATE_MACHINE), "sync", "--engagement", eid],

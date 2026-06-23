@@ -9,7 +9,7 @@ description: Draft canonical SOP Markdown from cleaned process sources, includin
 
 Draft a canonical Markdown SOP / desktop procedure deliverable from pre-processed source materials.
 
-The output must follow `references/canonical_sop_deliverable_template.md` unless the user provides a more specific template.
+The output must follow the canonical section order and prose guidance in this skill (see "Step 3 — Build Canonical Markdown" and Steps 4–10): produce completed Markdown, not a variable catalog or shell template, unless the user provides a more specific template.
 
 ## Use This Skill When
 

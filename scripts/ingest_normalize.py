@@ -15,8 +15,8 @@ the old one is left untouched.
 
 v1 handlers (per ingest_contract.md §5):
   - transcript (`.vtt .srt`, and transcript-like `.txt`) — REUSES the existing
-    `skills/consult-transcript-cleaner/scripts/clean_vtt.py` cleaning logic
-    (executed in-process against temp paths; not duplicated, not modified).
+    `skills/consult-transcript-cleaner/scripts/clean_vtt.py` cleaning logic by
+    importing its pure `clean_text(str)->str` function (no temp files, no exec).
   - text passthrough (`.txt .md`) — light whitespace normalization.
   - table (`.csv .tsv`) — rendered as a Markdown table.
   - docx (`.docx`) — text + tables, headings preserved (python-docx).
@@ -39,11 +39,19 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
+import consult_io
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
 HEADER_SCHEMA = REPO_ROOT / "schemas" / "ingested_header.schema.json"
-CLEAN_VTT = (REPO_ROOT / "skills" / "consult-transcript-cleaner"
-             / "scripts" / "clean_vtt.py")
+CLEAN_VTT_DIR = (REPO_ROOT / "skills" / "consult-transcript-cleaner"
+                 / "scripts")
+
+# Import the transcript cleaner's pure clean_text() directly (no exec hack).
+# Its dir is not on sys.path, so add it before importing.
+if str(CLEAN_VTT_DIR) not in sys.path:
+    sys.path.insert(0, str(CLEAN_VTT_DIR))
+import clean_vtt  # noqa: E402
 
 SCRIPT_NAME = "ingest_normalize.py"
 
@@ -155,36 +163,11 @@ def looks_like_transcript(raw_bytes: bytes) -> bool:
 # --------------------------------------------------------------------------- #
 
 def handle_transcript(path: Path, raw: bytes) -> Tuple[str, str, str, Dict[str, Any]]:
-    """Reuse clean_vtt.py's cleaning logic verbatim (no duplication, no edit):
-    exec its source against temp input/output paths, then strip its own front
-    matter and keep the cleaned `**Speaker:** text` body."""
-    import tempfile
-
-    with tempfile.TemporaryDirectory() as td:
-        in_path = Path(td) / "in.vtt"
-        out_path = Path(td) / "out.md"
-        in_path.write_bytes(raw)
-        # clean_vtt.py hardcodes module-level input_path/output_path assignments
-        # (its only run-specific lines). Neutralize just those two assignments so
-        # we can point its cleaning logic at our temp files — the cleaning code
-        # itself is reused verbatim and never edited on disk.
-        src = CLEAN_VTT.read_text(encoding="utf-8")
-        src = re.sub(r"(?m)^\s*input_path\s*=.*$",
-                     f"input_path = {str(in_path)!r}", src, count=1)
-        src = re.sub(r"(?m)^\s*output_path\s*=.*$",
-                     f"output_path = {str(out_path)!r}", src, count=1)
-        init_globals = {"__name__": "_clean_vtt_reuse"}
-        # exec the (path-patched) source in a controlled namespace; mute its own
-        # status print so ingest's output stays clean.
-        import contextlib
-        import io as _io
-        with contextlib.redirect_stdout(_io.StringIO()):
-            exec(compile(src, str(CLEAN_VTT), "exec"), init_globals)  # noqa: S102
-        produced = out_path.read_text(encoding="utf-8") if out_path.exists() else ""
-
-    # clean_vtt.py emits its own --- front matter --- then the body. Drop it.
-    m = re.match(r"^---\n.*?\n---\n+(.*)$", produced, re.DOTALL)
-    cleaned_body = (m.group(1) if m else produced).strip()
+    """Reuse clean_vtt.py's cleaning logic by importing its pure clean_text():
+    decode the raw bytes and pass them through in-memory. clean_text returns the
+    cleaned `**Speaker:** text` body directly (no front matter to strip)."""
+    text = raw.decode("utf-8", errors="replace")
+    cleaned_body = clean_vtt.clean_text(text).strip()
     return "transcript", "transcript@1", cleaned_body, {"pages": None, "slides": None, "sheets": None}
 
 
@@ -211,8 +194,16 @@ def _md_table(rows: List[List[str]]) -> str:
     if not rows:
         return ""
     width = max(len(r) for r in rows)
-    norm = [[(c if c is not None else "").replace("|", r"\|").strip()
-             for c in r] + [""] * (width - len(r)) for r in rows]
+
+    def _cell(c: Any) -> str:
+        # Escape pipes and collapse any embedded newlines (CR/LF) to <br> so a
+        # multiline cell can't break the single-line Markdown table row.
+        s = (c if c is not None else "")
+        s = s.replace("|", r"\|")
+        s = re.sub(r"\r\n?|\n", "<br>", s)
+        return s.strip()
+
+    norm = [[_cell(c) for c in r] + [""] * (width - len(r)) for r in rows]
     header = norm[0]
     body = norm[1:]
     out = ["| " + " | ".join(header) + " |",
@@ -345,40 +336,49 @@ def output_name(path: Path, doc_type: str, source_hash_hex: str) -> str:
 
 def ingest_one(eid: str, src: Path) -> Tuple[str, Path]:
     """Ingest a single file. Returns (status, md_path) where status is
-    'skipped' (hash already ingested) or 'written'."""
+    'skipped' (hash already ingested) or 'written'.
+
+    The dedup-check -> write window runs under an engagement-level advisory lock
+    so two concurrent ingests of identical bytes can't both write, and the MD is
+    committed via an atomic write (no truncated file on a crash mid-write)."""
     raw = src.read_bytes()
     h = sha256_hex(raw)
 
-    existing = find_existing_for_hash(eid, h)
-    if existing is not None:
-        return "skipped", existing
-
+    # Build/validate the MD up front (no shared state) so the lock is held only
+    # across the dedup-check -> write window.
     doc_type, ingester_tag, body, provenance = dispatch(src, raw)
     title = titleize(src.stem)
-
     md_text = build_md(
         source=str(src), source_hash_hex=h, doc_type=doc_type,
         ingester_tag=ingester_tag, title=title, provenance=provenance, body=body,
     )
-
     # Validate the header we just produced before committing it to disk.
     header = parse_header_from_text(md_text)
     validate_header(header)
 
     out_dir = ingested_dir(eid)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / output_name(src, doc_type, h)
 
-    # Immutability guard: never rewrite an existing ingested MD.
-    if out_path.exists():
-        # Same hash should have been caught by dir-check above; a name collision
-        # without a hash match is a genuine conflict — refuse rather than clobber.
-        existing_hdr = parse_header(out_path)
-        if not (existing_hdr and existing_hdr.get("source_hash") == f"sha256:{h}"):
-            raise SystemExit(f"Refusing to overwrite existing ingested MD: {out_path}")
-        return "skipped", out_path
+    # Serialize the dedup-check -> write across concurrent ingests of the same
+    # engagement (TOCTOU): the lock is engagement-level (sidecar .consult.lock).
+    with consult_io.locked(engagement_dir(eid)):
+        existing = find_existing_for_hash(eid, h)
+        if existing is not None:
+            return "skipped", existing
 
-    out_path.write_text(md_text, encoding="utf-8")
+        out_path = out_dir / output_name(src, doc_type, h)
+
+        # Immutability guard: never rewrite an existing ingested MD.
+        if out_path.exists():
+            # Same hash should have been caught by dir-check above; a name
+            # collision without a hash match is a genuine conflict — refuse
+            # rather than clobber.
+            existing_hdr = parse_header(out_path)
+            if not (existing_hdr and existing_hdr.get("source_hash") == f"sha256:{h}"):
+                raise SystemExit(f"Refusing to overwrite existing ingested MD: {out_path}")
+            return "skipped", out_path
+
+        consult_io.write_text_atomic(out_path, md_text)
     return "written", out_path
 
 
@@ -386,7 +386,10 @@ def parse_header_from_text(md_text: str) -> Dict[str, Any]:
     m = re.match(r"^---\n(.*?)\n---\n", md_text, re.DOTALL)
     if not m:
         raise SystemExit("Internal error: produced MD has no YAML header.")
-    return yaml.safe_load(m.group(1))
+    data = yaml.safe_load(m.group(1))
+    if not isinstance(data, dict):
+        raise SystemExit("Internal error: produced MD front matter is not a mapping.")
+    return data
 
 
 def iter_sources(paths: List[str]) -> List[Path]:
@@ -396,8 +399,13 @@ def iter_sources(paths: List[str]) -> List[Path]:
         path = Path(p)
         if path.is_dir():
             for f in sorted(path.rglob("*")):
-                if f.is_file() and f.suffix.lower() in SUPPORTED_EXTS:
-                    out.append(f)
+                if not (f.is_file() and f.suffix.lower() in SUPPORTED_EXTS):
+                    continue
+                # Never re-ingest our own output: when --source points at an
+                # engagement dir, rglob would otherwise sweep ingested/*.md.
+                if "ingested" in f.relative_to(path).parts:
+                    continue
+                out.append(f)
         elif path.is_file():
             out.append(path)
         else:
@@ -415,16 +423,28 @@ def cmd_ingest(args: argparse.Namespace) -> int:
         print("No supported source files found.", file=sys.stderr)
         return 1
     written = skipped = 0
+    failures: List[Tuple[Path, str]] = []
     for src in sources:
-        status, md_path = ingest_one(args.engagement, src)
+        try:
+            status, md_path = ingest_one(args.engagement, src)
+        except Exception as e:  # noqa: BLE001 — per-file isolation: one bad
+            # file (e.g. validation failure) must not kill the whole batch.
+            failures.append((src, str(e)))
+            print(f"{'FAILED':8s} {src} -> {e}", file=sys.stderr)
+            continue
         rel = md_path.relative_to(REPO_ROOT) if REPO_ROOT in md_path.parents else md_path
         print(f"{status:8s} {src} -> {rel}")
         if status == "written":
             written += 1
         else:
             skipped += 1
-    print(f"Done. {written} written, {skipped} skipped "
+    print(f"Done. {written} written, {skipped} skipped, {len(failures)} failed "
           f"(engagement '{args.engagement}').")
+    if failures:
+        print("Failures:", file=sys.stderr)
+        for src, msg in failures:
+            print(f"  {src}: {msg}", file=sys.stderr)
+        return 1
     return 0
 
 

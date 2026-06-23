@@ -1,6 +1,6 @@
 # CONSULT — Orchestration Contract
 
-> Status: **DESIGN DRAFT** (no code yet). Resolves the open "orchestration form" decision
+> Status: **BUILT** (implemented by `scripts/orchestrate.py`). Resolves the open "orchestration form" decision
 > (`spec.md` §10). Sits above the stage contracts (`ingest_contract.md`,
 > `classify_contract.md`) and the command surface (`consult-state-machine`).
 

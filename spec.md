@@ -5,7 +5,8 @@
 > Word-review loop: docx comments → ingest → apply → re-consolidate → gated `final`)
 > are built, test-verified, and demonstrated on a live R2R sample
 > (`engagements/r2r-demo`). The Slice-1 e2e regression (`tests/test_slice1_e2e.sh`)
-> stays green under all Slice-2 additions. Remaining is optional scope only: the
+> stays green under all Slice-2 additions, provided `pip install -r requirements.txt`
+> has been run first (without jsonschema the e2e fails). Remaining is optional scope only: the
 > ingest format zoo (PDF/PPTX/XLSX/images) and other §10 deferrals. Build status
 > inline: ✅ built · ◻ deferred/optional. Tickets in `tickets/`.
 > Scope: a Claude Code plugin that runs a finance-consulting engagement end to
@@ -254,11 +255,11 @@ and gets compact output — it never round-trips a whole file through context.
 ### `improvement_log.py` (item register) ✅
 
 `update-json` · `remove` · `validate` remain as **agent-driven** write/QC primitives. The
-granular `add-item` ✅ convenience lives in `state_machine.py` (routes through `update-json`
-→ auto-`sync`). The **human CSV import path is dropped** — `update-json` is now only an
-internal write primitive (target: refactor to a JSON-native upsert so CSV transport goes
-away entirely). `build-xlsx` is retained only as an optional read-only snapshot, **not** a
-review round-trip.
+granular `add-item` ✅ convenience lives in `state_machine.py` (routes through the JSON-native
+`upsert-json` → auto-`sync`). The **human CSV import path is dropped** and the internal
+write primitives are now JSON-native: `add-item`/`gap_report.py` upsert record dicts directly
+(no temp-CSV transport). `build-xlsx` is retained only as an optional read-only snapshot,
+**not** a review round-trip.
 
 ---
 
@@ -412,9 +413,9 @@ evidence refs resolve; evidence-auditor passes; no open SME-validation items. �
 Every review/consolidate round appends to the required change log
 `deliverables/review_log.md`. ◻ to wire as gates.
 
-> Cleanup: `references/canonical_sop_deliverable_template.md` is a redundant handlebars
-> variable-catalog shell that contradicts the SKILL.md's "produce completed Markdown"
-> instruction — reconcile or remove.
+> Resolved: the redundant `references/canonical_sop_deliverable_template.md` handlebars
+> variable-catalog shell has been removed. The drafter follows the canonical section order
+> and "produce completed Markdown" prose guidance in `consult-drafter/SKILL.md` (Steps 3–10).
 
 ---
 
@@ -469,7 +470,7 @@ Planned ◻ (Slice 2):
 │   ├── engagement_state.schema.json
 │   └── item_register.schema.json
 ├── scripts/                         ← ✅ state_machine.py (+ ingest/gap_report planned)
-├── templates/                       ← ◻ SOP / improvement / gap-report skeletons
+├── templates/                       ← ◻ improvement / gap-report skeletons (SOP shell template removed; drafter follows SKILL.md prose)
 ├── skills/                          ← existing + planned (see §6)
 └── engagements/                     ← STATE LIVES HERE, in-repo
     └── {engagement_id}/
@@ -512,9 +513,6 @@ Resolved:
 
 Open:
 
-1. **Register write primitive → JSON-native** — `add-item`/`gap_report.py` still feed
-   `update-json` via a temp CSV. Refactor to a direct JSON upsert so CSV transport is gone
-   entirely (human CSV import is already dropped). `build-xlsx` stays only as optional read-only.
 3. **docx comment extraction** — Stage 6 review ingestion needs a helper that pulls **tracked
    comments** (not just body text) out of reviewed Word docs for `consult-review-comment-resolver`.
 4. **Machine-record ID schemes** — `add-item` manual `IMP-/GAP-/SC-NNNN`; `gap_report.py` owns
@@ -536,8 +534,9 @@ Open:
    (node-level, beyond `sop.rev`).
 9. **DoD gates** — wire evidence-auditor pass + zero open SME/`requires_human_review` items as
    hard gates before `final` (§5 Deliverables & DoD).
-10. **Drafter shell template** — reconcile/remove the redundant handlebars
-    `canonical_sop_deliverable_template.md` (§5 cleanup note).
+10. **Drafter shell template** — ✅ resolved: the redundant handlebars
+    `canonical_sop_deliverable_template.md` has been removed; the drafter now follows the
+    SKILL.md canonical section order / completed-Markdown prose guidance (§5 cleanup note).
 
 ---
 
@@ -600,8 +599,8 @@ ingest manifest, the `consult-improvement-log` CSV-doc rewrite).
 | **Orchestration** (`consult-run`) ◻ | state-driven "run the engagement" loop + `status`/`next` command (`orchestration_contract.md` ✅ drafted) | M–L |
 | `update-json` → JSON-native upsert ◻ | kill CSV transport (see §8) | S |
 | `consult-improvement-log` rewrite ◻ | recast as the agent-driven register JSON engine (doc-debt) | S–M |
-| `templates/` dir ◻ | SOP / improvement / gap-report / node-synthesis skeletons | S |
-| Dev/repro setup ◻ | `requirements.txt` + SessionStart hook (pandas/openpyxl/pyyaml/jsonschema) | S |
+| `templates/` dir ◻ | improvement / gap-report / node-synthesis skeletons (SOP shell template removed; drafter follows SKILL.md prose) | S |
+| Dev/repro setup ◻ | `requirements.txt` + SessionStart hook (openpyxl/pyyaml/jsonschema) | S |
 | End-to-end sample engagement ◻ | proof + regression fixture | S–M |
 
 ### Critical path
@@ -664,9 +663,6 @@ The architecture is sound; these are the seams the contracts assert as if implem
 - **(S1) Merge-time evidence-ref-resolves check** — verify each `path#L-L` points to real lines
   in the cited MD before writing (the schema only checks shape; an LLM `#L9999` otherwise sails
   through to a phantom citation a reviewer "validates").
-- **(S1) `update-json`/`add-item` JSON-native refactor** — kill the temp-CSV transport;
-  **fix the insert path that force-sets `requires_human_review=true` on every row** (it silently
-  overrides consolidate's judgment); stop the backup-file-per-write churn.
 - **(S1) Decide the seam: classify artifact filename key = `{hash}`** (not `{doc}`), so the
   "classified set = artifacts vs manifest active hashes" derivation works across re-ingest.
 - **(S2) Review-round-consumed marker** — a crash mid-ingest must not re-apply comments 1–8 on

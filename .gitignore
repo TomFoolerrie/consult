@@ -13,6 +13,16 @@ __pycache__/
 # T20 Slice-1 e2e scratch engagement (test removes it on exit; ignored as a
 # safety net in case a run is interrupted before cleanup).
 engagements/__t20__/
+# T49 scratch engagements (each test removes its own on exit; ignored as a
+# safety net in case a run is interrupted before cleanup).
+engagements/__t49a__/
+engagements/__t49b__/
+engagements/__t49c__/
+engagements/__t49d__/
+engagements/__t49e__/
 
 # Rendered Word deliverables (regenerable from MD via render_deliverables.py)
 *.docx
+# ...except the committed Slice-2 reviewed-docx test fixture (a synthetic, hand-
+# built OOXML package the Slice-2 e2e drives; regenerable via its build script).
+!fixtures/review/rtr_close_reviewed.docx

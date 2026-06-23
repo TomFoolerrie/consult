@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://cfgi/consult/ingested_header.schema.json",
   "title": "Ingested Document YAML Header (Stage 1)",
-  "description": "DESIGN DRAFT. The YAML frontmatter on every engagements/{id}/ingested/*.md file. See ingest_contract.md. Not yet wired into code.",
+  "description": "The YAML frontmatter on every engagements/{id}/ingested/*.md file. See ingest_contract.md. Wired into code via scripts/ingest_normalize.py.",
   "type": "object",
   "required": ["source", "source_hash", "doc_type", "ingested_at", "immutable"],
   "additionalProperties": true,

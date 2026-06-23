@@ -28,7 +28,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 from typing import Any, Dict, List
 
 # Reuse the read-only loaders / predicates from the state machine. None of these
@@ -81,23 +80,44 @@ def _check_evidence_refs_resolve(eid: str, state: Dict[str, Any]) -> List[str]:
             source = entry.get("source")
             if not source:
                 continue
-            ref_path = (edir / source)
+            loc = entry.get("loc")
+            # Normalize + confine to the engagement dir: a `../..`-style source
+            # must not resolve outside the engagement. Mirror the existing idiom
+            # in consolidate_inputs.py / draft_inputs.py ((edir/rel).resolve() +
+            # try relative_to(edir.resolve())), not is_relative_to.
+            ref_path = (edir / source).resolve()
+            try:
+                ref_path.relative_to(edir.resolve())
+            except ValueError:
+                failures.append(
+                    f"{key}: evidence ref escapes the engagement dir -> {source}"
+                    + (f" (loc={loc})" if loc else ""))
+                continue
             if not ref_path.exists():
-                loc = entry.get("loc")
                 failures.append(
                     f"{key}: evidence ref does not resolve -> {source}"
                     + (f" (loc={loc})" if loc else ""))
     return failures
 
 
-def _check_final_artifacts_have_path(state: Dict[str, Any]) -> List[str]:
-    """No node with sop/improvement.status == final lacking a path."""
+def _check_final_artifacts_have_path(eid: str, state: Dict[str, Any]) -> List[str]:
+    """No node with sop/improvement.status == final lacking a path, and the
+    path must point at a file that actually exists (symmetry with the evidence
+    gate). Paths are stored relative to the engagement dir."""
+    edir = sm.engagement_dir(eid)
     failures: List[str] = []
     for key, node in state["nodes"].items():
         for block in ("sop", "improvement"):
             art = node.get(block, {}) or {}
-            if str(art.get("status", "")).lower() == "final" and not art.get("path"):
+            if str(art.get("status", "")).lower() != "final":
+                continue
+            path = art.get("path")
+            if not path:
                 failures.append(f"{key}: {block}.status=final but path is null")
+                continue
+            if not (edir / path).exists():
+                failures.append(
+                    f"{key}: {block}.status=final but path does not exist -> {path}")
     return failures
 
 
@@ -114,7 +134,7 @@ def run_final_check(eid: str) -> Dict[str, Any]:
         ("evidence_refs_resolve",
          _check_evidence_refs_resolve(eid, state)),
         ("final_artifacts_have_path",
-         _check_final_artifacts_have_path(state)),
+         _check_final_artifacts_have_path(eid, state)),
     ]
 
     gate_results = []

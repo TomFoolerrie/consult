@@ -26,6 +26,12 @@ A `.docx` is a zip (an OPC package). Two parts matter here:
 Tracked changes (`w:ins`/`w:del`) are surfaced best-effort as
 `{type, author, date, text}` entries — see INCLUDE_TRACKED_CHANGES below.
 
+Scope limitation: only `word/document.xml` is read. Comments anchored in
+headers, footers, or footnotes (`word/header*.xml`, `word/footer*.xml`,
+`word/footnotes.xml`) are **out of scope** and are NOT extracted (matches the
+spike-level intent of T30). Reviewers should leave SOP comments in the document
+body.
+
 Usage
 -----
   docx_comments.py extract --docx PATH [--json]
@@ -127,6 +133,34 @@ def parse_document_anchors(data: bytes) -> Dict[str, str]:
     that nests under (say) a `w:ins` is still counted exactly once.
     """
     root = ET.fromstring(data)
+
+    # Unbalanced-range guard: walk once to count starts/ends per id. A comment
+    # whose range is unbalanced (a start with no matching end, or vice versa) is
+    # NOT honored as an active range — otherwise a dangling start would leave its
+    # id permanently active and vacuum every later run into it, mis-attributing
+    # all the trailing body text. Such ids are reported on stderr and skipped.
+    starts: Dict[str, int] = {}
+    ends: Dict[str, int] = {}
+    for elem in root.iter():
+        ln = _local(elem.tag)
+        if ln == "commentRangeStart":
+            cid = _w(elem, "id")
+            if cid is not None:
+                starts[cid] = starts.get(cid, 0) + 1
+        elif ln == "commentRangeEnd":
+            cid = _w(elem, "id")
+            if cid is not None:
+                ends[cid] = ends.get(cid, 0) + 1
+    balanced: set[str] = set()
+    for cid in set(starts) | set(ends):
+        if starts.get(cid, 0) == ends.get(cid, 0) and starts.get(cid, 0) > 0:
+            balanced.add(cid)
+        else:
+            sys.stderr.write(
+                f"docx_comments: unbalanced comment range for id {cid!r} "
+                f"(starts={starts.get(cid, 0)}, ends={ends.get(cid, 0)}); "
+                "anchored span not extracted.\n")
+
     active: set[str] = set()
     spans: Dict[str, List[str]] = {}
 
@@ -134,7 +168,7 @@ def parse_document_anchors(data: bytes) -> Dict[str, str]:
         ln = _local(elem.tag)
         if ln == "commentRangeStart":
             cid = _w(elem, "id")
-            if cid is not None:
+            if cid is not None and cid in balanced:
                 active.add(cid)
                 spans.setdefault(cid, [])
         elif ln == "commentRangeEnd":
