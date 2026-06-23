@@ -73,10 +73,9 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
   workflow (T57)** with `{engagement, stage, targets}` from `orchestrate.py next --json`, instead
   of hand-spawning N sub-agents via prose. The workflow returns per-target one-line summaries;
   `consult-run` then re-runs `orchestrate.py next` and proceeds to the next action / human gate.
-- **Pin the invocation surface (build-blocking — resolve jointly with T57).** Specify *exactly how*
-  `consult-run` (a skill) calls the workflow: a Workflow-tool call vs an inline script reference vs
-  a committed `.claude/workflows/consult-fanout` invoked by name — with the arg shape. Neither T54
-  nor T57 nailed this; a build agent cannot write the wiring without it.
+- **Invocation surface (DECIDED — T57 Decision C):** `consult-run` invokes the **committed named
+  workflow** `.claude/workflows/consult-fanout` **by name**, passing `args` `{engagement, stage,
+  targets}`. Not an inline script. Versioned + reviewable in-repo.
 - **Field mapping:** `orchestrate.py next` emits the stage under the key `action` (not `stage`);
   `consult-run` maps `action → stage` when calling the workflow.
 - **`then_script` / merge ownership moves to the workflow** for the Tier-2 path: post-Tier-2 the

@@ -69,9 +69,10 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 4. `validate_artifact.py`: absence of `quote` is not an error; guidance points at missing `note`.
 
 **Phase 2 — constrained emission (with T57's workflow):**
-- In the fan-out workflow's classify stage, pass the artifact JSON Schema to `agent({schema})`.
-  Load the schema from `schemas/classify_artifact.schema.json` so there is **one** source of truth
-  (the StructuredOutput schema and the `validate_artifact.py` schema must not drift).
+- In the fan-out workflow's classify stage, the per-doc `agent()` call uses the **`consult-classifier`
+  custom agent type** (T57 Decision A) **plus** `{schema}` loaded from
+  `schemas/classify_artifact.schema.json`, so there is **one** schema source of truth (the
+  StructuredOutput schema and the `validate_artifact.py` schema must not drift).
 - **Write owner (reconciled with T57):** on the schema path the **workflow** persists the returned
   validated object atomically (temp file + `os.rename`) to `classify/{hash}.artifact.json` (the
   classifier sub-agent returns the object; the workflow writes it), then runs `validate_artifact.py`

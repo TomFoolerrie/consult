@@ -106,18 +106,27 @@ keystone is **T57** (the deterministic fan-out Workflow): T54 wires `consult-run
 and T55 (schema emission) + T56 (`budget.spent()` cost) plug into its seams. That one substrate
 makes delegation structural, unlocks valid-by-construction JSON, and exposes per-phase cost.
 
-**Build order:** Wave A (parallel, no deps) = T54 Tier 1 prose + T55 Phase 1 `quote`-trim →
-Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2 wiring + T55 Phase 2 + T56 →
-Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch different files and can
-overlap once T57's seams exist.
+**Status: specs LOCKED, build DEFERRED** (owner decision). Reviewed by 5 sub-agents; review fixes
++ the four design decisions below are folded in. No implementation until the owner says go.
+
+**Build order (when greenlit):** Wave A (parallel, no deps) = T54 Tier 1 prose + T55 Phase 1
+`quote`-trim → Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2 wiring + T55 Phase 2
++ T56 → Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch different files.
 
 | # | Title | Depends | Touches |
 |---|---|---|---|
-| T54 | Orchestrator delegation enforcement — blocking prose + content-starvation (Tier 1) + wire `consult-run` to the T57 workflow (Tier 2) | T57 (for Tier 2) | skills/consult-run |
-| T57 | **Fan-out Workflow scaffold** (foundation) — stage-parameterized driver with the correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1), classify `merge` + consolidate apply post-steps, schema + budget seams, `null`-tolerant partial completion, structural human-gate guard. NB: draft/synth workers DO write state (via `state_machine.py`). | — | .claude/workflows (new) |
-| T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained `agent({schema})` emission (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
-| T56 | Per-phase cost instrumentation — `budget.spent()` deltas (real output tokens) + content-free input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+| T54 | Orchestrator delegation enforcement — blocking prose + explicit content prohibition (Tier 1, a *nudge* not a gate) + wire `consult-run` to the committed `.claude/workflows/consult-fanout` by name (Tier 2) | T57 (for Tier 2) | skills/consult-run |
+| T57 | **Fan-out Workflow scaffold** (foundation) — correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1); classify `merge` + consolidate **emit-JSONL→serial-apply** post-steps; 5 custom agent types; schema + budget seams; structural human-gate guard. NB: draft/synth workers DO write state via `state_machine.py`. | — | .claude/workflows, .claude/agents (5), consolidate_merge.py (new) |
+| T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained emission via the `consult-classifier` agent type + `{schema}` (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
+| T56 | Per-phase cost instrumentation — `budget.spent()` deltas persisted to content-free `cost_map.json` + input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
 | T58 | **Slice-4 integration & regression** (build last) — given identical *stubbed* LLM outputs, the workflow and prose dispatch paths produce byte-identical **spine** output (state/register/render, normalized); LLM-authored MDs validate structurally only; constrained emission validates; gates fire; cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
+
+> **Decisions locked** (owner, post-review): **(A)** skill invocation = **custom agent types** —
+> 5 `.claude/agents/` defs preloading their skills, tool-scoped, `agent()` sets `agentType`; **(B/D)**
+> consolidate = **parallel emit to per-node JSONL → deterministic serial apply** (no concurrent
+> shared-state writes; resolves the parallelism-vs-conflict tension; classify pattern generalized);
+> **(C)** `consult-run` invokes the **committed named workflow** `.claude/workflows/consult-fanout`
+> by name. Build sequencing: **specs locked, build deferred**.
 
 > **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
 > output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool
