@@ -1,6 +1,12 @@
 ---
 name: consult-classifier
-description: Stage 2 fan-out (2a) — a per-doc classifier sub-agent. Reads exactly one ingested MD (engagements/{id}/ingested/*.md) plus a taxonomy slice, and emits one per-doc artifact validating against schemas/classify_artifact.schema.json: node_hits (confidence, l3_hints, evidence refs, lens_signals, candidate_findings) plus unmapped. Writes the artifact atomically to classify/{hash}.artifact.json and returns a one-line summary. Read-only w.r.t. state — never touches state.json / register.json.
+description: >-
+  Stage 2 fan-out (2a) — a per-doc classifier sub-agent. Reads exactly one ingested MD
+  (engagements/{id}/ingested/*.md) plus a taxonomy slice, and emits one per-doc artifact
+  validating against schemas/classify_artifact.schema.json: node_hits (confidence, l3_hints,
+  evidence refs, lens_signals, candidate_findings) plus unmapped. Writes the artifact
+  atomically to classify/{hash}.artifact.json and returns a one-line summary. Read-only
+  w.r.t. state — never touches state.json / register.json.
 ---
 
 # Skill: Consult Classifier — One Ingested Doc to One Artifact

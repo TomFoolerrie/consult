@@ -1,6 +1,17 @@
 ---
 name: consult-gap-analyzer
-description: Stage 4 substantive-gap sub-agent (the LLM sibling of the structural scan). For one CONSOLIDATED L2 node, reads the synthesis via `scripts/consolidate_inputs.py gather` and adds the gaps the mechanical scan can't see — internal contradictions, thin / single-source evidence, undocumented controls, conflicting lens signals, and especially any control- or procedure-critical claim resting on `evidence_tier:verbal` (the Evidence DoD: a verbal-only control is not "done"). Each gap is a `type:gap` register row added via `scripts/state_machine.py add-item` with a stable `dedup_key` (re-runs upsert, never duplicate), a tag from the controlled gap vocab, and the evidence ref in `source`. Runs AFTER consolidate and before drafting. Never invents evidence or flags; cites register IDs / evidence refs. Its ids come off the normal add-item path (`GAP-NNNN`) and never collide with the structural `GAP-STRUCT-*` namespace.
+description: >-
+  Stage 4 substantive-gap sub-agent (the LLM sibling of the structural scan). For one
+  CONSOLIDATED L2 node, reads the synthesis via `scripts/consolidate_inputs.py gather` and
+  adds the gaps the mechanical scan can't see — internal contradictions, thin /
+  single-source evidence, undocumented controls, conflicting lens signals, and especially
+  any control- or procedure-critical claim resting on `evidence_tier:verbal` (the Evidence
+  DoD: a verbal-only control is not "done"). Each gap is a `type:gap` register row added via
+  `scripts/state_machine.py add-item` with a stable `dedup_key` (re-runs upsert, never
+  duplicate), a tag from the controlled gap vocab, and the evidence ref in `source`. Runs
+  AFTER consolidate and before drafting. Never invents evidence or flags; cites register IDs
+  / evidence refs. Its ids come off the normal add-item path (`GAP-NNNN`) and never collide
+  with the structural `GAP-STRUCT-*` namespace.
 ---
 
 # Skill: Consult Gap Analyzer — Substantive Gaps on a Consolidated L2 Node
