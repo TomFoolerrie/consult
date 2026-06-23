@@ -8,7 +8,9 @@
 #   3. ingesting a dir that already contains ingested/ does NOT re-ingest its
 #      own MD (output excluded from the source sweep).
 #   4. one malformed file in a batch is reported but the batch completes the
-#      rest (per-file error isolation).
+#      rest (per-file error isolation). T52 extends this with Test 4b: an
+#      unsupported file passed *by path* (the SystemExit hole T43 missed) is
+#      now quarantined as IngestError, not allowed to kill the batch.
 #   5. a CSV cell with an embedded newline renders a valid 1-row Markdown table
 #      (newline collapsed to <br>, not a broken multiline row).
 #
@@ -164,6 +166,37 @@ if [ "$RC" -ne 0 ]; then
   ok "batch with a failure exits non-zero"
 else
   bad "batch with a failure exits non-zero (rc=$RC)"
+fi
+
+# -----------------------------------------------------------------------------
+# Test 4b (T52): the SystemExit path T43's corrupt-docx test missed. An
+# unsupported file passed *by path* used to make dispatch() raise SystemExit
+# (a BaseException), which escaped the loop's `except Exception` and KILLED the
+# whole batch. It must now quarantine that one file (IngestError) and write the
+# good ones. `--source good.txt weird.pdf good2.txt` => both good files written,
+# weird.pdf reported FAILED/unsupported, batch not aborted, non-zero exit.
+# -----------------------------------------------------------------------------
+GOOD1="$WORK/iso_good1.txt"; printf 'First good note for isolation.\n' > "$GOOD1"
+GOOD2="$WORK/iso_good2.txt"; printf 'Second good note for isolation.\n' > "$GOOD2"
+WEIRD="$WORK/weird.pdf";     printf '%%PDF-1.4 fake\n' > "$WEIRD"
+OUT3="$("$PY" "$INGEST" ingest --engagement "$EID" \
+        --source "$GOOD1" "$WEIRD" "$GOOD2" 2>&1)" ; RC3=$?
+G1MD="$(ls "$EDIR"/ingested/*iso-good1*.md 2>/dev/null | head -1)"
+G2MD="$(ls "$EDIR"/ingested/*iso-good2*.md 2>/dev/null | head -1)"
+if [ -n "$G1MD" ] && [ -n "$G2MD" ]; then
+  ok "both good files written despite an unsupported-by-path file (SystemExit hole closed)"
+else
+  bad "both good files written despite an unsupported-by-path file (G1=$G1MD G2=$G2MD)"
+fi
+if echo "$OUT3" | grep -qi "weird.pdf" && echo "$OUT3" | grep -qi -e "unsupported" -e "FAILED"; then
+  ok "unsupported-by-path file reported (FAILED/unsupported), batch not aborted"
+else
+  bad "unsupported-by-path file reported (output: $OUT3)"
+fi
+if [ "$RC3" -ne 0 ]; then
+  ok "batch with an unsupported-by-path file exits non-zero"
+else
+  bad "batch with an unsupported-by-path file exits non-zero (rc=$RC3)"
 fi
 
 # --- summary ----------------------------------------------------------------
