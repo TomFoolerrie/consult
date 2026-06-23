@@ -5,7 +5,8 @@
 > Word-review loop: docx comments → ingest → apply → re-consolidate → gated `final`)
 > are built, test-verified, and demonstrated on a live R2R sample
 > (`engagements/r2r-demo`). The Slice-1 e2e regression (`tests/test_slice1_e2e.sh`)
-> stays green under all Slice-2 additions. Remaining is optional scope only: the
+> stays green under all Slice-2 additions, provided `pip install -r requirements.txt`
+> has been run first (without pandas/jsonschema the e2e fails). Remaining is optional scope only: the
 > ingest format zoo (PDF/PPTX/XLSX/images) and other §10 deferrals. Build status
 > inline: ✅ built · ◻ deferred/optional. Tickets in `tickets/`.
 > Scope: a Claude Code plugin that runs a finance-consulting engagement end to
@@ -412,9 +413,9 @@ evidence refs resolve; evidence-auditor passes; no open SME-validation items. �
 Every review/consolidate round appends to the required change log
 `deliverables/review_log.md`. ◻ to wire as gates.
 
-> Cleanup: `references/canonical_sop_deliverable_template.md` is a redundant handlebars
-> variable-catalog shell that contradicts the SKILL.md's "produce completed Markdown"
-> instruction — reconcile or remove.
+> Resolved: the redundant `references/canonical_sop_deliverable_template.md` handlebars
+> variable-catalog shell has been removed. The drafter follows the canonical section order
+> and "produce completed Markdown" prose guidance in `consult-drafter/SKILL.md` (Steps 3–10).
 
 ---
 
@@ -469,7 +470,7 @@ Planned ◻ (Slice 2):
 │   ├── engagement_state.schema.json
 │   └── item_register.schema.json
 ├── scripts/                         ← ✅ state_machine.py (+ ingest/gap_report planned)
-├── templates/                       ← ◻ SOP / improvement / gap-report skeletons
+├── templates/                       ← ◻ improvement / gap-report skeletons (SOP shell template removed; drafter follows SKILL.md prose)
 ├── skills/                          ← existing + planned (see §6)
 └── engagements/                     ← STATE LIVES HERE, in-repo
     └── {engagement_id}/
@@ -536,8 +537,9 @@ Open:
    (node-level, beyond `sop.rev`).
 9. **DoD gates** — wire evidence-auditor pass + zero open SME/`requires_human_review` items as
    hard gates before `final` (§5 Deliverables & DoD).
-10. **Drafter shell template** — reconcile/remove the redundant handlebars
-    `canonical_sop_deliverable_template.md` (§5 cleanup note).
+10. **Drafter shell template** — ✅ resolved: the redundant handlebars
+    `canonical_sop_deliverable_template.md` has been removed; the drafter now follows the
+    SKILL.md canonical section order / completed-Markdown prose guidance (§5 cleanup note).
 
 ---
 
@@ -600,7 +602,7 @@ ingest manifest, the `consult-improvement-log` CSV-doc rewrite).
 | **Orchestration** (`consult-run`) ◻ | state-driven "run the engagement" loop + `status`/`next` command (`orchestration_contract.md` ✅ drafted) | M–L |
 | `update-json` → JSON-native upsert ◻ | kill CSV transport (see §8) | S |
 | `consult-improvement-log` rewrite ◻ | recast as the agent-driven register JSON engine (doc-debt) | S–M |
-| `templates/` dir ◻ | SOP / improvement / gap-report / node-synthesis skeletons | S |
+| `templates/` dir ◻ | improvement / gap-report / node-synthesis skeletons (SOP shell template removed; drafter follows SKILL.md prose) | S |
 | Dev/repro setup ◻ | `requirements.txt` + SessionStart hook (pandas/openpyxl/pyyaml/jsonschema) | S |
 | End-to-end sample engagement ◻ | proof + regression fixture | S–M |
 

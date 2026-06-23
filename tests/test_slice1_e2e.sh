@@ -349,6 +349,31 @@ assert_eq "$R1_IMP"       "$R2_IMP"       "improvement count unchanged on re-run
 assert_eq "$R1_GAP"       "$R2_GAP"       "gap count unchanged on re-run"
 assert_eq "$R1_UNMAPPED"  "$R2_UNMAPPED"  "unmapped count unchanged on re-run"
 
+# ---- doc-drift lint (T48) ---------------------------------------------------
+# No contract/schema may still advertise pre-build status, and no SKILL may
+# reference the register engine by its bare (wrong) path. Matches the ACTUAL
+# strings, not paraphrases.
+echo "----------------------------------------------------------------"
+echo "DOC-DRIFT LINT (T48)"
+echo "----------------------------------------------------------------"
+
+drift_no_code="$(grep -rIl -e 'no code yet' -e 'Not yet wired into code' \
+  --include='*_contract.md' --include='*.json' "$REPO_ROOT" 2>/dev/null || true)"
+if [ -z "$drift_no_code" ]; then
+  ok "no contract/schema still says 'no code yet' / 'Not yet wired into code'"
+else
+  bad "stale build-status banner(s) found in: $drift_no_code"
+fi
+
+drift_bare_path="$(grep -rIn 'scripts/improvement_log.py' \
+  --include='SKILL.md' "$REPO_ROOT" 2>/dev/null \
+  | grep -v 'skills/consult-improvement-log/scripts/improvement_log.py' || true)"
+if [ -z "$drift_bare_path" ]; then
+  ok "no SKILL references a bare scripts/improvement_log.py path"
+else
+  bad "bare improvement_log.py path in SKILL: $drift_bare_path"
+fi
+
 # ---- summary ----------------------------------------------------------------
 echo "================================================================"
 echo "RESULT: $PASS passed, $FAIL failed."

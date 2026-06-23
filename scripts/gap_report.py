@@ -42,7 +42,6 @@ ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
 IMPROVEMENT_LOG = (REPO_ROOT / "skills" / "consult-improvement-log" / "scripts"
                    / "improvement_log.py")
 STATE_MACHINE = REPO_ROOT / "scripts" / "state_machine.py"
-REGISTER_SCHEMA = REPO_ROOT / "schemas" / "item_register.schema.json"
 
 # Mirror state_machine.py's data model (kept local to avoid import coupling).
 LENSES = ["current_state", "process", "automation", "capability", "operating_model"]
@@ -100,6 +99,14 @@ def detect_gaps(state: Dict[str, Any]) -> List[Dict[str, str]]:
     gaps: List[Dict[str, str]] = []
     for key, node in state.get("nodes", {}).items():
         l1, l2 = node.get("l1"), node.get("l2")
+        # Malformed-node guard: a node missing l1/l2 would produce a degenerate
+        # id like GAP-STRUCT-None-None-...; skip it and report on stderr rather
+        # than emit a junk gap row.
+        if not l1 or not l2:
+            sys.stderr.write(
+                f"gap_report: skipping malformed node '{key}' "
+                f"(missing l1/l2: l1={l1!r}, l2={l2!r}).\n")
+            continue
         l2_name = node.get("l2_name", l2)
         l1_name = node.get("l1_name", l1)
         label = f"{l1_name} — {l2_name}"
@@ -173,18 +180,25 @@ def build_csv_rows(detected: List[Dict[str, str]],
 
     for g in detected:
         prior = active_existing.get(g["id"])
+        tag = g["tag"]
         if prior is not None:
             # Carry the human-review fields forward from the existing active row.
             review_status = prior.get("review_status") or "needs_review"
             rhr = prior.get("requires_human_review")
             requires_human_review = "true" if rhr is None else str(rhr).lower()
             owner = prior.get("owner")
+            # Preserve a human-edited tag: if the existing active row's tag
+            # differs from the detector's default, a human changed it — keep it
+            # rather than overwrite on re-scan (mirrors review_status/owner).
+            prior_tag = prior.get("tag")
+            if prior_tag and prior_tag != g["tag"]:
+                tag = prior_tag
         else:
             review_status = "needs_review"
             requires_human_review = "true"
             owner = None
         row = {
-            "id": g["id"], "type": "gap", "tag": g["tag"],
+            "id": g["id"], "type": "gap", "tag": tag,
             "l1_cycle": g["l1"], "l2_process": g["l2"],
             "observation_pain_point": g["observation"], "source": SOURCE,
             "record_status": "active", "review_status": review_status,
@@ -225,15 +239,20 @@ def write_register(eid: str, csv_rows: List[Dict[str, str]]) -> None:
     if not csv_rows:
         return
 
-    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False,
-                                     newline="", encoding="utf-8") as tmp:
-        writer = csv.DictWriter(tmp, fieldnames=CSV_FIELDS)
-        writer.writeheader()
-        for row in csv_rows:
-            writer.writerow({h: row.get(h, "") for h in CSV_FIELDS})
-        csv_path = Path(tmp.name)
-
+    # Create the temp CSV and guard the whole lifetime (write + subprocess) with
+    # a single try/finally, so a writerow error can't leak the named temp file.
+    tmp = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False,
+                                      newline="", encoding="utf-8")
+    csv_path = Path(tmp.name)
     try:
+        try:
+            writer = csv.DictWriter(tmp, fieldnames=CSV_FIELDS)
+            writer.writeheader()
+            for row in csv_rows:
+                writer.writerow({h: row.get(h, "") for h in CSV_FIELDS})
+        finally:
+            tmp.close()
+
         result = subprocess.run(
             [sys.executable, str(IMPROVEMENT_LOG), "update-json",
              "--json", str(register_path), "--csv", str(csv_path),

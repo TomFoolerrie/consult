@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://cfgi/consult/item_register.schema.json",
   "title": "Item Register",
-  "description": "Layer 2 source of truth: flat list of items (improvements, gaps, screenshots) hanging off L2 nodes. Owned by improvement_log.py. Records allow additional properties for forward-compatibility; the script flags unknown enum values for human review rather than rejecting them.",
+  "description": "Layer 2 source of truth: flat list of items (improvements, gaps, screenshots, unmapped, themes) hanging off L2 nodes. Owned by improvement_log.py. Records allow additional properties for forward-compatibility; the script flags unknown enum values for human review rather than rejecting them.",
   "type": "object",
   "required": ["records"],
   "additionalProperties": true,

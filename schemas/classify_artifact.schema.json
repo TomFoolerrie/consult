@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://cfgi/consult/classify_artifact.schema.json",
   "title": "Classify Artifact (per-doc, Stage 2)",
-  "description": "DESIGN DRAFT. What one classifier sub-agent returns after reading one ingested document. See classify_contract.md. Not yet wired into code.",
+  "description": "What one classifier sub-agent returns after reading one ingested document. See classify_contract.md. Wired into code via scripts/validate_artifact.py and scripts/classify_merge.py.",
   "type": "object",
   "required": ["doc", "node_hits"],
   "additionalProperties": false,

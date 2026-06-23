@@ -27,6 +27,19 @@ and the engagement state/register commands (`state_machine.py`). Two subcommands
 The docx content hash is the SHA-256 of the raw .docx bytes — a re-render produces
 a new file (new hash), so a fresh review round is never mistaken for a replay.
 
+Idempotency contract (T44, minimal — no per-action ledger):
+  * A pre-flight validation pass checks the whole actions batch is structurally
+    well-formed (every action is an object, with an allowed `command` and a dict
+    `args`) BEFORE any state mutation. A malformed batch aborts cleanly without
+    touching state or the consumed marker, so nothing is half-applied.
+  * The consumed marker is all-or-nothing on ACTION failures only: if any
+    state_machine action fails, the docx is NOT marked consumed so a corrected
+    re-run can still apply. NARROWED: `mark-dirty` failures are NON-FATAL to the
+    consumed marker — the substance change is already applied to state, so a
+    failed dirty-flag flip is logged loudly but must not block consuming (else a
+    re-run would re-apply and double-write). A failed dirty only risks that node
+    not auto-re-consolidating next run.
+
 Reuses docx_comments.py for all OOXML work (no reimplementation here).
 """
 from __future__ import annotations
@@ -49,7 +62,7 @@ STATE_MACHINE = SCRIPTS_DIR / "state_machine.py"
 # The subset of state_machine commands this ingest path is allowed to drive.
 # (Per the ticket: lens change → set-lens; new finding → add-item; SOP
 # scope/status → set-sop; improvement stream → set-improvement.)
-ALLOWED_COMMANDS = {"set-lens", "add-item", "set-sop", "set-improvement"}
+ALLOWED_COMMANDS = {"set-lens", "add-evidence", "add-item", "set-sop", "set-improvement"}
 
 # Substance commands: a successful one changes a node's diagnostic input
 # (lens / evidence / a placed finding), so the touched node must be re-marked
@@ -58,15 +71,6 @@ ALLOWED_COMMANDS = {"set-lens", "add-item", "set-sop", "set-improvement"}
 # does NOT dirty the node. add-item only counts as substance when it places a
 # finding on an L2 node (has --l1/--l2); a null-node row does not.
 SUBSTANCE_COMMANDS = {"set-lens", "add-evidence", "add-item"}
-
-# Which state_machine arg names carry the node key, per command. Used only to
-# recover the touched node for the before→after snapshot in the review log.
-NODE_ARG = {
-    "set-lens": "node",
-    "set-sop": "node",
-    "set-improvement": "node",
-    # add-item names its node via --l1/--l2 (see _node_key_for_action).
-}
 
 
 def now_iso() -> str:
@@ -376,9 +380,7 @@ def _args_to_argv(command: str, args: Dict[str, Any]) -> List[str]:
     --field / --field-json take repeatable KEY=VALUE specs and may be supplied
     in the action as a dict (preferred) or a pre-formatted list.
     """
-    argv: List[str] = [command, "--engagement"]  # engagement injected by caller
-    # Placeholder removed below; we build the real list here instead.
-    argv = [command]
+    argv: List[str] = [command]  # engagement injected by the caller
     for key, value in args.items():
         flag = f"--{key.replace('_', '-')}"
         if key in ("field", "field_json"):
@@ -408,6 +410,34 @@ def _run_state_command(eid: str, command: str, args: Dict[str, Any]) -> Tuple[in
     return result.returncode, result.stdout, result.stderr
 
 
+def _preflight_validate_actions(actions: List[Any]) -> List[str]:
+    """Validate the whole action batch BEFORE any state mutation begins.
+
+    Returns a list of human-readable problems (empty == well-formed). Catching
+    malformed actions up front means the batch only starts applying once every
+    action is structurally sound, so we never half-apply a batch and then refuse
+    to mark consumed (which would leave applied moves to be replayed on re-run).
+    Pure structural checks only — value-level validity is still the
+    state_machine command's job and surfaces as a per-action failure below.
+    """
+    problems: List[str] = []
+    for idx, action in enumerate(actions):
+        if not isinstance(action, dict):
+            problems.append(f"action {idx}: not an object (got {type(action).__name__}).")
+            continue
+        command = action.get("command")
+        if command not in ALLOWED_COMMANDS:
+            problems.append(
+                f"action {idx}: command {command!r} not allowed "
+                f"(allowed: {sorted(ALLOWED_COMMANDS)}).")
+        raw_args = action.get("args", {})
+        if not isinstance(raw_args, dict):
+            problems.append(
+                f"action {idx}: 'args' must be an object "
+                f"(got {type(raw_args).__name__}).")
+    return problems
+
+
 def cmd_apply(eid: str, docx: str, actions_path: str,
               round_n: Optional[int]) -> int:
     docx_path = Path(docx)
@@ -428,10 +458,28 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
         }, ensure_ascii=False, indent=2))
         return 0
 
-    with Path(actions_path).open("r", encoding="utf-8") as f:
-        actions = json.load(f)
+    try:
+        with Path(actions_path).open("r", encoding="utf-8") as f:
+            actions = json.load(f)
+    except FileNotFoundError:
+        sys.stderr.write(f"error: no such actions file: {actions_path}\n")
+        return 2
+    except json.JSONDecodeError as e:
+        sys.stderr.write(f"error: actions JSON is malformed ({actions_path}): {e}\n")
+        return 2
     if not isinstance(actions, list):
         sys.stderr.write("error: actions JSON must be a list of action objects.\n")
+        return 2
+
+    # Pre-flight: validate the whole batch is well-formed before mutating any
+    # state. If anything is malformed we abort cleanly without touching state or
+    # the consumed marker, so there is nothing to replay on a corrected re-run.
+    preflight = _preflight_validate_actions(actions)
+    if preflight:
+        sys.stderr.write("error: actions batch failed pre-flight validation:\n")
+        for problem in preflight:
+            sys.stderr.write(f"  - {problem}\n")
+        sys.stderr.write("docx NOT marked consumed (no actions applied).\n")
         return 2
 
     log_lines: List[str] = [
@@ -449,11 +497,7 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
         args = dict(action.get("args", {}))
         reviewer = action.get("reviewer") or "(unknown)"
         comment_id = action.get("comment_id")
-
-        if command not in ALLOWED_COMMANDS:
-            failures.append(f"action {idx}: command '{command}' not allowed "
-                            f"(allowed: {sorted(ALLOWED_COMMANDS)})")
-            continue
+        # command/args shape already guaranteed well-formed by the pre-flight pass.
 
         node_key = _node_key_for_action(args)
         before_node = _get_node_json(eid, node_key) if node_key else None
@@ -516,6 +560,14 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
     # Mark every node touched by a substance command diagnosis-dirty, so the
     # next consult-run re-consolidates it. A pure set-sop --status does not
     # appear here. Done after all actions applied; record the set in the log.
+    #
+    # NARROWED CONTRACT (T44): mark-dirty failures are NON-FATAL to the consumed
+    # marker. The substance change has *already been applied* to state by the
+    # action above; failing to flip the dirty flag must not block marking the
+    # docx consumed, or a re-run would re-apply the (already-applied) actions and
+    # double-write. A failed dirty only means that node may not auto-re-
+    # consolidate next run — it is logged loudly for follow-up, not treated as an
+    # apply failure. (Action failures — `failures` — DO still block consuming.)
     dirty_failures: List[str] = []
     for node_key in dirty_nodes:
         rc, out, err = _run_mark_dirty(eid, node_key)
@@ -528,15 +580,18 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
     else:
         log_lines.append("  - dirtied: none (no substance changes)\n")
     if dirty_failures:
-        failures.extend(dirty_failures)
+        # Logged, but NON-FATAL: does not block the consumed marker (see above).
         for fmsg in dirty_failures:
-            log_lines.append(f"  - **FAILED** {fmsg}\n")
+            log_lines.append(
+                f"  - **WARN (non-fatal)** {fmsg} — actions already applied; "
+                f"node may not auto-re-consolidate next run.\n")
 
     append_review_log(eid, log_lines)
 
     if failures:
-        # Apply is all-or-nothing on the consumed marker: if any action failed we
-        # do NOT mark consumed, so a corrected re-run can still apply.
+        # Apply is all-or-nothing on the consumed marker for ACTION failures: if
+        # any action failed we do NOT mark consumed, so a corrected re-run can
+        # still apply. (mark-dirty failures are deliberately NOT in `failures`.)
         sys.stderr.write("error: one or more actions failed:\n")
         for fmsg in failures:
             sys.stderr.write(f"  - {fmsg}\n")
@@ -548,6 +603,12 @@ def cmd_apply(eid: str, docx: str, actions_path: str,
     print(f"Applied {applied} action(s); dirtied node(s): {dirtied}; "
           f"review_log.md updated; docx `{docx_path.name}` "
           f"(hash {content_hash[:12]}…) marked consumed.")
+    if dirty_failures:
+        sys.stderr.write(
+            "warning: docx consumed, but some mark-dirty calls failed "
+            "(non-fatal — actions already applied):\n")
+        for fmsg in dirty_failures:
+            sys.stderr.write(f"  - {fmsg}\n")
     return 0
 
 

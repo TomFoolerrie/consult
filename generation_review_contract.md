@@ -1,6 +1,6 @@
 # CONSULT — Generation & Review Contract (Stages 5–6)
 
-> Status: **DESIGN DRAFT** (no code yet). See `spec.md` §5 Stages 5–6 & "Deliverables & DoD".
+> Status: **BUILT** (implemented by `scripts/render_deliverables.py` + `scripts/review_ingest.py`). See `spec.md` §5 Stages 5–6 & "Deliverables & DoD".
 > Reuses existing skills: `consult-drafter`, `consult-docx-builder`,
 > `consult-review-comment-resolver`, `consult-evidence-auditor`.
 

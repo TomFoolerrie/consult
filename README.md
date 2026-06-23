@@ -150,4 +150,6 @@ Both build slices are complete:
 - **Slice 1** — the one-way diagnostic pipeline (ingest → render). ✅
 - **Slice 2** — the human Word-review loop (comment extraction → re-consolidation → gate). ✅
 
-The Slice-1 end-to-end regression (`tests/test_slice1_e2e.sh`) is green and idempotent.
+The Slice-1 end-to-end regression (`tests/test_slice1_e2e.sh`) is green and idempotent,
+provided `pip install -r requirements.txt` has been run first (without pandas/jsonschema the
+e2e fails).

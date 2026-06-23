@@ -9,6 +9,9 @@ in the artifacts for Stage 3 consolidate.
 
 What gets applied (per classify_contract.md §5):
   - Evidence  -> state_machine.py add-evidence (idempotent by ref; tier carried).
+                 Source paths are canonicalized relative to engagements/{eid}/
+                 (T42 fix 3) so the same line range cited absolute vs relative
+                 dedups; a path that resolves outside that tree is skip-reported.
   - Lenses    -> collected per (node, lens) across all artifacts; low-confidence
                  dropped. v1 SIMPLE policy: if the remaining (med/high) signals
                  all agree on one value -> set-lens to it; if >=2 distinct values
@@ -16,12 +19,20 @@ What gets applied (per classify_contract.md §5):
                  (GAP-CONFLICT-{l1}-{l2}-{lens}) with a matching dedup_key, so
                  re-runs upsert rather than duplicate.
   - Candidate findings -> NOT applied (stay staged).
-  - Unmapped  -> add-item --type unmapped with dedup_key={evidence_ref}, so
+  - Unmapped  -> add-item --type unmapped with dedup_key={evidence_ref + summary
+                 hash}, so distinct summaries sharing a ref do not collapse and
                  re-runs do not duplicate.
 
-Idempotency: re-running re-resolves from the full artifact set. Evidence dedups
-by ref (T01), lenses recompute from scratch, conflict gaps + unmapped rows upsert
-by dedup_key (T02). All mutations go through the CLI like gap_report.py does.
+Single-run atomicity (T42 fix 1): re-runs are *already* idempotent (evidence
+dedups, lenses recompute, gaps/unmapped upsert by dedup_key), so there is no
+merge cursor. Instead a **fail-closed pre-flight** validates ALL facts (refs
+parseable + canonicalizable, nodes are `l1.l2` in the taxonomy, lens values
+legal) and aborts the whole merge *before* issuing any mutation when a
+structural/validation error is found. Data-quality drops (a ref that does not
+parse, a lens signal missing lens/value, a path outside the engagement tree)
+are NOT structural errors: they are skip-reported and the merge proceeds. A
+cross-document lens conflict is NOT a failure either — it still raises a GAP and
+the merge continues.
 
 Command:
   merge --engagement E
@@ -29,6 +40,7 @@ Command:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -50,6 +62,9 @@ KEPT_CONFIDENCE = {"high", "med"}
 # Parse a `path#Lstart-Lend` (or `path#Lstart`) evidence ref into (path, loc).
 _REF_RE = re.compile(r"^(?P<path>.+?)#L(?P<start>[0-9]+)(?:-(?P<end>[0-9]+))?$")
 
+# A taxonomy node key is exactly `l1.l2` (one dot, both segments non-empty).
+_NODE_RE = re.compile(r"^[^.]+\.[^.]+$")
+
 
 def engagement_dir(eid: str) -> Path:
     return ENGAGEMENTS_DIR / eid
@@ -61,6 +76,29 @@ def _run_state_machine(args: List[str]) -> subprocess.CompletedProcess:
         [sys.executable, str(STATE_MACHINE), *args],
         capture_output=True, text=True,
     )
+
+
+def _load_taxonomy_nodes() -> set:
+    """Set of valid `l1.l2` node keys. Reuses state_machine's loader when
+    importable; otherwise parses the taxonomy directly (mirrors
+    validate_artifact._load_taxonomy_nodes)."""
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        import state_machine  # type: ignore
+
+        tax = state_machine.load_taxonomy()
+        return {f"{l1}.{l2}" for l1, _, l2, _, _ in state_machine.iter_l2(tax)}
+    except Exception:
+        pass
+    import yaml  # type: ignore
+
+    with (REPO_ROOT / "reference" / "taxonomy.yaml").open("r", encoding="utf-8") as f:
+        tax = yaml.safe_load(f)
+    nodes = set()
+    for dom in tax.get("domains", []):
+        for l2 in dom.get("l2", []):
+            nodes.add(f"{dom['id']}.{l2['id']}")
+    return nodes
 
 
 def _parse_ref(ref: str) -> Optional[Tuple[str, str]]:
@@ -76,6 +114,42 @@ def _parse_ref(ref: str) -> Optional[Tuple[str, str]]:
     end = m.group("end")
     loc = f"L{start}-{end}" if end else f"L{start}"
     return path, loc
+
+
+def _canonical_source(eid: str, raw_path: str) -> Optional[str]:
+    """Canonicalize an evidence source path to be relative to engagements/{eid}/.
+
+    A path cited absolutely (or relative to the repo root, or relative to the
+    engagement dir) all collapse to the same relative-to-engagement key, so the
+    `(source, loc)` evidence dedup in add-evidence stops minting duplicates for
+    the same line range (T42 fix 3).
+
+    Returns the canonical relative path string, or None if the path resolves
+    outside the engagement tree (caller skip-reports it; we do not clamp).
+    """
+    edir = engagement_dir(eid).resolve()
+    p = Path(raw_path)
+    if p.is_absolute():
+        candidate = p
+    else:
+        # Try relative-to-engagement first (the canonical form), then
+        # relative-to-repo-root (how a raw path is often written).
+        candidate = (edir / raw_path)
+        if not candidate.resolve().as_posix().startswith(edir.as_posix()):
+            candidate = (REPO_ROOT / raw_path)
+    try:
+        rel = candidate.resolve().relative_to(edir)
+    except ValueError:
+        return None
+    return rel.as_posix()
+
+
+def _norm_summary_hash(summary: str) -> str:
+    """Short stable hash of a normalized summary (whitespace-collapsed,
+    lowercased) — used to disambiguate distinct unmapped summaries that share an
+    evidence_ref (T42 fix 5)."""
+    norm = " ".join((summary or "").split()).lower()
+    return hashlib.sha1(norm.encode("utf-8")).hexdigest()[:12]
 
 
 # ---- step 1: load + validate artifacts --------------------------------------
@@ -118,30 +192,134 @@ def _run_state_machine_validate(art_path: Path, eid: str) -> subprocess.Complete
     )
 
 
+# ---- pre-flight: fail-closed validate-ALL (T42 fix 1 + fix 2) ----------------
+
+class SkipReport:
+    """Accumulates data-quality drops so they are visible, not silently lost
+    (T42 fix 4). A drop is a recoverable per-fact omission; the merge proceeds."""
+
+    def __init__(self) -> None:
+        self.items: List[Tuple[str, str]] = []  # (category, detail)
+
+    def add(self, category: str, detail: str) -> None:
+        self.items.append((category, detail))
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def print(self) -> None:
+        if not self.items:
+            return
+        print(f"  skipped (data-quality drops): {len(self.items)}")
+        by_cat: Dict[str, List[str]] = {}
+        for cat, detail in self.items:
+            by_cat.setdefault(cat, []).append(detail)
+        for cat in sorted(by_cat):
+            details = by_cat[cat]
+            print(f"    - {cat}: {len(details)}")
+            for d in details[:3]:
+                print(f"        * {d}")
+            if len(details) > 3:
+                print(f"        * ... and {len(details) - 3} more")
+
+
+def preflight_validate(
+    eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]], valid_nodes: set
+) -> Tuple[List[str], SkipReport]:
+    """Validate ALL facts across every artifact BEFORE any mutation is issued.
+
+    Returns (structural_errors, skip_report).
+
+    Structural errors (fail-closed — caller aborts before mutating):
+      - a node_hit/lens node that is not a `l1.l2` key present in the taxonomy.
+        (collect_lens_signals stores `node` verbatim and _raise_conflict_gap
+        splits on '.', so a malformed node would crash mid-merge: reject here.)
+
+    Data-quality drops (skip-reported; merge proceeds):
+      - an evidence/unmapped ref that does not parse to `path#Lstart-Lend`.
+      - an evidence source path that canonicalizes outside engagements/{eid}/.
+      - a lens signal missing its lens or value.
+    """
+    errors: List[str] = []
+    skips = SkipReport()
+
+    for path, instance in artifacts:
+        name = path.name
+        for hi, hit in enumerate(instance.get("node_hits", []) or []):
+            node = hit.get("node")
+            # fix 2: a node must be `l1.l2` AND present in the taxonomy.
+            if node is None or not _NODE_RE.match(str(node)) or node not in valid_nodes:
+                errors.append(
+                    f"{name}: node_hits[{hi}].node '{node}' is not a valid "
+                    f"`l1.l2` taxonomy node."
+                )
+                continue
+            for ei, ev in enumerate(hit.get("evidence", []) or []):
+                ref = ev.get("ref")
+                parsed = _parse_ref(ref) if ref else None
+                if parsed is None:
+                    skips.add("unparseable evidence ref",
+                              f"{name} node_hits[{hi}].evidence[{ei}] ref={ref!r}")
+                    continue
+                raw_path, _loc = parsed
+                if _canonical_source(eid, raw_path) is None:
+                    skips.add("evidence path outside engagement tree",
+                              f"{name} node_hits[{hi}].evidence[{ei}] path={raw_path!r}")
+            for si, sig in enumerate(hit.get("lens_signals", []) or []):
+                conf = str(sig.get("confidence") or "").lower()
+                if conf not in KEPT_CONFIDENCE:
+                    continue  # low/other is an intentional drop, not reportable
+                lens = sig.get("lens")
+                value = sig.get("value")
+                if not lens or value is None:
+                    skips.add("lens signal missing lens/value",
+                              f"{name} node_hits[{hi}].lens_signals[{si}] "
+                              f"lens={lens!r} value={value!r}")
+        for ui, um in enumerate(instance.get("unmapped", []) or []):
+            ref = um.get("evidence_ref")
+            if ref and _parse_ref(ref) is None:
+                skips.add("unparseable unmapped ref",
+                          f"{name} unmapped[{ui}] ref={ref!r}")
+
+    return errors, skips
+
+
 # ---- step 2: evidence -------------------------------------------------------
 
-def apply_evidence(eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]]) -> int:
+def apply_evidence(
+    eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]], skips: SkipReport
+) -> int:
     """add-evidence for every node_hit evidence ref (idempotent via T01).
 
-    Tier is carried from the node_hit's `evidence_tier` if present (the schema is
-    permissive on extra doc fields; we only pass --tier when valid). Note comes
-    from the evidence quote/note. Returns the count of add-evidence calls issued.
+    Source paths are canonicalized relative to engagements/{eid}/ (T42 fix 3);
+    a path outside that tree, or an unparseable ref, is dropped to the skip
+    report rather than written. Tier is carried from the node_hit's
+    `evidence_tier` if present. Note comes from the evidence quote/note. Returns
+    the count of add-evidence calls issued.
     """
     calls = 0
-    for _, instance in artifacts:
-        for hit in instance.get("node_hits", []) or []:
+    for path, instance in artifacts:
+        name = path.name
+        for hi, hit in enumerate(instance.get("node_hits", []) or []):
             node = hit.get("node")
             if not node:
                 continue
             # Tier may live on the node_hit or per-evidence entry (forward-compat;
             # schema allows neither today, but carry it when present).
             hit_tier = hit.get("evidence_tier") or hit.get("tier")
-            for ev in hit.get("evidence", []) or []:
+            for ei, ev in enumerate(hit.get("evidence", []) or []):
                 ref = ev.get("ref")
                 parsed = _parse_ref(ref) if ref else None
                 if parsed is None:
+                    skips.add("unparseable evidence ref",
+                              f"{name} node_hits[{hi}].evidence[{ei}] ref={ref!r}")
                     continue
-                source, loc = parsed
+                raw_path, loc = parsed
+                source = _canonical_source(eid, raw_path)
+                if source is None:
+                    skips.add("evidence path outside engagement tree",
+                              f"{name} node_hits[{hi}].evidence[{ei}] path={raw_path!r}")
+                    continue
                 note = ev.get("note") or ev.get("quote")
                 tier = ev.get("tier") or ev.get("evidence_tier") or hit_tier
                 args = ["add-evidence", "--engagement", eid, "--node", node,
@@ -166,14 +344,17 @@ def collect_lens_signals(
 ) -> Dict[Tuple[str, str], List[Dict[str, Any]]]:
     """Collect all (med/high) lens signals keyed by (node, lens).
 
-    low-confidence signals are dropped. Returns {(node, lens): [signal, ...]}.
+    low-confidence signals are dropped, as are signals missing a lens/value.
+    Nodes are assumed already validated as `l1.l2`-in-taxonomy by the pre-flight,
+    but we re-guard defensively so a malformed node can never reach the
+    dot-split in _raise_conflict_gap. Returns {(node, lens): [signal, ...]}.
     """
     collected: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
     for _, instance in artifacts:
         for hit in instance.get("node_hits", []) or []:
             node = hit.get("node")
-            if not node:
-                continue
+            if not node or not _NODE_RE.match(str(node)):
+                continue  # pre-flight already aborts on this; belt-and-braces
             for sig in hit.get("lens_signals", []) or []:
                 conf = str(sig.get("confidence") or "").lower()
                 if conf not in KEPT_CONFIDENCE:
@@ -224,7 +405,11 @@ def apply_lenses(
 
 def _raise_conflict_gap(eid: str, node: str, lens: str,
                         signals: List[Dict[str, Any]], distinct: List[str]) -> None:
-    """add-item a GAP-CONFLICT row (upsert by dedup_key, never duplicated)."""
+    """add-item a GAP-CONFLICT row (upsert by dedup_key, never duplicated).
+
+    `node` is guaranteed `l1.l2` by the pre-flight, so the dot-split below is
+    safe (T42 fix 2).
+    """
     gap_id = _conflict_id(node, lens)
     refs = sorted({s.get("evidence_ref") for s in signals if s.get("evidence_ref")})
     observation = (
@@ -232,9 +417,10 @@ def _raise_conflict_gap(eid: str, node: str, lens: str,
         f"signals disagree ({', '.join(distinct)}). Lens left null pending human "
         f"resolution. Conflicting evidence: {', '.join(refs) if refs else '(none cited)'}."
     )
+    l1, l2 = node.split(".", 1)
     args = [
         "add-item", "--engagement", eid, "--type", "gap",
-        "--l1", node.split(".", 1)[0], "--l2", node.split(".", 1)[1],
+        "--l1", l1, "--l2", l2,
         "--id", gap_id,
         "--field", "tag=unconfirmed",
         "--field", f"dedup_key={gap_id}",
@@ -250,11 +436,15 @@ def _raise_conflict_gap(eid: str, node: str, lens: str,
 
 # ---- step 5: unmapped -------------------------------------------------------
 
-def apply_unmapped(eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]]) -> int:
-    """add-item --type unmapped for each unmapped entry (dedup by evidence_ref).
+def apply_unmapped(
+    eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]]
+) -> int:
+    """add-item --type unmapped for each unmapped entry.
 
-    Returns the count of add-item calls issued. dedup_key = evidence_ref so a
-    re-run upserts the same row rather than minting a duplicate.
+    dedup_key = `{evidence_ref}:{normalized-summary-hash}` (T42 fix 5) so two
+    distinct summaries that happen to share an evidence_ref do NOT collapse into
+    one row, while a re-run still upserts the same row rather than minting a
+    duplicate. Returns the count of add-item calls issued.
     """
     calls = 0
     seen_keys: set = set()
@@ -263,16 +453,16 @@ def apply_unmapped(eid: str, artifacts: List[Tuple[Path, Dict[str, Any]]]) -> in
             evidence_ref = um.get("evidence_ref")
             if not evidence_ref:
                 continue
-            # Within one merge run, the same evidence_ref across artifacts should
-            # collapse to one upsert (dedup_key handles cross-run; this avoids a
-            # redundant in-run write).
-            if evidence_ref in seen_keys:
-                continue
-            seen_keys.add(evidence_ref)
             summary = um.get("summary") or "(no summary)"
+            dedup_key = f"{evidence_ref}:{_norm_summary_hash(summary)}"
+            # Within one merge run the same (ref, summary) should collapse to one
+            # upsert; dedup_key handles cross-run.
+            if dedup_key in seen_keys:
+                continue
+            seen_keys.add(dedup_key)
             args = [
                 "add-item", "--engagement", eid, "--type", "unmapped",
-                "--field", f"dedup_key={evidence_ref}",
+                "--field", f"dedup_key={dedup_key}",
                 "--field", f"source={evidence_ref}",
                 "--field", f"observation_pain_point={summary}",
             ]
@@ -294,7 +484,22 @@ def cmd_merge(eid: str) -> None:
 
     valid, skipped = load_valid_artifacts(eid)
 
-    evidence_calls = apply_evidence(eid, valid)
+    # --- fail-closed pre-flight: validate ALL facts before any mutation ------
+    valid_nodes = _load_taxonomy_nodes()
+    errors, skips = preflight_validate(eid, valid, valid_nodes)
+    if errors:
+        sys.stderr.write(
+            f"classify_merge '{eid}': pre-flight FAILED — "
+            f"{len(errors)} structural error(s); no mutations issued:\n"
+        )
+        for e in errors:
+            sys.stderr.write(f"  - {e}\n")
+        raise SystemExit("Aborting merge (fail-closed).")
+
+    # --- mutations (only after the pre-flight passes) ------------------------
+    # Note: apply_evidence re-runs the same parse/canon checks and folds any
+    # newly-observed drops into the SAME skip report instance.
+    evidence_calls = apply_evidence(eid, valid, skips)
     collected = collect_lens_signals(valid)
     lenses_set, conflicts = apply_lenses(eid, collected)
     unmapped_calls = apply_unmapped(eid, valid)
@@ -307,6 +512,7 @@ def cmd_merge(eid: str) -> None:
     print(f"  evidence add-evidence calls: {evidence_calls}")
     print(f"  lenses set: {lenses_set} | conflicts (gaps raised): {conflicts}")
     print(f"  unmapped rows: {unmapped_calls}")
+    skips.print()
     print("  candidate findings: not applied (staged for consolidate)")
 
 

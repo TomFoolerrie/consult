@@ -122,6 +122,10 @@ Each comment in the bundle carries `{id, author, date, comment, anchored_text}`.
 The `anchored_text` is the body span the reviewer commented on — use it to locate
 the node/step the comment is about.
 
+> **Scope limitation:** only document-body comments are extracted. Comments
+> anchored in headers, footers, or footnotes are **out of scope** and will not
+> appear in the bundle. Ask reviewers to leave comments in the document body.
+
 ### 2. Classify each comment
 
 Assign a `comment_id` (the bundle's `id`) and one of the categories above

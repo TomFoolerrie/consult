@@ -26,7 +26,7 @@ Node-bound items (`improvement`, `gap`, `screenshot`) link to their taxonomy nod
 
 In a pipeline engagement the file is `engagements/{id}/register.json`.
 
-**Script:** `scripts/improvement_log.py`
+**Script:** `skills/consult-improvement-log/scripts/improvement_log.py`
 
 ---
 
@@ -65,7 +65,7 @@ To call the engine directly, use `upsert-json` with records as structured JSON v
 exactly one of `--records-json` (inline) or `--records-file` (a path):
 
 ```bash
-python scripts/improvement_log.py upsert-json \
+python skills/consult-improvement-log/scripts/improvement_log.py upsert-json \
   --json "register.json" \
   --out-json "register.json" \
   --records-json '[{"id":"IMP-0001","type":"improvement","dedup_key":"close::manual-checklist","recommended_action":"..."}]' \
@@ -90,14 +90,14 @@ on a later run upserts onto its existing row instead of minting a duplicate id.
 ## Validate
 
 ```bash
-python scripts/improvement_log.py validate --json "register.json"
+python skills/consult-improvement-log/scripts/improvement_log.py validate --json "register.json"
 ```
 
 Reports per-record vocab issues and a count by `type`. Read-only. Add an optional JSON
 Schema check with `--schema`:
 
 ```bash
-python scripts/improvement_log.py validate --json "register.json" --schema "schemas/item_register.schema.json"
+python skills/consult-improvement-log/scripts/improvement_log.py validate --json "register.json" --schema "schemas/item_register.schema.json"
 ```
 
 Vocab validation is **non-fatal**: values outside the controlled sets are flagged (sets
@@ -113,12 +113,12 @@ row; hard delete drops it.
 
 ```bash
 # Archive by ID (retained for history)
-python scripts/improvement_log.py remove \
+python skills/consult-improvement-log/scripts/improvement_log.py remove \
   --json "register.json" --ids IMP-0024 \
   --out-json "register.json" --archive --modified-by "agent"
 
 # Hard delete by ID (omit --archive) — for duplicates, test rows, errors
-python scripts/improvement_log.py remove \
+python skills/consult-improvement-log/scripts/improvement_log.py remove \
   --json "register.json" --ids IMP-0024 \
   --out-json "register.json" --modified-by "agent"
 ```
@@ -128,7 +128,7 @@ python scripts/improvement_log.py remove \
 ## build-xlsx — optional read-only snapshot
 
 ```bash
-python scripts/improvement_log.py build-xlsx \
+python skills/consult-improvement-log/scripts/improvement_log.py build-xlsx \
   --json "register.json" \
   --xlsx "Item Register.xlsx"
 ```
