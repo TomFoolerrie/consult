@@ -1,6 +1,16 @@
 ---
 name: consult-run
-description: Engagement orchestrator (the one entry an associate invokes to advance an engagement). Loops scripts/orchestrate.py next --engagement E --json, then performs the single returned action — runs the deterministic script itself, or fans out the named sub-agent skill once per target — walking the state-driven order ingest -> classify -> merge -> consolidate -> gap -> draft -> synthesize -> render, then through the review re-entry (a node re-marked diagnosis-dirty loops back to consolidate -> draft -> render) to the final gate. At the final gate it runs gates.py final-check: pass -> recommends the terminal `final` action (agent applies it, setting deliverable statuses final, then `next` reports `done`); fail -> `gate_blocked` naming the failing gates. Re-running is always safe — orchestrate.py is read-only and re-derives the next step from state.
+description: >-
+  Engagement orchestrator (the one entry an associate invokes to advance an engagement).
+  Loops scripts/orchestrate.py next --engagement E --json, then performs the single returned
+  action — runs the deterministic script itself, or fans out the named sub-agent skill once
+  per target — walking the state-driven order ingest -> classify -> merge -> consolidate ->
+  gap -> draft -> synthesize -> render, then through the review re-entry (a node re-marked
+  diagnosis-dirty loops back to consolidate -> draft -> render) to the final gate. At the
+  final gate it runs gates.py final-check: pass -> recommends the terminal `final` action
+  (agent applies it, setting deliverable statuses final, then `next` reports `done`); fail
+  -> `gate_blocked` naming the failing gates. Re-running is always safe — orchestrate.py is
+  read-only and re-derives the next step from state.
 ---
 
 # Skill: Consult Run — State-driven Orchestrator
