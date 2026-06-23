@@ -1,14 +1,14 @@
 # T56 — Per-phase cost instrumentation (measure the real hotspot)
 
 **Slice 4 (Cost & Runtime Efficiency) · Follow-up · From field run (3 real artifacts, ~$10) ·
-Depends: T54 Tier 2 (for `budget.spent()` signal) · Feeds T54 + T55 acceptance · Touches:
+Depends: T57's workflow (for `budget.spent()` signal) · Feeds T54 + T55 acceptance · Touches:
 `.claude/workflows/consult-fanout.*` (the per-stage `budget` snapshots),
 `scripts/orchestrate.py`, `scripts/consolidate_inputs.py`, `scripts/draft_inputs.py`,
 `scripts/synthesis_inputs.py`, `scripts/cost_report.py` (new), `tests/`.**
 
 > **Runtime correction.** Earlier I claimed "Desktop has no programmatic per-phase token meter, so
 > instrument content size as a proxy." **That undersold the Claude Code runtime.** Under T54's
-> Tier-2 fan-out **Workflow**, the script has a **`budget` object** with **`budget.spent()`**
+> T57 fan-out **Workflow**, the script has a **`budget` object** with **`budget.spent()`**
 > returning output tokens spent this turn across the main loop and all workflows (confirmed against
 > the live Workflow tool contract). So **real per-phase output-token accounting is available** —
 > snapshot `budget.spent()` around each fan-out stage. The size proxy below is now a *complement*
@@ -24,7 +24,7 @@ beyond a raw dollar total. We need a per-phase map.
 
 ## Build
 
-**Primary — `budget.spent()` deltas in the fan-out workflow (with T54 Tier 2):**
+**Primary — `budget.spent()` deltas in the fan-out workflow (with T57's workflow):**
 1. In the fan-out Workflow, snapshot `budget.spent()` immediately before and after each stage's
    fan-out (classify / consolidate / draft / synthesize). The delta = output tokens that stage
    cost. `log()` a per-stage line (stage, #targets, Δoutput-tokens) and return the rollup so
@@ -59,7 +59,7 @@ the map; T54/T55 reference its before/after.
 - Size estimates are **deterministic** for a fixed corpus (same fixture → same numbers).
 - The gatherers' normal `--json` bundle output is **unchanged** (measurement is side-channel) —
   sub-agents consume exactly what they did before; Slice-1 e2e green.
-- **Workflow budget path (with T54 Tier 2):** a 2-stage dry-run logs two non-negative
+- **Workflow budget path (with T57's workflow):** a 2-stage dry-run logs two non-negative
   `budget.spent()` deltas summing to ≤ the total spent; per-stage lines present in the rollup.
 
 ## DoD

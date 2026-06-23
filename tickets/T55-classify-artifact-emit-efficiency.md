@@ -1,16 +1,16 @@
 # T55 — Classify artifact: emit efficiency (constrained emission + payload trim)
 
 **Slice 4 (Cost & Runtime Efficiency) · Follow-up · From field run (3 real artifacts) ·
-Depends: T54 Tier 2 (for constrained emission) · Touches:
+Depends: T57 (the fan-out workflow + its schema seam) for Phase 2; Phase 1 has no dep · Touches:
 `schemas/classify_artifact.schema.json`, `skills/consult-classifier/SKILL.md`,
-`.claude/workflows/consult-fanout.*` (the classify `agent()` call), `scripts/classify_merge.py`,
+`.claude/workflows/consult-fanout.*` (the classify `agent()` schema seam), `scripts/classify_merge.py`,
 `scripts/validate_artifact.py`, `tests/`.**
 
 > **Runtime correction.** Earlier I deferred constrained/tool-call emission "to the API/SDK path,
 > not available in Desktop." **That was wrong** — you run **Claude Code**, whose **Workflow
 > `agent(prompt, {schema})`** forces a StructuredOutput tool call and returns a **schema-validated
 > object** (confirmed against the live Workflow tool contract, not just docs). So valid-by-
-> construction emission is **available now**, under T54's Tier-2 fan-out workflow. This is the
+> construction emission is **available now**, under the T57 fan-out workflow. This is the
 > primary fix; the `quote` trim is a secondary token win that helps on either path.
 
 > **Scope note.** The *only* model-hand-authored JSON-against-schema in the suite is the
@@ -37,7 +37,7 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 ## Decision (recorded)
 
 - **(1) Constrained emission via Workflow `agent({schema})` — chosen, primary.** When classify
-  fan-out runs under T54's Tier-2 workflow, the per-doc `agent()` call passes
+  fan-out runs under T57's fan-out workflow, the per-doc `agent()` call passes
   `{schema: <classify_artifact.schema>}`. The runtime forces a StructuredOutput tool call and
   returns a validated object; the workflow writes it to `classify/{hash}.artifact.json`. The
   write→validate→rewrite loop (#1, #3) **disappears** — there is no hand-authored file to fail.
@@ -47,7 +47,7 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 - **(2) Drop `quote` from the emit contract — chosen, independent.** Keep `ref` + a short `note`.
   Highest value-to-change ratio; helps tokens on **both** the constrained and the legacy hand-
   authored path. Near-zero risk (merge already prefers `note`).
-- **(3) NDJSON shallow records — demoted to fallback.** Only worthwhile if T54 Tier 2 is *not*
+- **(3) NDJSON shallow records — demoted to fallback.** Only worthwhile if T57's workflow is *not*
   adopted (no constrained emission), to localize retries on the hand-authored path. With (1) in
   place the rewrite loop is gone, so NDJSON's main benefit evaporates. Keep as a documented
   fallback, don't build speculatively.
@@ -64,7 +64,7 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
    absent (`ev.get("quote") → None` — already graceful); add a comment marking `quote` legacy.
 4. `validate_artifact.py`: absence of `quote` is not an error; guidance points at missing `note`.
 
-**Phase 2 — constrained emission (with T54 Tier 2):**
+**Phase 2 — constrained emission (with T57's workflow):**
 - In the fan-out workflow's classify stage, pass the artifact JSON Schema to `agent({schema})`.
   Load the schema from `schemas/classify_artifact.schema.json` so there is **one** source of truth
   (the StructuredOutput schema and the `validate_artifact.py` schema must not drift).
@@ -92,7 +92,7 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 
 - `quote` removed from the emit contract; `ref` + `note` carry evidence; merge + validator behave
   identically; existing fixtures validate + merge byte-identically on the state side.
-- Under T54 Tier 2, classify emission is schema-validated by construction — no write→validate→
+- Under T57's workflow, classify emission is schema-validated by construction — no write→validate→
   rewrite loop — with cross-field checks still enforced and a single schema source of truth.
 - NDJSON either unneeded (constrained path adopted) or documented as the fallback for the hand-
   authored path.

@@ -102,15 +102,22 @@ gates synthesize (T45); document the docx headers/footers limitation, don't exte
 
 Surfaced running the suite on real client artifacts. **Runtime confirmed: Claude Code hosted in
 the Claude Desktop app** — has sub-agents, skills-in-sub-agents, and the **Workflow** tool. The
-keystone is **T54 Tier 2**: drive each fan-out stage with a deterministic Workflow. That single
-move makes delegation structural (T54), unlocks schema-validated emission (T55), and exposes
-`budget.spent()` per-phase cost (T56) — all three tickets hang off it.
+keystone is **T57** (the deterministic fan-out Workflow): T54 wires `consult-run` to invoke it,
+and T55 (schema emission) + T56 (`budget.spent()` cost) plug into its seams. That one substrate
+makes delegation structural, unlocks valid-by-construction JSON, and exposes per-phase cost.
+
+**Build order:** Wave A (parallel, no deps) = T54 Tier 1 prose + T55 Phase 1 `quote`-trim →
+Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2 wiring + T55 Phase 2 + T56 →
+Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch different files and can
+overlap once T57's seams exist.
 
 | # | Title | Depends | Touches |
 |---|---|---|---|
-| T54 | Orchestrator delegation enforcement — blocking prose + content-starvation (Tier 1) + deterministic Workflow fan-out (Tier 2, keystone) | — | skills/consult-run, .claude/workflows (new) |
-| T55 | Classify artifact emit efficiency — drop redundant `quote` + constrained `agent({schema})` emission (NDJSON = fallback) | T54 Tier 2 | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
-| T56 | Per-phase cost instrumentation — `budget.spent()` deltas (real output tokens) + content-free input-size complement | T54 Tier 2 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+| T54 | Orchestrator delegation enforcement — blocking prose + content-starvation (Tier 1) + wire `consult-run` to the T57 workflow (Tier 2) | T57 (for Tier 2) | skills/consult-run |
+| T57 | **Fan-out Workflow scaffold** (foundation) — stage-parameterized deterministic driver: one `agent()` per target, classify `then_script`, schema + budget seams, `null`-tolerant partial completion, human-gate guard | — | .claude/workflows (new) |
+| T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained `agent({schema})` emission (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
+| T56 | Per-phase cost instrumentation — `budget.spent()` deltas (real output tokens) + content-free input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+| T58 | **Slice-4 integration & regression** (build last) — workflow path == prose path (byte-identical state/deliverables), constrained emission validates, gates fire, cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
 
 > **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
 > output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool

@@ -1,8 +1,9 @@
 # T54 — Orchestrator delegation enforcement (stop inline self-execution)
 
 **Slice 4 (Cost & Runtime Efficiency) · Follow-up · From field run (3 real artifacts, ~$10) ·
-Depends: — · Keystone for T55 + T56 · Touches: `skills/consult-run/SKILL.md`,
-`.claude/workflows/consult-fanout.*` (new, optional), dispatch contract docs.**
+Depends: T57 (the fan-out workflow Tier 2 invokes) · Keystone-pair with T57 for T55 + T56 ·
+Touches: `skills/consult-run/SKILL.md`, dispatch contract docs. (The workflow itself is built in
+**T57**; this ticket wires `consult-run` to invoke it.)**
 
 > **Runtime confirmed (was an open fork; now resolved).** The engagement runs in **Claude Code
 > hosted in the Claude Desktop app** — which **has** sub-agents (the Agent/Task primitive), skills
@@ -59,22 +60,17 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
   cannot inline. It handles only `orchestrate.py next` output (`{action, kind, targets}`) + the
   workers' one-line summaries.
 
-**Tier 2 (the keystone):**
-- Add a committed fan-out Workflow (e.g. `.claude/workflows/consult-fanout.*`, or an inline
-  script `consult-run` invokes) parameterized by stage + targets. For an `llm_fanout` action it:
-  1. reads the targets from `orchestrate.py next --json`;
-  2. `pipeline()`/`parallel()` over targets, one `agent()` per target running the named skill
-     (`consult-classifier` / `consult-consolidator` / `consult-drafter` + `consult-improvement-drafter`
-     / `consult-synthesizer`), each fed by its read-only input-gatherer;
-  3. for **classify**, runs `classify_merge.py merge` as the `then_script` after the fan-out;
-  4. returns per-target one-line summaries to `consult-run`, which then re-runs
-     `orchestrate.py next` and proceeds to the next action / human gate.
-- Each worker still writes **only its own artifact/deliverable** and **never** state (unchanged
-  contract). `orchestrate.py` stays read-only; the action contract (`kind`, `targets`) is
-  unchanged — this ticket changes *how the orchestrator obeys the tags*, not the tags.
-- Wire **T55** here: the classify `agent()` call carries `{schema: classify_artifact.schema}`
-  (valid-by-construction emission). Wire **T56** here: snapshot `budget.spent()` around each
-  stage's fan-out for the per-phase cost map.
+**Tier 2 (the keystone — wiring; the workflow is built in T57):**
+- Wire `consult-run` so that for each `llm_fanout` action it **invokes the deterministic fan-out
+  workflow (T57)** with `{engagement, stage, targets}` from `orchestrate.py next --json`, instead
+  of hand-spawning N sub-agents via prose. The workflow returns per-target one-line summaries;
+  `consult-run` then re-runs `orchestrate.py next` and proceeds to the next action / human gate.
+- `consult-run` remains the **interactive, gate-respecting** layer: it owns the render gate and the
+  `status.needs_human` stops; the workflow only handles the bounded per-stage fan-out (see T57's
+  human-in-the-loop guard). `orchestrate.py` stays read-only; the action contract (`kind`,
+  `targets`) is unchanged — this ticket changes *how the orchestrator obeys the tags*, not the tags.
+- The workflow exposes the seams **T55** (classify `agent({schema})`) and **T56**
+  (`budget.spent()` per-stage snapshot) plug into — built in T57, switched on by T55/T56.
 
 ## Tests
 
@@ -82,9 +78,9 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
   — exercise via the Slice-1 e2e fixture.
 - Grep/lint: `consult-run` no longer instructs the orchestrator to read `ingested/*.md` or invoke
   the gatherers directly; the blocking-delegation language is present.
-- **Workflow dry-run (Tier 2):** the fan-out workflow, given a 2-target stage, issues exactly
-  **2** `agent()` calls (one per target) and runs the `then_script` for classify — assert the
-  call count, not the model's discretion.
+- **Delegation wiring (Tier 2):** for an `llm_fanout` action, `consult-run` invokes the T57
+  workflow (with the action's `targets`) rather than reading content itself. (The per-target
+  `agent()` call-count assertion lives in T57.)
 - **Manual re-measure (real acceptance, via T56):** re-run the 3-artifact engagement; record per
   stage whether it dispatched, and total cost vs the ~$10 baseline. **Counts + cost only, no
   client content.**
@@ -92,9 +88,8 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
 ## DoD
 
 - Tier 1 shipped: `consult-run` dispatch is blocking + content-starved.
-- Tier 2 shipped (or explicitly sequenced as the immediate next ticket): each `llm_fanout` stage
-  runs through a deterministic Workflow that spawns one worker per target; the orchestrator can no
-  longer perform fan-out work in its own context.
+- Tier 2 shipped: `consult-run` delegates each `llm_fanout` stage to the deterministic T57
+  workflow; the orchestrator can no longer perform fan-out work in its own context.
 - Human gates (render, `needs_human`) are preserved — the workflow is per-stage, never
   whole-engagement.
 - `orchestrate.py` action contract unchanged; Slice-1 e2e green.
