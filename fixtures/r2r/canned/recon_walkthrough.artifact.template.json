@@ -1,0 +1,70 @@
+{
+  "doc": {
+    "source": "__RECON_MD__",
+    "doc_type": "transcript",
+    "classified_at": "2026-06-21T00:00:00Z"
+  },
+  "node_hits": [
+    {
+      "node": "record-to-report.consolidation",
+      "confidence": "high",
+      "rationale": "Walkthrough of consolidation: central data collection, automated intercompany eliminations, manual topside entries, centralized corporate review.",
+      "l3_hints": ["Collect Data", "Intercompany Eliminations (Asset, Debt, Income, Inventory)", "Topside Entries", "Corporate Review"],
+      "evidence": [
+        {
+          "ref": "__RECON_MD__#L23",
+          "quote": "each entity submits its reconciliations into the consolidation system. We collect data from every ledger and load it centrally before we run eliminations.",
+          "note": "Central data collection into the consolidation system (verbal)."
+        },
+        {
+          "ref": "__RECON_MD__#L27",
+          "quote": "The consolidation tool runs the intercompany eliminations automatically based on matched IC accounts. It's a fairly mature, machine-driven step.",
+          "note": "Automated intercompany eliminations; manual topside entries."
+        },
+        {
+          "ref": "__RECON_MD__#L35",
+          "quote": "Consolidation is fully centralized at corporate. Regions feed data in, but the actual consolidation and corporate review happen in one central team.",
+          "note": "Centralized consolidation operating model."
+        }
+      ],
+      "lens_signals": [
+        { "lens": "current_state", "value": "present", "confidence": "high", "evidence_ref": "__RECON_MD__#L23", "rationale": "A consolidation process exists and runs each close." },
+        { "lens": "process", "value": "strength", "confidence": "med", "evidence_ref": "__RECON_MD__#L27", "rationale": "Mature, machine-driven elimination step is a relative strength." },
+        { "lens": "automation", "value": "machine", "confidence": "high", "evidence_ref": "__RECON_MD__#L27", "rationale": "Intercompany eliminations run automatically in the consolidation tool." },
+        { "lens": "operating_model", "value": "central", "confidence": "high", "evidence_ref": "__RECON_MD__#L35", "rationale": "Consolidation and corporate review are fully centralized." }
+      ],
+      "candidate_findings": [
+        {
+          "type": "improvement",
+          "tag": "automation",
+          "confidence": "med",
+          "observation": "Topside entries are still booked manually by corporate while eliminations are automated.",
+          "recommended_action": "Templatize/automate recurring topside entries to match the maturity of the elimination step.",
+          "evidence_ref": "__RECON_MD__#L27"
+        }
+      ]
+    },
+    {
+      "node": "record-to-report.close",
+      "confidence": "med",
+      "rationale": "Reconciliations (an Account Reconciliations close activity) are described as a relative strength.",
+      "l3_hints": ["Account Reconciliations"],
+      "evidence": [
+        {
+          "ref": "__RECON_MD__#L31",
+          "quote": "Reconciliations are actually one of our stronger areas. The recon tool is standardized, every account has an owner, and aging items get escalated.",
+          "note": "Standardized recon tool with ownership and escalation (verbal)."
+        }
+      ],
+      "lens_signals": []
+    }
+  ],
+  "unmapped": [
+    {
+      "summary": "Annual charitable-giving employee match program / donation portal publicity — an HR/philanthropy request, unrelated to any finance work-taxonomy activity.",
+      "evidence_ref": "__RECON_MD__#L35",
+      "nearest_node": "risk-policy-controls.policy-management",
+      "reason": "Employee charitable-giving match is an HR/CSR matter outside the finance taxonomy."
+    }
+  ]
+}

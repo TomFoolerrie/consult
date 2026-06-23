@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cfgi/consult/item_register.schema.json",
+  "title": "Item Register",
+  "description": "Layer 2 source of truth: flat list of items (improvements, gaps, screenshots, unmapped, themes) hanging off L2 nodes. Owned by improvement_log.py. Records allow additional properties for forward-compatibility; the script flags unknown enum values for human review rather than rejecting them.",
+  "type": "object",
+  "required": ["records"],
+  "additionalProperties": true,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "engagement": { "type": ["string", "null"] },
+        "record_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "schema": { "type": "object" },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/record" }
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["improvement", "gap", "screenshot", "unmapped", "theme"] },
+        "tag": { "type": ["string", "null"] },
+        "dedup_key": { "type": ["string", "null"], "description": "Stable key for LLM-confirmed findings so re-consolidation upserts instead of minting a duplicate id." },
+        "evidence_tier": { "enum": ["verbal", "documentary", "system_observed", null], "description": "Defensibility tier of the supporting evidence." },
+        "disposition": { "enum": ["pending", "reclassified", "converted", "out_of_scope", null], "description": "For unmapped rows: how the content was resolved. The final gate requires non-pending, not merely an owner." },
+        "related_nodes": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$" }, "description": "For type:theme cross-cutting findings spanning multiple L2 nodes." },
+        "date_identified": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "l1_cycle": { "type": ["string", "null"] },
+        "l2_process": { "type": ["string", "null"] },
+        "l3_activity": { "type": ["string", "null"] },
+        "observation_pain_point": { "type": ["string", "null"] },
+        "root_cause": { "type": ["string", "null"] },
+        "recommended_action": { "type": ["string", "null"] },
+        "impact_type": { "enum": ["cost", "time", "risk", "quality", "control", null] },
+        "estimated_impact_benefit": { "type": ["string", "null"] },
+        "effort": { "enum": ["low", "med", "high", null] },
+        "priority": { "enum": ["p1", "p2", "p3", null] },
+        "owner": { "type": ["string", "null"] },
+        "phase": { "type": ["string", "null"] },
+        "escalation_status": { "type": ["string", "null"] },
+        "process_owner_contacts": { "type": ["string", "null"] },
+        "notes_next_step": { "type": ["string", "null"] },
+        "record_status": { "enum": ["active", "archived", "inactive", "deleted_candidate", null] },
+        "review_status": { "enum": ["needs_review", "reviewed", "approved", "rejected", null] },
+        "requires_human_review": { "type": ["boolean", "null"] },
+        "last_modified_by": { "type": ["string", "null"] },
+        "last_modified_at": { "type": ["string", "null"] },
+        "change_notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

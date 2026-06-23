@@ -1,0 +1,12 @@
+{
+  "engagement": "r2r-demo",
+  "consumed": [
+    {
+      "hash": "e91e323f0fb1c68475f0c3d9fd2ee623fd67877ad339f67a9cbaaa55badd6ccb",
+      "docx": "record-to-report.reviewed.docx",
+      "round": 1,
+      "actions_applied": 3,
+      "consumed_at": "2026-06-21T22:09:59+00:00"
+    }
+  ]
+}
