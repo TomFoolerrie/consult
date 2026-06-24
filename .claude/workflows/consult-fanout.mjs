@@ -1,19 +1,3 @@
-// consult-fanout — deterministic per-stage fan-out for a CONSULT engagement.
-//
-// Invoked BY NAME from the `consult-run` skill (T54 Tier 2) for one llm_fanout
-// action, with args = { engagement, stage, targets, schema? }. It spawns ONE
-// worker sub-agent per target (via custom agent types in .claude/agents/),
-// bounded to a conservative concurrency, runs the classify post-step, and
-// returns a rollup. It NEVER advances the engagement — see the human-gate guard
-// below — so the render hand-off and needs-human stops stay owned by consult-run.
-//
-// Constraints honoured: the workflow script has no filesystem/exec access; ALL
-// side effects happen inside agent() calls (each worker has its own tools), and
-// numbers the script can see (budget) are RETURNED for consult-run / T56 to
-// persist. State is only ever mutated by the workers via state_machine.py.
-
-import { planFanout, FANOUT_STAGES } from "./lib/dispatch-plan.mjs";
-
 export const meta = {
   name: "consult-fanout",
   description: "Deterministic per-stage fan-out for a CONSULT engagement: one worker sub-agent per target (classify/consolidate/draft/synthesize), lock-safe, gate-preserving.",
@@ -21,6 +5,63 @@ export const meta = {
     { title: "fan-out", detail: "spawn one worker agent per target for the given llm_fanout stage" },
   ],
 };
+
+// consult-fanout — deterministic per-stage fan-out for a CONSULT engagement.
+//
+// Invoked (by scriptPath) from the `consult-run` skill (T54 Tier 2) for one
+// llm_fanout action, with args = { engagement, stage, targets, schema? }. It
+// spawns ONE worker sub-agent per target (via custom agent types in
+// .claude/agents/), bounded to a conservative concurrency, runs the classify
+// post-step, and returns a rollup. It NEVER advances the engagement — see the
+// human-gate guard below — so the render hand-off and needs-human stops stay
+// owned by consult-run.
+//
+// Constraints honoured: the workflow script has no filesystem/exec access; ALL
+// side effects happen inside agent() calls; numbers the script can see (budget)
+// are RETURNED for consult-run / T56 to persist. State is only ever mutated by
+// the workers via state_machine.py.
+//
+// NOTE: planFanout is INLINED here (the engine requires `export const meta` as
+// the first statement and does not resolve local imports). It is kept in
+// sync with the unit-tested source of truth at ./lib/dispatch-plan.mjs.
+
+const FANOUT_STAGES = ["classify", "consolidate", "draft", "synthesize"];
+
+function planFanout(stage, targets = {}) {
+  const nodeKey = (n) => (typeof n === "string" ? n : (n.node || n.key || n.id || JSON.stringify(n)));
+  const docKey = (d, i) => (typeof d === "string" ? d : (d.path || d.hash || d.source || `doc${i}`));
+  switch (stage) {
+    case "classify":
+      return {
+        calls: (targets.docs || []).map((d, i) => ({
+          agentType: "consult-classifier", label: `classify:${docKey(d, i)}`, target: d,
+        })),
+        postStep: "classify_merge.py merge",
+      };
+    case "consolidate":
+      return {
+        calls: (targets.nodes || []).map((n) => ({
+          agentType: "consult-consolidator", label: `consolidate:${nodeKey(n)}`, target: n,
+        })),
+        postStep: null,
+      };
+    case "draft": {
+      const calls = [];
+      for (const l1 of (targets.l1s || [])) {
+        calls.push({ agentType: "consult-drafter", label: `draft:sop:${l1}`, target: { l1 } });
+        calls.push({ agentType: "consult-improvement-drafter", label: `draft:imp:${l1}`, target: { l1 } });
+      }
+      return { calls, postStep: null };
+    }
+    case "synthesize":
+      return {
+        calls: [{ agentType: "consult-synthesizer", label: "synthesize:engagement", target: { scope: "engagement" } }],
+        postStep: null,
+      };
+    default:
+      throw new Error(`planFanout: '${stage}' is not an llm_fanout stage (${FANOUT_STAGES.join(", ")})`);
+  }
+}
 
 // Conservative DEFAULT concurrency — deliberately BELOW the engine cap
 // (min(16, cores-2)). The field machine ran CPU-bound; favour responsiveness +
@@ -60,7 +101,9 @@ function workerPrompt(engagement, stage, call) {
 }
 
 // ---- main ----------------------------------------------------------------
-const { engagement, stage, targets } = args || {};
+// args may arrive as an object OR as a JSON string — handle both.
+const A = typeof args === "string" ? JSON.parse(args) : (args || {});
+const { engagement, stage, targets } = A;
 if (!engagement) throw new Error("consult-fanout: args.engagement is required");
 if (!FANOUT_STAGES.includes(stage)) {
   throw new Error(`consult-fanout: '${stage}' is not an llm_fanout stage (${FANOUT_STAGES.join(", ")})`);
@@ -78,7 +121,7 @@ const results = await runBounded(plan.calls, FANOUT_CONCURRENCY, async (call) =>
   // When present on classify, the worker returns a schema-validated object
   // (valid-by-construction). Off (undefined) => today's hand-authored path.
   const opts = { agentType: call.agentType, label: call.label };
-  if (stage === "classify" && args.schema) opts.schema = args.schema;
+  if (stage === "classify" && A.schema) opts.schema = A.schema;
   const out = await agent(workerPrompt(engagement, stage, call), opts);
   return { label: call.label, agentType: call.agentType, ok: out != null, summary: out ?? null };
 });
