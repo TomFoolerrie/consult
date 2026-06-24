@@ -79,8 +79,10 @@ Two tiers; **Tier 2 is the durable fix and the keystone that also unlocks T55/T5
 - **Field mapping:** `orchestrate.py next` emits the stage under the key `action` (not `stage`);
   `consult-run` maps `action → stage` when calling the workflow.
 - **`then_script` / merge ownership moves to the workflow** for the Tier-2 path: post-Tier-2 the
-  classify `merge` (and the consolidate apply step) run **inside** the T57 workflow, so `consult-run`
-  must **stop** running `classify_merge.py merge` itself (else the merge runs twice or zero times).
+  classify `merge` runs **inside** the T57 workflow, so `consult-run` must **stop** running
+  `classify_merge.py merge` itself (else the merge runs twice or zero times). (Consolidate has no
+  separate apply step — each consolidator applies its own findings inline under the lock, T57
+  Decision B — so there is nothing for `consult-run` to run or stop there.)
 - `consult-run` remains the **interactive, gate-respecting** layer: it owns the render gate and the
   `status.needs_human` stops; the workflow only handles the bounded per-stage fan-out (see T57's
   human-in-the-loop guard). `orchestrate.py` stays read-only; the action contract (`kind`,

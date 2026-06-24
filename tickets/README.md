@@ -116,17 +116,19 @@ makes delegation structural, unlocks valid-by-construction JSON, and exposes per
 | # | Title | Depends | Touches |
 |---|---|---|---|
 | T54 | Orchestrator delegation enforcement — blocking prose + explicit content prohibition (Tier 1, a *nudge* not a gate) + wire `consult-run` to the committed `.claude/workflows/consult-fanout` by name (Tier 2) | T57 (for Tier 2) | skills/consult-run |
-| T57 | **Fan-out Workflow scaffold** (foundation) — correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1); classify `merge` + consolidate **emit-JSONL→serial-apply** post-steps; 5 custom agent types; schema + budget seams; structural human-gate guard. NB: draft/synth workers DO write state via `state_machine.py`. | — | .claude/workflows, .claude/agents (5), consolidate_merge.py (new) |
+| T57 | **Fan-out Workflow scaffold** (foundation) — correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1); classify `merge` post-step; **consolidate applies inline under the T40 lock**; 5 custom agent types (tool-scoped); schema + budget seams; structural human-gate guard; conservative default concurrency. NB: consolidate/draft/synth workers write state via `state_machine.py`. | — | .claude/workflows, .claude/agents (5) |
 | T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained emission via the `consult-classifier` agent type + `{schema}` (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
 | T56 | Per-phase cost instrumentation — `budget.spent()` deltas persisted to content-free `cost_map.json` + input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
 | T58 | **Slice-4 integration & regression** (build last) — given identical *stubbed* LLM outputs, the workflow and prose dispatch paths produce byte-identical **spine** output (state/register/render, normalized); LLM-authored MDs validate structurally only; constrained emission validates; gates fire; cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
 
-> **Decisions locked** (owner, post-review): **(A)** skill invocation = **custom agent types** —
-> 5 `.claude/agents/` defs preloading their skills, tool-scoped, `agent()` sets `agentType`; **(B/D)**
-> consolidate = **parallel emit to per-node JSONL → deterministic serial apply** (no concurrent
-> shared-state writes; resolves the parallelism-vs-conflict tension; classify pattern generalized);
-> **(C)** `consult-run` invokes the **committed named workflow** `.claude/workflows/consult-fanout`
-> by name. Build sequencing: **specs locked, build deferred**.
+> **Decisions locked** (owner, post-review — incl. an adversarial 2nd pass on T57): **(A)** skill
+> invocation = **custom agent types** — 5 `.claude/agents/` defs preloading their skills, tool-scoped,
+> `agent()` sets `agentType`; **(B)** consolidate = **parallel, each worker applies inline
+> (mint→cite→mark) under the T40 engagement lock** — the 2nd review killed the original
+> JSONL→deferred-apply design (it broke the consolidator's ID-before-citation contract and the
+> "conflict" it prevented was a phantom the lock already handles); **(C)** `consult-run` invokes the
+> **committed named workflow** `.claude/workflows/consult-fanout` by name. Concurrency defaulted
+> **conservatively** (field machine was CPU-bound). Build sequencing: **specs locked, build deferred**.
 
 > **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
 > output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool
