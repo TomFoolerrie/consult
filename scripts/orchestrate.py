@@ -448,6 +448,145 @@ def cmd_next(eid: str, as_json: bool, list_all: bool) -> None:
     _print_action(obj, "Next action")
 
 
+# ---------------------------------------------------------------------------
+# `measure` — read-only per-phase size walk (T56). Content-free.
+# ---------------------------------------------------------------------------
+# Mirrors `next`'s shape: a pure DERIVATION from disk state that writes nothing.
+# It reports, per phase, the natural fan-out targets, an ESTIMATED input size per
+# target (reusing the gatherers' own content-free sizing — `build_bundle` +
+# `_measure_sections`), and the on-disk output artifact/MD sizes. Every figure is
+# a number/count/fixed-label; no document text, refs, keys, or `source#loc`.
+
+
+def _bytes_on_disk(path: Path) -> int:
+    """File size in bytes (0 if absent). Read-only stat, never reads content."""
+    try:
+        return path.stat().st_size
+    except OSError:
+        return 0
+
+
+def _input_size_for(build_bundle, sections_fn, *args) -> Optional[Dict[str, Any]]:
+    """Content-free input-size summary for one target via a gatherer's own sizing.
+
+    Reuses the gatherer's `build_bundle` + `_measure_sections` so `measure` and
+    the `--measure` side-channel report identical numbers for the same fixture.
+    Returns None (rather than raising) if a target's bundle can't be built — a
+    measurement walk must not dead-end on one malformed node.
+    """
+    try:
+        import measure_util
+        bundle = build_bundle(*args)
+        return measure_util.summarize(bundle, sections_fn(bundle))
+    except Exception:
+        return None
+
+
+def _measure_phases(eid: str) -> Dict[str, Any]:
+    """Per-phase content-free size map for the engagement. READ-ONLY.
+
+    Phases mirror the gatherers: consolidate (per L2 node with evidence), draft
+    (per L1), synthesize (whole engagement). Output sizes are the deliverable
+    MD/.docx bytes on disk per phase.
+    """
+    if not engagement_dir(eid).exists():
+        raise SystemExit(f"No engagement '{eid}' at {engagement_dir(eid)}.")
+
+    import consolidate_inputs
+    import draft_inputs
+    import synthesis_inputs
+
+    _, state = load_state(eid)
+    edir = engagement_dir(eid)
+    nodes = state["nodes"]
+    l1s = _l1_ids(state)
+
+    phases: List[Dict[str, Any]] = []
+
+    # consolidate — one consolidator per L2 node carrying evidence.
+    con_targets: List[Dict[str, Any]] = []
+    for key in sorted(nodes):
+        if not (nodes[key].get("evidence")):
+            continue
+        summ = _input_size_for(consolidate_inputs.build_bundle,
+                               consolidate_inputs._measure_sections,
+                               eid, key, False)
+        con_targets.append({
+            "target": key,
+            "est_input_tokens": (summ or {}).get("est_tokens"),
+            "input_chars": (summ or {}).get("total_chars"),
+        })
+    phases.append({
+        "phase": "consolidate",
+        "targets": len(con_targets),
+        "per_target": con_targets,
+        "est_input_tokens_total": sum(t["est_input_tokens"] or 0 for t in con_targets),
+        "output_bytes": 0,  # consolidate writes node MDs (per-node, below in draft inputs)
+    })
+
+    # draft — one drafter per L1; output = the per-L1 SOP + improvements MD/.docx.
+    draft_targets: List[Dict[str, Any]] = []
+    draft_out_bytes = 0
+    for l1 in l1s:
+        summ = _input_size_for(draft_inputs.build_bundle,
+                               draft_inputs._measure_sections, eid, l1)
+        out_b = 0
+        for stream in ("sop", "improvements"):
+            out_b += _bytes_on_disk(edir / "deliverables" / stream / f"{l1}.md")
+            out_b += _bytes_on_disk(edir / "deliverables" / stream / f"{l1}.docx")
+        draft_out_bytes += out_b
+        draft_targets.append({
+            "target": l1,
+            "est_input_tokens": (summ or {}).get("est_tokens"),
+            "input_chars": (summ or {}).get("total_chars"),
+            "output_bytes": out_b,
+        })
+    phases.append({
+        "phase": "draft",
+        "targets": len(draft_targets),
+        "per_target": draft_targets,
+        "est_input_tokens_total": sum(t["est_input_tokens"] or 0 for t in draft_targets),
+        "output_bytes": draft_out_bytes,
+    })
+
+    # synthesize — whole engagement (one target); output = synthesis MD/.docx.
+    syn = _input_size_for(synthesis_inputs.build_bundle,
+                          synthesis_inputs._measure_sections, eid)
+    syn_out = (_bytes_on_disk(edir / "deliverables" / "synthesis.md")
+               + _bytes_on_disk(edir / "deliverables" / "synthesis.docx"))
+    phases.append({
+        "phase": "synthesize",
+        "targets": 1,
+        "per_target": [{
+            "target": "engagement",
+            "est_input_tokens": (syn or {}).get("est_tokens"),
+            "input_chars": (syn or {}).get("total_chars"),
+            "output_bytes": syn_out,
+        }],
+        "est_input_tokens_total": (syn or {}).get("est_tokens") or 0,
+        "output_bytes": syn_out,
+    })
+
+    return {
+        "engagement": eid,
+        "est_tokens_basis": "chars/4 (estimate, not a tokenizer)",
+        "phases": phases,
+    }
+
+
+def cmd_measure(eid: str, as_json: bool) -> None:
+    report = _measure_phases(eid)
+    if as_json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    print(f"Engagement: {eid}  (read-only per-phase size map; "
+          f"est. tokens = {report['est_tokens_basis']})")
+    print(f"  {'phase':<12} {'#targets':>9} {'est.in.tok':>11} {'out.bytes':>11}")
+    for ph in report["phases"]:
+        print(f"  {ph['phase']:<12} {ph['targets']:>9} "
+              f"{ph['est_input_tokens_total']:>11} {ph['output_bytes']:>11}")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(
         description="State-driven 'what's next' advisor (READ-ONLY).")
@@ -458,9 +597,16 @@ def main() -> None:
                    help="Emit the machine action object as JSON.")
     n.add_argument("--all", action="store_true", dest="list_all",
                    help="List every ready action on the frontier, not just the first.")
+    m = sub.add_parser("measure",
+                       help="READ-ONLY per-phase content-free size map (T56).")
+    m.add_argument("--engagement", required=True)
+    m.add_argument("--json", action="store_true",
+                   help="Emit the machine size map as JSON.")
     args = p.parse_args()
     if args.command == "next":
         cmd_next(args.engagement, args.json, args.list_all)
+    elif args.command == "measure":
+        cmd_measure(args.engagement, args.json)
 
 
 if __name__ == "__main__":

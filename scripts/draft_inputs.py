@@ -31,8 +31,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+# Same-dir helper (scripts/); content-free size side-channel for `--measure`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import measure_util  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
@@ -256,8 +261,41 @@ def print_human(bundle: Dict[str, Any]) -> None:
               f"{len(bundle['appendices'][letter])}")
 
 
-def cmd_gather(eid: str, l1: str, as_json: bool) -> None:
+def _measure_sections(bundle: Dict[str, Any]) -> List[Tuple[str, Any]]:
+    """Fixed-label structural breakdown for the size side-channel (content-free).
+
+    `taxonomy-slice` = the L1 scalars + per-L2 lenses/coverage/keys; `prior-MD` =
+    the inlined node MD bodies (the bulk of the draft input); `evidence` = the
+    per-L2 evidence lists; `appendices` = the register rows bucketed to A-D.
+    Only serialized SIZES of these subtrees are emitted, never their content.
+    """
+    l2_nodes = bundle.get("l2_nodes", []) or []
+    taxonomy_slice = {
+        "l1": bundle.get("l1"),
+        "l1_name": bundle.get("l1_name"),
+        "l2_count": bundle.get("l2_count"),
+        "appendix_map": bundle.get("appendix_map"),
+        "sop_path": bundle.get("sop_path"),
+        "l2_meta": [{k: nb.get(k) for k in ("key", "l1", "l2", "coverage", "lenses")}
+                    for nb in l2_nodes],
+    }
+    prior_md = [nb.get("node_md_content") for nb in l2_nodes]
+    evidence = [nb.get("evidence", []) for nb in l2_nodes]
+    appendices = bundle.get("appendices", {})
+    return [
+        ("taxonomy-slice", taxonomy_slice),
+        ("prior-MD", prior_md),
+        ("evidence", evidence),
+        ("appendices", appendices),
+    ]
+
+
+def cmd_gather(eid: str, l1: str, as_json: bool, measure: bool) -> None:
     bundle = build_bundle(eid, l1)
+    if measure:
+        # Side-channel (stderr): never pollutes the stdout worker bundle.
+        measure_util.emit(bundle, _measure_sections(bundle),
+                          header=f"draft | l1={l1}", as_json=as_json)
     if as_json:
         print(json.dumps(bundle, ensure_ascii=False, separators=(",", ":")))
     else:
@@ -273,10 +311,13 @@ def main() -> None:
     g.add_argument("--engagement", required=True)
     g.add_argument("--l1", required=True, help="L1 cycle id, e.g. record-to-report.")
     g.add_argument("--json", action="store_true", help="Emit the machine bundle as JSON.")
+    g.add_argument("--measure", action="store_true",
+                   help="Print a CONTENT-FREE size summary to stderr (sizes/tokens/labels "
+                        "only); the stdout bundle is unchanged.")
 
     args = p.parse_args()
     if args.command == "gather":
-        cmd_gather(args.engagement, args.l1, args.json)
+        cmd_gather(args.engagement, args.l1, args.json, args.measure)
 
 
 if __name__ == "__main__":
