@@ -168,12 +168,12 @@ system-observed support.
 
 ### Step E — Write back the SOP status
 
-Write the SOP MD to `deliverables/sop/{l1}.md` (the `sop_path` in the bundle),
+Write the SOP MD to `engagements/{id}/deliverables/sop/{l1}.md` (the `sop_path` in the bundle),
 then record the deliverable state via the state machine:
 
 ```bash
 python3 scripts/state_machine.py set-sop --engagement {id} --node {l2_key} \
-  --status draft --path deliverables/sop/{l1}.md --bump-rev
+  --status draft --path engagements/{id}/deliverables/sop/{l1}.md --bump-rev
 ```
 
 `set-sop` updates the node's `sop.status` / `sop.path` / `sop.rev`. Apply it to

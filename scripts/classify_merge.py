@@ -320,6 +320,9 @@ def apply_evidence(
                     skips.add("evidence path outside engagement tree",
                               f"{name} node_hits[{hi}].evidence[{ei}] path={raw_path!r}")
                     continue
+                # Prefer `note`; `quote` is a LEGACY/optional fallback (T55 trim
+                # drops it from the emit contract). When `quote` is absent this
+                # returns None gracefully and no --note is passed below.
                 note = ev.get("note") or ev.get("quote")
                 tier = ev.get("tier") or ev.get("evidence_tier") or hit_tier
                 args = ["add-evidence", "--engagement", eid, "--node", node,

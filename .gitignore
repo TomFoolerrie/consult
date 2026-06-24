@@ -26,3 +26,7 @@ engagements/__t49e__/
 # ...except the committed Slice-2 reviewed-docx test fixture (a synthetic, hand-
 # built OOXML package the Slice-2 e2e drives; regenerable via its build script).
 !fixtures/review/rtr_close_reviewed.docx
+
+# Runtime engagement data — never commit (incl. real client data)
+engagements/
+deliverables/

@@ -69,8 +69,12 @@ loop:
     if obj.action == "final":         -> APPLY it (set statuses final, below), then loop
     if obj.action == "render":        -> run the render script, present the Word for review (gate)
     if obj.kind == "deterministic":   -> run obj.script yourself (subprocess)
-    if obj.kind == "llm_fanout":      -> spawn obj.skill once per target, bounded
-                                          concurrency; for classify, run obj.then_script after
+    if obj.kind == "llm_fanout":      -> you MUST delegate. Invoke the named workflow
+                                          `consult-fanout` (Tier 2 below) with args
+                                          {engagement:E, stage:obj.action, targets:obj.targets}
+                                          (for classify, also pass schema). Do NOT perform the
+                                          stage's reasoning yourself. The workflow runs the
+                                          classify merge itself — you do NOT run then_script.
     (state advances)                  -> loop again
 ```
 
@@ -84,10 +88,108 @@ script directly. **LLM fan-out** = you spawn the named sub-agent skill **once
 per target** (bounded concurrency; each sub-agent writes only its own artifact /
 deliverable and returns a one-line summary; sub-agents never write state).
 
+### llm_fanout is BLOCKING: you MUST delegate (not a suggestion)
+
+When `obj.kind == "llm_fanout"` you **MUST** delegate the work to the named
+sub-agent skill, **once per target**. **Performing the classify / consolidate /
+draft / synthesize reasoning yourself — in this orchestrator context — is a
+contract violation, not an allowed shortcut.**
+This holds even for small batches of one or two targets:
+"there are only a few, I'll just do it inline" is exactly the drift this rule
+forbids. Do not do it.
+
+The reason — so it is not "optimized" away:
+
+- **Context isolation.** Each fan-out target's full inputs (ingested MD, taxonomy
+  slice, per-doc reasoning) belong in an **isolated sub-agent context** that
+  returns only a **one-line summary**. If you do the reasoning inline, every
+  stage's full inputs pile into this single orchestrator context and are
+  **re-billed on every later turn** — cost scales with accumulated context, not
+  work done.
+- **Isolation / parallelism / correctness.** Inlining defeats the entire point of
+  the fan-out architecture (no isolation, no parallelism) and **skips the
+  per-target artifact schema + `validate_artifact.py` gate** the real sub-agent
+  must pass — a silent correctness drift.
+
+**Honest scope of this rule.** This prose is a **rule / contract**; on its own a
+Markdown skill cannot *mechanically* stop the model reading a file or reasoning
+inline. The **structural** guarantee — where the loop-level model never receives
+the content, so it *cannot* inline — is **Tier 2: the `consult-fanout`
+workflow**, which has now landed (below). You delegate each `llm_fanout` action
+to that workflow by name; the per-target content goes to the workers inside it,
+never to this loop. The rule above still governs the rare path where you can't
+invoke the workflow — but the workflow is the default, and it is what holds the
+line.
+
+### CONTENT PROHIBITION: the orchestrator stays content-starved
+
+For an `llm_fanout` action you handle **only** the `orchestrate.py next` output
+(`{action, kind, targets}`) and the workers' returned **one-line summaries**. You
+do **NOT**, in this orchestrator context:
+
+- read `ingested/*.md` (the normalized source documents),
+- read the taxonomy slices or any per-node / per-doc content,
+- run the input-gatherers yourself — `scripts/consolidate_inputs.py`,
+  `scripts/draft_inputs.py`, `scripts/synthesis_inputs.py` (nor any other
+  per-target content gather).
+
+Those gatherers and that content **feed the delegated workers** — each sub-agent
+runs its own gatherer inside its own isolated context. They are **not** inputs to
+the orchestrator. (Again: a *rule*, not a physical gate — Tier 2 is what makes it
+structural, by never handing the content to the loop-level model at all.)
+
+### Tier 2: delegate via the `consult-fanout` workflow (the structural enforcement)
+
+For every `llm_fanout` action, **invoke the `consult-fanout` workflow** (Workflow
+tool) rather than hand-spawning sub-agents. It is the deterministic per-stage
+fan-out: one worker per target, via the custom agent types in `.claude/agents/`,
+at a conservative concurrency. You call it with:
+
+```
+workflow "consult-fanout" with args {
+    engagement: E,
+    stage:      obj.action,        # classify | consolidate | draft | synthesize
+    targets:    obj.targets,       # docs / nodes / l1s / scope, verbatim from `next`
+    schema:     <classify only>    # see below
+}
+```
+
+- **Invocation surface — by name, with a scriptPath fallback.** When CONSULT is
+  installed as a **plugin**, the workflow registers and resolves **by name**
+  (`consult-fanout`) — use that. If your runtime has the repo open as a plain
+  folder (no plugin install), the name may **not** be in the Workflow registry;
+  then invoke it by **`scriptPath: .claude/workflows/consult-fanout.mjs`** instead.
+  Same args either way. (Confirmed on first live run: name resolution is
+  environment-dependent; the workflow itself is identical.)
+- **Args may be marshalled as a JSON string** by some runtimes; the workflow
+  parses either an object or a JSON string, so just pass the object above.
+
+- **Schema (classify only) — T55 Phase 2.** When `obj.action == "classify"`, read
+  `schemas/classify_artifact.schema.json` and pass it as `args.schema`. The
+  workflow forwards it to each classifier as a StructuredOutput schema, so the
+  per-doc artifact is **valid by construction** (no author→validate→rewrite loop).
+  Read the schema file **once** here and pass it in — the workers don't re-read it;
+  this is the *one* file the orchestrator reads, and it is a schema, not engagement
+  content, so it does not breach the content prohibition.
+- **Merge ownership.** The workflow runs the classify `merge` itself as its
+  post-step. **You do NOT run `classify_merge.py merge`** for a classify fan-out —
+  doing so would double-merge. (The standalone deterministic `merge` *action* from
+  `next` is unaffected; that is a separate, non-fan-out step.)
+- **Consolidate / draft / synthesize** have no post-step — their workers apply /
+  write inline. Just invoke the workflow and re-run `next`.
+- **Cost map — T56.** The workflow returns a `cost` object
+  (`{stage, targets, outputTokensDelta}`). Append it to
+  `engagements/E/cost_map.json` (a content-free per-stage list: stage, #targets,
+  Δoutput-tokens — **no document content**). This is the measured per-phase cost
+  the acceptance check reads; the workflow can't write files, so you persist it.
+- **Human gate unchanged.** The workflow runs **one stage and returns** — it never
+  advances, renders, or finalizes. You stay the gate-respecting loop: after it
+  returns, re-run `next` and handle render / `needs_human` / `final` as before.
+
 | action | kind | what you run |
 |---|---|---|
 | `ingest` | deterministic | `scripts/ingest_normalize.py ingest --engagement E --source PATH...` |
-| `classify` | **llm_fanout** | `consult-classifier` once per `targets.docs` doc → **then** run `scripts/classify_merge.py merge --engagement E` (`then_script`) |
+| `classify` | **llm_fanout** | via `consult-fanout` (stage=classify): one `consult-classifier` per `targets.docs` doc; the **workflow** runs `classify_merge.py merge` as its post-step (you do **not**) |
 | `merge` | deterministic | `scripts/classify_merge.py merge --engagement E` |
 | `consolidate` | **llm_fanout** | `consult-consolidator` once per `targets.nodes` dirty node |
 | `gap` | deterministic | `scripts/gap_report.py scan --engagement E` |

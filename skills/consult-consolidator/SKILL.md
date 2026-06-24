@@ -1,6 +1,6 @@
 ---
 name: consult-consolidator
-description: Stage 3 per-L2 consolidation sub-agent. For one diagnosis-dirty L2 node, dedups and confirms the staged candidate_findings into structured records (stable dedup_key, evidence_tier, no invented Effort×Impact) for the orchestrator to add-item, then authors the node MD (nodes/{l1}/{l2}.md) citing the now-existing register IDs + evidence refs — sections What we learned / Evidence digest / Diagnosis (5 lenses) / Open items by ID. Inputs come from `scripts/consolidate_inputs.py gather`. Enforces ID-before-citation and the structured↔prose coherence rule. Never writes state.json/register.json directly.
+description: Stage 3 per-L2 consolidation sub-agent. For one diagnosis-dirty L2 node, dedups and confirms the staged candidate_findings into structured records (stable dedup_key, evidence_tier, no invented Effort×Impact), then APPLIES THEM INLINE via `state_machine.py add-item` (which mints the IMP-/GAP- IDs), authors the node MD (nodes/{l1}/{l2}.md) citing those just-minted register IDs + evidence refs — sections What we learned / Evidence digest / Diagnosis (5 lenses) / Open items by ID — and stamps `state_machine.py mark-consolidated`. Inputs come from `scripts/consolidate_inputs.py gather`. Enforces ID-before-citation and the structured↔prose coherence rule. All state writes go through the state_machine command path; never edits state.json/register.json directly.
 ---
 
 # Skill: Consult Consolidator — One Diagnosis-Dirty L2 to Confirmed Findings + Node MD
@@ -13,8 +13,10 @@ sub-agent works **one diagnosis-dirty L2 node** and does the *judgment* layer:
 1. **Confirms** the staged `candidate_findings` (from classify artifacts) into a
    clean set of structured finding records — dedup, drop noise, attach a stable
    `dedup_key`, `evidence_tier`, `tag`, and evidence ref in `source`.
-2. **Authors the node MD** — the human-readable per-L2 diagnosis narrative —
-   citing **register IDs** and evidence refs.
+2. **Applies them inline** via `state_machine.py add-item` (which mints the
+   `IMP-`/`GAP-` IDs) and **authors the node MD** — the human-readable per-L2
+   diagnosis narrative — citing those just-minted **register IDs** and evidence
+   refs, then stamps `state_machine.py mark-consolidated`.
 
 Facts (lenses, evidence) were already merged deterministically in Stage 2b
 (`classify_merge.py`). Consolidate turns the staged judgments into confirmed
@@ -31,22 +33,35 @@ Use when the orchestrator finds a diagnosis-dirty L2 (e.g. via
 `state_machine.py status --json` → `diagnosis_dirty_nodes`) and needs that node
 consolidated: staged findings confirmed and the node MD authored.
 
-**Do NOT use it for:** the orchestration that selects dirty nodes and applies
-`add-item` / `mark-consolidated` (that is the command path, T19); the merge
-(Stage 2b); substantive-gap analysis (`consult-gap-analyzer`, runs *after*
-consolidate); the `validate` coherence check itself (T35).
+**Do NOT use it for:** the orchestration that *selects* which dirty nodes to fan
+out (that is the workflow / command path, T19; this skill runs **one** node it is
+handed); the merge (Stage 2b); substantive-gap analysis
+(`consult-gap-analyzer`, runs *after* consolidate); the `validate` coherence
+check itself (T35).
 
-## The write split (read this first — it is load-bearing)
+## The write contract (read this first — it is load-bearing)
 
-- **The sub-agent authors the node MD directly** (node MDs are LLM-owned) and
-  **returns the confirmed findings as structured data**. It does **not** call
-  `add-item`, `mark-consolidated`, or write `state.json` / `register.json`.
-- **The orchestrator** applies the returned findings via `state_machine.py
-  add-item` (register writes stay on the command path) and stamps
-  `mark-consolidated`.
+You run **one node end-to-end, inline, in a single pass** (Decision B). You both
+do the judgment *and* apply it via the command path:
 
-This keeps register writes deterministic and auditable, exactly like the
-classifier↔merge split in Stage 2.
+- **You apply the confirmed findings yourself** via `state_machine.py add-item`
+  (one per finding — this **mints** the `IMP-`/`GAP-` IDs).
+- **You author the node MD directly** (node MDs are LLM-owned), citing those
+  **just-minted** IDs.
+- **You stamp `state_machine.py mark-consolidated`** to clear the
+  diagnosis-dirty signal.
+
+All register/state writes stay on the **`state_machine.py` command path** — you
+never edit `state.json` / `register.json` by hand. Doing the apply inline (rather
+than returning findings for someone else to apply) is what preserves
+**ID-before-citation**: the IDs are minted *before* you author the MD, all in one
+agent, so you can cite real IDs without inventing or restating them.
+
+**Parallel safety is already guaranteed by the engagement lock.** `add-item`
+wraps mint → upsert → sync under the engagement advisory lock, which closes the
+concurrent-`add-item` id race. Many consolidators running at once are therefore
+correct — they serialize on the brief apply, never corrupt the register. No
+findings JSONL, no deferred apply, no barrier is needed for this stage.
 
 ## Inputs — use the gatherer
 
@@ -75,20 +90,23 @@ The bundle contains, for the one node:
 
 ## Sequence — ID-before-citation (the gotcha this resolves)
 
-`add-item` assigns the register ID, so findings must be **confirmed before** the
-MD can cite them. The order is fixed (`consolidate_contract.md` §3):
+`add-item` assigns the register ID, so findings must be **confirmed and
+add-item'd before** the MD can cite them. You do all three steps inline, in this
+fixed order (`consolidate_contract.md` §3):
 
 ```
-1. dedup + confirm candidate_findings   → (you return them)
-   → orchestrator add-items them          → IDs assigned (IMP-/GAP-NNNN)
+1. dedup + confirm candidate_findings
+   → you run `state_machine.py add-item` per finding → IDs minted (IMP-/GAP-NNNN)
 2. author node MD citing the now-existing register IDs + evidence refs
-3. orchestrator mark-consolidated         → clears the diagnosis-dirty signal
+3. you run `state_machine.py mark-consolidated`     → clears the diagnosis-dirty signal
 ```
 
-**You cannot cite a register ID in the MD before step 1 has assigned it.** If you
+**You cannot cite a register ID in the MD before step 1 has minted it.** If you
 were to author the MD first, you would either invent IDs (coherence failure) or
-restate the data inline (forbidden — §5). So: confirm findings → wait for the
-orchestrator's assigned IDs → then author the MD against those IDs.
+restate the data inline (forbidden — §5). So: confirm findings → `add-item` them
+to mint the IDs → then author the MD against those just-minted IDs → then
+`mark-consolidated`. Because the whole sequence runs in this one agent, the IDs
+always exist before you cite them.
 
 ## Step 1 — Confirm the findings (the register-clean gate)
 
@@ -136,8 +154,8 @@ This is the gate that keeps the register clean: judgments, not raw signals.
      `requires_human_review=true`**. **Never invent Effort×Impact** to look
      complete (`consolidate_contract.md` §4).
 
-Return these records as structured data for the orchestrator. The orchestrator
-runs, per record:
+**Apply each confirmed record yourself**, running `add-item` once per record
+(this mints its `IMP-`/`GAP-` id):
 
 ```bash
 python3 scripts/state_machine.py add-item --engagement {E} \
@@ -158,7 +176,7 @@ why re-consolidation (a 2nd evidence wave) does not duplicate.
 
 ## Step 2 — Author the node MD (after IDs exist)
 
-Now that the orchestrator has assigned register IDs, author
+Now that your `add-item` calls have minted the register IDs, author
 `engagements/{E}/nodes/{l1}/{l2}.md` (overwriting the stub/prior render).
 Markdown + YAML frontmatter mirroring the node's key fields. Sections
 (`consolidate_contract.md` §5):
@@ -170,8 +188,8 @@ Markdown + YAML frontmatter mirroring the node's key fields. Sections
   The asserted value **must equal the state value** (from the bundle's
   `node.lenses`).
 - **Open items** — the improvements/gaps as a short list, **each citing its
-  register ID** (the IDs the orchestrator just assigned) — **never restating the
-  data**. Cite `IMP-0007`, do not re-type its observation/effort/impact.
+  register ID** (the IDs your `add-item` calls just minted) — **never restating
+  the data**. Cite `IMP-0007`, do not re-type its observation/effort/impact.
 
 ## Coherence rule (enforced later by `validate`, §5)
 
@@ -185,9 +203,9 @@ The MD is a render of authoritative state, so it must cohere with state:
 - **Never restate structured data.** Cite the register ID; the row is the source
   of truth, the MD points at it.
 
-## Step 3 — mark consolidated (orchestrator)
+## Step 3 — mark consolidated (you, last)
 
-After the MD is authored, the orchestrator stamps:
+After the MD is authored, **you** stamp:
 
 ```bash
 python3 scripts/state_machine.py mark-consolidated --engagement {E} --node {KEY}
@@ -209,8 +227,9 @@ state wins": the MD is a render of state, not a parallel source of truth.
 
 ## Non-negotiables
 
-1. **ID-before-citation.** Confirm findings → orchestrator add-items → IDs → only
-   then author the MD citing those IDs.
+1. **ID-before-citation.** Confirm findings → **you** `add-item` them (mints the
+   IDs) → only then author the MD citing those IDs → then `mark-consolidated`.
+   All inline, in this one agent.
 2. **Stable `dedup_key`** on every confirmed finding, so re-consolidation upserts
    (one row), never duplicates.
 3. **Never invent Effort×Impact** — blank + `requires_human_review=true` when the
@@ -218,5 +237,8 @@ state wins": the MD is a render of state, not a parallel source of truth.
 4. **Carry `evidence_tier` through** from the bundle; do not fabricate it.
 5. **Coherence:** cite IDs that exist; prose lenses match state; never restate
    structured data.
-6. **Write split:** author the MD; **return** findings — do not call `add-item` /
-   `mark-consolidated` / write `state.json` / `register.json` yourself.
+6. **Inline apply via the command path:** run `add-item` (per finding, mints the
+   IDs) → author the MD → run `mark-consolidated`, all yourself, all through
+   `state_machine.py`. Never edit `state.json` / `register.json` by hand. A node
+   whose run dies before `mark-consolidated` stays diagnosis-dirty and is
+   cleanly re-derivable next round — never half-applied.

@@ -33,9 +33,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+# Same-dir helper (scripts/); content-free size side-channel for `--measure`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import measure_util  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
@@ -235,7 +240,7 @@ def build_bundle(eid: str) -> Dict[str, Any]:
 
     return {
         "engagement": state["engagement"]["id"],
-        "synthesis_path": "deliverables/synthesis.md",
+        "synthesis_path": f"engagements/{state['engagement']['id']}/deliverables/synthesis.md",
         "totals": {
             "l1_count": len(by_l1),
             "node_count": len(nodes),
@@ -290,10 +295,32 @@ def print_human(bundle: Dict[str, Any]) -> None:
                   f"{', '.join(row['future_state_nodes'])}")
 
 
-def cmd_gather(eid: str, as_json: bool) -> None:
+def _measure_sections(bundle: Dict[str, Any]) -> List[Tuple[str, Any]]:
+    """Fixed-label structural breakdown for the size side-channel (content-free).
+
+    `taxonomy-slice` = the synthesis path + totals scalars; `improvements` = the
+    active improvement rows; `effort-impact` = the bucketing; `per-l1-rollup` =
+    the per-L1 lens roll-up; `coverage` = the node coverage map. Only serialized
+    SIZES of these subtrees leave this function, never their content.
+    """
+    return [
+        ("taxonomy-slice", {"synthesis_path": bundle.get("synthesis_path"),
+                            "totals": bundle.get("totals", {})}),
+        ("improvements", bundle.get("improvements", [])),
+        ("effort-impact", bundle.get("effort_impact", {})),
+        ("per-l1-rollup", bundle.get("per_l1", [])),
+        ("coverage", bundle.get("node_coverage", {})),
+    ]
+
+
+def cmd_gather(eid: str, as_json: bool, measure: bool) -> None:
     bundle = build_bundle(eid)
+    if measure:
+        # Side-channel (stderr): never pollutes the stdout worker bundle.
+        measure_util.emit(bundle, _measure_sections(bundle),
+                          header="synthesis | engagement", as_json=as_json)
     if as_json:
-        print(json.dumps(bundle, ensure_ascii=False, indent=2))
+        print(json.dumps(bundle, ensure_ascii=False, separators=(",", ":")))
     else:
         print_human(bundle)
 
@@ -307,10 +334,13 @@ def main() -> None:
     g = sub.add_parser("gather", help="Assemble the cross-cutting synthesis input bundle.")
     g.add_argument("--engagement", required=True)
     g.add_argument("--json", action="store_true", help="Emit the machine bundle as JSON.")
+    g.add_argument("--measure", action="store_true",
+                   help="Print a CONTENT-FREE size summary to stderr (sizes/tokens/labels "
+                        "only); the stdout bundle is unchanged.")
 
     args = p.parse_args()
     if args.command == "gather":
-        cmd_gather(args.engagement, args.json)
+        cmd_gather(args.engagement, args.json, args.measure)
 
 
 if __name__ == "__main__":

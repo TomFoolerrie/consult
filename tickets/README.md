@@ -98,6 +98,47 @@ gates synthesize (T45); document the docx headers/footers limitation, don't exte
 > unreachable), T46 (`--l1` no-op validation), T44 (review re-apply double-write),
 > T41 (`cmd_init` dir ordering).
 
+## Slice 4 — Cost & Runtime Efficiency (from field run: 3 real artifacts, ~$10)
+
+Surfaced running the suite on real client artifacts. **Runtime confirmed: Claude Code hosted in
+the Claude Desktop app** — has sub-agents, skills-in-sub-agents, and the **Workflow** tool. The
+keystone is **T57** (the deterministic fan-out Workflow): T54 wires `consult-run` to invoke it,
+and T55 (schema emission) + T56 (`budget.spent()` cost) plug into its seams. That one substrate
+makes delegation structural, unlocks valid-by-construction JSON, and exposes per-phase cost.
+
+**Status: specs LOCKED, build DEFERRED** (owner decision). Reviewed by 5 sub-agents; review fixes
++ the four design decisions below are folded in. No implementation until the owner says go.
+
+**Build order (when greenlit):** Wave A (parallel, no deps) = T54 Tier 1 prose + T55 Phase 1
+`quote`-trim + T59 compact bundles → Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2
+wiring + T55 Phase 2 + T56 → Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch
+different files; **T59 & T56 both touch the `*_inputs.py` gatherers → sequence them** (T59 first,
+or coordinate the one-line emit change).
+
+| # | Title | Depends | Touches |
+|---|---|---|---|
+| T54 | Orchestrator delegation enforcement — blocking prose + explicit content prohibition (Tier 1, a *nudge* not a gate) + wire `consult-run` to the committed `.claude/workflows/consult-fanout` by name (Tier 2) | T57 (for Tier 2) | skills/consult-run |
+| T57 | **Fan-out Workflow scaffold** (foundation) — correct per-stage dispatch (classify=#docs, consolidate=#nodes, draft=2×#L1s, synthesize=1); classify `merge` post-step; **consolidate applies inline under the T40 lock**; 5 custom agent types (tool-scoped); schema + budget seams; structural human-gate guard; conservative default concurrency. NB: consolidate/draft/synth workers write state via `state_machine.py`. | — | .claude/workflows, .claude/agents (5) |
+| T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained emission via the `consult-classifier` agent type + `{schema}` (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
+| T56 | Per-phase cost instrumentation — `budget.spent()` deltas persisted to content-free `cost_map.json` + input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
+| T58 | **Slice-4 integration & regression** (build last) — given identical *stubbed* LLM outputs, the workflow and prose dispatch paths produce byte-identical **spine** output (state/register/render, normalized); LLM-authored MDs validate structurally only; constrained emission validates; gates fire; cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
+| T59 | Compact gatherer bundle serialization — drop `indent=2` on the `--json` transport bundles (input-token trim; JSONL doesn't help input, compactness does); on-disk state stays diffable | — (sequence w/ T56) | *_inputs.py gatherers, tests/ |
+
+> **Decisions locked** (owner, post-review — incl. an adversarial 2nd pass on T57): **(A)** skill
+> invocation = **custom agent types** — 5 `.claude/agents/` defs preloading their skills, tool-scoped,
+> `agent()` sets `agentType`; **(B)** consolidate = **parallel, each worker applies inline
+> (mint→cite→mark) under the T40 engagement lock** — the 2nd review killed the original
+> JSONL→deferred-apply design (it broke the consolidator's ID-before-citation contract and the
+> "conflict" it prevented was a phantom the lock already handles); **(C)** `consult-run` invokes the
+> **committed named workflow** `.claude/workflows/consult-fanout` by name. Concurrency defaulted
+> **conservatively** (field machine was CPU-bound). Build sequencing: **specs locked, build deferred**.
+
+> **Runtime note (resolved):** earlier drafts hedged a "Desktop has no sub-agents / no constrained
+> output / no token meter" branch — **all three are false for Claude Code**. The Workflow tool
+> provides `agent({schema})` (valid-by-construction JSON) and a `budget` object (`budget.spent()`),
+> confirmed against the live tool contract. Human-in-the-loop is preserved by scoping each Workflow
+> to **one fan-out stage**, never the whole engagement (the render gate stays a human hand-off).
+
 ## Deferred / optional (not blocking a working system)
 
 | Area | Notes |

@@ -32,6 +32,10 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# Same-dir helper (scripts/); content-free size side-channel for `--measure`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import measure_util  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENGAGEMENTS_DIR = REPO_ROOT / "engagements"
 
@@ -284,10 +288,36 @@ def print_human(bundle: Dict[str, Any]) -> None:
             print(f"    - {ref}: {' / '.join(ex['lines'])[:120]}")
 
 
-def cmd_gather(eid: str, key: str, as_json: bool, with_excerpts: bool) -> None:
+def _measure_sections(bundle: Dict[str, Any]) -> List[Tuple[str, Any]]:
+    """Fixed-label structural breakdown for the size side-channel (content-free).
+
+    Labels are a fixed vocabulary; only their serialized sizes are emitted, never
+    the subtrees. `taxonomy-slice` is the node minus its evidence list (lenses /
+    coverage / keys); `evidence` is the node evidence list; the rest are the
+    register / candidate-findings / resolved excerpts the bundle inlines.
+    """
+    node = bundle.get("node", {}) or {}
+    taxonomy_slice = {k: v for k, v in node.items() if k != "evidence"}
+    sections: List[Tuple[str, Any]] = [
+        ("taxonomy-slice", taxonomy_slice),
+        ("evidence", node.get("evidence", [])),
+        ("register", bundle.get("register_rows", [])),
+        ("candidate-findings", bundle.get("candidate_findings", [])),
+    ]
+    if "evidence_excerpts" in bundle:
+        sections.append(("evidence-excerpts", bundle["evidence_excerpts"]))
+    return sections
+
+
+def cmd_gather(eid: str, key: str, as_json: bool, with_excerpts: bool,
+               measure: bool) -> None:
     bundle = build_bundle(eid, key, with_excerpts)
+    if measure:
+        # Side-channel (stderr): never pollutes the stdout worker bundle.
+        measure_util.emit(bundle, _measure_sections(bundle),
+                          header=f"consolidate | node={key}", as_json=as_json)
     if as_json:
-        print(json.dumps(bundle, ensure_ascii=False, indent=2))
+        print(json.dumps(bundle, ensure_ascii=False, separators=(",", ":")))
     else:
         print_human(bundle)
 
@@ -303,10 +333,14 @@ def main() -> None:
     g.add_argument("--json", action="store_true", help="Emit the machine bundle as JSON.")
     g.add_argument("--excerpts", action="store_true",
                    help="Resolve cited MD lines into the bundle (reads ingested MDs; still read-only).")
+    g.add_argument("--measure", action="store_true",
+                   help="Print a CONTENT-FREE size summary to stderr (sizes/tokens/labels "
+                        "only); the stdout bundle is unchanged.")
 
     args = p.parse_args()
     if args.command == "gather":
-        cmd_gather(args.engagement, args.node, args.json, args.excerpts)
+        cmd_gather(args.engagement, args.node, args.json, args.excerpts,
+                   args.measure)
 
 
 if __name__ == "__main__":
