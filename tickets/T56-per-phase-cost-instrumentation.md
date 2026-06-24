@@ -67,8 +67,9 @@ the map; T54/T55 reference its before/after.
   fixture **evidence-ref** token (e.g. a `source#Lstart-Lend` string, not just a prose word — the
   ref shape is the real leak class) and assert **absent**; output is purely numeric/structural.
 - Size estimates are **deterministic** for a fixed corpus (same fixture → same numbers).
-- The gatherers' normal `--json` bundle output is **unchanged** (measurement is side-channel) —
-  sub-agents consume exactly what they did before; Slice-1 e2e green.
+- The gatherers' normal `--json` bundle output is **not polluted by measurement** (it stays
+  side-channel — stderr / `--measure`); sub-agents consume the same bundle. (T59 may separately
+  *compact* that bundle — orthogonal: measurement still doesn't touch it.) Slice-1 e2e green.
 - **Workflow budget path (with T57's workflow):** a 2-stage dry-run logs two non-negative
   `budget.spent()` deltas summing to ≤ the total spent; per-stage lines present in the rollup.
 

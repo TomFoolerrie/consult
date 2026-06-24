@@ -110,8 +110,10 @@ makes delegation structural, unlocks valid-by-construction JSON, and exposes per
 + the four design decisions below are folded in. No implementation until the owner says go.
 
 **Build order (when greenlit):** Wave A (parallel, no deps) = T54 Tier 1 prose + T55 Phase 1
-`quote`-trim → Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2 wiring + T55 Phase 2
-+ T56 → Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch different files.
+`quote`-trim + T59 compact bundles → Wave B (foundation) = **T57** → Wave C (plug in) = T54 Tier 2
+wiring + T55 Phase 2 + T56 → Wave D (last) = **T58** integration. Same-file rule: T54 & T57 touch
+different files; **T59 & T56 both touch the `*_inputs.py` gatherers → sequence them** (T59 first,
+or coordinate the one-line emit change).
 
 | # | Title | Depends | Touches |
 |---|---|---|---|
@@ -120,6 +122,7 @@ makes delegation structural, unlocks valid-by-construction JSON, and exposes per
 | T55 | Classify artifact emit efficiency — drop redundant `quote` (Phase 1, no dep) + constrained emission via the `consult-classifier` agent type + `{schema}` (Phase 2, NDJSON = fallback) | T57 (Phase 2) | schemas/classify_artifact.schema.json, skills/consult-classifier, classify_merge.py, validate_artifact.py |
 | T56 | Per-phase cost instrumentation — `budget.spent()` deltas persisted to content-free `cost_map.json` + input-size complement | T57 | .claude/workflows, orchestrate.py, *_inputs.py gatherers, cost_report.py (new) |
 | T58 | **Slice-4 integration & regression** (build last) — given identical *stubbed* LLM outputs, the workflow and prose dispatch paths produce byte-identical **spine** output (state/register/render, normalized); LLM-authored MDs validate structurally only; constrained emission validates; gates fire; cost map content-free | T54, T55, T56, T57 | tests/, fixtures/ |
+| T59 | Compact gatherer bundle serialization — drop `indent=2` on the `--json` transport bundles (input-token trim; JSONL doesn't help input, compactness does); on-disk state stays diffable | — (sequence w/ T56) | *_inputs.py gatherers, tests/ |
 
 > **Decisions locked** (owner, post-review — incl. an adversarial 2nd pass on T57): **(A)** skill
 > invocation = **custom agent types** — 5 `.claude/agents/` defs preloading their skills, tool-scoped,
