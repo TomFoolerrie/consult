@@ -240,7 +240,7 @@ def build_bundle(eid: str) -> Dict[str, Any]:
 
     return {
         "engagement": state["engagement"]["id"],
-        "synthesis_path": "deliverables/synthesis.md",
+        "synthesis_path": f"engagements/{state['engagement']['id']}/deliverables/synthesis.md",
         "totals": {
             "l1_count": len(by_l1),
             "node_count": len(nodes),

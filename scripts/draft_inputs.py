@@ -217,7 +217,7 @@ def build_bundle(eid: str, l1: str) -> Dict[str, Any]:
         "l1_name": l1_name,
         "l2_count": len(l2_keys),
         "appendix_map": APPENDICES,
-        "sop_path": f"deliverables/sop/{l1}.md",
+        "sop_path": f"engagements/{eid}/deliverables/sop/{l1}.md",
         "l2_nodes": l2_bundles,
         "appendices": appendices,
     }

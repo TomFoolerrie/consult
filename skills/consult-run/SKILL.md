@@ -140,10 +140,10 @@ structural, by never handing the content to the loop-level model at all.)
 
 ### Tier 2: delegate via the `consult-fanout` workflow (the structural enforcement)
 
-For every `llm_fanout` action, **invoke the committed named workflow
-`consult-fanout`** (Workflow tool, by name) rather than hand-spawning sub-agents.
-It is the deterministic per-stage fan-out: one worker per target, via the custom
-agent types in `.claude/agents/`, at a conservative concurrency. You call it with:
+For every `llm_fanout` action, **invoke the `consult-fanout` workflow** (Workflow
+tool) rather than hand-spawning sub-agents. It is the deterministic per-stage
+fan-out: one worker per target, via the custom agent types in `.claude/agents/`,
+at a conservative concurrency. You call it with:
 
 ```
 workflow "consult-fanout" with args {
@@ -153,6 +153,16 @@ workflow "consult-fanout" with args {
     schema:     <classify only>    # see below
 }
 ```
+
+- **Invocation surface — by name, with a scriptPath fallback.** When CONSULT is
+  installed as a **plugin**, the workflow registers and resolves **by name**
+  (`consult-fanout`) — use that. If your runtime has the repo open as a plain
+  folder (no plugin install), the name may **not** be in the Workflow registry;
+  then invoke it by **`scriptPath: .claude/workflows/consult-fanout.mjs`** instead.
+  Same args either way. (Confirmed on first live run: name resolution is
+  environment-dependent; the workflow itself is identical.)
+- **Args may be marshalled as a JSON string** by some runtimes; the workflow
+  parses either an object or a JSON string, so just pass the object above.
 
 - **Schema (classify only) — T55 Phase 2.** When `obj.action == "classify"`, read
   `schemas/classify_artifact.schema.json` and pass it as `args.schema`. The

@@ -15,7 +15,7 @@ This is the Stream-B parallel to `consult-drafter`'s SOP draft (Stream A). The r
 unit is **one document per L1 cycle**. See `generation_review_contract.md` §1 (5B) and
 spec §5 Stage 5B + the Improvement DoD.
 
-Output: `deliverables/improvements/{l1}.md` — each item rendered
+Output: `engagements/{id}/deliverables/improvements/{l1}.md` — each item rendered
 **Finding → Recommendation → Effort × Impact → Owner**, traceable to its register `id`
 and evidence ref.
 
@@ -97,7 +97,7 @@ where useful (do not invent scores).
 
 ### Step D — Author the deliverable
 
-Write `deliverables/improvements/{l1}.md`. For **each improvement item**, render the
+Write `engagements/{id}/deliverables/improvements/{l1}.md`. For **each improvement item**, render the
 Stream-B DoD shape:
 
 - **Finding** — from `observation_pain_point` (+ `root_cause` if present). What is true today.
@@ -157,7 +157,7 @@ covers (the L1-Level deliverable spans them):
 
 ```bash
 python3 scripts/state_machine.py set-improvement --engagement {id} --node {l2_key} \
-  --status draft --path deliverables/improvements/{l1}.md --bump-rev
+  --status draft --path engagements/{id}/deliverables/improvements/{l1}.md --bump-rev
 ```
 
 - `{l2_key}` is the node key `{l1}.{l2}` (e.g. `record-to-report.close`).
@@ -183,7 +183,7 @@ Do **not** invent flags. The only `set-improvement` flags are
 ## Definition of Done
 
 - The bundle came from `draft_inputs.py gather` (read-only); no raw-doc foraging.
-- `deliverables/improvements/{l1}.md` exists, with improvement items **grouped by lens**.
+- `engagements/{id}/deliverables/improvements/{l1}.md` exists, with improvement items **grouped by lens**.
 - Each item is **Finding → Recommendation → Effort × Impact → Owner**, traceable to its
   register `id` + `evidence_ref`.
 - Effort × Impact is `directional` unless a quantified source backs it; no invented numbers.
