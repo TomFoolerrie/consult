@@ -23,7 +23,7 @@ import { execFileSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { planFanout, FANOUT_STAGES } from "../.claude/workflows/lib/dispatch-plan.mjs";
+import { planFanout, FANOUT_STAGES } from "./_planner.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const EID = "__t58__";

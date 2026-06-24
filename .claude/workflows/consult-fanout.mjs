@@ -22,9 +22,11 @@ export const meta = {
 // the workers via state_machine.py.
 //
 // NOTE: planFanout is INLINED here (the engine requires `export const meta` as
-// the first statement and does not resolve local imports). It is kept in
-// sync with the unit-tested source of truth at ./lib/dispatch-plan.mjs.
+// the first statement and does not resolve local imports). This inlined block IS
+// the single source of truth — the tests extract and run it verbatim (see the
+// PLANNER markers), so there is no second copy to drift from.
 
+// >>> PLANNER START (extracted verbatim by tests/_planner.mjs — keep the markers)
 const FANOUT_STAGES = ["classify", "consolidate", "draft", "synthesize"];
 
 function planFanout(stage, targets = {}) {
@@ -62,6 +64,7 @@ function planFanout(stage, targets = {}) {
       throw new Error(`planFanout: '${stage}' is not an llm_fanout stage (${FANOUT_STAGES.join(", ")})`);
   }
 }
+// <<< PLANNER END
 
 // Conservative DEFAULT concurrency — deliberately BELOW the engine cap
 // (min(16, cores-2)). The field machine ran CPU-bound; favour responsiveness +

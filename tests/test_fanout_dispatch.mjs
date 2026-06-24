@@ -8,7 +8,7 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { planFanout, FANOUT_STAGES } from "../.claude/workflows/lib/dispatch-plan.mjs";
+import { planFanout, FANOUT_STAGES } from "./_planner.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WF = join(ROOT, ".claude/workflows/consult-fanout.mjs");
@@ -61,10 +61,10 @@ let parsed = true;
 try { new AsyncFunction(body); } catch (e) { parsed = false; console.error(`  parse error: ${e.message}`); }
 ok(parsed, "consult-fanout.mjs body compiles in the engine's async dialect");
 
-// lib parses too
-let libParsed = true;
-try { execSync(`node --check "${join(ROOT, ".claude/workflows/lib/dispatch-plan.mjs")}"`, { stdio: "pipe" }); } catch { libParsed = false; }
-ok(libParsed, "dispatch-plan.mjs parses");
+// planner block validity: _planner.mjs extracts + evaluates the inlined planner
+// from the workflow; if that block were malformed the import above would have
+// thrown. So a successful import IS the planner-parses assertion.
+ok(typeof planFanout === "function", "inlined planner extracted + evaluated from the workflow");
 
 // --- human-gate guard: the workflow issues NO advance/render/finalize call ---
 const src = readFileSync(WF, "utf8");
