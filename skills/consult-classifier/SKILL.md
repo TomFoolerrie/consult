@@ -59,8 +59,12 @@ Shape (full contract: `classify_contract.md` §3):
   - `node` — `{l1_id}.{l2_id}`, **must exist in the taxonomy**.
   - `confidence` — `high|med|low`: how sure the doc is about this L2 at all.
   - `rationale`, optional `l3_hints[]` (taxonomy L3 names).
-  - `evidence[]` — `{ ref: "path#Lstart-Lend", quote, note }`. The `ref` must
-    cite **real lines** in the cited MD.
+  - `evidence[]` — `{ ref: "path#Lstart-Lend", note }`. The `ref` must
+    cite **real lines** in the cited MD; the `note` is a **concise** gloss of
+    what those lines say (the merge carries it onto the evidence row). Do **not**
+    re-transcribe the source text — the `ref` already locates it in the
+    immutable MD. (A legacy `quote` field is still tolerated by the schema for
+    back-compat, but don't emit it — it's redundant with `ref` and a token sink.)
   - `lens_signals[]` — `{ lens, value, confidence, evidence_ref, rationale }`.
     The `value` must be **valid for the named lens** (see table below).
   - `candidate_findings[]` — `{ type: improvement|gap, tag, confidence,
@@ -154,7 +158,6 @@ L123 but that's run out of the trading system, not really part of close.
       "l3_hints": ["Sub-Ledger Close", "Accruals"],
       "evidence": [
         { "ref": "ingested/2026-03-01_close_walkthrough.md#L42-48",
-          "quote": "We close sub-ledgers first, then accruals — accruals are manual.",
           "note": "Close sequence + accrual pain." }
       ],
       "lens_signals": [

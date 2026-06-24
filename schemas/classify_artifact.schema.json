@@ -54,9 +54,12 @@
             "additionalProperties": false,
             "properties": {
               "ref": { "$ref": "#/$defs/evidence_ref" },
-              "quote": { "type": "string" },
+              "quote": {
+                "type": "string",
+                "description": "LEGACY/discouraged — redundant with `ref` (which locates the text in the immutable MD). Permitted for back-compat with pre-T55 artifacts; emit `note` instead. Don't remove from the schema: additionalProperties:false would then reject any lingering `quote`."
+              },
               "tier": { "enum": ["verbal", "documentary", "system_observed", null] },
-              "note": { "type": "string" }
+              "note": { "type": "string", "description": "Concise gloss of the cited lines; preferred carrier of evidence text (the merge prefers `note` over `quote`)." }
             }
           }
         },

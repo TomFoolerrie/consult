@@ -259,7 +259,7 @@ def print_human(bundle: Dict[str, Any]) -> None:
 def cmd_gather(eid: str, l1: str, as_json: bool) -> None:
     bundle = build_bundle(eid, l1)
     if as_json:
-        print(json.dumps(bundle, ensure_ascii=False, indent=2))
+        print(json.dumps(bundle, ensure_ascii=False, separators=(",", ":")))
     else:
         print_human(bundle)
 

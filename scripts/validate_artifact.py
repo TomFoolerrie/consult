@@ -140,6 +140,26 @@ def lens_errors(instance: Dict[str, Any], lens_values: Dict[str, List[str]]) -> 
     return errs
 
 
+# ---- evidence note guidance (informational, never a failure) ----------------
+
+def evidence_note_notes(instance: Dict[str, Any]) -> List[str]:
+    """Soft guidance: an evidence entry with neither `note` nor (legacy) `quote`
+    carries no gloss for the merge. Absence of `quote` is NOT an error (T55 trim
+    drops it); we only nudge toward adding a concise `note`. Emitted as a
+    "(skipped ...)" informational note so it never fails validation."""
+    out: List[str] = []
+    for i, hit in enumerate(instance.get("node_hits", []) or []):
+        for j, ev in enumerate(hit.get("evidence", []) or []):
+            if not isinstance(ev, dict):
+                continue
+            if not (ev.get("note") or ev.get("quote")):
+                out.append(
+                    f"note: (skipped — guidance) node_hits[{i}].evidence[{j}] has "
+                    f"no `note`; add a concise `note` so the evidence carries a gloss."
+                )
+    return out
+
+
 # ---- check (4): evidence-ref resolution -------------------------------------
 
 _REF_RE = re.compile(r"^(?P<path>.+?)#L(?P<start>[0-9]+)(?:-(?P<end>[0-9]+))?$")
@@ -241,6 +261,7 @@ def validate(artifact_path: Path, engagement: str | None) -> int:
     all_errs += node_errors(instance, valid_nodes)
     all_errs += lens_errors(instance, lens_values)
     all_errs += ref_errors(instance, engagement)
+    all_errs += evidence_note_notes(instance)
 
     # A pure "(skipped ...)" note is informational, not a failure.
     hard = [e for e in all_errs if "(skipped" not in e]

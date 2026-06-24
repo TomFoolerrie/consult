@@ -69,8 +69,10 @@ loop:
     if obj.action == "final":         -> APPLY it (set statuses final, below), then loop
     if obj.action == "render":        -> run the render script, present the Word for review (gate)
     if obj.kind == "deterministic":   -> run obj.script yourself (subprocess)
-    if obj.kind == "llm_fanout":      -> spawn obj.skill once per target, bounded
-                                          concurrency; for classify, run obj.then_script after
+    if obj.kind == "llm_fanout":      -> you MUST delegate: spawn obj.skill once per
+                                          target, bounded concurrency. Do NOT perform the
+                                          stage's reasoning yourself (see below). For
+                                          classify, run obj.then_script after.
     (state advances)                  -> loop again
 ```
 
@@ -83,6 +85,55 @@ evidence, review edits, or a half-done stage re-opens the right step.
 script directly. **LLM fan-out** = you spawn the named sub-agent skill **once
 per target** (bounded concurrency; each sub-agent writes only its own artifact /
 deliverable and returns a one-line summary; sub-agents never write state).
+
+### llm_fanout is BLOCKING: you MUST delegate (not a suggestion)
+
+When `obj.kind == "llm_fanout"` you **MUST** delegate the work to the named
+sub-agent skill, **once per target**. **Performing the classify / consolidate /
+draft / synthesize reasoning yourself — in this orchestrator context — is a
+contract violation, not an allowed shortcut.**
+This holds even for small batches of one or two targets:
+"there are only a few, I'll just do it inline" is exactly the drift this rule
+forbids. Do not do it.
+
+The reason — so it is not "optimized" away:
+
+- **Context isolation.** Each fan-out target's full inputs (ingested MD, taxonomy
+  slice, per-doc reasoning) belong in an **isolated sub-agent context** that
+  returns only a **one-line summary**. If you do the reasoning inline, every
+  stage's full inputs pile into this single orchestrator context and are
+  **re-billed on every later turn** — cost scales with accumulated context, not
+  work done.
+- **Isolation / parallelism / correctness.** Inlining defeats the entire point of
+  the fan-out architecture (no isolation, no parallelism) and **skips the
+  per-target artifact schema + `validate_artifact.py` gate** the real sub-agent
+  must pass — a silent correctness drift.
+
+**Honest scope of this rule.** This is a **rule / contract**, not a physical
+gate: this is a Markdown skill, so it cannot *mechanically* stop the model from
+reading a file or reasoning inline. Tier 1 (this prose) only makes inlining an
+explicit violation and removes any standing invitation to do it. The
+**structural** guarantee — where the loop-level model never receives the content
+in the first place, so it *cannot* inline — is **Tier 2 (the deterministic
+fan-out workflow), a separate ticket**. Until that lands, adherence to this rule
+is what holds the line.
+
+### CONTENT PROHIBITION: the orchestrator stays content-starved
+
+For an `llm_fanout` action you handle **only** the `orchestrate.py next` output
+(`{action, kind, targets}`) and the workers' returned **one-line summaries**. You
+do **NOT**, in this orchestrator context:
+
+- read `ingested/*.md` (the normalized source documents),
+- read the taxonomy slices or any per-node / per-doc content,
+- run the input-gatherers yourself — `scripts/consolidate_inputs.py`,
+  `scripts/draft_inputs.py`, `scripts/synthesis_inputs.py` (nor any other
+  per-target content gather).
+
+Those gatherers and that content **feed the delegated workers** — each sub-agent
+runs its own gatherer inside its own isolated context. They are **not** inputs to
+the orchestrator. (Again: a *rule*, not a physical gate — Tier 2 is what makes it
+structural, by never handing the content to the loop-level model at all.)
 
 | action | kind | what you run |
 |---|---|---|
