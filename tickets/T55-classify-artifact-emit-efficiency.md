@@ -72,7 +72,9 @@ pass `validate_artifact.py` cross-field checks. Three stacked costs:
 - In the fan-out workflow's classify stage, the per-doc `agent()` call uses the **`consult-classifier`
   custom agent type** (T57 Decision A) **plus** `{schema}` loaded from
   `schemas/classify_artifact.schema.json`, so there is **one** schema source of truth (the
-  StructuredOutput schema and the `validate_artifact.py` schema must not drift).
+  StructuredOutput schema and the `validate_artifact.py` schema must not drift). **T55 only *uses*
+  that agent def — it does not edit `.claude/agents/consult-classifier` (T57 ships it with the
+  narrowed Write scope); T55's file edits stay in the SKILL, schema, merge, and validator.**
 - **Write owner (reconciled with T57):** on the schema path the **workflow** persists the returned
   validated object atomically (temp file + `os.rename`) to `classify/{hash}.artifact.json` (the
   classifier sub-agent returns the object; the workflow writes it), then runs `validate_artifact.py`

@@ -43,7 +43,7 @@ A build that loops `targets.nodes` for draft, expects one agent for draft, or ap
 
   | agent def | tools it needs |
   |---|---|
-  | `consult-classifier` | Read, Write*, Bash(`validate_artifact.py`) — *Write only on the standalone path; on T55's schema path the **workflow** writes the artifact, so the def's Write scope is narrowed there |
+  | `consult-classifier` | Read, Write*, Bash(`validate_artifact.py`) — *Write only on the standalone path; on T55's schema path the **workflow** writes the artifact, so the def's Write scope is narrowed there. **T57 ships the def with this (conditional) scope as built; T55 Phase 2 only *uses* the schema path — it does not edit the def.** |
   | `consult-consolidator` | Read, Write (node MD), Bash(`consolidate_inputs.py`, `state_machine.py add-item`/`mark-consolidated`) — **writes state inline**, see Decision B |
   | `consult-drafter` | Read, Write, Bash(`draft_inputs.py`, `state_machine.py set-sop --bump-rev`) |
   | `consult-improvement-drafter` | Read, Write, Bash(`draft_inputs.py`, `state_machine.py set-improvement --bump-rev`) |
@@ -122,7 +122,7 @@ The real invariant: **all state mutation goes through `state_machine.py`** (neve
 - **Schema seam (T55):** the classify `agent()` (agent type `consult-classifier`) takes an optional
   `{schema}` loaded from `schemas/classify_artifact.schema.json`; on the schema path the **workflow**
   writes the validated object atomically (`temp + os.rename`) to `classify/{hash}.artifact.json`.
-  (Reconciles T55 §G4.)
+  (Reconciles T55 Phase 2's "Write owner" bullet.)
 - **Budget seam (T56):** `budget.spent()` snapshots before/after each stage's fan-out; persist the
   rollup to a **content-free** `cost_map.json` (measured tokens are otherwise ephemeral).
 
@@ -158,6 +158,8 @@ owned by `consult-run`.
 - **State writes via `state_machine.py` only:** consolidate/draft/synth mutations all use the
   command path; **do not** assert "zero state writes" (false for 4 of 5 workers).
 - **Human-gate guard:** the workflow issues **no** `next` / `render` / `final` call (structural).
+  The mock harness **exposes this assertion** so **T58 can reuse it** to prove the run halts where a
+  human is owed (not just dispatch counts).
 - **Seams present:** schema hook + budget snapshot + `cost_map.json` exist (exercised by T55/T56).
 
 ## DoD

@@ -23,7 +23,8 @@ Depends: T54, T55, T56, T57 · Touches: `tests/` (new e2e + a committed golden),
 ## What is deterministic vs LLM-authored (the assertion boundary)
 
 - **Deterministic given identical artifacts/MDs (CAN be byte-identical):** `classify_merge.py` →
-  `state.json` / `register.json`; the consolidate apply step's command-path writes; `gap_report.py`
+  `state.json` / `register.json`; the consolidator's inline command-path writes (T57 Decision B);
+  `gap_report.py`
   scan; the `*_inputs.py` bundles; `render_deliverables.py` MD→`.docx`. **This is the spine T58
   pins.**
 - **LLM-authored (CANNOT be byte-identical; assert structure/validation instead):** the
