@@ -1,34 +1,37 @@
 ---
 name: consult-docx-builder
-description: Convert finalized SOP Markdown into Word .docx files using the bundled Markdown-to-Word Python script.
+description: "Convert finalized consult-drafter process-documentation Markdown into a CFGI-styled Word (.docx) deliverable using the bundled Python converter. Use when the user asks to convert process documentation or a desktop procedure to Word, generate a .docx from a finalized consult-drafter draft, apply the CFGI Word house style, or produce a Word deliverable from Markdown. Do NOT use to draft or edit the content, clean transcripts, audit evidence, resolve Word comments, insert real screenshots, or build slides — this skill only renders finalized Markdown to Word."
 ---
 
-# DOCX Builder Skill
+# Consult DOCX Builder
 
 ## Purpose
 
-Convert finalized Markdown SOP deliverables into `.docx` files using the bundled Python script.
+Render a finalized process-documentation Markdown file — the output of the
+`consult-drafter` skill — into a CFGI-branded `.docx` using the bundled
+converter. The house style is applied automatically; this skill styles and
+renders, it does not author content.
 
 ## Use This Skill When
 
-Use this skill when the user asks to:
+- Convert finalized process-doc / desktop-procedure Markdown to Word.
+- Generate a `.docx` from a finalized `consult-drafter` draft.
+- Apply the CFGI Word house style to a Markdown deliverable.
 
-- Convert SOP Markdown to Word
-- Generate a `.docx` from a finalized SOP draft
-- Apply the Word conversion script
-- Create a Word deliverable from Markdown
-
-Do not use this skill to draft the SOP, clean transcripts, audit evidence, or resolve comments.
+Do not use this skill to draft or edit the process documentation, clean
+transcripts, audit evidence, resolve comments, or insert real screenshots. Those
+belong to `consult-drafter` or other skills.
 
 ## Required Inputs
 
-- Finalized Markdown file, usually produced by `sop-drafter`
-- Optional output filename
-- Optional JSON style/config override
+- A finalized Markdown file, normally produced by `consult-drafter`.
+- Optional output filename.
+
+The input should already be reconciled — run `consult-drafter`'s `reconcile.py`
+first so IDs (`CTRL-001`, `PP-001`, `IO-001`, `GAP-01`, `SC-01`, `SRC-001`) and
+their appendix rows are consistent before rendering to Word.
 
 ## Script Location
-
-The conversion script should be located at:
 
 ```text
 scripts/cfgi_markdown_to_word.py
@@ -36,7 +39,7 @@ scripts/cfgi_markdown_to_word.py
 
 ## Commands
 
-Default conversion:
+Default conversion (builds a cover page):
 
 ```bash
 python scripts/cfgi_markdown_to_word.py input.md
@@ -48,53 +51,72 @@ Named output:
 python scripts/cfgi_markdown_to_word.py input.md -o output.docx
 ```
 
-Include generated TOC:
+Insert a generated Table of Contents:
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx --include-generated-toc
+python scripts/cfgi_markdown_to_word.py input.md -o output.docx --include-toc
 ```
 
-Use config override:
-
-```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx --config style_overrides.json
-```
-
-Use landscape orientation:
+Landscape orientation (useful for wide appendix tables):
 
 ```bash
 python scripts/cfgi_markdown_to_word.py input.md -o output.docx --landscape
 ```
 
+Skip the generated cover page:
+
+```bash
+python scripts/cfgi_markdown_to_word.py input.md -o output.docx --no-cover
+```
+
+The converter is opinionated and takes no JSON style configuration — the CFGI
+house style is fixed.
+
+## What the Converter Applies
+
+- **CFGI green house style** — Calibri body, dark-green title, green headings
+  with a rule under each H1, green table header rows that repeat across pages.
+- **Cover page from the Document Profile table** — the first H1 becomes the
+  cover title and the `Document Profile` table is lifted onto the cover as a
+  summary card, then suppressed inline so it is not duplicated. `--no-cover`
+  disables this and leaves the profile in the body.
+- **Canonical hierarchy preserved** — `#`/`##`/`###`/`####` map straight through
+  to Heading 1–4, so the `consult-drafter` structure and the TOC stay intact.
+- **Callouts colored by label** — `CONTROL` (green), `VALIDATION REQUIRED`
+  (yellow), `PAIN POINT` (red), `IMPROVEMENT OPPORTUNITY` (blue), and
+  `SCREENSHOT PLACEHOLDER` (gray) each render as a distinct shaded box.
+- **Tables auto-styled by kind** — field/summary, control, gap (zebra),
+  screenshot, and standard, detected from the table header.
+- **Screenshots stay placeholders** — Markdown image links render as screenshot
+  placeholder callouts; real images are never inserted.
+
 ## Workflow
 
-1. Confirm the Markdown file exists.
-2. Confirm the Markdown appears finalized enough for Word conversion.
-3. Select output filename if not provided.
-4. Run the script.
-5. Confirm the `.docx` was created.
-6. Tell the user the output file path.
+1. Confirm the Markdown file exists and appears finalized.
+2. Confirm it was reconciled by `consult-drafter` (no dangling IDs).
+3. Choose an output filename if none was provided.
+4. Run the converter.
+5. Confirm the `.docx` was written.
+6. Give the user the output path.
 
 ## Pre-Conversion Checklist
 
-Before running conversion, check:
-
-- Markdown has a document title.
-- Canonical sections are present.
-- Tables use GitHub-style Markdown tables.
-- Screenshot placeholders are text placeholders, not unresolved image links unless intentionally supplied.
-- Appendix C and Appendix D are present when gaps or screenshot placeholders exist.
+- Document starts with an H1 title.
+- A `Document Profile` table is present (drives the cover page).
+- Canonical sections and the A–H procedure subsections are present.
+- Tables use GitHub-style Markdown (or clean HTML) tables.
+- Screenshot references are text placeholders, not real image links.
+- Appendix B (Gap / Validation Log) and Appendix C (Screenshot / Evidence
+  Index) are present when the body contains gap or screenshot IDs.
 
 ## Output Naming
 
-Use a clean filename:
-
 ```text
-[process-name]_sop_v[version].docx
+[process-name]_process-doc_v[version].docx
 ```
 
-If version is unknown, use:
+If the version is unknown:
 
 ```text
-[process-name]_sop_draft.docx
+[process-name]_process-doc_draft.docx
 ```
