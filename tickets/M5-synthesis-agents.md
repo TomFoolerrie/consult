@@ -54,9 +54,9 @@ reconcile/aggregate).
 - Procedure refs it emits use `[[slug]]` tokens (review #2). Nouns stay canonical
   plain text (from the registry, already in the mechanical rows).
 
-**Orchestration** — thin driver runs: M3 aggregate → M5 delta → dispatch each
-agent → reconcile. Single-writer-per-region guaranteed by ordering + region
-markers.
+**Orchestration** — the sequence (M3 aggregate → M5 delta → dispatch each agent →
+reconcile) is driven by `consult-orchestrate` (M7), not a bespoke driver here.
+Single-writer-per-file is guaranteed by ordering + one file per writer.
 
 ## Acceptance
 

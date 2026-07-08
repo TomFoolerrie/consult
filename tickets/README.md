@@ -35,6 +35,26 @@ Humans edit the procedure fragments and the registry. Reviewers read the rendere
 Word document. The assembled single `.md` is **not** an artifact — it exists only
 transiently inside the docx build.
 
+### Sources lifecycle
+
+Raw inputs (transcripts, prior SOPs, notes) live **per area** under `_sources/`,
+split into two subfolders:
+
+- **`new/`** — you drop raw files here. Anything in `new/` is unconsumed work.
+- **`processed/`** — once a source has been ingested into the procedures, it is
+  **moved** here (by the orchestrator, never by hand), so `new/` always shows
+  exactly what's outstanding.
+
+Each source is registered in `_reference/sources.yaml` with an `SRC-` id, a
+content hash, and its state (`new` | `processed`); procedures cite `SRC-` ids in
+their Source Materials. The **initial run** (M0) consumes everything in `new/`;
+**later** a new file dropped in `new/` is what triggers reassessment (M6). Fill
+and synthesis agents read from `_sources/` (both subfolders) + `sources.yaml` to
+ground their drafting.
+
+> Real client data: `_sources/` and the engagement folder can be gitignored (or
+> the whole thing kept in a private repo) — same rule as the original system.
+
 ### What the reference registry is for (and isn't)
 
 - **Primary purpose: intake grounding.** Messy transcripts don't say "AP Clerk"
@@ -57,11 +77,14 @@ transiently inside the docx build.
 ```
 components/
   <l1-area>/                     one area = one "document" = its own git history
+    _sources/                    raw input documents (see "Sources lifecycle")
+      new/                       dropped here; not yet consumed
+      processed/                 moved here once ingested into procedures
     _reference/                  the noun database (human-confirmed)
       systems.yaml               canonical systems + aliases + description/limitations
       roles.yaml                 canonical functional roles + reports-to + responsibilities
       glossary.yaml              (optional) Appendix D terms
-      sources.yaml               SRC- registry (source materials)
+      sources.yaml               SRC- registry (source materials + hash + new|processed)
     00_document-profile.md       static (human-owned) — H2 sections
     04_process-overview.md       static (human-owned) — Purpose narrative
     10_<proc-slug>.md            procedure fragments (fill-agent/human-owned = SOURCE OF TRUTH)
@@ -250,11 +273,20 @@ parsed** (no double-write with the agent judgment cells).
 
 ---
 
+## The one entry point: `consult-orchestrate`
+
+You never run Python by hand. **`consult-orchestrate`** (M7) is the single skill
+you invoke ("build / continue fixed-assets"). It inspects folder state, runs the
+right script or fans out the right agent for the next phase, moves consumed
+sources `new/` → `processed/`, and **pauses at the two human gates** (the
+scaffold confirm gate, and the Word-review re-entry). Everything below is what it
+drives under the hood.
+
 ## Build order (a real DAG)
 
 `doc_model.py` (M2's foundation deliverable) is imported by M0, M3, M4, M5, so it
 is built **first**. The legacy import splitter (also M2) is optional and can come
-last.
+last. `consult-orchestrate` (M7) wraps the finished phases and is built last.
 
 ```
 M1 (template = A–H skeleton source) ┐

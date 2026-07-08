@@ -19,7 +19,7 @@ A–H skeleton), and grounds messy-transcript intake in a canonical noun registr
 ## The flow
 
 ```
-sources + reference taxonomy
+_sources/new/*  + reference taxonomy
         │
         ▼  (agent: consult-taxonomy)
   proposes: procedure set (slug, title, group)   ──┐
@@ -37,7 +37,8 @@ sources + reference taxonomy
 
 **New skill `skills/consult-taxonomy/SKILL.md`** (+ a `reference_taxonomy.yaml`
 under its `reference/` as the default backbone; the user may supply their own):
-- Read the sources; map them onto the reference taxonomy; **propose a procedure
+- Read everything in `_sources/new/`; register each in `sources.yaml` (SRC- id +
+  hash + state `new`). Map them onto the reference taxonomy; **propose a procedure
   set** — `{slug, title, group}` per L3 procedure. Slugs assigned here, once.
 - Extract candidate **nouns** and stand up the registry:
   `systems.yaml` (slug, name, aliases, description, limitations),
@@ -71,7 +72,8 @@ under its `reference/` as the default backbone; the user may supply their own):
 
 **Fill agents** (parallel, one per procedure) — reuse/rename the existing
 `consult-drafter` as the per-procedure filler:
-- Input: the procedure's skeleton + the relevant sources + `_reference/`.
+- Input: the procedure's skeleton + `_sources/` (new + processed) + `_reference/`.
+- Cite the `SRC-` id(s) it drew from in the procedure's Source Materials.
 - Normalize messy mentions to canonical names **via the registry**, writing plain
   text (no tokens for nouns). In the `B. Quick Reference` "Primary systems /
   tools" slot, **copy the registry `name` verbatim** (the authoritative slot for
@@ -102,8 +104,10 @@ under its `reference/` as the default backbone; the user may supply their own):
 
 ## Out of scope
 
-Automated **reassessment** when new sources arrive later (add/split/merge an
-existing set) — that's M6. M0 is the initial stand-up only.
+- Moving consumed sources `_sources/new/` → `processed/` — done by the
+  orchestrator (M7) after fill succeeds, not by M0's scripts.
+- Automated **reassessment** when new sources arrive later (add/split/merge an
+  existing set) — that's M6. M0 is the initial stand-up only.
 
 ## Adversarial review resolutions (r2→r3 design)
 
