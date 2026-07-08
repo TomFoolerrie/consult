@@ -1,98 +1,80 @@
-# M5 — Change-scoped specialized synthesis agents
+# M5 — Change-scoped judgment agents (RACI · dependencies · Appendix-A)
 
 **Depends on:** M3. **Blocks:** none (top of the stack).
 
 ## Goal
 
-Add the judgment layer: Python computes which procedures changed since a derived
-file was last built and hands each specialized agent a scoped work order
-(changed procedures + M3 extract bundle + shared vocabulary + the agent's own
-prior file). Each agent rewrites exactly one agent-owned derived file, touching
-only judgment cells for affected rows; mechanical rows come straight from M3.
+Fill the remaining genuine-judgment content. Python computes which procedures
+changed since a derived region was last built and hands each agent a scoped work
+order (changed procedures + M3 extract bundle + the agent's own prior region).
+Each agent writes exactly one agent-owned region/file; everything mechanical
+already came from M3.
 
-## Why
+## What's left for agents (r3 shrank this)
 
-Some derived content genuinely needs reading, not regex: Systems "Role in
-Process" / "Known Limitations", Roles/RACI assignment, Key Dependencies from
-prose, Appendix A impact/priority/recommendation. This is the only place tokens
-are spent, and they're spent narrowly.
+The reference registry (M0) turned Systems and the Role Dictionary into Python
+joins (M3). The only judgment left:
+- **RACI** — the `region: judgment` block of `80_roles.md` (Responsible /
+  Accountable / Consulted / Informed per activity). Seeded by M3's role×procedure
+  incidence grid; the agent assigns A/C/I.
+- **Dependencies** — `82_dependencies.md`, from reading each procedure's
+  `A. Process Overview` prose.
+- **Appendix-A judgment** — the `region: judgment` block of `88_appendix-a-risks.md`
+  (impact / priority / recommendation per `PP-`/`IO-` row).
 
 ## Change signal: content hash (single mechanism)
 
-Use a **content-hash baseline** as the *only* change mechanism — no git-diff
-path (review #15). Rationale: the hash covers every case the git path is fragile
-on (non-git folders, first run, rebase, squash-merge) with one code path, and it
-matches the folder-as-truth model.
-
-- `.hashes.json` (git-ignored) records, per derived file, the set of procedure
+Content-hash baseline only — no git-diff path (review #15): covers non-git,
+first-run, rebase, squash with one code path and matches folder-as-truth.
+- `.hashes.json` (git-ignored) records, per derived region/file, the procedure
   content hashes it was last built from.
-- Delta for a derived file = procedures whose current hash differs from (or is
-  absent in) that record. First run → all procedures "changed."
-- After a successful agent write, update `.hashes.json` for that file.
+- Delta = procedures whose current hash differs/absent. First run → all changed.
+- Update `.hashes.json` after a successful write.
 
-> This intentionally replaces the earlier "agents read git history" idea. Same
-> goal (know what changed, spend tokens only there); simpler and more robust
-> mechanism. Flagged as a deliberate deviation from the original phrasing.
+> This replaces the earlier "agents read git history" idea — same goal, simpler,
+> more robust. Flagged as a deliberate deviation.
 
 ## Changes
 
-**Delta engine** (new Python, e.g. `scope_delta.py`, imports `doc_model.py`):
-- Compute the changed-procedure set per derived file from `.hashes.json`.
-- Emit a per-section **work order**:
-  `{derived_kind, changed_procedure_slugs, mechanical_rows (from M3 bundle),
-  raw_systems, raw_roles, raw_dependencies, canonical_hint,
-  prior_file_contents}`. The **prior file** is included so the agent preserves
-  unaffected judgment cells by reading its own last output — no brittle synthetic
-  row key (review #11).
+**Delta engine** (`scope_delta.py`, imports `doc_model.py`): per agent region,
+compute changed-procedure set from `.hashes.json`; emit a work order
+`{derived_kind, changed_procedure_slugs, mechanical_context (from bundle),
+raci_grid | raw_dependencies | appendix_observations, prior_region_contents}`.
+The **prior region** is included so the agent preserves unaffected judgment
+without a synthetic key (review #11).
 
-**Specialized agents** — one `derived_kind` each: `roles`, `systems`,
-`dependencies`, `risks` (Appendix A judgment cells). Under `.claude/agents/`,
-tool-scoped (Read + Write to their one file + reconcile/aggregate scripts).
-- Single-file-owner: the agent writes the whole fragment, re-emits the
-  `<!-- derived -->` marker (review #10), copies M3's mechanical rows through
-  verbatim, and fills judgment cells **only** for rows whose source procedure is
-  in `changed_procedure_slugs`; unaffected rows are carried over from
-  `prior_file_contents`.
-- **Canonicalization lives in the agent** (systems/roles): the agent dedupes the
-  raw mention list into canonical entities and keeps that naming stable run-to-run
-  by consulting its prior file (review #8, #11). All agents share one
-  `canonical_hint` (the union of canonical names seen so far) so terminology stays
-  consistent across Roles / Systems / Appendix A without cross-talk.
-- Procedure cross-references the agent emits use `[[slug]]` tokens, never numbers
-  (review #2).
+**Agents** — `raci`, `dependencies`, `risks-judgment`. Under `.claude/agents/`,
+tool-scoped (Read + Write to their one region/file + reconcile/aggregate).
+- Region-scoped writer: the agent rewrites only its `region: judgment` block (or
+  the whole `82_` file), re-emits markers (review #10), and fills judgment cells
+  **only** for rows whose source procedure is in `changed_procedure_slugs`;
+  unaffected rows carried from `prior_region_contents`. It never touches the
+  mechanical region.
+- Procedure refs it emits use `[[slug]]` tokens (review #2). Nouns stay canonical
+  plain text (from the registry, already in the mechanical rows).
 
-**Orchestration** — a thin driver (skill or small script) runs, in order:
-M3 aggregate → M5 delta → dispatch each agent-owned file's agent with its work
-order → reconcile. Ordering guarantees single-writer-per-file: python-owned files
-were written by M3; agent-owned files only here.
+**Orchestration** — thin driver runs: M3 aggregate → M5 delta → dispatch each
+agent → reconcile. Single-writer-per-region guaranteed by ordering + region
+markers.
 
 ## Acceptance
 
-- Changing one procedure's systems → work order names only that procedure; the
-  systems agent updates only affected rows; other rows and other derived files
-  untouched.
-- Deleting a procedure → its mechanical rows vanish (M3) and its judgment cells
-  are not resurrected.
-- A manifest-only reorder (no procedure content change) produces **no** synthesis
-  work, yet the rendered doc still shows correct numbers because M4 resolves
-  `[[slug]]` at render — confirming the reorder-staleness bug is closed
-  (review #2).
-- Non-git folder: the hash baseline works with no git present (review #15).
-- No derived file is written by both Python and an agent.
-- Terminology (system/role names) is consistent across Roles, Systems, and
-  Appendix A on a seeded multi-procedure folder.
+- Changing one procedure → work order names only it; only affected RACI/dep/risk
+  rows update; mechanical regions and other regions untouched.
+- Deleting a procedure → mechanical rows vanish (M3); judgment cells not
+  resurrected.
+- A manifest-only reorder (no content change) → no synthesis work, yet the
+  rendered doc shows correct numbers (M4 resolves `[[slug]]` at render) —
+  reorder-staleness bug closed (review #2).
+- Non-git folder: hash baseline works with no git (review #15).
+- No region is written by both Python and an agent (marker-scoped).
 
 ## Out of scope
 
-Deciding *which* procedures exist (M6). M5 assumes the set is given and reacts to
-changes in it.
+Deciding which procedures exist / registry reassessment — M6.
 
 ## Adversarial review resolutions
 
-- **#2:** agent output uses `[[slug]]` tokens; a pure reorder needs no re-synthesis
-  and still renders correct numbers (bug closed by the token model + M4).
-- **#8:** canonicalization is explicitly the agent's job over M3's raw mentions.
-- **#10:** agent re-emits the derived marker.
-- **#11:** judgment-cell preservation via the agent reading its own prior file
-  (no fragile synthetic key).
-- **#15:** single content-hash change signal; git-diff path dropped.
+- **#2/#10/#11/#15** as noted inline.
+- **r3:** scope shrunk to RACI + dependencies + Appendix-A judgment; agents write
+  only their `region: judgment` block, never the mechanical region.

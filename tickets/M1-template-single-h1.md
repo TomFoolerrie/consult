@@ -1,20 +1,23 @@
-# M1 — Template rewrite: single-H1, flat-H2
+# M1 — Template rewrite: single-H1, flat-H2, A–H skeleton source
 
-**Depends on:** none. **Blocks:** M2, M3, M4.
+**Depends on:** none. **Blocks:** M0 (scaffold), M2, M3, M4.
 
 ## Goal
 
 Rewrite `skills/consult-drafter/reference/Template.md` and the drafter
 `SKILL.md` structure rules to the heading contract in `tickets/README.md`:
 one `#` title, every section `##`, procedures as `##` with A–H at `###` and
-steps at `####`, derived sections as un-numbered `##`.
+steps at `####`, derived sections as un-numbered `##`. The per-procedure A–H
+block doubles as the **skeleton M0's `scaffold.py` stamps out** — so the
+template is the single definition of procedure shape, consumed by both the
+drafter and the scaffolder.
 
 ## Why
 
 The current template mixes H1 as both title and section divider, with
 procedures as H2 nested under H1 group headers. That mixed hierarchy is what
 forces the splitter's heuristics. Flattening to one-title + flat-H2 is the
-precondition for the dead-simple splitter (M2).
+precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
 
 ## Changes
 
@@ -54,10 +57,18 @@ precondition for the dead-simple splitter (M2).
 - State explicitly: procedure headings carry the plain title only; the `N.M`
   number is derived downstream and rendered by the docx builder, never typed
   into the heading or into any cross-reference.
-- State that cross-references to another procedure use the `[[slug]]` token.
+- State that cross-references to another procedure use the `[[slug]]` token, and
+  that systems/roles are written as **canonical plain text** (normalized via the
+  `_reference/` registry), **not** tokens.
 - State the derived sections are generated, not drafted by hand; the H. Known
   Issues section is free narrative and is **not** a data source for Appendix A
   (the inline `PP-`/`IO-` callouts are).
+- State that callout IDs are **procedure-local** (`CTRL-001` restarts per
+  procedure), safe under parallel fill.
+
+Split the per-procedure A–H block into a standalone, parameterizable snippet
+(`reference/procedure_skeleton.md` or a clearly-delimited region) so M0's
+`scaffold.py` can stamp it per procedure without re-parsing the whole template.
 
 ## Acceptance
 

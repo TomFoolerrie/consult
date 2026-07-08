@@ -1,31 +1,34 @@
-# M2 — Dead-simple splitter + manifest + shared numbering helper
+# M2 — Legacy import splitter + manifest + shared numbering helper
 
-**Depends on:** M1. **Blocks:** M3, M4, M5.
+**Depends on:** M1. **Blocks:** M3, M4, M5 (via the shared `doc_model.py` helper).
 
 ## Goal
 
-Replace the heuristic splitter with the one-rule splitter, make the exploded
-folder + `manifest.json` the primary artifact, retire user-facing assembly, and
-introduce the single shared display-number / slug-token helper the whole system
-uses.
+Provide (a) the shared `doc_model.py` helper the whole system depends on
+(manifest load/validate, `display_numbers`, token resolution, structured
+`assemble`), and (b) a **legacy import** splitter that converts a pre-existing
+single-file `.md` into a folder. Retire user-facing assembly.
 
-## Why
+## Role after r3: import, not the primary entry
 
-`split_doc.py` currently stacks three heuristics ("shallowest level after
-title" + numbered-module regex + appendix regex) and breaks on any document that
-deviates from the template's exact shape. Under M1's flat-H2 contract the rule
-collapses to: **start a new fragment at every `##`.** And numbering must live in
-exactly one place or it drifts (review #4).
+With M0 scaffolding the folder from sources, **split is no longer the normal
+entry point** — the folder is born folder-native. Split survives only to
+**import** a legacy single-file document (someone's existing SOP) into the folder
+model **once**. After import (or scaffold), the **folder is authoritative**;
+steady-state work is edit-in-place + `reconcile.py`. There is no "re-split the
+folder" operation, so headings rename freely without churning slugs. On a
+re-import, slugs carry forward by matching the prior `manifest.json`; a heading
+with no prior match is reported for a human slug decision (never silently
+re-slugged). This removes the slug-stability contradiction (review #3).
 
-## `split` is a one-shot bootstrap (important)
+The **shared helper is the load-bearing deliverable of this ticket** — M0, M3,
+M4, M5 all import it. The splitter itself is the smaller, now-optional part.
 
-Split converts a single drafted `.md` into a folder **once**. After that the
-**folder is authoritative**; steady-state work is edit-in-place + `reconcile.py`.
-There is no "re-split the folder" operation in normal use, so headings can be
-renamed freely without churning slugs. If a re-bootstrap is ever run, slugs are
-carried forward by matching the prior `manifest.json`; a heading with no prior
-match is reported for a human slug decision (never silently re-slugged). This
-removes the slug-stability contradiction (review #3).
+## Why the splitter is still trivial
+
+Under M1's flat-H2 contract the rule collapses to: **start a new fragment at
+every `##`** — no heuristics. Numbering lives in exactly one place (the helper)
+or it drifts (review #4).
 
 ## Changes
 

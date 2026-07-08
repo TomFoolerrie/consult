@@ -1,13 +1,15 @@
-# M6 — Scoping / taxonomy reassessment (DEFERRED — do not build yet)
+# M6 — Taxonomy + registry reassessment (DEFERRED — do not build yet)
 
 **Status:** stub. Captured so the design isn't lost. **Not in MVP scope.**
 
 ## The problem it solves
 
-Something has to decide *which procedures exist* in an area and reassess that set
-as new source materials arrive — add a new procedure, split one in two, merge
-two, or reorder. This is genuine judgment (an agent), distinct from M5, which
-only reacts to changes in an already-decided set.
+M0 does the **initial** stand-up (procedure set + `_reference/` registry) from
+the first sources. M6 is the **incremental** counterpart: when *new* sources
+arrive later, reassess both — add/split/merge/reorder procedures **and** propose
+registry additions (a newly-mentioned system, a new role, a new alias). Genuine
+judgment (an agent), distinct from M5 which only reacts to content changes within
+an already-decided set.
 
 ## Why it's deferred
 
@@ -24,8 +26,11 @@ only reacts to changes in an already-decided set.
 - Diff proposed slugs against existing manifest procedures: **new** → create a
   fragment + manifest entry; **missing** → flag for human (never auto-delete a
   human-authored procedure); **split/merge** → propose, human confirms.
-- For the MVP, the `consult-drafter` proposes the initial set by hand; there is
-  no automated reassessment.
+- Registry reassessment reuses M3's "unmatched mention" WARNINGs as the trigger
+  list: each flagged system/role is a candidate registry addition for the human
+  to confirm.
+- For the MVP, M0 proposes the initial set + registry once (human-confirmed);
+  there is no automated reassessment.
 
 ## Acceptance
 

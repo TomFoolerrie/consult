@@ -1,96 +1,106 @@
 # M3 — Mechanical aggregator (zero-token views)
 
-**Depends on:** M1, M2. **Blocks:** M5.
+**Depends on:** M0 (scaffolded folder + `_reference/`), M1, M2 (`doc_model.py`).
+**Blocks:** M5.
 
 ## Goal
 
-A deterministic Python engine that reads all procedure fragments in a folder and
-(a) regenerates the **pure-mechanical** derived files in full, (b) writes a
-**"pending synthesis" placeholder** into agent-owned derived files, and (c) emits
-an **extract bundle** of pre-extracted facts for the agents (M5).
+A deterministic Python engine that reads all procedure fragments + the
+`_reference/` registry and (a) regenerates every python-owned derived view in
+full, (b) writes the python region of the split-writer files, (c) writes a
+`> _Pending synthesis (M5)._` placeholder into the agent regions/files, and
+(d) emits an extract bundle for the M5 agents.
 
 ## Why
 
-What has strict syntax (IDs in callouts, gap/screenshot tags) is a `SELECT`, not
-synthesis — do it in Python for zero tokens, idempotently, correct on
-delete/rename. Reserve agents (M5) for genuine judgment cells only. See the
-extraction contract in `tickets/README.md` for the strict-vs-not boundary.
+Strict-syntax IDs and registry-backed nouns are `SELECT`s, not synthesis — do
+them in Python for zero tokens, idempotently, correct on delete/rename. The
+reference registry lets Systems and the Role Dictionary become joins too, which
+is why they moved here from M5. Reserve agents for genuine prose judgment.
 
 ## Changes
 
-New `skills/consult-drafter/scripts/aggregate.py` (name TBD). Imports
-`doc_model.py` (M2) for the manifest + `display_numbers` helper; imports the
-shared ID logic factored out of `reconcile.py` (do not duplicate).
+New `skills/consult-drafter/scripts/aggregate.py`. Imports `doc_model.py`
+(manifest + `display_numbers`) and the shared ID logic factored out of
+`reconcile.py` (do not duplicate). Reads `manifest.json`, every `role:
+procedure` fragment, and `_reference/*.yaml`.
 
-**Reads:** the folder's `manifest.json` + every `role: procedure` fragment.
+**Python-owned files — full rebuild each run, markers re-emitted:**
+- `70_procedure-index.md` (`procedure-index`) — In-Scope index: one row per
+  procedure `{[[slug]] token, title, group, Direction/Frequency/Owner from
+  B. Quick Reference}`.
+- `81_systems.md` (`systems`) — **registry × usage join**: one row per
+  `systems.yaml` entry (canonical name, description, limitations) + a "Related
+  Procedures" cell = the `[[slug]]` tokens of procedures whose canonical mentions
+  matched that entry (by name or alias).
+- `90_appendix-b-gaps.md` (`gap-log`) / `91_appendix-c-screens.md`
+  (`screenshot-index`) — one row per `GAP-` / `SC-`, with a Source Procedure
+  `[[slug]]` column (IDs are procedure-local, so the column disambiguates).
 
-**Writes — python-owned files, full rebuild each run, marker re-emitted:**
-- `70_procedure-index.md` (`derived_kind: procedure-index`) — the In-Scope
-  index: one row per procedure `{display number, title, group}` plus
-  Direction/Frequency/Owner pulled from `B. Quick Reference` where present. Pure
-  SELECT. Owner of the table that used to be hand-edited (review #5).
-- `90_appendix-b-gaps.md` (`gap-log`) — one row per `GAP-` (id, location = source
-  procedure `[[slug]]` token + step, description, owner/priority/status TBD if not
-  inline).
-- `91_appendix-c-screens.md` (`screenshot-index`) — one row per `SC-`.
+**Split-writer files — Python writes ONLY the `region: mechanical` block:**
+- `80_roles.md` → **Role Dictionary** block = join from `roles.yaml`
+  (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from matched
+  Preparer/Reviewer mentions. The `region: judgment` (RACI) block is left with the
+  pending placeholder for M5.
+- `88_appendix-a-risks.md` → **observation rows** = one per `PP-`/`IO-` callout
+  (id, observation text, Source Procedure `[[slug]]`). The `region: judgment`
+  (impact/priority/recommendation) block gets the pending placeholder.
 
-  Cross-references in these files use `[[slug]]` tokens (resolved at render), not
-  baked numbers (review #2).
+**Agent-only files — placeholder:**
+- `82_dependencies.md` → heading + marker + `> _Pending synthesis (M5)._`.
 
-**Writes — agent-owned files, placeholder only (M3 does not synthesize):**
-- Into `80_roles.md`, `81_systems.md`, `82_dependencies.md`,
-  `88_appendix-a-risks.md`: the section heading, the `<!-- derived -->` marker,
-  and a `> _Pending synthesis (M5)._` note, so the interim Word doc shows an
-  explicit pending state rather than raw `TBD` rows (review #16). M5 overwrites
-  these in full.
+**Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5:
+- Per split-writer file, the mechanical rows M3 just wrote (so the agent copies
+  them through and only fills its region).
+- `raw_dependencies`: each procedure's `A. Process Overview` text, tagged by slug.
+- For RACI: role × procedure/step incidence (which matched role appears in which
+  procedure's steps) as a candidate grid.
 
-**Emits — extract bundle `<area>.extract.json` (scratch, git-ignored):**
-- **Systems:** a **raw, un-deduped mention list** — each literal string from
-  `B. Quick Reference` "Primary systems / tools" and step `**System:**` fields,
-  tagged with its source procedure slug. **No dedup/canonicalization** (that's the
-  systems agent's job — review #8).
-- **Roles:** raw Preparer/Reviewer strings, tagged by procedure slug.
-- **Appendix A rows:** one per `PP-`/`IO-` callout with observation + source
-  procedure slug; judgment cells (impact/priority/recommendation) blank. The
-  callout is the **sole** source; `H. Known Issues` is not read (review #9).
-- **Dependencies:** the raw `A. Process Overview` text per procedure, tagged by
-  slug — handed to the agent to read. Python does **not** attempt phrase
-  extraction (review #8).
-- Procedure-index rows (same data written to `70_`).
+**Registry matching (nouns) — flag, don't drop:** match canonical mentions from
+`B. Quick Reference` / step `**System:**` fields against `systems.yaml` /
+`roles.yaml` names + aliases. A mention matching nothing → **WARNING** naming the
+mention + procedure ("add an entry or alias"); it is never silently dropped and
+never guessed into a new entry.
 
-**Fail-loud (nonzero exit, nothing dropped):** bare gap tag; referenced-but-
-undefined ID; ID prefix not matching its callout label (this label↔prefix check
-is **new code owned here** — `reconcile.py` doesn't do it today, review #14);
-conflicting duplicate ID. Delimiter parsed tolerantly (`-`/`–`/`—`); ID grammar
-strict (review #17).
+**Fail-loud IDs (nonzero exit, nothing dropped):** bare gap tag;
+referenced-but-undefined ID; ID prefix not matching its callout label (**new code
+owned here**); conflicting duplicate ID **within a procedure** (IDs are
+procedure-local — the check is per-procedure, review-scoping-safe). Delimiter
+tolerant (`-`/`–`/`—`); ID grammar strict.
 
-**Idempotent:** two runs with no procedure changes → byte-identical outputs.
+**Idempotent:** two runs, no procedure/registry change → byte-identical outputs.
 
 ## Acceptance
 
-- On a seeded folder, `70_`/`90_`/`91_` contain exactly the procedures/IDs
-  present; deleting a procedure removes its rows next run.
-- Agent-owned files contain the pending-synthesis placeholder + marker.
-- Extract bundle: systems/roles are raw mention lists with source slugs (no
-  dedup); Appendix A rows only from callouts; dependencies are raw A-section text.
-- `[[GAP — no id]]` → nonzero exit, clear message, nothing dropped.
-- A callout `> **PAIN POINT — GAP-9:** …` (prefix/label mismatch) → error.
-- A single en-dash vs em-dash delimiter difference does **not** error.
-- Two consecutive runs are byte-identical.
-- No committed scratch files.
+- `70/81/90/91` and the Python regions of `80/88` are rebuilt from the
+  procedures + registry; deleting a procedure removes its rows/usages next run.
+- `81_systems.md` shows every `systems.yaml` entry with correct "Related
+  Procedures" back-references; a system used but absent from the registry raises a
+  WARNING (not dropped).
+- `80_roles.md` Role Dictionary block comes from `roles.yaml`; its RACI region
+  holds the pending placeholder.
+- `88` observation rows come only from callouts; `H. Known Issues` is not read.
+- Two procedures each defining a local `CTRL-001` do **not** collide; the
+  per-procedure duplicate check still catches a real intra-procedure dup.
+- `[[GAP — no id]]` and a `PAIN POINT — CTRL-9` mismatch each cause nonzero exit.
+- En-dash vs em-dash delimiter difference does not error.
+- Two consecutive runs are byte-identical; no committed scratch files.
 
 ## Out of scope
 
-Filling judgment cells; change-scoping; agent orchestration — all M5.
+RACI, dependency prose, Appendix-A judgment cells — M5.
 
 ## Adversarial review resolutions
 
-- **#5:** In-Scope index is a python-owned file with a real owner.
-- **#2:** derived cross-refs use `[[slug]]` tokens, not baked numbers.
-- **#8:** systems = raw mentions (agent canonicalizes); dependencies = raw prose
-  for the agent; Python does not fake-mechanize them.
-- **#9:** Appendix A sourced only from callouts; H not parsed.
-- **#10:** python writer re-emits the derived marker.
-- **#14:** label↔prefix check built here explicitly.
-- **#16:** pending-synthesis placeholder into agent files.
+- **#5:** In-Scope index python-owned.
+- **#2:** derived cross-refs use `[[slug]]` tokens.
+- **#8:** systems/roles are registry joins (canonical), not fake-mechanized free
+  text; dependencies stay agent prose.
+- **#9:** Appendix A observation from callouts only; H not parsed.
+- **#10:** python writer re-emits derived + region markers.
+- **#11 / split-writer:** region markers keep python and agent bytes disjoint.
+- **#14:** label↔prefix check built here; runs before reconcile.
+- **#16:** pending-synthesis placeholders in agent regions/files.
 - **#17:** tolerant delimiter, strict ID grammar.
+- **r3:** Systems + Role Dictionary moved here as registry joins; ID checks are
+  procedure-local for parallel-fill safety.
