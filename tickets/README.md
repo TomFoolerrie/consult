@@ -277,10 +277,36 @@ parsed** (no double-write with the agent judgment cells).
 
 You never run Python by hand. **`consult-orchestrate`** (M7) is the single skill
 you invoke ("build / continue fixed-assets"). It inspects folder state, runs the
-right script or fans out the right agent for the next phase, moves consumed
-sources `new/` → `processed/`, and **pauses at the two human gates** (the
+right script or **dispatches the right subagent** for the next phase, moves
+consumed sources `new/` → `processed/`, and **pauses at the two human gates** (the
 scaffold confirm gate, and the Word-review re-entry). Everything below is what it
 drives under the hood.
+
+### Context-isolation principle (load-bearing)
+
+The orchestrator is a **thin coordinator**. Every unit of judgment work runs as a
+**separate subagent in its own context** (a tool-scoped agent type under
+`.claude/agents/`, one per stage), returning only a compact result. The
+orchestrator does **not** run a skill's drafting inline — it never pulls
+transcripts, drafts, or source text into its own context. It only: runs
+deterministic Python, spawns subagents and collects their small returns, moves
+files, and stops at gates. This is what keeps the orchestrator's context flat no
+matter how large the engagement gets, and it's why fan-out (one fill subagent per
+procedure) is cheap and parallel.
+
+**Agent roster** (each a `.claude/agents/` def that preloads its skill brief,
+tool-scoped, run by the orchestrator — never inline):
+
+| Stage | Subagent | Writes |
+|---|---|---|
+| scope + registry | `consult-taxonomy` | `_reference/.proposed/*` |
+| fill (one per procedure, parallel) | `consult-drafter` | `10_<slug>.md` |
+| dependencies | `consult-dependencies` | `82_dependencies.md` |
+| RACI | `consult-raci` | `84_raci.md` |
+| risk judgment | `consult-risk-judgment` | `89_risk-judgment.md` |
+
+Deterministic stages (`scaffold`, `aggregate`, `render`, `reconcile`,
+`scope_delta`) are plain Python the orchestrator runs directly — no agent.
 
 ## Build order (a real DAG)
 

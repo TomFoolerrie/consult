@@ -6,8 +6,20 @@
 
 A single skill the user invokes to advance an area end to end, so they never run
 a Python script by hand. It inspects folder state, performs the one next action
-(run a deterministic script itself, or fan out the right agent), moves consumed
+(run a deterministic script itself, or **dispatch a subagent**), moves consumed
 sources `new/` → `processed/`, and pauses at the two human gates.
+
+## Context-isolation is the point (not optional)
+
+The orchestrator is a thin coordinator. Judgment work is **never run inline in
+the orchestrator's context** — each piece runs as a **separate subagent** (a
+tool-scoped `.claude/agents/` type per stage) that reads its own inputs and
+returns a compact result. The orchestrator only runs deterministic Python, spawns
+subagents and collects their small returns, moves files, and stops at gates. It
+must not read transcripts, drafts, or source text into its own context — that is
+what keeps its context flat regardless of engagement size and lets fill fan out
+one subagent per procedure in parallel. See the README "Context-isolation
+principle" + agent roster.
 
 ## Why
 
@@ -34,10 +46,14 @@ it never mutates. State signals:
 | nothing outstanding | `done` |
 
 **2. `skills/consult-orchestrate/SKILL.md` — the driver the user talks to.**
-Loops `orchestrate.py next`, and for each returned action either runs the script
-(`scaffold.py`, `aggregate.py`, `cfgi_markdown_to_word.py`, `scope_delta.py`) or
-fans out the named agent (`consult-taxonomy`, the per-procedure fillers, the M5
-judgment agents). It:
+Loops `orchestrate.py next`, and for each returned action either runs the
+deterministic script itself (`scaffold.py`, `aggregate.py`,
+`cfgi_markdown_to_word.py`, `scope_delta.py`, `reconcile.py`) **or dispatches the
+matching subagent** — `consult-taxonomy`, one `consult-drafter` per procedure (in
+parallel), or the M5 judgment agents (`consult-dependencies`, `consult-raci`,
+`consult-risk-judgment`). Each subagent runs in its **own context** and returns a
+compact status (files written, warnings, done) — the orchestrator never ingests
+the drafts or sources itself. It:
 - **Moves sources** `_sources/new/` → `processed/` (and flips `sources.yaml`
   state) only after the fill that consumed them succeeds.
 - **Stops and hands back to the human** at `confirm`, `registry_topup`, and
@@ -48,8 +64,13 @@ judgment agents). It:
 ## Changes
 
 - New `scripts/orchestrate.py` (read-only advisor; imports `doc_model.py`).
-- New `skills/consult-orchestrate/SKILL.md` (the driver; references the stage
-  scripts + agent skills by name).
+- New `skills/consult-orchestrate/SKILL.md` (the driver; dispatches subagents by
+  type, runs the deterministic scripts, never drafts inline).
+- New `.claude/agents/` defs for the judgment stages so the orchestrator can
+  dispatch them as isolated subagents: `consult-taxonomy`, `consult-drafter`,
+  `consult-dependencies`, `consult-raci`, `consult-risk-judgment` (each preloads
+  its skill brief, tool-scoped to just its input reads + its one output file +
+  reconcile/aggregate). (The M5 agent defs may already exist from M5 — reuse.)
 - Source move logic (new → processed + `sources.yaml` state) lives in a small
   Python helper the orchestrator calls (not hand-done, not in M0).
 
@@ -59,6 +80,10 @@ judgment agents). It:
   taxonomy → (stop: confirm) → fill → aggregate → (stop: topup if any) →
   synthesize → render → (stop: review) → done, running all Python itself.
 - The user runs **zero** Python commands directly in a full pass.
+- Each judgment stage runs as a **subagent**, not inline: after a full pass the
+  orchestrator's own context holds only compact statuses, not any draft/source
+  text (verify the drafts don't appear in the orchestrator transcript).
+- Fill dispatches procedures **in parallel** (N subagents for N procedures).
 - Consumed sources end in `_sources/processed/` with `sources.yaml` state
   `processed`; nothing is moved before its fill succeeds.
 - `orchestrate.py` is read-only (re-running `next` never changes state).
