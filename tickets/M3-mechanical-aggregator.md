@@ -25,42 +25,51 @@ New `skills/consult-drafter/scripts/aggregate.py`. Imports `doc_model.py`
 `reconcile.py` (do not duplicate). Reads `manifest.json`, every `role:
 procedure` fragment, and `_reference/*.yaml`.
 
-**Python-owned files — full rebuild each run, markers re-emitted:**
+**Python-owned files (one writer each) — full rebuild each run, marker re-emitted:**
 - `70_procedure-index.md` (`procedure-index`) — In-Scope index: one row per
   procedure `{[[slug]] token, title, group, Direction/Frequency/Owner from
   B. Quick Reference}`.
+- `80_role-dictionary.md` (`role-dictionary`) — join from `roles.yaml`
+  (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from matched
+  Preparer/Reviewer mentions.
 - `81_systems.md` (`systems`) — **registry × usage join**: one row per
   `systems.yaml` entry (canonical name, description, limitations) + a "Related
-  Procedures" cell = the `[[slug]]` tokens of procedures whose canonical mentions
-  matched that entry (by name or alias).
+  Procedures" cell = the `[[slug]]` tokens of procedures whose Quick-Reference
+  "Primary systems / tools" mentions matched that entry (name or alias). Step
+  prose is not scanned (see README matching contract).
+- `88_risk-observations.md` (`risk-observations`) — one row per `PP-`/`IO-`
+  callout: `{(slug, id), observation text, Source Procedure [[slug]]}`. This is
+  the Python half of Appendix A; M4 joins it with `89_risk-judgment.md` on
+  `(slug, id)` at render.
 - `90_appendix-b-gaps.md` (`gap-log`) / `91_appendix-c-screens.md`
-  (`screenshot-index`) — one row per `GAP-` / `SC-`, with a Source Procedure
-  `[[slug]]` column (IDs are procedure-local, so the column disambiguates).
+  (`screenshot-index`) — one row per `GAP-` / `SC-`, Source Procedure `[[slug]]`
+  column (IDs procedure-local, so the column disambiguates).
 
-**Split-writer files — Python writes ONLY the `region: mechanical` block:**
-- `80_roles.md` → **Role Dictionary** block = join from `roles.yaml`
-  (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from matched
-  Preparer/Reviewer mentions. The `region: judgment` (RACI) block is left with the
-  pending placeholder for M5.
-- `88_appendix-a-risks.md` → **observation rows** = one per `PP-`/`IO-` callout
-  (id, observation text, Source Procedure `[[slug]]`). The `region: judgment`
-  (impact/priority/recommendation) block gets the pending placeholder.
-
-**Agent-only files — placeholder:**
-- `82_dependencies.md` → heading + marker + `> _Pending synthesis (M5)._`.
+**Agent-owned files — placeholder now, M5 fills them:**
+- `82_dependencies.md`, `84_raci.md`, `89_risk-judgment.md` → heading + marker +
+  `> _Pending synthesis (M5)._`. (No shared file, no region markers — each is a
+  clean single-writer file. M3 does not write into them beyond the placeholder.)
 
 **Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5:
-- Per split-writer file, the mechanical rows M3 just wrote (so the agent copies
-  them through and only fills its region).
+- `risk_observations`: the `(slug, id)` + observation rows M3 wrote to
+  `88_`, so the `89_risk-judgment` agent keys its judgment rows on the same pair.
 - `raw_dependencies`: each procedure's `A. Process Overview` text, tagged by slug.
-- For RACI: role × procedure/step incidence (which matched role appears in which
-  procedure's steps) as a candidate grid.
+- `raci_grid`: role × procedure/step incidence (which matched role appears in
+  which procedure's steps) as a candidate grid for `84_raci`.
 
-**Registry matching (nouns) — flag, don't drop:** match canonical mentions from
-`B. Quick Reference` / step `**System:**` fields against `systems.yaml` /
-`roles.yaml` names + aliases. A mention matching nothing → **WARNING** naming the
-mention + procedure ("add an entry or alias"); it is never silently dropped and
-never guessed into a new entry.
+**Registry matching (nouns) — flag, don't drop:** match the canonical mentions in
+`B. Quick Reference` ("Primary systems / tools", Preparer/Reviewer) against
+`systems.yaml` / `roles.yaml` names + aliases (fill agents copy the registry name
+verbatim into that slot). Step prose is **not** scanned — prose-only systems are
+out of scope by design. A Quick-Ref mention matching nothing → **WARNING** naming
+the mention + procedure ("add an entry or alias"); never dropped, never guessed
+into a new entry.
+
+**Registry top-up loop (part of the "useful" milestone DoD, not M6):** the
+WARNINGs are the human's worklist — add the missing system/role (or an alias) to
+`_reference/`, re-run aggregate, until Systems/Roles are complete. This closes the
+"registry frozen at confirm" gap in-band (review r3 #7) rather than waiting for
+the deferred M6.
 
 **Fail-loud IDs (nonzero exit, nothing dropped):** bare gap tag;
 referenced-but-undefined ID; ID prefix not matching its callout label (**new code
@@ -72,14 +81,18 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
 
 ## Acceptance
 
-- `70/81/90/91` and the Python regions of `80/88` are rebuilt from the
-  procedures + registry; deleting a procedure removes its rows/usages next run.
+- `70/80/81/88/90/91` are rebuilt (single-writer each) from procedures + registry;
+  deleting a procedure removes its rows/usages next run.
 - `81_systems.md` shows every `systems.yaml` entry with correct "Related
-  Procedures" back-references; a system used but absent from the registry raises a
-  WARNING (not dropped).
-- `80_roles.md` Role Dictionary block comes from `roles.yaml`; its RACI region
-  holds the pending placeholder.
-- `88` observation rows come only from callouts; `H. Known Issues` is not read.
+  Procedures" back-references; a Quick-Ref system absent from the registry raises a
+  WARNING (not dropped); a system named only in step prose is (documented) out of
+  scope.
+- `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md`,
+  `82_dependencies.md`, `89_risk-judgment.md` hold pending placeholders.
+- `88_risk-observations.md` rows come only from callouts; `H. Known Issues` is not
+  read.
+- Re-running aggregate after a human adds a registry entry clears that entry's
+  WARNING (top-up loop works).
 - Two procedures each defining a local `CTRL-001` do **not** collide; the
   per-procedure duplicate check still catches a real intra-procedure dup.
 - `[[GAP — no id]]` and a `PAIN POINT — CTRL-9` mismatch each cause nonzero exit.
@@ -98,9 +111,12 @@ RACI, dependency prose, Appendix-A judgment cells — M5.
   text; dependencies stay agent prose.
 - **#9:** Appendix A observation from callouts only; H not parsed.
 - **#10:** python writer re-emits derived + region markers.
-- **#11 / split-writer:** region markers keep python and agent bytes disjoint.
 - **#14:** label↔prefix check built here; runs before reconcile.
-- **#16:** pending-synthesis placeholders in agent regions/files.
+- **#16:** pending-synthesis placeholders in agent files.
 - **#17:** tolerant delimiter, strict ID grammar.
-- **r3:** Systems + Role Dictionary moved here as registry joins; ID checks are
-  procedure-local for parallel-fill safety.
+- **r3 #1:** ID checks are per-procedure `(slug, local-id)`.
+- **r3 #3:** systems sole source = Quick Reference; prose out of scope, documented.
+- **r3 #5:** split-writer files replaced by one-writer-per-file (`80/84`,
+  `88/89`); Appendix A merged at render by M4, not via region markers.
+- **r3 #7:** in-band registry top-up loop, not deferred to M6.
+- **r3:** Systems + Role Dictionary are registry joins owned here.

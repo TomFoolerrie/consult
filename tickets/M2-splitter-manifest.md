@@ -1,6 +1,9 @@
-# M2 — Legacy import splitter + manifest + shared numbering helper
+# M2 — Shared `doc_model.py` spine (+ legacy import splitter)
 
-**Depends on:** M1. **Blocks:** M3, M4, M5 (via the shared `doc_model.py` helper).
+**Depends on:** M1. **Blocks:** M0, M3, M4, M5 (all import `doc_model.py`).
+
+> **Build first.** `doc_model.py` is the foundation the whole system imports, so
+> ship it before M0. The import splitter is the optional, build-last part.
 
 ## Goal
 
@@ -61,17 +64,22 @@ New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
   renames nothing else.
 - `slug` collision → deterministic `-2`, `-3`, … + warning.
 
-`skills/consult-drafter/scripts/reconcile.py`:
+`skills/consult-drafter/scripts/reconcile.py` — **rewrite the ID core, don't
+patch it** (r3 review #1). Today it collects definitions/occurrences *globally*
+across the concatenated text, which is wrong now that IDs are procedure-local
+(`CTRL-001` legitimately exists in two procedures). New behavior:
+- **Per-fragment ID integrity:** parse each procedure file independently; every
+  referenced ID must be defined **within that same procedure**; key everything on
+  `(slug, local-id)`. No global ID namespace — so no false DUPLICATE across
+  procedures and no false cross-resolution between them.
+- **Derived-table check:** each derived row's `(Source-Procedure slug, id)` pair
+  must exist in that procedure. This runs **after** aggregate (M3), when derived
+  files exist (review #14).
 - Validate `manifest.json` against v1; check `order` uniqueness; check `slug`
-  uniqueness.
-- Verify every `[[slug]]` token resolves via `display_numbers` (dangling token =
-  ERROR).
+  uniqueness. Drop the vacuous per-group display-number check (review #19).
+- Verify every `[[slug]]` token resolves via `display_numbers` (dangling = ERROR).
 - Verify every manifest `derived` file contains a matching `<!-- derived -->`
   marker (review #10).
-- Keep ID-integrity checks. **Ordering:** reconcile is defined to run **after**
-  aggregate (M3), so IDs that appear only in derived files exist by then
-  (review #14). Drop the near-vacuous "display numbers unique per group" check —
-  it's implied by unique `order` (review #19).
 
 `skills/consult-drafter/scripts/assemble_doc.py`:
 - **Remove the CLI entry point** (review #20). The `assemble` logic lives in
@@ -96,6 +104,9 @@ New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
   slug or filename.
 - `reconcile.py` flags: a dangling `[[slug]]`, a derived file missing its marker,
   a duplicate `order`.
+- Two procedures each defining a local `CTRL-001` reconcile cleanly (no false
+  duplicate); a `GAP-` referenced in a procedure but defined only in a *different*
+  procedure is caught as dangling (proving reconciliation is per-fragment).
 - `assemble_doc.py` has no CLI; `doc_model.assemble` returns structured sections
   with role + number populated.
 
@@ -114,3 +125,5 @@ Generating derived content (M3/M5); numbers authored by a human.
 - **#14:** reconcile runs after aggregate.
 - **#19:** vacuous per-group uniqueness check dropped.
 - **#20:** assemble CLI removed.
+- **r3 #1:** reconcile ID core rewritten to per-fragment `(slug, local-id)`.
+- **r3 #2:** `doc_model.py` is the build-first foundation; M0/M3/M4/M5 depend on it.

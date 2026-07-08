@@ -68,20 +68,25 @@ components/
     10_<proc-slug>.md            (band 10 = procedures; several share the band)
     ...
     70_procedure-index.md        derived, PYTHON-owned (In-Scope index; pure SELECT)
-    80_roles.md                  derived: Role Dictionary = PYTHON join; RACI = agent
-    81_systems.md                derived, PYTHON-owned (registry × alias-matched usage)
+    80_role-dictionary.md        derived, PYTHON-owned (join from roles.yaml)
+    81_systems.md                derived, PYTHON-owned (registry × usage; Quick-Ref slot)
     82_dependencies.md           derived, agent-owned  (judgment: reads A. Process Overview)
-    88_appendix-a-risks.md       derived: mechanical rows (Python) + judgment cells (agent)
+    84_raci.md                   derived, agent-owned  (judgment: RACI matrix)
+    88_risk-observations.md      derived, PYTHON-owned (PP-/IO- observation rows)
+    89_risk-judgment.md          derived, agent-owned  (impact/priority/recommendation)
     90_appendix-b-gaps.md        derived, PYTHON-owned (pure mechanical)
     91_appendix-c-screens.md     derived, PYTHON-owned (pure mechanical)
     manifest.json                order, grouping, roles, ownership, title/subtitle
     .hashes.json                 per-procedure content hashes (M5 change signal; git-ignored)
 ```
 
-Filename prefixes are **coarse bands** (00–09 static, 10–69 procedures, 70–79
-python index, 80–89 mixed derived, 90–99 python appendices) for human browsing
-only. **`manifest.json` `order` is the sole authority** for assembly/numbering; a
-reorder edits `order`, never filenames (so per-file git history survives).
+Filename prefixes are **coarse bands** (00–09 static, 10–69 procedures, 70–99
+derived) for human browsing only. **`manifest.json` `order` is the sole
+authority** for assembly/numbering; a reorder edits `order`, never filenames (so
+per-file git history survives). **`order` values are sparse** (assigned in gaps
+of 10 — 10, 20, 30…) so a mid-sequence insert gets a value *between* its
+neighbours and renumbers nothing else; only if a gap is exhausted does a local
+renormalize happen (and it touches only the manifest, never filenames).
 
 ---
 
@@ -153,48 +158,46 @@ add/remove/reorder.
 - `role` ∈ `static` | `procedure` | `derived`.
   - `static` = human-owned, non-procedure, not generated.
   - `procedure` = source of truth; carries `slug` + `group` (int, default 1).
-  - `derived` = generated; carries `derived_kind` and `writer` ∈ `python` | `agent`.
-- The `roles` file (`80_`) is a **split-writer exception handled by a marker**,
-  see below — Role Dictionary block is python, RACI block is agent.
+  - `derived` = generated; carries `derived_kind` and **exactly one** `writer`
+    ∈ `python` | `agent`. There are no split-writer files (see below).
 - `role` is authoritative — read from the manifest, never re-inferred at steady
   state.
 
 ---
 
-## Ownership rule (one writer per writable region)
+## Ownership rule (ONE writer per file — no exceptions)
 
-| Fragment kind | Writer | Contents |
+Every file has exactly one writer. Where a section mixes mechanical and judgment
+content, it is **two files**, joined at render (M4) — never one file with two
+writers. This is the first review's rule, restored; region markers are gone.
+
+| File | Writer | Contents |
 |---|---|---|
 | `_reference/*.yaml` | human (seeded by M0 agent, confirmed at gate) | the noun database |
-| static | human | Document Profile, How to Use, Control, Sources, Process Overview |
-| procedure | fill agent / human | the source of truth |
-| derived `procedure-index` | Python | In-Scope index (pure SELECT) |
-| derived `systems` | Python | registry × alias-matched procedure usage |
-| derived `gap-log`, `screenshot-index` | Python | full rebuild each run |
-| derived `dependencies` | agent | reads each procedure's A. Process Overview |
-| derived `risks` (Appendix A) | Python rows + agent judgment cells | observation = Python; impact/priority/recommendation = agent |
-| derived `roles` (`80_`) | **split by marker** | Role Dictionary = Python join from `roles.yaml`; RACI = agent |
+| `00–04_*` static | human | Document Profile, How to Use, Control, Sources, Process Overview |
+| `10_<slug>` procedure | fill agent / human | the source of truth |
+| `70_procedure-index` | Python | In-Scope index (pure SELECT) |
+| `80_role-dictionary` | Python | join from `roles.yaml` + "Appears In" usage |
+| `81_systems` | Python | registry × Quick-Ref usage join |
+| `82_dependencies` | agent | reads each procedure's A. Process Overview |
+| `84_raci` | agent | RACI matrix (seeded by M3's role×procedure grid) |
+| `88_risk-observations` | Python | one row per `PP-`/`IO-` callout (id, observation, `[[slug]]`) |
+| `89_risk-judgment` | agent | impact / priority / recommendation, keyed `(slug, id)` |
+| `90_appendix-b-gaps`, `91_appendix-c-screens` | Python | pure mechanical |
 
-**Split-writer files** (`risks`, `roles`) use explicit region markers so python
-and agent never touch the same bytes:
+**Appendix A render-join:** the Risks appendix the reader sees is one table. M4
+joins `88_risk-observations` (Python) and `89_risk-judgment` (agent) on the
+`(source-procedure slug, PP-/IO- id)` key at render time — so each side stays a
+clean single-writer file while the output is one merged table. The join key is
+stable (IDs are procedure-local and never renumbered), so the merge is
+deterministic.
 
-```md
-<!-- region: mechanical; writer: python -->
-… python-owned table (rebuilt each run) …
-<!-- /region -->
-<!-- region: judgment; writer: agent -->
-… agent-owned table (RACI / impact cells) …
-<!-- /region -->
-```
+Every derived writer re-emits the section's `<!-- derived: KIND; writer: W -->`
+marker; `reconcile.py` errors if a declared derived file is missing it.
 
-Python rewrites only its region; the agent rewrites only its region; each leaves
-the other's bytes untouched. Every derived writer re-emits the section's
-`<!-- derived: KIND; writer: W -->` marker and its region markers; `reconcile.py`
-errors if a declared derived file is missing them.
-
-For agent-owned derived content, Python produces an **extract bundle** (scratch
-JSON, git-ignored) plus the agent's **prior file** so the agent can preserve
-judgment for unaffected rows without a synthetic key.
+For agent-owned derived files, Python produces an **extract bundle** (scratch
+JSON, git-ignored) plus the agent's **prior file** so the agent preserves judgment
+for unaffected rows without a synthetic key.
 
 ---
 
@@ -215,16 +218,27 @@ judgment for unaffected rows without a synthetic key.
 - **Body gap tags** `[[GAP-NN — TEXT]]` (bare `[[GAP — …]]` = ERROR).
 - **Table-defined IDs** — `F. Key Controls` rows, etc.
 
-Errors (nonzero exit, nothing dropped): bare gap tag; referenced-but-undefined ID;
-ID prefix not matching its label; conflicting duplicate ID **within a procedure**.
-The label↔prefix check is **new code owned by M3**.
+All ID checks are **per-fragment** (a fragment is one procedure). IDs are
+procedure-local, so extraction parses each procedure file independently and keys
+every ID on the `(slug, local-id)` pair; there is **no** global ID namespace. A
+reference is only reconciled within its own fragment; derived tables carry the
+`(slug, id)` pair via their Source-Procedure column. (This is why `reconcile.py`
+needs a real rewrite — see M2 — not just "keep the ID checks.")
+
+Errors (nonzero exit, nothing dropped): bare gap tag; referenced-but-undefined ID
+**within a procedure**; ID prefix not matching its label; conflicting duplicate ID
+**within a procedure**. The label↔prefix check is **new code owned by M3**.
 
 **Noun matching → registry-backed, flag-don't-drop:**
-- **Systems / roles**: Python takes the canonical plain-text mentions from
-  `B. Quick Reference` ("Primary systems / tools", Preparer/Reviewer) and step
-  `**System:**` fields and matches them against `systems.yaml` / `roles.yaml`
-  **names + aliases**. A mention that matches nothing → **WARNING (flagged for the
-  human to add an entry/alias)**, never dropped, never guessed.
+- **Systems**: the sole authoritative slot is `B. Quick Reference` → "Primary
+  systems / tools". Fill agents **copy the registry `name` verbatim** into that
+  slot (they have the registry in context), so Python matching against
+  `systems.yaml` names + aliases is near-exact; aliases absorb human-written
+  variants. **Step prose is NOT scanned** — a system used only in step narrative
+  and never listed in Quick Reference is out of scope by design (documented, not a
+  silent miss). A Quick-Ref mention matching no entry/alias → **WARNING** (human
+  adds an entry/alias), never dropped, never guessed.
+- **Roles**: same, from `B. Quick Reference` Preparer / Reviewer.
 
 **Prose → agent (not mechanical):**
 - **Dependencies** — the agent reads each procedure's `A. Process Overview`.
@@ -236,21 +250,40 @@ parsed** (no double-write with the agent judgment cells).
 
 ---
 
-## Build order
+## Build order (a real DAG)
+
+`doc_model.py` (M2's foundation deliverable) is imported by M0, M3, M4, M5, so it
+is built **first**. The legacy import splitter (also M2) is optional and can come
+last.
 
 ```
-M0 (taxonomy + registry + scaffold) ─▶ fill agents (parallel) ─▶ M3 (mechanical views) ─▶ M5 (RACI/deps/risk judgment)
-                                                                       │
-                        M1 (template = A–H skeleton source) ┐          │
-                        M4 (docx builder) ──────────────────┴──────────┘
-M2 (split) = legacy IMPORT path only (single-file .md → folder)
+M1 (template = A–H skeleton source) ┐
+M2·doc_model.py (shared spine)      ┴─▶ M0 (taxonomy + registry + confirm + scaffold)
+                                          │
+                                          ▼  fill agents (parallel)
+                                        M3 (mechanical views) ──▶ M5 (RACI · deps · risk-judgment)
+                                          │                          │
+                                        M4 (docx builder) ◀──────────┘
+M2·import-splitter = legacy single-file .md → folder (optional, last)
 M6 (taxonomy/registry REASSESSMENT on new sources) — DEFERRED
 ```
 
-- After **M0 + fill + M3 + M4**: a full document renders — procedures, In-Scope
-  index, Systems, Role Dictionary, Appendix B/C are real. Dependencies, RACI, and
-  Appendix-A judgment show a `> _Pending synthesis (M5)._` placeholder.
-- **M5** fills the remaining judgment. **M6** (reassessment) is deferred.
+- **After M1 + M2·doc_model + M0 + fill + M3 + M4**: a full document renders —
+  procedures, In-Scope index, Systems, Role Dictionary, Appendix B/C are real.
+  Dependencies, RACI, and Appendix-A judgment show `> _Pending synthesis (M5)._`.
+- **Registry top-up is part of this milestone's DoD, not deferred:** M3's
+  unmatched-mention WARNINGs drive a human loop — add the entry/alias to
+  `_reference/`, re-run aggregate — so Systems/Roles are complete before sign-off.
+  M6 only automates the *incremental* reassessment when new sources arrive later.
+- **M5** fills the remaining judgment. **M6** is deferred.
+
+## Credibility guardrail (carried over from the original system)
+
+Registry `description` / `limitations` and any lens-like assertion about the
+client's real systems must be **sourced from the transcript or left blank/TBD —
+never invented.** The M0 agent cites the source line or emits nothing. Rendering
+a guessed "known limitation" as fact is the same anchoring defect the original
+taxonomy-baselines guardrail prohibits.
 
 ## Definition of done (every ticket)
 

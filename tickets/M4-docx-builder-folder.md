@@ -31,9 +31,17 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
   Appendix A "Source Procedure") show current numbers even though the source
   files store only slugs. A single reorder therefore renumbers headings *and*
   cross-refs consistently, with no stale back-references (review #2).
-- **Cover:** the single `#` title drives the cover; `subtitle` from the manifest
-  is the cover subtitle (don't lose it — review #6). `--no-cover` leaves the
-  Document Profile inline.
+- **Cover:** branch cover construction on input mode (review r3 #10). *Folder
+  input* → title/subtitle come from the **manifest**, and the Document Profile
+  card from the `00_document-profile` section (the current `extract_cover_data`
+  line-scan for a `# ` H1 does not apply — there is no inline H1). *Single-file
+  input* → keep the legacy H1/tagline scan. `--no-cover` leaves Document Profile
+  inline.
+- **Appendix A render-join:** merge `88_risk-observations.md` (Python) and
+  `89_risk-judgment.md` (agent) into one Risks table, joined on the
+  `(source-procedure slug, PP-/IO- id)` key. Missing judgment for a row → render
+  the observation with blank judgment cells (not an error). This is how Appendix A
+  stays one reader-facing table while each source file has a single writer.
 - **H1/H2 remap:** H2 sections get the section-break / heading weight formerly
   carried by H1 (rule under each H2 start, page-break policy as appropriate);
   H3/H4 unchanged. Verify this does not disturb the existing table-kind and
@@ -58,6 +66,10 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
 - No `<!-- derived -->` text appears anywhere in the output.
 - H2 sections render with section-level weight; TOC / landscape / no-cover still
   function.
+- Appendix A renders as ONE table merging observations + judgment on `(slug, id)`;
+  a row with no judgment yet renders with blank cells, not an error.
+- Folder input builds the cover from the manifest title/subtitle (no inline H1);
+  single-file input still uses the legacy scan.
 
 ## Out of scope
 
@@ -69,3 +81,5 @@ Generating content; aggregator (M3); agents (M5).
 - **#2 / #4:** numbers resolved once, at render, on headings and `[[slug]]`
   tokens alike, from the single shared helper — no stale cross-refs, no drift.
 - **#6:** cover subtitle sourced from the manifest.
+- **r3 #5:** Appendix A merged at render from the two single-writer files.
+- **r3 #10:** cover construction branches on folder vs single-file input.

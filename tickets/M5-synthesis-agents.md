@@ -13,14 +13,15 @@ already came from M3.
 ## What's left for agents (r3 shrank this)
 
 The reference registry (M0) turned Systems and the Role Dictionary into Python
-joins (M3). The only judgment left:
-- **RACI** — the `region: judgment` block of `80_roles.md` (Responsible /
-  Accountable / Consulted / Informed per activity). Seeded by M3's role×procedure
-  incidence grid; the agent assigns A/C/I.
+joins (M3). The only judgment left — **each a clean single-writer file**, no
+regions:
+- **RACI** — `84_raci.md` (Responsible / Accountable / Consulted / Informed per
+  activity). Seeded by M3's `raci_grid`; the agent assigns A/C/I.
 - **Dependencies** — `82_dependencies.md`, from reading each procedure's
   `A. Process Overview` prose.
-- **Appendix-A judgment** — the `region: judgment` block of `88_appendix-a-risks.md`
-  (impact / priority / recommendation per `PP-`/`IO-` row).
+- **Appendix-A judgment** — `89_risk-judgment.md`: one row per `(slug, id)` from
+  M3's `risk_observations`, filling impact / priority / recommendation. M4 joins
+  it back to `88_risk-observations.md` on `(slug, id)` at render into one table.
 
 ## Change signal: content hash (single mechanism)
 
@@ -36,20 +37,20 @@ first-run, rebase, squash with one code path and matches folder-as-truth.
 
 ## Changes
 
-**Delta engine** (`scope_delta.py`, imports `doc_model.py`): per agent region,
+**Delta engine** (`scope_delta.py`, imports `doc_model.py`): per agent file,
 compute changed-procedure set from `.hashes.json`; emit a work order
 `{derived_kind, changed_procedure_slugs, mechanical_context (from bundle),
-raci_grid | raw_dependencies | appendix_observations, prior_region_contents}`.
-The **prior region** is included so the agent preserves unaffected judgment
+raci_grid | raw_dependencies | risk_observations, prior_file_contents}`.
+The **prior file** is included so the agent preserves unaffected judgment
 without a synthetic key (review #11).
 
-**Agents** — `raci`, `dependencies`, `risks-judgment`. Under `.claude/agents/`,
-tool-scoped (Read + Write to their one region/file + reconcile/aggregate).
-- Region-scoped writer: the agent rewrites only its `region: judgment` block (or
-  the whole `82_` file), re-emits markers (review #10), and fills judgment cells
-  **only** for rows whose source procedure is in `changed_procedure_slugs`;
-  unaffected rows carried from `prior_region_contents`. It never touches the
-  mechanical region.
+**Agents** — `raci` (`84_`), `dependencies` (`82_`), `risk-judgment` (`89_`).
+Under `.claude/agents/`, tool-scoped (Read + Write to their **one file** +
+reconcile/aggregate).
+- Single-file writer: the agent rewrites its whole file, re-emits the
+  `<!-- derived -->` marker (review #10), and fills judgment cells **only** for
+  rows whose source procedure is in `changed_procedure_slugs`; unaffected rows
+  carried from `prior_file_contents`. No shared file, no region markers.
 - Procedure refs it emits use `[[slug]]` tokens (review #2). Nouns stay canonical
   plain text (from the registry, already in the mechanical rows).
 
@@ -67,7 +68,8 @@ markers.
   rendered doc shows correct numbers (M4 resolves `[[slug]]` at render) —
   reorder-staleness bug closed (review #2).
 - Non-git folder: hash baseline works with no git (review #15).
-- No region is written by both Python and an agent (marker-scoped).
+- No file is written by both Python and an agent (one writer per file).
+- After M5, M4 renders `88_`+`89_` as a single Risks table joined on `(slug, id)`.
 
 ## Out of scope
 
@@ -76,5 +78,6 @@ Deciding which procedures exist / registry reassessment — M6.
 ## Adversarial review resolutions
 
 - **#2/#10/#11/#15** as noted inline.
-- **r3:** scope shrunk to RACI + dependencies + Appendix-A judgment; agents write
-  only their `region: judgment` block, never the mechanical region.
+- **r3 #5:** agents write clean single-writer files (`82/84/89`); no region
+  markers; Appendix A merged at render.
+- **r3:** scope shrunk to RACI + dependencies + Appendix-A judgment.

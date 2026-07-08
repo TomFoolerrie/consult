@@ -1,6 +1,7 @@
 # M0 — `consult-taxonomy`: scope + reference registry + scaffold
 
-**Depends on:** M1 (needs the A–H skeleton shape). **Blocks:** fill agents, M3.
+**Depends on:** M1 (A–H skeleton shape), M2·`doc_model.py` (manifest write/validate).
+**Blocks:** fill agents, M3.
 
 ## Goal
 
@@ -38,40 +39,59 @@ sources + reference taxonomy
 under its `reference/` as the default backbone; the user may supply their own):
 - Read the sources; map them onto the reference taxonomy; **propose a procedure
   set** — `{slug, title, group}` per L3 procedure. Slugs assigned here, once.
-- Extract candidate **nouns** and stand up `_reference/`:
+- Extract candidate **nouns** and stand up the registry:
   `systems.yaml` (slug, name, aliases, description, limitations),
   `roles.yaml` (slug, name, reports_to, responsibilities),
   `sources.yaml` (SRC- registry), optional `glossary.yaml`.
-- Emit both proposals for the confirm gate; do **not** scaffold until confirmed.
+- **Credibility guardrail:** `description` / `limitations` are **sourced from the
+  transcript (cite the source line) or left blank/`TBD` — never invented.** Same
+  anti-anchoring rule as the original taxonomy-baselines guardrail.
+- Write proposals to a **staging dir** `_reference/.proposed/` (proposed
+  `systems.yaml`, `roles.yaml`, and a `procedures.yaml` list). Do **not** touch
+  the real `_reference/` or scaffold anything yet.
 
-**Human confirm gate** (explicit, cheap): the human reviews/edits the proposed
-procedure list **and** the registry (add/remove/merge procedures; fix a role
-mapping; add a system alias) before anything is scaffolded. This is the one
-high-blast-radius judgment in the system; it is not auto-applied.
+**Human confirm gate** (explicit, concrete — not hand-wavy):
+- The human edits the files in `_reference/.proposed/` directly (add/remove/merge
+  procedures; fix a role mapping; add a system alias; blank a guessed limitation).
+- Confirm = run `scaffold.py --confirm`: it **promotes** `.proposed/` → the real
+  `_reference/`, then scaffolds the manifest + skeletons. Nothing reaches the live
+  folder until this runs. This is the one high-blast-radius judgment in the
+  system; it is never auto-applied.
 
 **New scaffold script `scaffold.py`** (Python, imports `doc_model.py`):
 - Input: the confirmed procedure set + area metadata (title/subtitle).
-- Write `manifest.json` (v1) and one `10_<slug>.md` per procedure containing the
-  **A–H skeleton only** (headings + Quick Reference bullet keys + empty callout
-  slots), plus the `static` frontmatter files and the `<!-- derived -->` stubs
-  for the derived sections (empty; M3 owns their content).
+- Write `manifest.json` (v1, **sparse `order`** in gaps of 10) and one
+  `10_<slug>.md` per procedure containing the **A–H skeleton only** (headings +
+  Quick Reference bullet keys + empty callout slots), plus the `static`
+  frontmatter files and the `<!-- derived -->` stubs for the derived sections
+  (empty; M3 owns their content).
 - Idempotent: re-running with the same confirmed set is a no-op; adding a
-  procedure creates only its file + manifest entry (existing files untouched).
+  procedure creates only its file + a manifest entry with an `order` *between*
+  neighbours (sparse), touching no existing file.
 
 **Fill agents** (parallel, one per procedure) — reuse/rename the existing
 `consult-drafter` as the per-procedure filler:
 - Input: the procedure's skeleton + the relevant sources + `_reference/`.
 - Normalize messy mentions to canonical names **via the registry**, writing plain
-  text (no tokens for nouns). Use `[[slug]]` only for procedure→procedure refs.
+  text (no tokens for nouns). In the `B. Quick Reference` "Primary systems /
+  tools" slot, **copy the registry `name` verbatim** (the authoritative slot for
+  the Systems join); list every system the procedure uses there. Use `[[slug]]`
+  only for procedure→procedure refs.
+- A system that surfaces in a transcript but isn't in the registry: write it
+  plainly and it will be flagged by M3's WARNING for a human top-up — the fill
+  agent does **not** silently invent a registry entry.
 - Mint procedure-**local** IDs (`CTRL-001`, `PP-001`, …) — safe under parallel
   authoring because IDs are scoped per procedure (README "Callout ID scoping").
 - Do not author derived sections.
 
 ## Acceptance
 
-- On a seeded source set + reference taxonomy, `consult-taxonomy` emits a
-  procedure-set proposal and a first-cut `_reference/` without scaffolding.
-- Nothing is written to the folder until the confirm step returns an approved set.
+- On a seeded source set + reference taxonomy, `consult-taxonomy` writes proposals
+  to `_reference/.proposed/` and scaffolds nothing.
+- Editing a proposed file then `scaffold.py --confirm` promotes `.proposed/` →
+  `_reference/` and scaffolds; the live folder is untouched before `--confirm`.
+- A guessed system `limitations` value left by the agent is either transcript-cited
+  or blank — never an invented claim.
 - `scaffold.py` produces a schema-valid `manifest.json` and A–H skeletons whose
   split (M2 rules) yields exactly one fragment per section.
 - Two fill agents run concurrently and both mint `CTRL-001` with no collision
