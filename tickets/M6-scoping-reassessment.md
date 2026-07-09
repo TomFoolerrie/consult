@@ -35,3 +35,5 @@ an already-decided set.
 ## Acceptance
 
 Deferred. Do not implement until M1–M5 are complete and exercised on a real area.
+
+**No build in MVP; behavior lives in `consult-taxonomy` incremental mode + M0's promote-merge.**

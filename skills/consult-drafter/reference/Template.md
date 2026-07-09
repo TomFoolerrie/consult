@@ -1,16 +1,34 @@
-# Finance Desktop Procedures Template
+# Finance Desktop Procedures
 
-_Lean template for current-state finance process documentation and step-by-step desktop procedures._
+_Current-state desktop procedures._
+
+<!--
+  HEADING CONTRACT (tickets/README.md):
+  - Exactly ONE `#` in the assembled document — the title above. Its subtitle is
+    the italic tagline on the next non-blank line. M2 lifts BOTH into the
+    manifest (title + subtitle); the docx cover reads them. Component files on
+    disk carry no `#`.
+  - Every section is `##`. `##` is the ONLY thing that starts a new fragment, so
+    the splitter yields exactly one fragment per section — no wrapper headings.
+  - Inside a procedure: A–H are `###`, steps are `####`.
+  - Static sections are human-owned. Procedure sections are the source of truth
+    (fill agent / human). Derived sections are generated and carry a
+    `<!-- derived: KIND; writer: W -->` marker — never hand-edit them.
+  - The per-procedure A–H block is defined once in `procedure_skeleton.md` and
+    reproduced below as the single procedure example.
+-->
 
 ---
 
 ## Document Profile
 
+<!-- static; human-owned -->
+
 | Field | Value |
 |---|---|
 | Client / Organization | TBD |
 | Process Name | TBD |
-| L1 Business Cycle | Overall Finance / TBD |
+| L1 Business Cycle | TBD |
 | L2 Process Area | TBD |
 | Version | v0.1 |
 | Date | TBD |
@@ -23,30 +41,34 @@ _Lean template for current-state finance process documentation and step-by-step 
 
 ## How to Use This Document
 
-This document provides current-state desktop procedures for **[Process Name]**. It is written for preparers, reviewers, approvers, process owners, and audit / compliance stakeholders who need to execute, review, evidence, or maintain the process.
+<!-- static; human-owned -->
 
-This document sits within the following finance process hierarchy:
+This document provides current-state desktop procedures for **[Process Name]**,
+written for preparers, reviewers, approvers, process owners, and audit /
+compliance stakeholders.
 
-- **L1 | Overall Finance / Business Cycle:** TBD
-- **L2 | Process Area:** TBD
-- **L3 | Step-by-Step Procedures:** Recurring activities or sub-processes documented in this file.
-
-Each L3 procedure follows a consistent structure:
+Each procedure follows a consistent A–H structure:
 
 - **A. Process Overview** — what the procedure accomplishes and where it fits.
-- **B. Quick Reference** — trigger, cadence, owners, systems, and key outputs.
-- **C. Pre-Requisites** — what must be true before the procedure begins.
-- **D. Inputs** — reports, files, approvals, system extracts, and confirmations used.
-- **E. Step-by-Step Procedure** — numbered execution steps, system navigation where needed, field-level instructions where needed, evidence expectations, and inline callouts.
+- **B. Quick Reference** — trigger, cadence, owners, systems, key outputs.
+- **C. Pre-Requisites** — what must be true before it begins.
+- **D. Inputs** — reports, files, approvals, extracts, confirmations used.
+- **E. Step-by-Step Procedure** — execution steps with judgment-placed system,
+  navigation, field, expected-result, and evidence detail, plus inline
+  validation-gap and screenshot callouts.
 - **F. Key Controls** — control points embedded in the procedure.
-- **G. Outputs** — what the procedure produces and where outputs flow downstream.
-- **H. Known Issues / Improvement Notes** — current-state friction, open items, and future-state opportunities.
+- **G. Outputs** — what it produces and where outputs flow downstream.
+- **H. Known Issues & Improvement Opportunities** — current-state friction and
+  future-state opportunities (the source for Appendix A).
 
 ---
 
 ## Document Control
 
-This document is a living document. The process owner is responsible for keeping it current as systems, roles, controls, and business requirements evolve.
+<!-- static; human-owned -->
+
+This is a living document. The process owner keeps it current as systems, roles,
+controls, and business requirements evolve.
 
 **Review frequency:** TBD
 
@@ -58,51 +80,47 @@ This document is a living document. The process owner is responsible for keeping
 
 ## Source Materials
 
-Source materials used to prepare this document:
+<!-- static; human-owned. Canonical SRC- registry lives in _reference/sources.yaml. -->
 
 | Source ID | Source | Type | Date | Owner / Provider | Used For |
 |---|---|---|---|---|---|
 | SRC-001 | TBD | TBD | TBD | TBD | TBD |
-| SRC-002 | TBD | TBD | TBD | TBD | TBD |
-| SRC-003 | TBD | TBD | TBD | TBD | TBD |
 
 ---
-
-# Current-State Process Documentation
 
 ## Process Overview
 
-### Purpose
+<!-- static; human-owned narrative -->
 
-TBD — Describe what the process accomplishes, why it is performed, and what business outcome it supports.
+TBD — Describe what the process accomplishes, why it is performed, and the
+business outcome it supports.
 
-### In-Scope Sub-Processes / L3 Procedures
-
-| Ref | L3 Sub-Process / Procedure | Direction / Type | Frequency | Primary Owner |
-|---:|---|---|---|---|
-| x.1 | TBD | TBD | TBD | TBD |
-| x.2 | TBD | TBD | TBD | TBD |
-| x.3 | TBD | TBD | TBD | TBD |
-| x.4 | TBD | TBD | TBD | TBD |
-| x.5 | TBD | TBD | TBD | TBD |
-
-## Process Flow Summary
-
-| Timing / Trigger | Activity | Owner | Related Procedure |
-|---|---|---|---|
-| TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD |
+<!--
+  DEFERRED / DERIVED, not authored here:
+  - The In-Scope Sub-Processes / L3 index is python-derived (M3) — no
+    hand-edited copy lives in this template.
+  - Process Flow Summary is dropped for the MVP (no clean owner; not needed for
+    a working system).
+-->
 
 ---
 
-# Step-by-Step Procedures
+<!--
+  PROCEDURES. One `## <Plain Title>` per L3 procedure. The block below is the
+  canonical procedure shape, kept in sync with `procedure_skeleton.md` (what
+  scaffold.py stamps). Repeat once per procedure; in the folder model each
+  procedure is its own `10_<slug>.md` fragment.
+-->
 
-## 1.1 | Procedure Name
+## Bank Reconciliation
+
+<!-- unfilled -->
 
 ### A. Process Overview
 
-TBD — Briefly describe what this procedure accomplishes, when it occurs, who performs it, what it excludes, and how it connects to upstream / downstream activities.
+TBD — What this procedure accomplishes, when it occurs, who performs it, what it
+excludes, and how it connects to upstream / downstream activities. (This section
+is what the dependencies agent reads.)
 
 ### B. Quick Reference
 
@@ -112,221 +130,160 @@ TBD — Briefly describe what this procedure accomplishes, when it occurs, who p
 - **Reviewer:** TBD
 - **Primary systems / tools:** TBD
 - **Key outputs:** TBD
-- **Related control references:** TBD
-- **Related risk / gap references:** TBD
 
 ### C. Pre-Requisites
 
-- **Pre-requisite 1** TBD
-- **Pre-requisite 2** TBD
+- TBD — what must be true before the procedure begins.
 
 ### D. Inputs
 
-- **Input 1:** TBD — source / owner 
-- **Input 2:** TBD — source / owner 
-- **Input 3:** TBD — source / owner 
-
-### E. Step-by-Step Procedure
-
-#### Step 1: Confirm trigger and required inputs
-
-TBD — Describe the first execution step. Include system, navigation, field, expected-result, and evidence details only where they are needed to perform or review the step.
-
-> **Evidence:** TBD — Describe evidence to retain, if applicable.
-
-#### Step 2: Perform core process activity
-
-TBD — Describe the primary execution step. Add relevant system detail, navigation paths, parameter values, or screenshots only where they help the user execute the task accurately.
-
-- **Key field / parameter:** TBD
-- **Key field / parameter:** TBD
-
-> **CONTROL — CTRL-001:** TBD — Identify the review, reconciliation, approval, or system check embedded in this step.
-
-#### Step 3: Review, submit, post, or distribute output
-
-TBD — Describe the final execution, review, posting, submission, or distribution step.
-
-- **Expected result:** TBD — Describe what success looks like after the step is completed.
-
-> **SCREENSHOT PLACEHOLDER — SC-01:** Insert screenshot showing the key system screen, report, approval, or output needed to execute or evidence this procedure. Caption should explain what the user must validate.
-
-#### Step 4: Additional step, if needed
-
-TBD — Add or remove steps as needed for the specific procedure.
-
-> **VALIDATION REQUIRED — GAP-01:** TBD — Identify a fact, owner, timing, system path, or decision that requires SME confirmation.
-
-> **PAIN POINT — PP-001:** TBD — Identify confirmed current-state friction, risk, manual workaround, or recurring defect.
-
-> **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — Identify a future-state improvement opportunity without rewriting the current-state procedure.
-
-### F. Key Controls
-
-| Control ID | Control Activity | Type | Frequency | Owner | 
-|---|---|---|---|---|
-| CTRL-001 | TBD | Preventive / Detective / Corrective |  TBD | TBD | 
-| CTRL-002 | TBD | Preventive / Detective / Corrective |  TBD | TBD | 
-
-### G. Outputs
-
-This procedure produces:
-
-- **Output 1:** TBD
-- **Output 2:** TBD 
-- **Evidence retained:** TBD 
-
-### H. Known Issues / Improvement Notes
-
-- **Known issue / pain point:** TBD  
-  **Impact:** TBD  
-  **Recommendation:** TBD  
-  **Owner:** TBD  
-  **Status:** Open / In progress / Resolved
-
-- **Known issue / pain point:** TBD  
-  **Impact:** TBD  
-  **Recommendation:** TBD  
-  **Owner:** TBD  
-  **Status:** Open / In progress / Resolved
-
----
-
-## 1.2 | Additional Procedure Name
-
-### A. Process Overview
-
-TBD
-
-### B. Quick Reference
-
-- **Trigger:** TBD
-- **Frequency:** TBD
-- **Preparer:** TBD
-- **Reviewer:** TBD
-- **Primary systems / tools:** TBD
-- **Key outputs:** TBD
-- **Related control references:** TBD
-- **Related risk / gap references:** TBD
-
-### C. Pre-Requisites
-
-Before beginning this procedure, confirm:
-
-- TBD — [pre-requisite 1]
-- TBD — [pre-requisite 2]
-- TBD — [pre-requisite 3]
-
-### D. Inputs
-
-This procedure uses:
-
-- **Input 1:** TBD — source / owner 
-- **Input 2:** TBD — source / owner 
-- **Input 3:** TBD — source / owner 
+- **Input 1:** TBD — source / owner.
 
 ### E. Step-by-Step Procedure
 
 #### Step 1: TBD
 
-TBD
+TBD — Describe the step in neutral current-state procedural language. Add the
+bolded inline tags below only where the detail helps execution, review, or
+auditability — not mechanically on every step.
 
-#### Step 2: TBD
+- **System / Tool:** TBD
+- **Navigation Path:** TBD
+- **Fields / Parameters:** TBD
+- **Expected Result:** TBD
+- **Evidence Required:** TBD
 
-TBD
+> **VALIDATION REQUIRED — GAP-01:** TBD — a fact, owner, timing, path, or decision to confirm.
+> - **Nature:** unknown | conflict | unsupported-assumption
+> - **Owner to confirm:** TBD
 
-#### Step 3: TBD
-
-TBD
+> **SCREENSHOT PLACEHOLDER — SC-01:** TBD — what to capture and what it must validate.
 
 ### F. Key Controls
 
-| Control ID | Control Activity | Type | Frequency | Owner |
-|---|---|---|---|---|
-| CTRL-003 | TBD | TBD | TBD | TBD |
+> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
+> - **Type:** Preventive | Detective | Corrective
+> - **Frequency:** TBD
+> - **Owner:** TBD
 
 ### G. Outputs
 
 - **Output 1:** TBD
-- **Output 2:** TBD 
-- **Evidence retained:** TBD 
+- **Evidence retained:** TBD
 
-### H. Known Issues / Improvement Notes
+### H. Known Issues & Improvement Opportunities
 
-- TBD
+> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
+> - **Impact:** TBD
+> - **Severity:** High | Medium | Low
+
+> **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — the proposed improvement (this IS the recommendation).
+> - **Addresses:** PP-001
+
+```consult-meta
+systems: []
+roles:   []
+```
 
 ---
 
-# Roles & Responsibilities
+<!--
+  DERIVED SECTIONS. Each is generated by exactly one writer and carries a
+  `<!-- derived: KIND; writer: W -->` marker; reconcile.py errors if a declared
+  derived file is missing its marker. Do not hand-edit. Column shapes shown for
+  reference only.
+-->
 
 ## Role Dictionary
 
-| Functional Role | Reports To | Standard Responsibilities |
-|---|---|---|
-| TBD | TBD | TBD |
-| TBD | TBD | TBD |
-| TBD | TBD | TBD |
+<!-- derived: roles; writer: python -->
+> _Generated from `_reference/roles.yaml` + usage — do not hand-edit._
+
+| Functional Role | Reports To | Standard Responsibilities | Appears In |
+|---|---|---|---|
+| _(generated)_ | | | |
+
+---
 
 ## RACI Matrix
 
-| Activity | Ref | Responsible | Accountable | Consulted | Informed |
-|---|---|---|---|---|---|
-| TBD | TBD | TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD | TBD | TBD |
+<!-- derived: raci; writer: agent -->
+> _Generated by the RACI agent — do not hand-edit._
+
+| Activity | Responsible | Accountable | Consulted | Informed |
+|---|---|---|---|---|
+| _(generated)_ | | | | |
 
 ---
 
-# Systems & Data Inputs
+## Systems & Data Inputs
 
-| System / Tool | Role in Process | Related Procedures | Known Limitations |
+<!-- derived: systems; writer: python -->
+> _Generated from `_reference/systems.yaml` × procedure `consult-meta` usage — do not hand-edit._
+
+| System / Tool | Role in Process | Known Limitations | Appears In |
 |---|---|---|---|
-| TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD |
-| TBD | TBD | TBD | TBD |
+| _(generated)_ | | | |
 
 ---
 
-# Key Dependencies
+## Key Dependencies
+
+<!-- derived: dependencies; writer: agent -->
+> _Generated by the dependencies agent from each procedure's A. Process Overview — do not hand-edit._
 
 | Upstream Dependency | Downstream Dependency |
 |---|---|
-| TBD | TBD |
-| TBD | TBD |
+| _(generated)_ | |
 
 ---
 
-# Appendix A | Risks, Pain Points & Improvement Opportunities
+## Appendix A — Pain Points & Improvement Opportunities
 
-| ID | Type | Observation | Source Procedure | Impact | Priority | Recommendation | Owner | Status |
-|---|---|---|---|---|---|---|---|---|
-| PP-001 | Pain Point | TBD | TBD | TBD | TBD | TBD | TBD | Open |
-| IO-001 | Opportunity | TBD | TBD | TBD | TBD | TBD | TBD | Open |
+<!-- derived: appendix-a; writer: python -->
+> _Assembled mechanically from the PP-/IO- callouts in each procedure's H section — do not hand-edit. Rows are typed: Pain Points and Improvement Opportunities have different columns._
 
----
+**Pain Points**
 
-# Appendix B | Gap / Validation Log
-
-| Gap ID | Location | Description | Owner | Priority | Status |
-|---|---|---|---|---|---|
-| GAP-01 | TBD | TBD | TBD | TBD | Open |
-| GAP-02 | TBD | TBD | TBD | TBD | Open |
-
----
-
-# Appendix C | Screenshot / Evidence Index
-
-| SC ID | Caption | Procedure / Step | Source | Status |
+| ID | Observation | Impact | Severity | Source Procedure |
 |---|---|---|---|---|
-| SC-01 | TBD | TBD | Pending user input | TBD |
-| SC-02 | TBD | TBD | Pending user input | TBD |
+| _(generated)_ | | | | |
+
+**Improvement Opportunities**
+
+| ID | Recommendation | Addresses | Source Procedure |
+|---|---|---|---|
+| _(generated)_ | | | |
 
 ---
 
-# Appendix D | Glossary & Reference
+## Appendix B — Gap / Validation Log
 
-| Term | Definition | 
+<!-- derived: gap-log; writer: python -->
+> _Assembled mechanically from VALIDATION REQUIRED callouts — do not hand-edit._
+
+| Gap ID | Nature | Description | Owner to Confirm | Source Procedure |
+|---|---|---|---|---|
+| _(generated)_ | | | | |
+
+---
+
+## Appendix C — Screenshot / Evidence Index
+
+<!-- derived: screenshot-index; writer: python -->
+> _Assembled mechanically from SCREENSHOT PLACEHOLDER callouts — do not hand-edit._
+
+| SC ID | Caption | Source Procedure | Status |
+|---|---|---|---|
+| _(generated)_ | | | |
+
+---
+
+## Appendix D — Glossary & Reference
+
+<!-- derived: glossary; writer: python -->
+> _Generated from `_reference/glossary.yaml` — do not hand-edit._
+
+| Term | Definition |
 |---|---|
-| TBD | TBD | 
-| TBD | TBD | 
-| TBD | TBD | 
+| _(generated)_ | |

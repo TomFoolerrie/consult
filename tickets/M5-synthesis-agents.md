@@ -44,6 +44,36 @@ disk** (it has Read) to preserve unaffected judgment without a synthetic key
 (review #11); the orchestrator does **not** pass prior-file content in the work
 order — that would pull a derived draft into its context (r3 review #13).
 
+*Concrete shape of `scope_delta.py`:*
+
+- **`.hashes.json`** (per area, git-ignored) is `{derived_kind: {slug: hash}}` —
+  one baseline map per **agent-owned** derived kind (`dependencies`, `raci`),
+  each recording the procedure content hashes that kind's file was last built
+  from. Mechanical (python-owned) files are not tracked here; M3 rebuilds them in
+  full every run, so they need no delta.
+- **Content hash = SHA-256 of the procedure file's bytes** (via
+  `doc_model` manifest enumeration — `role: procedure` components). Hashing the
+  raw file, not the assembled/numbered text, is what makes a manifest-only
+  reorder a no-op: `order`/`l2_order` change but no procedure file does, so the
+  delta is empty and numbers still come out right at render (M4). One content-hash
+  mechanism only — **no git-diff path** (review #15): works with no git, on first
+  run, after rebase/squash, identically.
+- **Delta** for a kind = procedures whose current hash **differs from or is absent
+  in** that kind's baseline map. No baseline entry for the kind (first run) => all
+  current procedures. A deleted procedure simply drops out of the current map (its
+  rows are M3's / the agent's concern, not the delta's).
+- **API:** `work_order(folder, kind) -> dict`, `changed_procedure_slugs(folder,
+  kind) -> [slug]`, and `commit(folder, kind)` which rebaselines only that kind's
+  map to the current hashes **after a successful agent write**. `bundle_path`
+  points at M3's `<area>.extract.json`. The work order deliberately omits
+  prior-file contents.
+- **CLI** (what `consult-orchestrate` runs — invocation prefix `scripts/` stays
+  stable per README): `python3 scripts/scope_delta.py work-order --folder <dir>
+  --kind <dependencies|raci>` prints the work order JSON; `... commit --folder
+  <dir> --kind <k>` rebaselines after the write; `... changed ...` prints just the
+  slug list. The commit step is the orchestrator's, not the agent's — the agent
+  only writes its file and returns status.
+
 **Agents** — `raci` (`84_`), `dependencies` (`82_`). Under `.claude/agents/`,
 tool-scoped (Read + Write to their **one file** + reconcile/aggregate).
 - Single-file writer: the agent rewrites its whole file, re-emits the
@@ -53,9 +83,13 @@ tool-scoped (Read + Write to their **one file** + reconcile/aggregate).
 - Procedure refs it emits use `[[slug]]` tokens (review #2). Nouns stay canonical
   plain text (from the registry, already in the mechanical rows).
 
-**Orchestration** — the sequence (M3 aggregate → M5 delta → dispatch each agent →
-reconcile) is driven by `consult-orchestrate` (M7), not a bespoke driver here.
-Single-writer-per-file is guaranteed by ordering + one file per writer.
+**Orchestration** — the sequence (M3 aggregate → M5 `work-order` per kind →
+dispatch each agent → agent writes its one file → reconcile → M5 `commit` per kind
+to rebaseline `.hashes.json`) is driven by `consult-orchestrate` (M7), not a
+bespoke driver here. Baselining happens **after** a successful write, so a failed
+or skipped agent leaves the prior baseline intact and the procedures stay "changed"
+for the next pass. Single-writer-per-file is guaranteed by ordering + one file per
+writer.
 
 ## Acceptance
 

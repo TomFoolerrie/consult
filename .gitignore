@@ -3,3 +3,10 @@ __pycache__/
 *.docx
 *.xlsx
 .DS_Store
+
+# Scratch / signal files (per-area, not tracked)
+*.extract.json
+.hashes.json
+.aggregate.json
+.reconcile.json
+.render.json

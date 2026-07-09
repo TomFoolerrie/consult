@@ -49,9 +49,29 @@ New shared module `scripts/doc_model.py` (name TBD):
 - `resolve_tokens(text, numbers, mode) -> text` — replaces `[[slug]]` with the
   display number (or `number + title`); unknown slug → error.
 - `assemble(folder) -> AssembledDoc` — returns **structured** data, not a bare
-  string: `title`, `subtitle`, and an ordered list of
-  `{heading, role, slug|None, number|None, body}`. (M4 needs role/number to know
-  which H2s get numbered; a flat string cannot carry that — review #1.)
+  string: `title`, `subtitle`, and an ordered list of `Section` dataclasses
+  `{heading, role, slug|None, number|None, body, derived_kind|None, writer|None,
+  file}`. Sections are ordered by manifest `order` (the sole authority);
+  procedure sections carry their `number` (from `display_numbers`); bodies are
+  RAW — token resolution and `consult-meta` stripping are M4's job at render
+  time, not `assemble`'s. `AssembledDoc.procedures()` is a convenience filter.
+  (M4 needs role/number to know which H2s get numbered; a flat string cannot
+  carry that — review #1.)
+
+**Implementation notes (as built).**
+- `validate_manifest(m) -> list[str]` returns error strings (empty == valid) and
+  never raises, so `reconcile` aggregates them with its own diagnostics. It
+  enforces: schema == `consult-mvp-manifest/v1`; required `area`/`l1`/`title`;
+  `l2_order` a unique string list; per-component `file`/`heading`/`order`(int)/
+  `role`∈{static,procedure,derived}; procedures carry `slug`+`l2` (and `l2` ∈
+  `l2_order`); derived carry `derived_kind`+`writer`∈{python,agent}; and global
+  uniqueness of `order`, `slug`, and `file`. Load-time failures (missing file,
+  bad JSON) raise `ManifestError`.
+- `resolve_tokens(text, numbers, mode)` accepts `numbers` values that are either
+  a display-number string or a `{"number","title"}` mapping, and supports
+  `mode` ∈ {`number`, `title`, `number+title`}. It rewrites only bare `[[slug]]`
+  cross-refs (lowercase slug, no embedded delimiter) and leaves `[[GAP-NN — …]]`
+  body tags untouched; an unknown slug raises `KeyError`.
 
 `scripts/split_doc.py`:
 - New rule: fragment boundary = every `##` outside a fenced block (both ```` ``` ````
@@ -93,6 +113,26 @@ across the concatenated text, which is wrong now that IDs are procedure-local
   top-up loop resolves it, it must not block the area). ERRORs stay reserved for
   ID-grammar defects, dangling `[[slug]]`, duplicate `order`, and missing derived
   markers.
+
+**ERROR / WARNING taxonomy (as built).** `reconcile.py <area-folder>` exits `1`
+only if any ERROR is present, `2` on bad usage / unreadable manifest, else `0`
+(WARNINGS never fail the gate). Diagnostics are reported as `<file>:<line>: …`.
+- **ERROR:** invalid manifest (incl. duplicate `order`/`slug`/`file`); bare gap
+  tag `[[GAP — …]]`; malformed callout ID grammar; callout ID prefix not matching
+  its label; duplicate callout ID **within one procedure**; a referenced ID not
+  defined **within the same procedure** (per-fragment dangling); dangling
+  `[[slug]]` cross-ref; a manifest `derived` file missing its `<!-- derived: … -->`
+  marker (or missing on disk); a derived-table row whose `(Source-Procedure slug,
+  id)` pair is unknown.
+- **WARNING:** a `consult-meta` `systems:`/`roles:` slug absent from
+  `_reference/*.yaml`.
+
+Registry slugs are harvested tolerantly from `_reference/systems.yaml` /
+`roles.yaml` (list-of-entries with a `slug` key, or a slug-keyed mapping), so the
+WARNING check degrades gracefully rather than fabricating an ERROR. Fenced blocks
+(both ```` ``` ```` and `~~~`) are blanked line-count-preserving before ID
+scanning so reported line numbers stay accurate; the `consult-meta` fence is
+parsed separately for its slug lists.
 
 `scripts/assemble_doc.py`:
 - **Remove the CLI entry point** (review #20). The `assemble` logic lives in

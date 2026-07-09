@@ -102,6 +102,41 @@ under its `reference/` as the default backbone; the user may supply their own):
   procedure creates only its file + a manifest entry with an `order` *between*
   neighbours (sparse), touching no existing file.
 
+**Concrete build (what this ticket delivers):**
+- **Invocation** (the confirm gate; run by the human / orchestrator):
+  ```text
+  python3 scripts/scaffold.py --confirm --area components/<area> \
+      [--l1 <slug>] [--taxonomy <path>] [--title "..."] [--subtitle "..."]
+  ```
+  Without `--confirm` the script refuses and points back to `.proposed/` — the
+  gate is never auto-applied. `--l1` may be omitted if it can be read from an
+  existing `manifest.json` (incremental) or `.proposed/area.yaml`.
+- **Promotion is a MERGE keyed by slug/id.** Only the registry files
+  (`systems.yaml`, `roles.yaml`, `sources.yaml`, optional `glossary.yaml`) are
+  promoted; `procedures.yaml` and `new_buckets.yaml` are *consumed* to build the
+  manifest and are never copied live. Re-emitted entries win; entries the delta
+  didn't touch survive.
+- **`l2_order`** = existing order (preserved verbatim, so ordinals never drift) +
+  taxonomy-order buckets actually used + approved new buckets (any `l2` a
+  procedure uses that isn't in the taxonomy) appended in first-seen order.
+- **`order`** = static `00`→0, `04`→5; procedures sparse from 10 in gaps of 10,
+  existing procedures keeping their value and new ones inserted between
+  neighbours; derived files at their filename prefix (70, 80, 81, 82, 84, 88, 90,
+  91). A full-gap collision triggers a manifest-only renormalize (never renames a
+  file). The written manifest is validated via `doc_model.validate_manifest`.
+- **File inventory scaffolded:** static `00_document-profile.md`,
+  `04_process-overview.md`; one `10_<slug>.md` A–H skeleton per procedure (stamped
+  from M1's `procedure_skeleton.md` if present — taken from its first `##` onward
+  with the title substituted — else a built-in A–H shell, always carrying the
+  `<!-- unfilled -->` sentinel and an empty `consult-meta` block); and derived
+  stubs `70_procedure-index`, `80_role-dictionary`, `81_systems`,
+  `82_dependencies`, `84_raci`, `88_appendix-a`, `90_appendix-b-gaps`,
+  `91_appendix-c-screens`, each empty but carrying its
+  `<!-- derived: KIND; writer: W -->` marker.
+- **Dependencies observed:** imports `scripts/doc_model.py` (M2) to validate;
+  reads `skills/consult-drafter/reference/procedure_skeleton.md` (M1) if present.
+  Neither is created or edited here.
+
 **Fill agents** (parallel, one per procedure) — reuse/rename the existing
 `consult-drafter` as the per-procedure filler:
 - Input: the procedure's skeleton + `_sources/` (new + processed) + `_reference/`.

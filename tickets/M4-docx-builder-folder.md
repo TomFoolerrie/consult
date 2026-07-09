@@ -51,9 +51,63 @@ orchestrator-invoked scripts under `scripts/`, per the README script layout).
 - Keep CFGI green house style, callouts colored by label, tables auto-styled by
   kind, screenshots as placeholders, `--include-toc` / `--landscape` / `--no-cover`.
 
-`skills/consult-docx-builder/SKILL.md` + `references/docx_build_contract.md`:
+### `scripts/render.py` (the assembly glue — new)
+
+Thin top-level entrypoint: `python3 scripts/render.py <area> -o <out.docx>`
+(pass-through `--include-toc` / `--landscape` / `--no-cover`). It does the real
+assembly glue and delegates all styling to the converter:
+
+1. Resolve input: an area **folder** is a dir containing `manifest.json` (looked
+   up as `<area>`, then `components/<area>`); anything else is a single `.md`
+   for back-compat.
+2. Folder path: `doc_model.load_manifest` + `validate_manifest`,
+   `doc_model.display_numbers(manifest)` (the ONE number map),
+   `doc_model.assemble(folder)` → `AssembledDoc(title, subtitle, sections[])`.
+3. For each section: strip the fenced `consult-meta` block, strip
+   `<!-- derived: … -->` markers, resolve `[[slug]]` via `doc_model.resolve_tokens`
+   against the number map; prefix `role == "procedure"` headings with their
+   `number`. Lift the `document-profile` static section into the cover card
+   (unless `--no-cover`, which leaves it inline).
+4. Hand the assembled body + manifest title/subtitle/profile to the converter's
+   `convert_assembled` hook. Single-file input calls the legacy `convert`.
+
+### Converter change points (minimal, in `cfgi_markdown_to_word.py`)
+
+Precise edits — **not** a rewrite of the 774-line converter:
+
+- **H1→H2 weight remap:** in the heading branch of the render loop, the
+  section-start green rule was `if style == "Heading 1": para_bottom_border(p)`.
+  Broaden to `if style in ("Heading 1", "Heading 2"):` so flat-H2 sections carry
+  the section weight while single-file H1 docs still get the rule. H3/H4 and the
+  Heading-2 style spec are unchanged; table-kind and callout detection key off
+  content (not heading level), so they are undisturbed. (A heavier restyle of
+  the `Heading 2` spec, or a page-break-before policy, is optional and deferred —
+  the rule hook is the load-bearing change.)
+- **Loop extraction:** the render `while`-loop is lifted verbatim into
+  `render_body(doc, lines, do_cover)`; the TOC block into `_emit_toc(doc)`.
+  `convert` is unchanged behaviourally (calls both).
+- **Additive `convert_assembled(body_md, out, *, title, subtitle, profile_md,
+  include_toc, landscape, do_cover)`:** builds the cover from the passed
+  manifest title/subtitle (no inline-H1 scan) and parses `profile_md` into the
+  Document Profile card via the existing `md_table`; renders `body_md` through
+  `render_body(..., do_cover=False)` (nothing to suppress — the assembled body
+  has no inline H1 and the profile is already lifted by `render.py`).
+
+### `skills/consult-docx-builder/SKILL.md` + `references/docx_build_contract.md`:
 - Document folder input, single-H1 expectation, manifest-derived numbering, and
   `[[slug]]` token resolution.
+
+### Assumptions on the M2 `doc_model` contract (verify at integration)
+
+M2 owns `doc_model.py`; M4 imports it. `render.py` assumes:
+- `AssembledDoc` exposes `.title`, `.subtitle`, and an ordered `.sections`
+  iterable; each section exposes `heading`, `role`, `slug`, `number`, `body`.
+  `render.py` reads these tolerantly (dataclass *or* dict; `.sections` falls back
+  to `.components`) so a minor shape difference doesn't break it.
+- `resolve_tokens(text, numbers, mode)` — `render.py` calls it with `mode`
+  `"number"` and falls back to a two-arg call if M2's signature has no mode.
+If M2 finalizes different names, adjust the shims in `render.py` (`_attr`,
+`_sections`, `_resolve_tokens`) only.
 
 ## Acceptance
 

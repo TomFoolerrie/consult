@@ -607,23 +607,20 @@ def build_cover(doc, title: str, subtitle: str, profile_rows: List[List[str]]) -
 # --------------------------------------------------------------------------- #
 # Main conversion
 # --------------------------------------------------------------------------- #
-def convert(inp: Path, out: Path, include_toc: bool = False,
-            landscape: bool = False, do_cover: bool = True) -> None:
-    text = inp.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
-    lines = text.split("\n")
-    doc = Document()
-    configure(doc, landscape)
+def _emit_toc(doc) -> None:
+    para(doc, "Table of Contents", "Heading 1")
+    p = doc.add_paragraph()
+    add_toc(p)
+    doc.add_page_break()
 
-    if do_cover:
-        title, subtitle, profile_rows = extract_cover_data(lines)
-        build_cover(doc, title, subtitle, profile_rows)
 
-    if include_toc:
-        para(doc, "Table of Contents", "Heading 1")
-        p = doc.add_paragraph()
-        add_toc(p)
-        doc.add_page_break()
+def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
+    """Render assembled Markdown body lines into `doc`.
 
+    Shared by the single-file `convert` and the pre-assembled folder
+    `convert_assembled` paths. `do_cover` only governs inline suppression of
+    the title H1 and lifted cover sections; the cover itself is built by the
+    caller."""
     ctx: List[str] = []
     i = 0
     title_skipped = not do_cover      # if no cover, don't swallow the first H1
@@ -690,7 +687,12 @@ def convert(inp: Path, out: Path, include_toc: bool = False,
             ctx.append(txt)
             style = f"Heading {min(level, 4)}"      # straight-through: #->H1 ... ####->H4
             p = para(doc, txt, style)
-            if style == "Heading 1":
+            # H1->H2 weight remap: under the flat-H2 template the section
+            # weight formerly carried by H1 moves to H2, so the green rule is
+            # drawn under both. (Single-file docs still have one inline H1;
+            # folder docs hold their single H1/title on the cover and start
+            # every section at H2.)
+            if style in ("Heading 1", "Heading 2"):
                 para_bottom_border(p)
             i += 1
             continue
@@ -744,6 +746,46 @@ def convert(inp: Path, out: Path, include_toc: bool = False,
         para(doc, st)
         i += 1
 
+
+def convert(inp: Path, out: Path, include_toc: bool = False,
+            landscape: bool = False, do_cover: bool = True) -> None:
+    text = inp.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    lines = text.split("\n")
+    doc = Document()
+    configure(doc, landscape)
+    if do_cover:
+        title, subtitle, profile_rows = extract_cover_data(lines)
+        build_cover(doc, title, subtitle, profile_rows)
+    if include_toc:
+        _emit_toc(doc)
+    render_body(doc, lines, do_cover)
+    doc.save(str(out))
+
+
+def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
+                      profile_md: str = "", include_toc: bool = False,
+                      landscape: bool = False, do_cover: bool = True) -> None:
+    """Render pre-assembled folder content produced by scripts/render.py.
+
+    Additive hook for the M4 folder path. Title/subtitle come from the
+    manifest (no inline H1 is scanned — a folder document has none). When a
+    cover is built the Document Profile card is parsed from `profile_md`; the
+    caller omits that section from `body_md` so it is not duplicated inline.
+    With do_cover False the caller leaves the profile inline in `body_md`."""
+    doc = Document()
+    configure(doc, landscape)
+    if do_cover:
+        rows: List[List[str]] = []
+        plines = profile_md.split("\n")
+        tb, _ = md_table(plines, _next_nonblank(plines, 0)) if profile_md.strip() else (None, 0)
+        if tb:
+            if tb.header:
+                rows.append(tb.header)
+            rows.extend(tb.rows)
+        build_cover(doc, title, subtitle, rows)
+    if include_toc:
+        _emit_toc(doc)
+    render_body(doc, body_md.split("\n"), do_cover=False)
     doc.save(str(out))
 
 

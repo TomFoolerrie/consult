@@ -24,22 +24,56 @@ belong to `consult-drafter` or other skills.
 
 ## Required Inputs
 
-- A finalized Markdown file, normally produced by `consult-drafter`.
+Two input modes:
+
+- **Component folder (primary).** An area directory containing `manifest.json`
+  and its `NN_*.md` components. This is how the orchestrator renders — via the
+  top-level entrypoint `scripts/render.py <area>`, which imports M2's
+  `doc_model.assemble(folder)` to get the structured document and hands it to
+  this converter's `convert_assembled` hook.
+- **Single Markdown file (back-compat).** A finalized single-file draft,
+  normally produced by `consult-drafter`.
 - Optional output filename.
 
-The input should already be reconciled — run `consult-drafter`'s `reconcile.py`
-first so IDs (`CTRL-001`, `PP-001`, `IO-001`, `GAP-01`, `SC-01`, `SRC-001`) and
-their appendix rows are consistent before rendering to Word.
+The input should already be reconciled — run `reconcile.py` first so IDs
+(`CTRL-001`, `PP-001`, `IO-001`, `GAP-01`, `SC-01`, `SRC-001`) and their
+appendix rows are consistent before rendering to Word.
+
+### Folder input, numbering, and `[[slug]]` tokens
+
+Under the flat-H2 template there is exactly one H1 (the document title, held in
+the manifest — never in a fragment) and every section is `##`. For folder input:
+
+- **Title/subtitle come from the manifest**, not from an inline H1 scan; the
+  Document Profile card is lifted from the `document-profile` static section.
+- **Display numbers are resolved late, here.** `scripts/render.py` prefixes each
+  `procedure` heading with its `{L2}.{seq}` number and resolves every `[[slug]]`
+  cross-reference (in prose *and* derived tables — Systems "Related Procedures",
+  Appendix A "Source Procedure") through M2's single `display_numbers` map. A
+  reorder in the manifest therefore renumbers headings and cross-refs together,
+  with no stale back-references.
+- `<!-- derived: … -->` markers and any fenced ` ```consult-meta ` block are
+  stripped before rendering — neither appears in Word.
+
+Numbers and tokens live in exactly one place (`doc_model`); this converter
+never computes them.
 
 ## Script Location
 
 ```text
-scripts/cfgi_markdown_to_word.py
+scripts/cfgi_markdown_to_word.py     # the converter (this skill)
+scripts/render.py                    # top-level folder entrypoint (imports doc_model + this converter)
 ```
 
 ## Commands
 
-Default conversion (builds a cover page):
+Render a component folder (what the orchestrator runs):
+
+```bash
+python3 scripts/render.py <area> -o <out.docx>
+```
+
+Default single-file conversion (builds a cover page):
 
 ```bash
 python scripts/cfgi_markdown_to_word.py input.md
@@ -75,11 +109,14 @@ house style is fixed.
 ## What the Converter Applies
 
 - **CFGI green house style** — Calibri body, dark-green title, green headings
-  with a rule under each H1, green table header rows that repeat across pages.
-- **Cover page from the Document Profile table** — the first H1 becomes the
-  cover title and the `Document Profile` table is lifted onto the cover as a
-  summary card, then suppressed inline so it is not duplicated. `--no-cover`
-  disables this and leaves the profile in the body.
+  with a rule under each section start, green table header rows that repeat
+  across pages. Under the flat-H2 template the section-start rule is drawn under
+  **H2** (the H1→H2 weight remap); single-file H1 documents still get the rule.
+- **Cover page** — *folder input:* title/subtitle from the manifest, Document
+  Profile card lifted from the `document-profile` section. *Single-file input:*
+  the first H1 becomes the cover title and the `Document Profile` table is lifted
+  onto the cover as a summary card, then suppressed inline. `--no-cover` disables
+  the cover and leaves the profile in the body.
 - **Canonical hierarchy preserved** — `#`/`##`/`###`/`####` map straight through
   to Heading 1–4, so the `consult-drafter` structure and the TOC stay intact.
 - **Callouts colored by label** — `CONTROL` (green), `VALIDATION REQUIRED`

@@ -49,7 +49,15 @@ loop:
 ```
 
 `orchestrate.py` is **read-only** — it never mutates; it derives the next action
-from folder state (see M7). Re-running is always safe.
+from folder state (see M7). Re-running is always safe. Because it cannot run the
+mutating stages itself, each deterministic stage leaves a small git-ignored
+state file at the area root that the advisor reads next loop: `aggregate.py` →
+`.aggregate.json` (`{proc_hashes, registry_hash, warnings}`); the synthesis pass
+→ `.hashes.json` (procedure hashes, the M5 change signal); `reconcile.py` →
+`.reconcile.json` (`{basis, clean}`); the renderer → `.render.json`
+(`{basis, docx, awaiting_review}`). A stage that doesn't write its file reads as
+"never ran", so its guard keeps firing — surface that as a stage bug, don't loop
+blindly. The action JSON carries `{action, reason, human_gate, details}`.
 
 ## Action handlers
 
@@ -63,11 +71,11 @@ paths/ids — never pasted content.
 | `fill` | For each procedure still carrying the `unfilled` sentinel, dispatch a **`consult-drafter` subagent** — **all in one batch, in parallel** — with `{area, slug, title, sources: <its touches list from sources.yaml>, mode: first-draft}`. Collect compact statuses. Then move **fully-consumed** sources (below) — pass the set of successfully-filled slugs to `sources.py mark-processed`; a source moves only when its whole `touches` set is filled. Partial-batch failure is fine: unfilled procedures keep their sentinel and re-dispatch next pass. |
 | `apply_review` | For each `{area}/_review/*.notes.yaml`, dispatch a **`consult-drafter` subagent** with **only** `{area, slug, mode: update, review_notes: _review/{slug}.notes.yaml}` (one trigger — no `sources` list; the drafter reads its own draft + registry + the notes). Batch/parallel. Archive applied notes to `_review/processed/` after success. |
 | `aggregate` | Run `python3 scripts/aggregate.py <area>`. Non-zero exit (fail-loud on a malformed callout) → surface + stop. Unmatched-mention WARNINGs → `registry_topup` gate. |
-| `registry_topup` | **HUMAN GATE.** List the flagged systems/roles; tell the user to add entries/aliases to `_reference/` and re-invoke. Stop. |
+| `registry_topup` | **HUMAN GATE.** List the flagged systems/roles (`details.warnings`); tell the user to add entries/aliases to `_reference/` and re-invoke. Stop. On re-invoke the registry edit changes `registry_hash`, so the advisor returns `aggregate` again — the top-up loop re-runs aggregate and clears (or re-flags) the warning. |
 | `synthesize` | Dispatch the M5 judgment subagents — `consult-dependencies`, `consult-raci` — one each (they self-scope to changed procedures via the delta). Compact returns only. |
 | `reconcile` | Run `python3 scripts/reconcile.py <area>` over the whole area (the hard gate). Any ERROR → surface + stop; don't render over it. |
 | `render` | Run the renderer (`python3 scripts/render.py <area> -o <out.docx>`, or the docx-builder script) — only after `reconcile` is clean. Give the user the path. |
-| `review` | **HUMAN GATE.** Tell the user to review the `.docx` in Word (tracked changes + comments), then either run the review extractor or drop notes so `_review/` fills. Stop. |
+| `review` | **HUMAN GATE.** The resting state after render. Give the `.docx` path (`details.docx`); tell the user to review it in Word (tracked changes + comments), then either run the review extractor / drop notes so `_review/` fills (→ `apply_review` loop) **or explicitly accept**. Stop. The advisor keeps returning `review` while `awaiting_review` is set — only on the user's explicit acceptance do you report `done`. |
 | `done` | Report: what's current, where the `.docx` is, nothing outstanding. Stop. |
 
 ## Parallel fan-out
@@ -83,8 +91,10 @@ continue. Never fill procedures one-at-a-time in sequence.
   `_sources/new/ → processed/` (and flips `sources.yaml` state) **only when its
   whole `touches` set is filled** — so a source spanning a failed procedure stays
   in `new/`. Never move a source before its procedures fill.
-- After an `apply_review` batch succeeds, archive the applied
-  `_review/*.notes.yaml` (and the consumed `.docx`) to `_review/processed/`.
+- After an `apply_review` batch succeeds, archive the applied notes with
+  `python3 scripts/sources.py archive-review <area> --slugs <slugs…>`
+  (add `--docx <path>` to also archive the consumed `.docx`); it moves them to
+  `_review/processed/`.
 
 ## Human gates — stop cleanly
 

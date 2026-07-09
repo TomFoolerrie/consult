@@ -67,6 +67,40 @@ or `status: unfilled` in its `consult-meta`); the drafter **removes it on its
 first successful write.** Row 4 keys off the sentinel's presence — a deterministic
 "is this a skeleton?" predicate, not a fragile heuristic (file size / TBD count).
 
+**State the advisor reads (the mutating stages write it).** `orchestrate.py`
+is read-only, so it cannot itself run `aggregate`/`reconcile` to learn their
+result — it must read a small persisted signal each stage leaves. These files
+are **git-ignored, at the area root**, and are the M7 orchestration contract:
+
+| File | Written by | Shape | Guards it drives |
+|---|---|---|---|
+| `.aggregate.json` | `aggregate.py` | `{proc_hashes:{slug:sha}, registry_hash:sha, warnings:[…]}` | 6 (stale if proc/registry hash differs), 7 (topup if `warnings`) |
+| `.hashes.json` | synthesize (M5 pass) | `{slug:sha}` — procedures as of last synthesis (the "M5 change signal") | 9 (synthesize if current proc hashes differ) |
+| `.reconcile.json` | `reconcile.py` | `{basis:sha, clean:bool}` | 8 (reconcile if basis stale or not clean) |
+| `.render.json` | renderer (M4) | `{basis:sha, docx:path, awaiting_review:bool}` | 10 (render if basis stale), 11 (review if awaiting) |
+
+`basis` = combined hash of all procedure files + all derived files + the
+manifest — the unit reconcile and render gate on. A **missing** state file means
+"stage never ran", so its guard fires. An absent `doc_model.load_manifest`
+(pre-M2) degrades to a plain `manifest.json` read; the contract is still to
+import `load_manifest` from `doc_model`.
+
+**Why `.aggregate.json` also records `registry_hash`.** Row 7 (`registry_topup`)
+is a human gate: the human adds a registry entry/alias, then re-invokes. That
+edit changes `registry_hash` but **not** the procedure hashes — so row 6
+(`aggregate`) re-fires on the registry change alone, re-runs aggregate, and the
+top-up loop clears the warning (or re-flags a still-missing one). Without the
+registry hash the gate would never re-evaluate.
+
+**`review` is the resting gate; `done` needs explicit human acceptance.** The
+renderer stamps `awaiting_review:true`; the advisor returns `review` until either
+new `_review/*.notes.yaml` appear (→ row 2, the revision loop) or the human
+accepts. Advisor is read-only and cannot know "accepted", so acceptance is a
+**human signal to the driver skill**, not a state the advisor computes: on the
+user's explicit accept, the driver reports `done` (and may clear
+`awaiting_review`). Absent that, `done` (row 12) is only reached when the render
+basis is current and `awaiting_review` is already false.
+
 **`reconcile` is in the loop (row 8), not opportunistic.** After `aggregate`
 (and `synthesize`), the orchestrator runs `python3 scripts/reconcile.py <area>`
 over the whole area — the hard gate for order uniqueness, `[[slug]]` resolution,

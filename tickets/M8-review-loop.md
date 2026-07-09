@@ -52,6 +52,60 @@ renumbered).
   routing key.
 - Archive the consumed `.docx` (e.g. `_review/processed/`) after extraction.
 
+### Implementation notes (as built)
+
+- **CLI:** `python3 scripts/review_extract.py <reviewed.docx> [--area <folder>]
+  [--no-archive] [--dry-run]`. `--area` defaults to the docx's parent (or its
+  grandparent when the docx sits in `_review/`, the normal drop location); the
+  manifest is loaded from `{area}/manifest.json`.
+- **XML backend:** `lxml` is preferred; the script falls back to stdlib
+  `xml.etree.ElementTree` when lxml is absent (verified identical output on both).
+- **Number/title → slug mapping** uses `doc_model.load_manifest` +
+  `display_numbers` (the single numbering authority — never re-derived here). A
+  rendered H2 like `1.1 Bank Reconciliation` is resolved by its number prefix
+  first, then by a normalized title match against the manifest component headings.
+  Non-procedure H2s (Document Profile, derived views) resolve to no slug.
+- **Heading stack** is read from paragraph `w:pStyle` values (`Heading1..4`):
+  H1 = document title (ignored), H2 = procedure/section, H3 = A–H subsection,
+  H4 = step. `location` renders as `"<A–H letter> · <step>"` (e.g. `E · Step 3`),
+  or `(procedure body)` when neither is set.
+- **Tracked changes:** `w:ins` / `w:del` are collected in document order per
+  paragraph; an adjacent `del`→`ins` pair is collapsed into a single replacement
+  (`change: "CFO → Controller"`), otherwise emitted as `inserted: …` /
+  `deleted: …`. Author + date come from the `w:ins`/`w:del` attributes.
+- **Comments:** `commentRangeStart/End` (matched by `w:id`, may span paragraphs)
+  fix the anchor span + location; the comment body (author/date/text) comes from
+  `word/comments.xml`. `w:commentReference` runs are ignored.
+- **Anchor** is the enclosing span/paragraph visible text (inserted text kept,
+  deleted text dropped), squeezed and clipped to ~160 chars.
+- **Unattributable feedback** (a change/comment anchored outside any procedure —
+  e.g. in a static or derived section) is **skipped with a WARNING to stderr**,
+  never silently dropped and never written to a bogus slug.
+
+### Notes file schema (what the drafter reads)
+
+```yaml
+procedure: bank-reconciliation      # == the slug (matches the filename)
+source_docx: Fixed-Assets_process-doc.docx
+items:
+  - type: tracked-change            # or: comment
+    location: "E · Step 3"          # procedure → A–H subsection → step
+    anchor: "The Controller approves the reconciliation."
+    change: "CFO → Controller"      # tracked-change only
+    author: "J. Smith"              # omitted when absent
+    date: "2026-07-08T10:00:00Z"    # omitted when absent
+  - type: comment
+    location: "E · Step 3"
+    anchor: "The Controller approves the reconciliation."
+    note: "Who actually signs off?"  # comment only
+    author: "J. Smith"
+```
+
+`change` appears only on `tracked-change` items; `note` only on `comment` items —
+matching the drafter's "tracked changes = high-authority SME input; comments =
+instructions/questions" split. YAML is emitted dependency-free (quoted scalars)
+and parses cleanly under PyYAML.
+
 ## Where notes land — and why it matters
 
 Review notes land in **`_review/`**, NOT `_sources/new/`. This is deliberate: the
@@ -86,6 +140,13 @@ Add: `_review/` notes present → next action `apply_review` = re-dispatch
 
 - A reviewed `.docx` with both a tracked change and a comment yields review notes
   correctly attributed to the right procedure + subsection/step, with anchor text.
+- A single `.docx` spanning multiple procedures **splits** into one
+  `{slug}.notes.yaml` per procedure, with each item mapped to its slug via the
+  rendered heading's display number (or title) through `display_numbers`.
+- A `del`→`ins` replacement collapses to one `X → Y` change; a bare insert/delete
+  renders as `inserted:`/`deleted:`; author + date are preserved.
+- Feedback anchored outside any procedure is reported as a WARNING, not dropped
+  silently and not misfiled.
 - Notes land in `_review/`, never `_sources/new/`; the orchestrator routes them to
   the drafter without invoking taxonomy.
 - The drafter update pass applies the tracked change, addresses the comment, and

@@ -81,6 +81,34 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
 
 **Idempotent:** two runs, no procedure/registry change → byte-identical outputs.
 
+## Implementation notes (as built)
+
+- **Invocation:** `python3 scripts/aggregate.py components/<area>` (accepts the
+  area folder or its `manifest.json`). Exit `0` = views rebuilt (WARNINGs
+  allowed), `1` = a fail-loud fragment ERROR (nothing written — the run aborts
+  *before* any file is emitted so a bad fragment never leaves half-regenerated
+  views), `2` = bad usage / unreadable input.
+- **Manifest-driven output:** the writer set is read from the manifest's
+  `derived` components, not hard-coded — `writer: python` dispatches by
+  `derived_kind` to a builder; `writer: agent` gets the pending placeholder. Each
+  file is written as `## <heading>` + `<!-- derived: KIND; writer: W -->` + body,
+  so it drops straight into `doc_model.assemble` alongside the fragments.
+- **Shared ID grammar lives in `aggregate.py`** (`LABEL_TO_PREFIX`,
+  `CALLOUT_LINE_RE`, `SUBFIELD_RE`, the strict-ID / tolerant-delimiter regexes,
+  `parse_callouts`). Per the README script-layout rule and the M2 ticket,
+  **`reconcile.py` should import these** rather than re-implement them (this
+  ticket may not edit `reconcile.py`, so the helpers carry an in-code note).
+- **Registry loader** tolerates either a `{slug: {...}}` mapping or a
+  `[{slug, …}]` list (and an optional top-level `systems:` / `roles:` key), so it
+  survives either shape M0 emits.
+- **Severity enum** (`High|Medium|Low`) is validated as a **WARNING**, never a
+  fail-loud error — only ID-grammar defects abort (per the README's "missing
+  optional field parses as blank; only ID-grammar defects fail loud").
+- **Idempotency** is guaranteed by deterministic ordering (registry entries
+  sorted by slug; back-reference `[[slug]]` lists sorted by manifest `order`;
+  procedures grouped by `l2_order` and ordered by `display_numbers`) and a fixed
+  JSON serialization (`sort_keys`, trailing newline) for the extract bundle.
+
 ## Acceptance
 
 - `70/80/81/88/90/91` are rebuilt (single-writer each) from procedures + registry;
@@ -103,6 +131,13 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
 ## Out of scope
 
 RACI, dependency prose, Appendix-A judgment cells — M5.
+
+> **Contract gap flagged (not fixed here):** the scratch extract bundle
+> `<area>.extract.json` is written into the area folder and is meant to be
+> **git-ignored** (README ownership table + "scratch, git-ignored"). The
+> repo-root `.gitignore` does not yet cover `*.extract.json`; that ignore rule
+> belongs to whichever ticket owns `.gitignore` (M0/M2), since this ticket is
+> scoped to touch only `aggregate.py` and this file.
 
 ## Adversarial review resolutions
 

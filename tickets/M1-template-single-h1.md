@@ -28,9 +28,19 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
 - **Delete** the pure wrapper headers that own no content of their own —
   `# Current-State Process Documentation` and `# Step-by-Step Procedures`. Their
   child sections become top-level `##` directly.
-- **Promote** the content-owning sections to `##`: Roles & Responsibilities,
-  Systems & Data Inputs, Key Dependencies, each Appendix. Their subsections
-  (e.g. Role Dictionary, RACI) become `###`.
+- **Promote** the content-owning sections to `##`: Systems & Data Inputs, Key
+  Dependencies, each Appendix.
+- **Split derived sections at the writer boundary, not by grouping.** Because a
+  fragment is one `##` and every file has exactly ONE writer (README ownership
+  rule), a derived section owned by two writers cannot share a `##`. "Roles &
+  Responsibilities" therefore does **not** survive as one `##` with `###` Role
+  Dictionary + RACI children — Role Dictionary is python-owned and RACI is
+  agent-owned. Each becomes its **own top-level `##`** (`## Role Dictionary`,
+  `## RACI Matrix`) with its own `<!-- derived: KIND; writer: W -->` marker. This
+  is what makes the manual split check pass: one fragment per writer, no
+  cross-writer wrapper. (Any subsections that remain — e.g. Appendix A's typed
+  Pain Points / Improvement Opportunities sub-tables — stay `###` only where they
+  share one writer.)
 - Assign a role to the former Current-State children explicitly:
   - **Process Overview / Purpose** → a `## Process Overview` section, `role:
     static` (human-authored narrative).
@@ -118,8 +128,12 @@ how-to).
   leaving no resolved-gap artifacts.
 
 Split the per-procedure A–H block into a standalone, parameterizable snippet
-(`reference/procedure_skeleton.md` or a clearly-delimited region) so M0's
-`scaffold.py` can stamp it per procedure without re-parsing the whole template.
+(`reference/procedure_skeleton.md`) so M0's `scaffold.py` can stamp it per
+procedure without re-parsing the whole template. The snippet begins at
+`## <Procedure Title>` (the token scaffold substitutes), carries the
+`<!-- unfilled -->` sentinel immediately under the heading, and ends with the
+empty `consult-meta` fence. `Template.md` reproduces one filled-shape copy of the
+same block as its worked procedure example; the two must stay in sync.
 
 ## Acceptance
 
@@ -139,7 +153,11 @@ Split the per-procedure A–H block into a standalone, parameterizable snippet
   contradiction — e.g. H is stated as the Appendix-A source in both).
 - Manual check: splitting the template at every `##` (M2) yields exactly one
   fragment per intended section with **no empty wrapper fragments** and no
-  orphaned content.
+  orphaned content — including one fragment per derived writer (no `##` mixes a
+  python-owned and an agent-owned subsection).
+- `reference/procedure_skeleton.md` exists, starts at `## <Procedure Title>`,
+  carries the `<!-- unfilled -->` sentinel and the empty `consult-meta` fence,
+  and matches the procedure block in `Template.md`.
 
 ## Out of scope
 
