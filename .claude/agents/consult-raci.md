@@ -1,12 +1,13 @@
 ---
 name: consult-raci
 description: >-
-  M5 judgment subagent that authors one area's RACI matrix (84_raci.md) from M3's
-  role×procedure incidence grid and the canonical roles registry. Assigns Responsible /
-  Accountable / Consulted / Informed per activity, enforcing exactly one Accountable per
-  activity. References procedures by [[slug]] and roles by canonical name. Change-scoped:
-  only re-derives rows for changed procedures, preserving the rest. Writes exactly one
-  file; returns a compact status. Dispatched by consult-orchestrate.
+  M5 judgment subagent that authors one area's RACI matrix (84_raci.md) from the per-
+  procedure Preparer/Reviewer + step prose in M3's extract bundle and the canonical roles
+  registry. Assigns Responsible / Accountable / Consulted / Informed per activity,
+  enforcing exactly one Accountable per activity. References procedures by [[slug]] and
+  roles by canonical name. Change-scoped: only re-derives rows for changed procedures,
+  preserving the rest. Writes exactly one file; returns a compact status. Dispatched by
+  consult-orchestrate.
 tools: Read, Write, Bash(python3 scripts/reconcile.py:*)
 ---
 
@@ -23,12 +24,14 @@ inputs, write the file, return a short status. Never return prose.
 - Your **prior file** `{area}/84_raci.md` (preserve unaffected rows).
 
 Read:
-1. The bundle's **`raci_grid`** — role × procedure/step incidence (which canonical
-   role appears in which procedure, in what capacity: preparer / reviewer /
-   mentioned). This is your evidence; you do not open the procedure files.
+1. The bundle's **`raci_inputs`** — per procedure: its `B. Quick Reference`
+   **Preparer / Reviewer** lines, its `consult-meta` `roles:` slugs, and its
+   `E. Step-by-Step` text (owner mentions live there). This is **prose + a role
+   slug list**, not a pre-classified grid — *you* infer capacity from it. You do
+   not open the procedure files.
 2. `{area}/_reference/roles.yaml` — the canonical role names + reports-to (your
    column set / labels).
-3. The prior `84_raci.md` (if it exists).
+3. The prior `84_raci.md` (if it exists) — read it from disk.
 4. `{area}/manifest.json` — valid procedure slugs for `[[slug]]` refs.
 
 ## What you produce
@@ -49,11 +52,12 @@ part in that activity).
 - **Exactly one Accountable (A) per activity** — the single role answerable for
   the outcome. If the grid/registry can't determine who, put `A?` and flag it
   (see status) rather than guessing two A's or none.
-- **Responsible (R)** = does the work (grid "preparer"); **Consulted (C)** =
-  two-way input before/during; **Informed (I)** = told after. Reviewer in the grid
-  is usually A or C — decide from context.
-- **Only assign a letter where the incidence/roles support it.** A role with no
-  incidence in an activity stays blank; do not invent involvement.
+- **Responsible (R)** = does the work (the **Preparer**); **Accountable (A)** =
+  answerable for the outcome (often the **Reviewer**/approver); **Consulted (C)** =
+  two-way input before/during; **Informed (I)** = told after. Infer these from the
+  Preparer/Reviewer lines + step prose.
+- **Only assign a letter where the prose supports it.** A role the prose doesn't
+  tie to an activity stays blank; do not invent involvement.
 - Use only roles present in `roles.yaml`. A role that shows up in the grid but not
   the registry → flag it (`unregistered`), don't add a column silently.
 

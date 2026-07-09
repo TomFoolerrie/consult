@@ -17,7 +17,8 @@ joins (M3), and Appendix A is fully mechanical (the drafter authors impact +
 severity in the PP/IO callouts). The only judgment left — **each a clean
 single-writer file**:
 - **RACI** — `84_raci.md` (Responsible / Accountable / Consulted / Informed per
-  activity). Seeded by M3's `raci_grid`; the agent assigns A/C/I.
+  activity). Reads M3's `raci_inputs` (Preparer/Reviewer + step prose + role
+  slugs); the agent infers R/A/C/I from that prose.
 - **Dependencies** — `82_dependencies.md`, from reading each procedure's
   `A. Process Overview` prose.
 
@@ -37,17 +38,18 @@ first-run, rebase, squash with one code path and matches folder-as-truth.
 
 **Delta engine** (`scope_delta.py`, imports `doc_model.py`): per agent file,
 compute changed-procedure set from `.hashes.json`; emit a work order
-`{derived_kind, changed_procedure_slugs, mechanical_context (from bundle),
-raci_grid | raw_dependencies, prior_file_contents}`.
-The **prior file** is included so the agent preserves unaffected judgment
-without a synthetic key (review #11).
+`{derived_kind, changed_procedure_slugs, bundle_path}` (the bundle holds
+`raci_inputs` / `raw_dependencies`). The agent **reads its own prior file from
+disk** (it has Read) to preserve unaffected judgment without a synthetic key
+(review #11); the orchestrator does **not** pass prior-file content in the work
+order — that would pull a derived draft into its context (r3 review #13).
 
 **Agents** — `raci` (`84_`), `dependencies` (`82_`). Under `.claude/agents/`,
 tool-scoped (Read + Write to their **one file** + reconcile/aggregate).
 - Single-file writer: the agent rewrites its whole file, re-emits the
   `<!-- derived -->` marker (review #10), and fills judgment cells **only** for
   rows whose source procedure is in `changed_procedure_slugs`; unaffected rows
-  carried from `prior_file_contents`. No shared file, no region markers.
+  carried from its **prior file read from disk**. No shared file, no region markers.
 - Procedure refs it emits use `[[slug]]` tokens (review #2). Nouns stay canonical
   plain text (from the registry, already in the mechanical rows).
 

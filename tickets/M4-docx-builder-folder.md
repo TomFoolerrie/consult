@@ -19,7 +19,12 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
 
 ## Changes
 
-`skills/consult-docx-builder/scripts/cfgi_markdown_to_word.py`:
+The CFGI converter stays the `consult-docx-builder` skill's script, but the
+orchestrator invokes rendering as `python3 scripts/render.py <area>` — a thin
+top-level entrypoint that imports `doc_model.assemble` + the converter (keeps all
+orchestrator-invoked scripts under `scripts/`, per the README script layout).
+
+`skills/consult-docx-builder/scripts/cfgi_markdown_to_word.py` (+ `scripts/render.py` wrapper):
 - **Input:** accept either a single `.md` (back-compat) or a folder containing
   `manifest.json`. For a folder, call `doc_model.assemble(folder)` (import, don't
   shell out) → `AssembledDoc` with `title`, `subtitle`, and ordered

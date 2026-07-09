@@ -21,9 +21,9 @@ confirms first.
 ## Your assignment (from the dispatch prompt)
 
 - `area` — path to the area folder (e.g. `components/record-to-report`).
-- `l1` — the prescribed L1 function you operate in (e.g. `Record to Report`).
-  **Stay inside this L1.** Do not scope activities that belong to another L1 —
-  flag them instead (see return).
+- `l1` — the prescribed L1 function you operate in, given as its **taxonomy slug**
+  (e.g. `record-to-report`; matches a `slug:` in the taxonomy). **Stay inside this
+  L1.** Do not scope activities that belong to another L1 — flag them (see return).
 - `taxonomy` — path to the reference taxonomy
   (`skills/consult-taxonomy/reference/reference_taxonomy.yaml`, or a user override).
 - `mode` — `initial` (first scope of a fresh area) or `incremental` (new sources
@@ -61,8 +61,9 @@ existing max in `sources.yaml`.
 
 Read, at the start:
 1. Everything in `{area}/_sources/new/`.
-2. The `taxonomy` file — find your `l1` and read its **L2 sub-process buckets**.
-   These are your **known backbone**: the buckets L3 activities file under.
+2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
+   buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
+   your **known backbone**: the buckets L3 activities file under.
 
 ## The hierarchy you are building
 

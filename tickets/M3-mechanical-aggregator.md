@@ -7,9 +7,8 @@
 
 A deterministic Python engine that reads all procedure fragments + the
 `_reference/` registry and (a) regenerates every python-owned derived view in
-full, (b) writes the python region of the split-writer files, (c) writes a
-`> _Pending synthesis (M5)._` placeholder into the agent regions/files, and
-(d) emits an extract bundle for the M5 agents.
+full, (b) writes a `> _Pending synthesis (M5)._` placeholder into the agent-owned
+files, and (c) emits an extract bundle for the M5 agents.
 
 ## Why
 
@@ -20,7 +19,7 @@ is why they moved here from M5. Reserve agents for genuine prose judgment.
 
 ## Changes
 
-New `skills/consult-drafter/scripts/aggregate.py`. Imports `doc_model.py`
+New `scripts/aggregate.py`. Imports `doc_model.py`
 (manifest + `display_numbers`) and the shared ID logic factored out of
 `reconcile.py` (do not duplicate). Reads `manifest.json`, every `role:
 procedure` fragment, and `_reference/*.yaml`.
@@ -50,10 +49,17 @@ procedure` fragment, and `_reference/*.yaml`.
 - `82_dependencies.md`, `84_raci.md` → heading + marker + `> _Pending synthesis
   (M5)._`. (Each a clean single-writer file. M3 writes only the placeholder.)
 
-**Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5:
+**Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5. Both M5
+agents do prose judgment, so the bundle carries the **relevant procedure prose**
+(M3 extracts it so the *agents* read the bundle, not the procedure files — and the
+orchestrator never touches it):
 - `raw_dependencies`: each procedure's `A. Process Overview` text, tagged by slug.
-- `raci_grid`: role × procedure/step incidence (which matched role appears in
-  which procedure's steps) as a candidate grid for `84_raci`.
+- `raci_inputs`: per procedure, the `B. Quick Reference` **Preparer / Reviewer**
+  lines + the `consult-meta` `roles:` slugs + the `E. Step-by-Step` text (owner
+  mentions live here). This is **prose + the role slug list**, NOT a
+  capacity-classified grid — capacity (who prepares vs reviews vs is informed) is
+  the RACI agent's judgment from this prose. (There is no per-step role binding in
+  the data; do not pretend one exists.)
 
 **Registry binding (nouns) — read slugs, flag unknowns:** read each procedure's
 `consult-meta` `systems:` / `roles:` slug lists and join them to `systems.yaml` /

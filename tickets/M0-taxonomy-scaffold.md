@@ -77,14 +77,27 @@ under its `reference/` as the default backbone; the user may supply their own):
   `_reference/`, then scaffolds the manifest + skeletons. Nothing reaches the live
   folder until this runs. This is the one high-blast-radius judgment in the
   system; it is never auto-applied.
+- **On the incremental path, promote is a MERGE, not a replace** (r3 review #12):
+  a delta in `.proposed/` is merged into the existing `_reference/` (new entries
+  added, existing ones untouched unless the delta changes them; approved
+  `new_buckets` appended to the manifest's `l2_order`). It must not wipe registry
+  entries the delta didn't re-emit.
 
 **New scaffold script `scaffold.py`** (Python, imports `doc_model.py`):
 - Input: the confirmed procedure set + area metadata (title/subtitle).
-- Write `manifest.json` (v1, **sparse `order`** in gaps of 10) and one
-  `10_<slug>.md` per procedure containing the **A–H skeleton only** (headings +
-  Quick Reference bullet keys + empty callout slots), plus the `static`
-  frontmatter files and the `<!-- derived -->` stubs for the derived sections
-  (empty; M3 owns their content).
+- Write `manifest.json` (v1, **sparse `order`** in gaps of 10). Include area-level
+  `l1` (the L1 **slug**) and **`l2_order`** — the area's L2 bucket slugs in
+  reference-taxonomy order, with any **approved `new_buckets`** appended (this is
+  the ordering authority `display_numbers` reads; the immutable taxonomy is never
+  mutated).
+- Write one `10_<slug>.md` per procedure containing the **A–H skeleton only**
+  (headings + Quick Reference bullet keys + empty callout slots), **stamped with an
+  `unfilled` sentinel** (`<!-- unfilled -->`, or `status: unfilled` in its
+  `consult-meta`) that the drafter removes on first write — this is the advisor's
+  `fill` predicate. Plus the `static` frontmatter files and the `<!-- derived -->`
+  stubs for the derived sections (empty; M3 owns their content).
+- Stamp `sources.yaml` `hash` + `state` (deterministic byte-work belongs here, not
+  in the agent).
 - Idempotent: re-running with the same confirmed set is a no-op; adding a
   procedure creates only its file + a manifest entry with an `order` *between*
   neighbours (sparse), touching no existing file.

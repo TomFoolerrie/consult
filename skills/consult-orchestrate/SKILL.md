@@ -60,12 +60,13 @@ paths/ids — never pasted content.
 |---|---|
 | `taxonomy` | Dispatch **one `consult-taxonomy` subagent** with `{area, l1, taxonomy_path, mode}` (`mode=initial` if no manifest, else `incremental`). It writes proposals to `_reference/.proposed/`. Relay its compact summary → this leads to the `confirm` gate. |
 | `confirm` | **HUMAN GATE.** Show the proposal summary (procedures by L2, new-L2 requests, low-confidence items, out-of-L1). Tell the user to edit `_reference/.proposed/` and reply **"confirm"** when ready. Stop. — The advisor keeps returning `confirm` while `.proposed/` exists un-promoted (it can't tell "still editing" from "ready"), so **only on the user's explicit go-ahead** do you run `python3 scripts/scaffold.py --confirm --area <area>` (promotes `.proposed/` → `_reference/`, writes manifest + A–H skeletons, stamps `sources.yaml` hashes). If the user just says "continue" without confirming, re-show the gate. |
-| `fill` | For each procedure with an empty skeleton, dispatch a **`consult-drafter` subagent** — **all in one batch, in parallel** — with `{area, slug, title, sources: <its touches list from sources.yaml>, mode: first-draft}`. Collect compact statuses. Then move consumed sources (below). |
-| `apply_review` | For each `{area}/_review/*.notes.yaml`, dispatch a **`consult-drafter` subagent** (`mode: update`, pointed at `_review/{slug}.notes.yaml`) — batch/parallel. Archive applied notes after success. |
-| `aggregate` | Run `python3 scripts/aggregate.py <area>`. If it prints unmatched-mention WARNINGs → surface them (`registry_topup` gate). |
+| `fill` | For each procedure still carrying the `unfilled` sentinel, dispatch a **`consult-drafter` subagent** — **all in one batch, in parallel** — with `{area, slug, title, sources: <its touches list from sources.yaml>, mode: first-draft}`. Collect compact statuses. Then move **fully-consumed** sources (below) — pass the set of successfully-filled slugs to `sources.py mark-processed`; a source moves only when its whole `touches` set is filled. Partial-batch failure is fine: unfilled procedures keep their sentinel and re-dispatch next pass. |
+| `apply_review` | For each `{area}/_review/*.notes.yaml`, dispatch a **`consult-drafter` subagent** with **only** `{area, slug, mode: update, review_notes: _review/{slug}.notes.yaml}` (one trigger — no `sources` list; the drafter reads its own draft + registry + the notes). Batch/parallel. Archive applied notes to `_review/processed/` after success. |
+| `aggregate` | Run `python3 scripts/aggregate.py <area>`. Non-zero exit (fail-loud on a malformed callout) → surface + stop. Unmatched-mention WARNINGs → `registry_topup` gate. |
 | `registry_topup` | **HUMAN GATE.** List the flagged systems/roles; tell the user to add entries/aliases to `_reference/` and re-invoke. Stop. |
-| `synthesize` | Dispatch the M5 judgment subagents — `consult-dependencies`, `consult-raci` — one each (only for changed procedures per the delta). Compact returns only. |
-| `render` | Run `python3 scripts/cfgi_markdown_to_word.py <area> -o <out.docx>`. Give the user the path. |
+| `synthesize` | Dispatch the M5 judgment subagents — `consult-dependencies`, `consult-raci` — one each (they self-scope to changed procedures via the delta). Compact returns only. |
+| `reconcile` | Run `python3 scripts/reconcile.py <area>` over the whole area (the hard gate). Any ERROR → surface + stop; don't render over it. |
+| `render` | Run the renderer (`python3 scripts/render.py <area> -o <out.docx>`, or the docx-builder script) — only after `reconcile` is clean. Give the user the path. |
 | `review` | **HUMAN GATE.** Tell the user to review the `.docx` in Word (tracked changes + comments), then either run the review extractor or drop notes so `_review/` fills. Stop. |
 | `done` | Report: what's current, where the `.docx` is, nothing outstanding. Stop. |
 
@@ -77,10 +78,11 @@ continue. Never fill procedures one-at-a-time in sequence.
 
 ## Moving inputs (you own this, not the subagents)
 
-- After a `fill` batch succeeds, move the sources it consumed
-  `_sources/new/ → _sources/processed/` and flip their `sources.yaml` state (via
-  the small Python helper, `python3 scripts/sources.py mark-processed …`). Never
-  move a source before its fill succeeds.
+- After a `fill` batch, call `python3 scripts/sources.py mark-processed <area>
+  --filled <slugs…>` with the slugs that **succeeded**. A source moves
+  `_sources/new/ → processed/` (and flips `sources.yaml` state) **only when its
+  whole `touches` set is filled** — so a source spanning a failed procedure stays
+  in `new/`. Never move a source before its procedures fill.
 - After an `apply_review` batch succeeds, archive the applied
   `_review/*.notes.yaml` (and the consumed `.docx`) to `_review/processed/`.
 

@@ -68,9 +68,11 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
   hand-edit them and so reconcile can verify ownership:
   `<!-- derived: gap-log; writer: python -->`,
   `<!-- derived: roles; writer: agent -->`, etc.
-- Per-procedure L2 marker `<!-- l2: consolidation -->` naming the procedure's L2
-  bucket (drives the `{L2}.{seq}` display number). Set by M0 scaffold from the
-  confirmed `procedures.yaml`; humans rarely touch it.
+- **No `<!-- l2 -->` marker.** A procedure's L2 bucket lives **only** in the
+  manifest (`l2` field), the single numbering authority — no second source to
+  drift. (r3 review #6.)
+- The scaffolded skeleton carries an **`unfilled` sentinel** (`<!-- unfilled -->`)
+  that the drafter removes on first write — the orchestrator's `fill` predicate.
 
 `skills/consult-drafter/SKILL.md` — **refocus from whole-document to
 single-procedure.** The current SKILL drafts an entire multi-procedure document;

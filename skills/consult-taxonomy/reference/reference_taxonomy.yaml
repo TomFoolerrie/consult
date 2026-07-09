@@ -3,6 +3,12 @@
 # L3 activities are NOT enumerated here — consult-taxonomy discovers them from
 # the sources and files each under an L2 bucket. This file is the DEFAULT
 # backbone; a user may supply their own. The taxonomy is never mutated at runtime.
+#
+# Every L1 and L2 carries an explicit `slug` — the SINGLE source of truth for
+# name→slug. The taxonomy agent, scaffold, and display_numbers all use these
+# slugs verbatim (no independent slugifying). L2 order within an L1 is the order
+# listed here; the per-area ordered L2 list is copied into the manifest at
+# scaffold (so approved new buckets can be appended and numbered).
 
 taxonomy:
   name: Overall Finance
@@ -14,59 +20,66 @@ taxonomy:
 
   categories:
     - name: Procure to Pay
+      slug: procure-to-pay
       subcategories:
-        - Vendor Management
-        - Sourcing
-        - Procurement
-        - Receiving
-        - Invoice Processing
-        - Payments
+        - { name: Vendor Management, slug: vendor-management }
+        - { name: Sourcing, slug: sourcing }
+        - { name: Procurement, slug: procurement }
+        - { name: Receiving, slug: receiving }
+        - { name: Invoice Processing, slug: invoice-processing }
+        - { name: Payments, slug: payments }
 
     - name: Order to Cash
+      slug: order-to-cash
       subcategories:
-        - Credit Analysis
-        - Invoice Customer
-        - Process Accounts Receivable
-        - Manage and Process Collections
-        - Process Adjustments and Deductions
-        - Revenue Recognition
+        - { name: Credit Analysis, slug: credit-analysis }
+        - { name: Invoice Customer, slug: invoice-customer }
+        - { name: Process Accounts Receivable, slug: process-accounts-receivable }
+        - { name: Manage and Process Collections, slug: manage-and-process-collections }
+        - { name: Process Adjustments and Deductions, slug: process-adjustments-and-deductions }
+        - { name: Revenue Recognition, slug: revenue-recognition }
 
     - name: Record to Report
+      slug: record-to-report
       subcategories:
-        - Pre-Close Set-Up
-        - Close
-        - Consolidation
-        - Reporting
-        - Accounting Policy
+        - { name: Pre-Close Set-Up, slug: pre-close-set-up }
+        - { name: Close, slug: close }
+        - { name: Consolidation, slug: consolidation }
+        - { name: Reporting, slug: reporting }
+        - { name: Accounting Policy, slug: accounting-policy }
 
     - name: Financial Planning & Analysis
+      slug: fpa
       subcategories:
-        - Strategic Planning & Budgeting
-        - Forecasting
-        - Reporting & Analysis
-        - Business Support
-        - Data Management
+        - { name: Strategic Planning & Budgeting, slug: strategic-planning-and-budgeting }
+        - { name: Forecasting, slug: forecasting }
+        - { name: Reporting & Analysis, slug: reporting-and-analysis }
+        - { name: Business Support, slug: business-support }
+        - { name: Data Management, slug: data-management }
 
     - name: Treasury
+      slug: treasury
       subcategories:
-        - Cash Management
-        - Investment Management
-        - Liquidity
-        - Financial Risk
-        - Interest Rate Management
+        - { name: Cash Management, slug: cash-management }
+        - { name: Investment Management, slug: investment-management }
+        - { name: Liquidity, slug: liquidity }
+        - { name: Financial Risk, slug: financial-risk }
+        - { name: Interest Rate Management, slug: interest-rate-management }
 
     - name: Tax
+      slug: tax
       subcategories:
-        - Tax Reporting
-        - Income Tax Compliance
-        - Indirect Tax
-        - Tax Controversy
-        - Tax Strategy & Planning
+        - { name: Tax Reporting, slug: tax-reporting }
+        - { name: Income Tax Compliance, slug: income-tax-compliance }
+        - { name: Indirect Tax, slug: indirect-tax }
+        - { name: Tax Controversy, slug: tax-controversy }
+        - { name: Tax Strategy & Planning, slug: tax-strategy-and-planning }
 
     - name: Policy, Risk & Controls
+      slug: policy-risk-controls
       subcategories:
-        - Policies & Procedures
-        - Risk Assessment
-        - Internal Controls
-        - Monitoring
-        - Reporting
+        - { name: Policies & Procedures, slug: policies-and-procedures }
+        - { name: Risk Assessment, slug: risk-assessment }
+        - { name: Internal Controls, slug: internal-controls }
+        - { name: Monitoring, slug: monitoring }
+        - { name: Reporting, slug: reporting }

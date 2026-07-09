@@ -27,14 +27,20 @@ file is the deliverable.
   first pass; **your own prior draft** on an update pass).
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
-- `mode` — `first-draft` or `update`. Update is driven by either newly-tagged
-  `_sources/`, or **your procedure's review notes** at
-  `{area}/_review/{slug}.notes.yaml` (from M8's `review_extract.py`). Read that
-  file if it exists — it's named by your own `slug`, so there's nothing to search
-  for. Tracked changes are **high-authority SME input** (apply them); comments are
-  instructions/questions (answer in the body, or raise a GAP if unresolved). Each
-  note carries its location (procedure → A–H subsection → step) + anchor text, so
-  you know exactly where it applies.
+- `mode` — `first-draft` or `update`. **One trigger per dispatch** (the dispatch
+  prompt tells you which):
+  - `first-draft` → fill the empty skeleton from your tagged `sources`. **Remove
+    the `unfilled` sentinel** (`<!-- unfilled -->` / `status: unfilled`) on your
+    first write — that's the signal you're no longer a skeleton.
+  - `update` via **new source** → the dispatch passes new source path(s); revise
+    your current draft to integrate them.
+  - `update` via **review** → the dispatch passes `review_notes:
+    {area}/_review/{slug}.notes.yaml` (and no source list); read your current
+    draft + registry + that file. Tracked changes are **high-authority SME input**
+    (apply them); comments are instructions/questions (answer in the body, or
+    raise a GAP if unresolved). Each note carries its location (procedure → A–H
+    subsection → step) + anchor text, so you know exactly where it applies.
+  You are never handed two triggers at once; act on the one in your dispatch.
 
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
@@ -150,10 +156,12 @@ the conflict; never silently choose.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
 
 ## Before you finish
-Run `python3 scripts/reconcile.py {file}` if available and fix any ERRORS in your
-own file (dangling ID, bare gap tag, unresolved `consult-meta` slug that you can
-fix by using an existing registry slug). ORPHAN warnings on unpopulated template
-rows are fine.
+Run `python3 scripts/reconcile.py {file}` if available and fix any **ERRORS** in
+your own file (dangling ID, bare gap tag, prefix/label mismatch). An unregistered
+`consult-meta` slug is a **WARNING, not an ERROR** — leave it as your best-guess
+slug and report it (it's resolved later by the human registry top-up); do **not**
+invent a registry entry to silence it. ORPHAN warnings on unpopulated template
+rows are also fine.
 
 ## What you return (COMPACT — no draft text)
 A short status object/paragraph:

@@ -38,11 +38,13 @@ or it drifts (review #4).
 
 ## Changes
 
-New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
+New shared module `scripts/doc_model.py` (name TBD):
 - `load_manifest(folder)`, `validate_manifest(m)` (v1 schema).
 - `display_numbers(manifest) -> {slug: "L2.seq"}` — **the only** implementation of
-  the display number `{L2-ordinal}.{activity-seq}` (L2s ordered per the reference
-  taxonomy; activity by `order` within its L2). Imported by reconcile (M2),
+  the display number `{L2-ordinal}.{activity-seq}`: L2-ordinal = 1-based index in
+  the manifest's **`l2_order`** list; activity seq = `order` rank within that L2.
+  Reads `l2_order` from the manifest (never re-derives from the taxonomy), so
+  approved new buckets appended there are numbered. Imported by reconcile (M2),
   aggregate (M3), and the docx builder (M4). No one else computes numbers.
 - `resolve_tokens(text, numbers, mode) -> text` — replaces `[[slug]]` with the
   display number (or `number + title`); unknown slug → error.
@@ -51,7 +53,7 @@ New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
   `{heading, role, slug|None, number|None, body}`. (M4 needs role/number to know
   which H2s get numbered; a flat string cannot carry that — review #1.)
 
-`skills/consult-drafter/scripts/split_doc.py`:
+`scripts/split_doc.py`:
 - New rule: fragment boundary = every `##` outside a fenced block (both ```` ``` ````
   and `~~~`). Everything before the first `##` is the title + subtitle → recorded
   in the manifest (`title`, `subtitle`), not duplicated into a fragment.
@@ -60,15 +62,17 @@ New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
   `l2` for procedures and `derived_kind` + `writer` for derived.
 - Role inference **at bootstrap only**: `derived` if the section carries the M1
   `<!-- derived: KIND; writer: W -->` marker; `static` for the pre-procedure
-  human sections; otherwise `procedure` (slug = slugified heading, set once;
-  `l2` bucket slug from the `<!-- l2: … -->` marker).
+  human sections; otherwise `procedure` (slug = slugified heading, set once). For
+  legacy import, `l2` is unknown and defaults to a single catch-all bucket (or is
+  set by hand) — the scoped `l2` assignment comes from M0's `procedures.yaml`, not
+  a file marker. (There is no `<!-- l2 -->` marker; `l2` lives only in the manifest.)
 - Filename = `{band}_{slug}.md` with coarse bands (static 00–09, procedures
   10–69, python-index 70–79, agent-derived 80–89, python-appendices 90–99).
   Bands are stable; inserting a procedure reuses band 10 with a new slug and
   renames nothing else.
 - `slug` collision → deterministic `-2`, `-3`, … + warning.
 
-`skills/consult-drafter/scripts/reconcile.py` — **rewrite the ID core, don't
+`scripts/reconcile.py` — **rewrite the ID core, don't
 patch it** (r3 review #1). Today it collects definitions/occurrences *globally*
 across the concatenated text, which is wrong now that IDs are procedure-local
 (`CTRL-001` legitimately exists in two procedures). New behavior:
@@ -84,11 +88,13 @@ across the concatenated text, which is wrong now that IDs are procedure-local
 - Verify every `[[slug]]` token resolves via `display_numbers` (dangling = ERROR).
 - Verify every manifest `derived` file contains a matching `<!-- derived -->`
   marker (review #10).
-- Verify every `consult-meta` `systems:`/`roles:` slug resolves against
-  `_reference/*.yaml` (dangling slug = ERROR at reconcile; M3 raised it as a
-  WARNING at aggregate — reconcile is the hard gate).
+- Check every `consult-meta` `systems:`/`roles:` slug against `_reference/*.yaml`
+  — an **unresolved slug is a WARNING, not an ERROR** (aligns with M3; the human
+  top-up loop resolves it, it must not block the area). ERRORs stay reserved for
+  ID-grammar defects, dangling `[[slug]]`, duplicate `order`, and missing derived
+  markers.
 
-`skills/consult-drafter/scripts/assemble_doc.py`:
+`scripts/assemble_doc.py`:
 - **Remove the CLI entry point** (review #20). The `assemble` logic lives in
   `doc_model.py` as an importable function returning the structured `AssembledDoc`.
   No user-facing assembled-file step remains.

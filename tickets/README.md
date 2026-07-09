@@ -143,12 +143,14 @@ No numbered-module regex, no appendix regex, no "shallowest level" computation.
   tokens.)
 - **Display number (`1.1`) = derived, rendered late.** One shared helper
   `display_numbers(manifest) -> {slug: "L2.seq"}` is the *only* implementation of
-  the number. It is `{L2-ordinal}.{activity-seq}`: the L2 bucket's ordinal (L2s
-  ordered as they appear in the reference taxonomy for this L1) dot the procedure's
-  1-based position within that bucket (by `order`). So Close's activities are 1.1,
-  1.2; Consolidation's are 2.1, 2.2. At render time (M4) the docx builder prefixes
-  procedure headings and resolves `[[slug]]` tokens via that map. Numbers live in
-  exactly one place and cannot drift.
+  the number. It is `{L2-ordinal}.{activity-seq}`: the L2 bucket's ordinal is its
+  1-based position in the manifest's **`l2_order`** list; the activity seq is the
+  procedure's 1-based position within that bucket (by `order`). So Close's
+  activities are 1.1, 1.2; Consolidation's are 2.1, 2.2. `l2_order` (not the
+  immutable taxonomy) is the ordering authority, so **approved new L2 buckets get
+  an ordinal** by being appended to it at scaffold. At render time (M4) the docx
+  builder prefixes procedure headings and resolves `[[slug]]` tokens via this map.
+  Numbers live in exactly one place and cannot drift.
 - Callout IDs are **scoped to their procedure** (see below), independent of the
   number, so reordering never cascades.
 
@@ -170,7 +172,11 @@ add/remove/reorder.
 {
   "schema": "consult-mvp-manifest/v1",
   "area": "fixed-assets",
-  "l1": "Record to Report",                         // the prescribed L1 function (drives L2 buckets)
+  "l1": "record-to-report",                         // prescribed L1 function (slug from the taxonomy)
+  "l2_order": ["pre-close-set-up","close","consolidation"],  // the area's L2 buckets IN ORDER
+                                                    //   (taxonomy order + any approved new buckets
+                                                    //    appended). display_numbers reads THIS, not
+                                                    //    the immutable taxonomy.
   "title": "Fixed Assets — Desktop Procedures",
   "subtitle": "Current-state desktop procedures",   // optional; drives docx cover subtitle
   "components": [
@@ -252,7 +258,21 @@ for unaffected rows without a synthetic key.
   | SCREENSHOT PLACEHOLDER | `SC-` |
 
 - **Body gap tags** `[[GAP-NN — TEXT]]` (bare `[[GAP — …]]` = ERROR).
-- **Table-defined IDs** — `F. Key Controls` rows, etc.
+- **Callout sub-fields** — a callout's structured fields are blockquote bullet
+  lines directly under its label line, grammar `> - **<Field>:** <value>` (bold
+  label, colon inside the bold, value after). M3 parses these deterministically.
+  Fields by callout type (a **missing optional field parses as blank, not an
+  error**; only ID-grammar defects fail loud):
+  - CONTROL: `Type` (Preventive|Detective|Corrective), `Frequency`, `Owner`
+  - PAIN POINT: `Impact`, `Severity` (**enum: High|Medium|Low**)
+  - IMPROVEMENT OPPORTUNITY: `Addresses` (PP ids)
+  - VALIDATION REQUIRED: `Nature` (unknown|conflict|unsupported-assumption), `Owner to confirm`
+
+**Appendix A rows are typed** (PP and IO have different columns — do not force one
+shape): a PP row = `{id, observation, impact, severity, [[slug]]}`; an IO row =
+`{id, recommendation, addresses, [[slug]]}`. M3 renders them as two sub-tables (or
+one table with type-appropriate blank cells) — never demands impact/severity on an
+IO row.
 
 All ID checks are **per-fragment** (a fragment is one procedure). IDs are
 procedure-local, so extraction parses each procedure file independently and keys
@@ -291,7 +311,11 @@ roles:   [ap-clerk, controller]
 
 - The splitter **already** ignores fenced blocks, so it needs no special-casing.
 - The docx builder (M4) **skips** any `consult-meta` fence — it never renders.
-- `reconcile.py` validates every slug resolves against `_reference/`.
+- `reconcile.py` checks every slug against `_reference/`; an **unresolved slug is a
+  WARNING, not an ERROR** (it names a real noun the registry doesn't have yet —
+  the human top-up loop resolves it; it must not block the area). ERRORs are
+  reserved for ID-grammar defects, dangling `[[slug]]`, duplicate `order`, and
+  missing derived markers.
 - This is the ONLY structured emission the fill agent produces beyond the prose
   (decision (a) — minimal). IDs stay as strict-grammar callouts in prose.
 
@@ -394,8 +418,14 @@ any single parse stage proves brittle in practice, it can be replaced by a
 subagent read (trade a few tokens for robustness) without touching the rest — the
 orchestrator already dispatches subagents.
 
-Scripts may be organized as one `consult` CLI module with subcommands rather than
-many loose files (implementer's choice); fewer entry points, same behavior.
+**Script layout.** All engine scripts the orchestrator/agents invoke live under a
+**top-level `scripts/`** (`doc_model.py`, `reconcile.py`, `scaffold.py`,
+`aggregate.py`, `scope_delta.py`, `orchestrate.py`, `sources.py`,
+`review_extract.py`, and the renderer). Agents/skill run them from the repo root
+as `python3 scripts/<name>.py …` (matching the agent Bash allow-patterns). The
+legacy `reconcile.py`/`split_doc.py` under `skills/consult-drafter/scripts/` move
+here. (They may instead be one `consult` CLI with subcommands — implementer's
+choice — but the invocation prefix `scripts/` stays stable so tool patterns hold.)
 
 The **legacy import splitter is deferred out of the MVP** — folders are born via
 M0 scaffold, so it's not on the critical path; build it only if importing an
