@@ -46,7 +46,8 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
   carried by H1 (rule under each H2 start, page-break policy as appropriate);
   H3/H4 unchanged. Verify this does not disturb the existing table-kind and
   callout detection (which key off content, not heading level).
-- **Markers:** strip `<!-- derived: … -->` comments so they never appear in Word.
+- **Markers & meta:** strip `<!-- derived: … -->` comments, and **skip any fenced
+  `consult-meta` block** entirely, so neither appears in Word.
 - Keep CFGI green house style, callouts colored by label, tables auto-styled by
   kind, screenshots as placeholders, `--include-toc` / `--landscape` / `--no-cover`.
 
@@ -63,7 +64,7 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
   `[[slug]]` in a derived table renders as the matching number.
 - Reordering procedures in the manifest and re-rendering updates headings **and**
   cross-references together (no stale numbers).
-- No `<!-- derived -->` text appears anywhere in the output.
+- No `<!-- derived -->` text and no `consult-meta` block appears in the output.
 - H2 sections render with section-level weight; TOC / landscape / no-cover still
   function.
 - Appendix A renders as ONE table merging observations + judgment on `(slug, id)`;

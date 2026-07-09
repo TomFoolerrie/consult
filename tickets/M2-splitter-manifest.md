@@ -25,7 +25,10 @@ with no prior match is reported for a human slug decision (never silently
 re-slugged). This removes the slug-stability contradiction (review #3).
 
 The **shared helper is the load-bearing deliverable of this ticket** — M0, M3,
-M4, M5 all import it. The splitter itself is the smaller, now-optional part.
+M4, M5 all import it, so `doc_model.py` + the reconcile rewrite are **in MVP
+scope and built first**. The **import splitter itself is DEFERRED out of the
+MVP** (folders are born via M0 scaffold, so it's off the critical path) — build
+it only if importing an existing single-file SOP is actually needed.
 
 ## Why the splitter is still trivial
 
@@ -80,6 +83,9 @@ across the concatenated text, which is wrong now that IDs are procedure-local
 - Verify every `[[slug]]` token resolves via `display_numbers` (dangling = ERROR).
 - Verify every manifest `derived` file contains a matching `<!-- derived -->`
   marker (review #10).
+- Verify every `consult-meta` `systems:`/`roles:` slug resolves against
+  `_reference/*.yaml` (dangling slug = ERROR at reconcile; M3 raised it as a
+  WARNING at aggregate — reconcile is the hard gate).
 
 `skills/consult-drafter/scripts/assemble_doc.py`:
 - **Remove the CLI entry point** (review #20). The `assemble` logic lives in

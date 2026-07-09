@@ -44,6 +44,11 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
 - Each procedure becomes `## <Plain Title>` — **no leading `1.1` in the
   heading** (the number is derived and rendered late). A–H sub-sections `###`,
   steps `####`.
+- Each procedure ends with an empty **`consult-meta` end-matter block** (fenced,
+  info-string `consult-meta`, YAML body with empty `systems: []` / `roles: []`)
+  per the README contract. The fill agent populates the registry slugs; the docx
+  builder skips it. State in the SKILL that this block is the machine binding for
+  nouns and must list the registry slugs the procedure uses.
 - Derived sections carry a one-line marker so humans/reviewers know not to
   hand-edit them and so reconcile can verify ownership:
   `<!-- derived: gap-log; writer: python -->`,

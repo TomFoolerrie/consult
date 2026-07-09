@@ -30,13 +30,13 @@ procedure` fragment, and `_reference/*.yaml`.
   procedure `{[[slug]] token, title, group, Direction/Frequency/Owner from
   B. Quick Reference}`.
 - `80_role-dictionary.md` (`role-dictionary`) — join from `roles.yaml`
-  (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from matched
-  Preparer/Reviewer mentions.
+  (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from each
+  procedure's `consult-meta` `roles:` list.
 - `81_systems.md` (`systems`) — **registry × usage join**: one row per
   `systems.yaml` entry (canonical name, description, limitations) + a "Related
-  Procedures" cell = the `[[slug]]` tokens of procedures whose Quick-Reference
-  "Primary systems / tools" mentions matched that entry (name or alias). Step
-  prose is not scanned (see README matching contract).
+  Procedures" cell = the `[[slug]]` tokens of procedures whose **`consult-meta`
+  `systems:` list** contains that entry's slug. No prose scraping, no alias
+  guessing — the slug list is the binding (see README noun-binding contract).
 - `88_risk-observations.md` (`risk-observations`) — one row per `PP-`/`IO-`
   callout: `{(slug, id), observation text, Source Procedure [[slug]]}`. This is
   the Python half of Appendix A; M4 joins it with `89_risk-judgment.md` on
@@ -57,13 +57,11 @@ procedure` fragment, and `_reference/*.yaml`.
 - `raci_grid`: role × procedure/step incidence (which matched role appears in
   which procedure's steps) as a candidate grid for `84_raci`.
 
-**Registry matching (nouns) — flag, don't drop:** match the canonical mentions in
-`B. Quick Reference` ("Primary systems / tools", Preparer/Reviewer) against
-`systems.yaml` / `roles.yaml` names + aliases (fill agents copy the registry name
-verbatim into that slot). Step prose is **not** scanned — prose-only systems are
-out of scope by design. A Quick-Ref mention matching nothing → **WARNING** naming
-the mention + procedure ("add an entry or alias"); never dropped, never guessed
-into a new entry.
+**Registry binding (nouns) — read slugs, flag unknowns:** read each procedure's
+`consult-meta` `systems:` / `roles:` slug lists and join them to `systems.yaml` /
+`roles.yaml`. No prose scraping, no alias matching. A slug not present in the
+registry → **WARNING** naming the slug + procedure ("add an entry"); never
+dropped, never guessed into a new entry.
 
 **Registry top-up loop (part of the "useful" milestone DoD, not M6):** the
 WARNINGs are the human's worklist — add the missing system/role (or an alias) to
@@ -83,10 +81,9 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
 
 - `70/80/81/88/90/91` are rebuilt (single-writer each) from procedures + registry;
   deleting a procedure removes its rows/usages next run.
-- `81_systems.md` shows every `systems.yaml` entry with correct "Related
-  Procedures" back-references; a Quick-Ref system absent from the registry raises a
-  WARNING (not dropped); a system named only in step prose is (documented) out of
-  scope.
+- `81_systems.md` shows every `systems.yaml` entry with "Related Procedures"
+  back-references derived from `consult-meta` slug lists; a `consult-meta` slug
+  absent from the registry raises a WARNING (not dropped). No prose is scraped.
 - `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md`,
   `82_dependencies.md`, `89_risk-judgment.md` hold pending placeholders.
 - `88_risk-observations.md` rows come only from callouts; `H. Known Issues` is not
@@ -115,7 +112,8 @@ RACI, dependency prose, Appendix-A judgment cells — M5.
 - **#16:** pending-synthesis placeholders in agent files.
 - **#17:** tolerant delimiter, strict ID grammar.
 - **r3 #1:** ID checks are per-procedure `(slug, local-id)`.
-- **r3 #3:** systems sole source = Quick Reference; prose out of scope, documented.
+- **r3 #3 / robustness:** nouns bound via the explicit `consult-meta` slug list —
+  no prose scraping, no alias matching (kills the fuzziest parser).
 - **r3 #5:** split-writer files replaced by one-writer-per-file (`80/84`,
   `88/89`); Appendix A merged at render by M4, not via region markers.
 - **r3 #7:** in-band registry top-up loop, not deferred to M6.

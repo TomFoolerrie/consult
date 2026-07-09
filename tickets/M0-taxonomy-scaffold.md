@@ -75,13 +75,16 @@ under its `reference/` as the default backbone; the user may supply their own):
 - Input: the procedure's skeleton + `_sources/` (new + processed) + `_reference/`.
 - Cite the `SRC-` id(s) it drew from in the procedure's Source Materials.
 - Normalize messy mentions to canonical names **via the registry**, writing plain
-  text (no tokens for nouns). In the `B. Quick Reference` "Primary systems /
-  tools" slot, **copy the registry `name` verbatim** (the authoritative slot for
-  the Systems join); list every system the procedure uses there. Use `[[slug]]`
-  only for procedure→procedure refs.
-- A system that surfaces in a transcript but isn't in the registry: write it
-  plainly and it will be flagged by M3's WARNING for a human top-up — the fill
-  agent does **not** silently invent a registry entry.
+  text in the prose (no tokens for nouns). Use `[[slug]]` only for
+  procedure→procedure refs.
+- **Populate the `consult-meta` end-matter block** with the registry **slugs** for
+  every system and role the procedure uses — this is the machine binding M3 reads
+  (no prose scraping). The prose names are for the reader; the slug list is
+  authoritative.
+- A system that surfaces in a transcript but isn't in the registry: put its slug
+  in `consult-meta` anyway (best guess) and mention it plainly; M3 flags the
+  unknown slug as a WARNING for a human top-up — the fill agent does **not**
+  silently invent a registry entry.
 - Mint procedure-**local** IDs (`CTRL-001`, `PP-001`, …) — safe under parallel
   authoring because IDs are scoped per procedure (README "Callout ID scoping").
 - Do not author derived sections.

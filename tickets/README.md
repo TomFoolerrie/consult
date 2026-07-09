@@ -92,7 +92,7 @@ components/
     ...
     70_procedure-index.md        derived, PYTHON-owned (In-Scope index; pure SELECT)
     80_role-dictionary.md        derived, PYTHON-owned (join from roles.yaml)
-    81_systems.md                derived, PYTHON-owned (registry × usage; Quick-Ref slot)
+    81_systems.md                derived, PYTHON-owned (registry × consult-meta usage)
     82_dependencies.md           derived, agent-owned  (judgment: reads A. Process Overview)
     84_raci.md                   derived, agent-owned  (judgment: RACI matrix)
     88_risk-observations.md      derived, PYTHON-owned (PP-/IO- observation rows)
@@ -201,7 +201,7 @@ writers. This is the first review's rule, restored; region markers are gone.
 | `10_<slug>` procedure | fill agent / human | the source of truth |
 | `70_procedure-index` | Python | In-Scope index (pure SELECT) |
 | `80_role-dictionary` | Python | join from `roles.yaml` + "Appears In" usage |
-| `81_systems` | Python | registry × Quick-Ref usage join |
+| `81_systems` | Python | registry × `consult-meta` usage join |
 | `82_dependencies` | agent | reads each procedure's A. Process Overview |
 | `84_raci` | agent | RACI matrix (seeded by M3's role×procedure grid) |
 | `88_risk-observations` | Python | one row per `PP-`/`IO-` callout (id, observation, `[[slug]]`) |
@@ -252,16 +252,35 @@ Errors (nonzero exit, nothing dropped): bare gap tag; referenced-but-undefined I
 **within a procedure**; ID prefix not matching its label; conflicting duplicate ID
 **within a procedure**. The label↔prefix check is **new code owned by M3**.
 
-**Noun matching → registry-backed, flag-don't-drop:**
-- **Systems**: the sole authoritative slot is `B. Quick Reference` → "Primary
-  systems / tools". Fill agents **copy the registry `name` verbatim** into that
-  slot (they have the registry in context), so Python matching against
-  `systems.yaml` names + aliases is near-exact; aliases absorb human-written
-  variants. **Step prose is NOT scanned** — a system used only in step narrative
-  and never listed in Quick Reference is out of scope by design (documented, not a
-  silent miss). A Quick-Ref mention matching no entry/alias → **WARNING** (human
-  adds an entry/alias), never dropped, never guessed.
-- **Roles**: same, from `B. Quick Reference` Preparer / Reviewer.
+**Noun binding → explicit slug list, no prose-scraping (robustness fix).**
+Python does **not** fuzzy-match free-text system/role names out of prose. Each
+procedure fragment carries a machine-readable **`consult-meta` block** (see below)
+in which the fill agent lists the **registry slugs** it used. Python reads that
+slug list directly — no regex over prose, no alias guessing. The canonical names
+still appear in the human-readable prose (Quick Reference etc.) for the reader,
+but they are *not* the machine binding; the slug list is.
+- A slug in `consult-meta` that isn't in `_reference/*.yaml` → **WARNING** (human
+  adds the entry/alias), never dropped, never guessed.
+- Prose is never scanned for systems/roles — so no brittle scraper and no silent
+  miss; the agent's explicit list is the single source.
+
+### The `consult-meta` block (per procedure)
+
+A fenced block with info-string `consult-meta` (YAML body), placed as **end
+matter** at the bottom of each procedure fragment:
+
+````md
+```consult-meta
+systems: [sap, blackline]     # registry slugs this procedure uses
+roles:   [ap-clerk, controller]
+```
+````
+
+- The splitter **already** ignores fenced blocks, so it needs no special-casing.
+- The docx builder (M4) **skips** any `consult-meta` fence — it never renders.
+- `reconcile.py` validates every slug resolves against `_reference/`.
+- This is the ONLY structured emission the fill agent produces beyond the prose
+  (decision (a) — minimal). IDs stay as strict-grammar callouts in prose.
 
 **Prose → agent (not mechanical):**
 - **Dependencies** — the agent reads each procedure's `A. Process Overview`.
@@ -343,8 +362,30 @@ never invented.** The M0 agent cites the source line or emits nothing. Rendering
 a guessed "known limitation" as fact is the same anchoring defect the original
 taxonomy-baselines guardrail prohibits.
 
+## Robustness posture
+
+The brittleness in a Python-heavy pipeline concentrates in one place: parsing
+loosely-structured, agent-written Markdown. The design contains it by (1) binding
+nouns via the explicit `consult-meta` slug list instead of scraping prose; (2)
+keeping callout IDs to a strict line grammar (tolerant only on the delimiter);
+(3) **failing loud** — never silently dropping or guessing; (4) pinning behavior
+with **golden-fixture tests** (below). The remaining Python is deterministic
+work over structured data (JSON/YAML/hashes), which is low-risk. Escape hatch: if
+any single parse stage proves brittle in practice, it can be replaced by a
+subagent read (trade a few tokens for robustness) without touching the rest — the
+orchestrator already dispatches subagents.
+
+Scripts may be organized as one `consult` CLI module with subcommands rather than
+many loose files (implementer's choice); fewer entry points, same behavior.
+
+The **legacy import splitter is deferred out of the MVP** — folders are born via
+M0 scaffold, so it's not on the critical path; build it only if importing an
+existing single-file SOP is actually needed.
+
 ## Definition of done (every ticket)
 
-Code + prescribed tests written and passing; `manifest.json` and `_reference/*`
-still validate; no scratch artifacts committed; a one-paragraph report of what was
-built, the test output, and any contract deviation.
+Code + prescribed tests written and passing; **a golden-fixture check** (a
+committed sample area + expected outputs, re-run to catch regressions loudly);
+`manifest.json` and `_reference/*` still validate; no scratch artifacts committed;
+a one-paragraph report of what was built, the test output, and any contract
+deviation.
