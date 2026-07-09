@@ -88,15 +88,19 @@ numbers, which is correct). Fixed structures:
 
 **In `H. Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
 callouts (this section IS the structured source for Appendix A — Pain Points &
-Improvement Opportunities):
+Improvement Opportunities, which is assembled **mechanically** from these
+callouts, so fill every field):
 ```
 > **PAIN POINT — PP-001:** <observed current-state friction, source-grounded>
+> - **Impact:** <the consequence, from the source>   (TBD if the source is silent)
+> - **Severity:** High | Medium | Low                 (your local read of how the client described it)
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** <future-state opportunity; do not rewrite current state>
+> **IMPROVEMENT OPPORTUNITY — IO-001:** <the proposed improvement — this IS the recommendation>
+> - **Addresses:** <PP-id(s) it mitigates, if any>
 ```
-Impact / priority / recommendation for PP/IO are **not** yours — the
-`consult-appendix-a-judgment` agent fills those downstream. State the observation
-only.
+Severity is a **per-item** read (how painful the client made it sound), not a
+cross-procedure ranking — you only see this one procedure. Do not attempt to rank
+against other procedures.
 
 **Inline in `E. Step-by-Step`** — at the step they attach to:
 ```

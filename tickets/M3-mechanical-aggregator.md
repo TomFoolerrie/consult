@@ -37,22 +37,20 @@ procedure` fragment, and `_reference/*.yaml`.
   Procedures" cell = the `[[slug]]` tokens of procedures whose **`consult-meta`
   `systems:` list** contains that entry's slug. No prose scraping, no alias
   guessing — the slug list is the binding (see README noun-binding contract).
-- `88_appendix-a-observations.md` (`appendix-a-observations`) — one row per `PP-`/`IO-`
-  callout: `{(slug, id), observation text, Source Procedure [[slug]]}`. This is
-  the Python half of Appendix A; M4 joins it with `89_appendix-a-judgment.md` on
-  `(slug, id)` at render.
+- `88_appendix-a.md` (`appendix-a`) — the Pain Points & Improvement Opportunities
+  register, **fully mechanical**: one row per `PP-`/`IO-` callout with
+  `{(slug, id), type, observation, impact, severity, Source Procedure [[slug]]}` —
+  all fields read straight from the drafter's callout (impact + severity are
+  authored there). No judgment agent, no render-join.
 - `90_appendix-b-gaps.md` (`gap-log`) / `91_appendix-c-screens.md`
   (`screenshot-index`) — one row per `GAP-` / `SC-`, Source Procedure `[[slug]]`
   column (IDs procedure-local, so the column disambiguates).
 
 **Agent-owned files — placeholder now, M5 fills them:**
-- `82_dependencies.md`, `84_raci.md`, `89_appendix-a-judgment.md` → heading + marker +
-  `> _Pending synthesis (M5)._`. (No shared file, no region markers — each is a
-  clean single-writer file. M3 does not write into them beyond the placeholder.)
+- `82_dependencies.md`, `84_raci.md` → heading + marker + `> _Pending synthesis
+  (M5)._`. (Each a clean single-writer file. M3 writes only the placeholder.)
 
 **Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5:
-- `appendix_a_observations`: the `(slug, id)` + observation rows M3 wrote to
-  `88_`, so the `89_appendix-a-judgment` agent keys its judgment rows on the same pair.
 - `raw_dependencies`: each procedure's `A. Process Overview` text, tagged by slug.
 - `raci_grid`: role × procedure/step incidence (which matched role appears in
   which procedure's steps) as a candidate grid for `84_raci`.
@@ -84,10 +82,10 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
 - `81_systems.md` shows every `systems.yaml` entry with "Related Procedures"
   back-references derived from `consult-meta` slug lists; a `consult-meta` slug
   absent from the registry raises a WARNING (not dropped). No prose is scraped.
-- `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md`,
-  `82_dependencies.md`, `89_appendix-a-judgment.md` hold pending placeholders.
-- `88_appendix-a-observations.md` rows come only from callouts; `H. Known Issues` is not
-  read.
+- `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md` and
+  `82_dependencies.md` hold pending placeholders.
+- `88_appendix-a.md` rows come only from the `H` section's PP/IO callouts, with
+  impact + severity read from the callout (no judgment agent involved).
 - Re-running aggregate after a human adds a registry entry clears that entry's
   WARNING (top-up loop works).
 - Two procedures each defining a local `CTRL-001` do **not** collide; the
@@ -114,7 +112,8 @@ RACI, dependency prose, Appendix-A judgment cells — M5.
 - **r3 #1:** ID checks are per-procedure `(slug, local-id)`.
 - **r3 #3 / robustness:** nouns bound via the explicit `consult-meta` slug list —
   no prose scraping, no alias matching (kills the fuzziest parser).
-- **r3 #5:** split-writer files replaced by one-writer-per-file (`80/84`,
-  `88/89`); Appendix A merged at render by M4, not via region markers.
+- **r3 #5:** split-writer files replaced by one-writer-per-file.
+- **r3 refinement:** Appendix A is fully mechanical (drafter authors impact +
+  severity in the callouts); no judgment agent, no render-join.
 - **r3 #7:** in-band registry top-up loop, not deferred to M6.
 - **r3:** Systems + Role Dictionary are registry joins owned here.

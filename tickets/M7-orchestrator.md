@@ -50,8 +50,8 @@ Loops `orchestrate.py next`, and for each returned action either runs the
 deterministic script itself (`scaffold.py`, `aggregate.py`,
 `cfgi_markdown_to_word.py`, `scope_delta.py`, `reconcile.py`) **or dispatches the
 matching subagent** — `consult-taxonomy`, one `consult-drafter` per procedure (in
-parallel), or the M5 judgment agents (`consult-dependencies`, `consult-raci`,
-`consult-appendix-a-judgment`). Each subagent runs in its **own context** and returns a
+parallel), or the M5 judgment agents (`consult-dependencies`, `consult-raci`).
+Each subagent runs in its **own context** and returns a
 compact status (files written, warnings, done) — the orchestrator never ingests
 the drafts or sources itself. It:
 - **Moves sources** `_sources/new/` → `processed/` (and flips `sources.yaml`
@@ -68,9 +68,9 @@ the drafts or sources itself. It:
   type, runs the deterministic scripts, never drafts inline).
 - New `.claude/agents/` defs for the judgment stages so the orchestrator can
   dispatch them as isolated subagents: `consult-taxonomy`, `consult-drafter`,
-  `consult-dependencies`, `consult-raci`, `consult-appendix-a-judgment` (each preloads
-  its skill brief, tool-scoped to just its input reads + its one output file +
-  reconcile/aggregate). (The M5 agent defs may already exist from M5 — reuse.)
+  `consult-dependencies`, `consult-raci` (each preloads its skill brief,
+  tool-scoped to just its input reads + its one output file + reconcile/aggregate).
+  (The M5 agent defs may already exist from M5 — reuse.)
 - Source move logic (new → processed + `sources.yaml` state) lives in a small
   Python helper the orchestrator calls (not hand-done, not in M0).
 

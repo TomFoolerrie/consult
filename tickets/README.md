@@ -16,6 +16,11 @@ first.
 >   parallel. `split` (M2) demotes to a legacy **import** tool. Systems & Role
 >   Dictionary move to Python-owned joins (M3); M5 shrinks to RACI + dependencies
 >   + Appendix-A judgment.
+> - *r3 refinements*: nouns bound via an explicit per-procedure `consult-meta`
+>   slug block (no prose scraping); callouts moved to home sections (CONTROL→F,
+>   PP/IO→H, GAP/SC inline in E); **Appendix A is now fully mechanical** (drafter
+>   authors impact + severity in the PP/IO callouts) — the Appendix-A judgment
+>   agent is dropped, so **M5 = RACI + dependencies only**.
 
 ---
 
@@ -97,8 +102,7 @@ components/
     81_systems.md                derived, PYTHON-owned (registry × consult-meta usage)
     82_dependencies.md           derived, agent-owned  (judgment: reads A. Process Overview)
     84_raci.md                   derived, agent-owned  (judgment: RACI matrix)
-    88_appendix-a-observations.md      derived, PYTHON-owned (PP-/IO- observation rows)
-    89_appendix-a-judgment.md          derived, agent-owned  (impact/priority/recommendation)
+    88_appendix-a.md             derived, PYTHON-owned (PP + IO register: obs/impact/severity)
     90_appendix-b-gaps.md        derived, PYTHON-owned (pure mechanical)
     91_appendix-c-screens.md     derived, PYTHON-owned (pure mechanical)
     manifest.json                order, grouping, roles, ownership, title/subtitle
@@ -206,16 +210,15 @@ writers. This is the first review's rule, restored; region markers are gone.
 | `81_systems` | Python | registry × `consult-meta` usage join |
 | `82_dependencies` | agent | reads each procedure's A. Process Overview |
 | `84_raci` | agent | RACI matrix (seeded by M3's role×procedure grid) |
-| `88_appendix-a-observations` | Python | one row per `PP-`/`IO-` callout (id, observation, `[[slug]]`) |
-| `89_appendix-a-judgment` | agent | impact / priority / recommendation, keyed `(slug, id)` |
+| `88_appendix-a` | Python | PP + IO register: id, type, observation, impact, severity, `[[slug]]` |
 | `90_appendix-b-gaps`, `91_appendix-c-screens` | Python | pure mechanical |
 
-**Appendix A render-join:** the Pain Points & Improvement Opportunities appendix the reader sees is one table. M4
-joins `88_appendix-a-observations` (Python) and `89_appendix-a-judgment` (agent) on the
-`(source-procedure slug, PP-/IO- id)` key at render time — so each side stays a
-clean single-writer file while the output is one merged table. The join key is
-stable (IDs are procedure-local and never renumbered), so the merge is
-deterministic.
+**Appendix A is fully mechanical.** The drafter authors complete PP/IO callouts
+(observation + impact + per-item severity) in each procedure's `H` section; M3
+aggregates them into `88_appendix-a` like the gap log / screenshot index. There is
+**no** Appendix-A judgment agent and no render-join — the register needs no
+cross-procedure synthesis. (Cross-area prioritization / effort×impact roadmap is a
+separate *decision deliverable*, out of MVP scope.)
 
 Every derived writer re-emits the section's `<!-- derived: KIND; writer: W -->`
 marker; `reconcile.py` errors if a declared derived file is missing it.
@@ -324,7 +327,6 @@ tool-scoped, run by the orchestrator — never inline):
 | fill (one per procedure, parallel) | `consult-drafter` | `10_<slug>.md` |
 | dependencies | `consult-dependencies` | `82_dependencies.md` |
 | RACI | `consult-raci` | `84_raci.md` |
-| appendix-A judgment | `consult-appendix-a-judgment` | `89_appendix-a-judgment.md` |
 
 Deterministic stages (`scaffold`, `aggregate`, `render`, `reconcile`,
 `scope_delta`) are plain Python the orchestrator runs directly — no agent.
@@ -340,7 +342,7 @@ M1 (template = A–H skeleton source) ┐
 M2·doc_model.py (shared spine)      ┴─▶ M0 (taxonomy + registry + confirm + scaffold)
                                           │
                                           ▼  fill agents (parallel)
-                                        M3 (mechanical views) ──▶ M5 (RACI · deps · appendix-a-judgment)
+                                        M3 (mechanical views) ──▶ M5 (RACI · dependencies)
                                           │                          │
                                         M4 (docx builder) ◀──────────┘
 M2·import-splitter = legacy single-file .md → folder (optional, last)

@@ -1,4 +1,4 @@
-# M5 — Change-scoped judgment agents (RACI · dependencies · Appendix-A)
+# M5 — Change-scoped judgment agents (RACI · dependencies)
 
 **Depends on:** M3. **Blocks:** none (top of the stack).
 
@@ -13,15 +13,13 @@ already came from M3.
 ## What's left for agents (r3 shrank this)
 
 The reference registry (M0) turned Systems and the Role Dictionary into Python
-joins (M3). The only judgment left — **each a clean single-writer file**, no
-regions:
+joins (M3), and Appendix A is fully mechanical (the drafter authors impact +
+severity in the PP/IO callouts). The only judgment left — **each a clean
+single-writer file**:
 - **RACI** — `84_raci.md` (Responsible / Accountable / Consulted / Informed per
   activity). Seeded by M3's `raci_grid`; the agent assigns A/C/I.
 - **Dependencies** — `82_dependencies.md`, from reading each procedure's
   `A. Process Overview` prose.
-- **Appendix-A judgment** — `89_appendix-a-judgment.md`: one row per `(slug, id)` from
-  M3's `appendix_a_observations`, filling impact / priority / recommendation. M4 joins
-  it back to `88_appendix-a-observations.md` on `(slug, id)` at render into one table.
 
 ## Change signal: content hash (single mechanism)
 
@@ -40,13 +38,12 @@ first-run, rebase, squash with one code path and matches folder-as-truth.
 **Delta engine** (`scope_delta.py`, imports `doc_model.py`): per agent file,
 compute changed-procedure set from `.hashes.json`; emit a work order
 `{derived_kind, changed_procedure_slugs, mechanical_context (from bundle),
-raci_grid | raw_dependencies | appendix_a_observations, prior_file_contents}`.
+raci_grid | raw_dependencies, prior_file_contents}`.
 The **prior file** is included so the agent preserves unaffected judgment
 without a synthetic key (review #11).
 
-**Agents** — `raci` (`84_`), `dependencies` (`82_`), `appendix-a-judgment` (`89_`).
-Under `.claude/agents/`, tool-scoped (Read + Write to their **one file** +
-reconcile/aggregate).
+**Agents** — `raci` (`84_`), `dependencies` (`82_`). Under `.claude/agents/`,
+tool-scoped (Read + Write to their **one file** + reconcile/aggregate).
 - Single-file writer: the agent rewrites its whole file, re-emits the
   `<!-- derived -->` marker (review #10), and fills judgment cells **only** for
   rows whose source procedure is in `changed_procedure_slugs`; unaffected rows
@@ -69,7 +66,6 @@ Single-writer-per-file is guaranteed by ordering + one file per writer.
   reorder-staleness bug closed (review #2).
 - Non-git folder: hash baseline works with no git (review #15).
 - No file is written by both Python and an agent (one writer per file).
-- After M5, M4 renders `88_`+`89_` as a single Pain Points & Improvement Opportunities table joined on `(slug, id)`.
 
 ## Out of scope
 
@@ -80,4 +76,6 @@ Deciding which procedures exist / registry reassessment — M6.
 - **#2/#10/#11/#15** as noted inline.
 - **r3 #5:** agents write clean single-writer files (`82/84/89`); no region
   markers; Appendix A merged at render.
-- **r3:** scope shrunk to RACI + dependencies + Appendix-A judgment.
+- **r3:** scope shrunk to RACI + dependencies.
+- **r3 refinement:** Appendix-A judgment agent dropped — Appendix A is fully
+  mechanical (M3), impact + severity authored by the drafter in the callouts.
