@@ -34,10 +34,12 @@ the named stage script WRITES each. This is the M7 orchestration contract:
       {"proc_hashes": {slug: sha}, "registry_hash": sha, "warnings": [ ... ]}
       Records the procedure + registry state aggregate last consumed, plus the
       unmatched-mention WARNINGs it emitted (the registry top-up worklist).
-  .hashes.json     written by synthesize (M5 agents' pass / the driver after it):
-      {slug: sha}  — the procedure hashes as of the last synthesis. The
-      "M5 change signal" (README folder model): synthesize compares against it to
-      re-derive only changed procedures.
+  .hashes.json     written by scope_delta.commit (the driver runs it after each
+      M5 agent succeeds — see the orchestrate skill's `synthesize` handler):
+      {derived_kind: {slug: sha}}  — a per-kind baseline of the procedure hashes
+      each agent-owned file was last built from. The "M5 change signal" (README
+      folder model): scope_delta.changed_procedure_slugs compares current hashes
+      against a kind's baseline to re-derive only changed procedures.
   .reconcile.json  written by reconcile.py:
       {"basis": sha, "clean": bool}  — the combined hash of procedures+derived+
       manifest at the last reconcile, and whether it passed.

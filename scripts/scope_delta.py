@@ -68,7 +68,7 @@ def _procedure_components(folder: str) -> List[dict]:
     """Return the manifest components with role == 'procedure', in manifest order.
 
     Prefers a doc_model helper if one exists; otherwise filters the manifest's
-    ``components`` list directly (the v1 schema documented in tickets/README.md).
+    ``components`` list directly (the v1 schema documented in docs/README.md).
     """
     getter = getattr(doc_model, "procedures", None)
     if callable(getter):

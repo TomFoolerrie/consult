@@ -69,8 +69,9 @@ rows, drop the column; if a changed row needs a role not yet columned, add it
 (only if it's in `roles.yaml`).
 
 ## Before you finish
-Re-emit `<!-- derived: raci; writer: agent -->`. Run `reconcile.py` on the area if
-available; fix dangling `[[slug]]`.
+Re-emit `<!-- derived: raci; writer: agent -->`. If available, run
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` on the area folder;
+fix dangling `[[slug]]`.
 
 ## What you return (COMPACT)
 - `file` written; `activities` (rows), `roles` (columns), `rows_rederived`

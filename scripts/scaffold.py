@@ -20,7 +20,7 @@ idempotent: re-running with the same confirmed set is a no-op; adding one
 procedure creates only its file and a manifest entry with a sparse `order`
 *between* its neighbours, touching no existing file.
 
-Ownership boundaries (see tickets/README.md):
+Ownership boundaries (see docs/README.md):
   - `doc_model.py` is owned by M2 — imported here, only to validate what we write.
   - `procedure_skeleton.md` is owned by M1 — read if present, else fall back.
 
@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -90,9 +91,9 @@ DERIVED_FILES = [
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
      "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
      "order": 88},
-    {"file": "90_appendix-b-gaps.md", "kind": "gaps", "writer": "python",
+    {"file": "90_appendix-b-gaps.md", "kind": "gap-log", "writer": "python",
      "heading": "Appendix B — Gap / Validation Log", "order": 90},
-    {"file": "91_appendix-c-screens.md", "kind": "screens", "writer": "python",
+    {"file": "91_appendix-c-screens.md", "kind": "screenshot-index", "writer": "python",
      "heading": "Appendix C — Screenshot / Evidence Index", "order": 91},
 ]
 
@@ -580,6 +581,13 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
         _write_if_absent(f"10_{p['slug']}.md", render_skeleton(p["title"]))
     for d in DERIVED_FILES:
         _write_if_absent(d["file"], render_derived(d["kind"], d["writer"], d["heading"]))
+
+    # 6) Consume the proposal set. Everything in .proposed/ has now been promoted
+    #    (registry) or baked into the manifest (procedures/new_buckets), so the
+    #    directory must go — otherwise the advisor's guard 1 keeps returning
+    #    `confirm` and the build wedges at the first gate. This is the single
+    #    stage that clears it; do it only after a fully successful scaffold.
+    shutil.rmtree(proposed, ignore_errors=True)
 
     print(f"scaffolded {area}")
     print(f"  l1={l1}  l2_order={l2_order}")

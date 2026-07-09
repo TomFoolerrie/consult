@@ -8,7 +8,7 @@ PROCEDURE-LOCAL: `CTRL-001` in `bank-reconciliation` and `CTRL-001` in
 procedure fragment is parsed independently; a reference only reconciles within
 its own fragment. There is no global ID namespace.
 
-Checks (see tickets/README.md + tickets/M2-splitter-manifest.md):
+Checks (see docs/README.md + docs/M2-splitter-manifest.md):
 
   ERROR (nonzero exit):
     - manifest.json invalid against v1 schema (incl. duplicate order/slug)

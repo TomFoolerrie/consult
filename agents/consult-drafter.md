@@ -157,8 +157,11 @@ the conflict; never silently choose.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
 
 ## Before you finish
-Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {file}` if available and fix any **ERRORS** in
-your own file (dangling ID, bare gap tag, prefix/label mismatch). An unregistered
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available
+(it takes the **area folder**, not a single file) and fix any **ERRORS** attributed
+to your own procedure (dangling ID, bare gap tag, prefix/label mismatch). Ignore
+errors on other procedures' fragments — those are their drafters' concern and the
+orchestrator's hard-gate reconcile will catch them. An unregistered
 `consult-meta` slug is a **WARNING, not an ERROR** — leave it as your best-guess
 slug and report it (it's resolved later by the human registry top-up); do **not**
 invent a registry entry to silence it. ORPHAN warnings on unpopulated template

@@ -20,7 +20,7 @@ area folder. Reads `manifest.json`, every `role: procedure` fragment, and the
   (c) emits the scratch extract bundle `<area>.extract.json` (git-ignored) with
       `raw_dependencies` + `raci_inputs` for the M5 agents.
 
-Contract (see tickets/README.md "Extraction / matching contract"):
+Contract (see docs/README.md "Extraction / matching contract"):
   - Inline callout label line:  `> **<LABEL> — <ID>:** <text>`
     Delimiter parsed tolerantly (`-`/`–`/`—`); ID grammar strict; IDs are
     procedure-local. LABEL→prefix map enforced (fail-loud ERROR on mismatch).
@@ -305,8 +305,8 @@ def marker(kind: str, writer: str) -> str:
 # ---------------------------------------------------------------------------
 
 def build_procedure_index(ctx) -> str:
-    lines = ["_In-scope procedures, grouped by sub-process. Numbers rendered late "
-             "from the `[[slug]]` tokens._", ""]
+    lines = ["_In-scope procedures, grouped by sub-process. Numbers are rendered "
+             "late from the cross-reference tokens in the Ref column._", ""]
     for l2 in ctx["l2_order"]:
         procs = ctx["procs_by_l2"].get(l2, [])
         if not procs:

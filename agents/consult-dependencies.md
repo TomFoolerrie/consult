@@ -62,8 +62,8 @@ references a procedure that no longer exists, drop that stale link.
 
 ## Before you finish
 Re-emit the section's `<!-- derived: dependencies; writer: agent -->` marker. If
-`reconcile.py` is available, run it on the area and fix any dangling `[[slug]]`
-you introduced.
+available, run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` on the
+area folder and fix any dangling `[[slug]]` you introduced.
 
 ## What you return (COMPACT)
 - `file` written; `rows` (total), `rows_rederived` (this pass)

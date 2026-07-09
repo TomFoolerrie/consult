@@ -11,7 +11,7 @@ M4 docx builder, M5 synthesis, and reconcile.py). It owns:
   - resolve_tokens(text, numbers, mode) -> text   ([[slug]] -> number/title)
   - assemble(folder)             -> AssembledDoc  (structured, not a string)
 
-Contracts are defined in tickets/README.md. Keep this module free of any
+Contracts are defined in docs/README.md. Keep this module free of any
 number-baking or heading heuristics: numbering lives here and only here, and the
 heading contract is "one `#` title (in the manifest), every section is `##`".
 
