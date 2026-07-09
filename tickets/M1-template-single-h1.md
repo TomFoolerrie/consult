@@ -71,20 +71,48 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
 - Optional per-procedure grouping marker `<!-- group: 2 -->` when an area needs
   the `2.x` cluster; absent → group 1.
 
-`skills/consult-drafter/SKILL.md`:
-- Update "Canonical Structure", "Procedure Module Rules", and "Numbering
-  Convention" to the flat-H2 model.
-- State explicitly: procedure headings carry the plain title only; the `N.M`
-  number is derived downstream and rendered by the docx builder, never typed
-  into the heading or into any cross-reference.
-- State that cross-references to another procedure use the `[[slug]]` token, and
-  that systems/roles are written as **canonical plain text** (normalized via the
-  `_reference/` registry), **not** tokens.
-- State the derived sections are generated, not drafted by hand; the H. Known
-  Issues section is free narrative and is **not** a data source for Appendix A
-  (the inline `PP-`/`IO-` callouts are).
-- State that callout IDs are **procedure-local** (`CTRL-001` restarts per
-  procedure), safe under parallel fill.
+`skills/consult-drafter/SKILL.md` — **refocus from whole-document to
+single-procedure.** The current SKILL drafts an entire multi-procedure document;
+the MVP drafter owns ONE procedure and none of the surrounding scaffolding. This
+is a rewrite, not a tweak. It must stay consistent with
+`.claude/agents/consult-drafter.md` (the def is the contract; the SKILL is the
+how-to).
+
+**Remove** (no longer the drafter's job in the MVP):
+- Whole-document / front-matter authoring (Document Profile, How to Use, Control,
+  Sources) — those are `static` files, human-owned.
+- Appendix authoring (A–D) — Appendices are derived views (M3 + the judgment
+  agents), never hand-drafted here.
+- `split_doc` / `assemble_doc` / "iterating on a large draft" guidance — folders
+  are born via M0 scaffold; the drafter fills one fragment.
+- Multi-procedure numbering / "In-Scope" / "Process Flow" authoring.
+
+**Keep / refocus onto the single procedure:**
+- Evidence discipline (no fabrication; `TBD` + GAP; conflict → GAP) — unchanged
+  and central.
+- The A–H module rules, updated to the **callout homes**: CONTROL in `F`,
+  PAIN POINT + IMPROVEMENT in `H`, GAP + SCREENSHOT **inline in `E`** at their
+  step; inline bolded step tags (System/Tool · Navigation Path · Fields/Parameters
+  · Expected Result · Evidence Required) by judgment.
+- Style, quick-reference, and callout grammar (strict ID grammar, tolerant
+  delimiter).
+
+**State explicitly:**
+- Procedure headings carry the plain title only; the `N.M` number is derived
+  downstream and rendered by the docx builder — never typed into a heading or a
+  cross-reference.
+- Cross-references to another procedure use the `[[slug]]` token; systems/roles
+  are **canonical plain text** (normalized via `_reference/`), with the machine
+  binding in the `consult-meta` block — **not** tokens.
+- **`H. Known Issues & Improvement Opportunities` IS the structured source for
+  Appendix A** (its PP-/IO- callouts) — it is not free narrative to be ignored.
+  (Appendix A is retitled "Pain Points & Improvement Opportunities"; no "Risks".)
+- Callout IDs are **procedure-local** (`CTRL-001` restarts per procedure), safe
+  under parallel fill, and are **never renumbered** on update (removals leave the
+  number retired).
+- The drafter is the procedure's **durable owner** (first-draft and update): on
+  update it works newly-known facts in and **removes** the GAPs they close,
+  leaving no resolved-gap artifacts.
 
 Split the per-procedure A–H block into a standalone, parameterizable snippet
 (`reference/procedure_skeleton.md` or a clearly-delimited region) so M0's
@@ -101,6 +129,11 @@ Split the per-procedure A–H block into a standalone, parameterizable snippet
   template.
 - The drafter SKILL text no longer instructs typing `1.1` into headings, no
   longer references group-header H1s, and documents `[[slug]]` cross-refs.
+- The drafter SKILL no longer contains whole-document, appendix-authoring, or
+  split/assemble guidance; it describes a single-procedure fill with the callout
+  homes (CONTROL→F, PP/IO→H, GAP/SC inline in E) and inline step tags.
+- The drafter SKILL and `.claude/agents/consult-drafter.md` are consistent (no
+  contradiction — e.g. H is stated as the Appendix-A source in both).
 - Manual check: splitting the template at every `##` (M2) yields exactly one
   fragment per intended section with **no empty wrapper fragments** and no
   orphaned content.
@@ -116,5 +149,8 @@ Assigning numbers, generating derived content — M2/M3/M5.
   content-owning sections are *promoted*. No empty wrappers.
 - **#5 (orphaned Process Overview / In-Scope / Process Flow):** Process Overview
   = `static`; In-Scope = python-derived (M3); Process Flow = dropped.
-- **#9 (Appendix A double source):** H. Known Issues declared narrative-only,
-  not parsed.
+- **#9 (Appendix A double source — superseded):** originally H was declared
+  narrative-only to avoid a double-write. Now PP/IO **callouts live in H** as the
+  single structured source for Appendix A — so there is no free narrative to
+  compete with them, and the double-write is avoided by there being one source,
+  not by ignoring H.
