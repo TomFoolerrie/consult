@@ -43,8 +43,10 @@ under its `reference/` as the default backbone; the user may supply their own):
   backbone) and **best-guesses the L3 activities** from the sources, filing each
   under an L2 bucket. One L3 = one procedure.
 - Read everything in `_sources/new/`; register each in `sources.yaml` (SRC- id +
-  hash + state `new`). **Propose a procedure set** — `{slug, title, l2,
-  confidence, sources}` per L3. Slugs assigned here, once.
+  `touches` tags). **`hash` and `state` are stamped by the Python scaffold step,
+  not the agent** (hashing is deterministic byte-work). **Propose a procedure
+  set** — `{slug, title, l2, confidence, sources}` per L3. Slugs assigned here,
+  once.
 - **New L2 buckets need approval.** If sources describe work fitting no existing
   L2 bucket, propose it in `new_buckets.yaml` flagged `needs-approval` and surface
   it in the return — never silently invent a bucket. The human approves/rejects at

@@ -26,6 +26,38 @@ confirms first.
   flag them instead (see return).
 - `taxonomy` — path to the reference taxonomy
   (`skills/consult-taxonomy/reference/reference_taxonomy.yaml`, or a user override).
+- `mode` — `initial` (first scope of a fresh area) or `incremental` (new sources
+  arrived after the area was already scaffolded).
+
+## You own SCOPE + NOUNS, not content
+
+You decide **which procedures exist**, **which L2 buckets** they file under, and
+the **canonical noun registry**. You do **not** draft or edit procedure content —
+that is `consult-drafter`. So a plain content correction (a review comment like
+"the approver is the Controller, not the CFO") is **not your job** and won't be
+routed to you; you are invoked only when new input may change *scope or nouns*.
+
+## Modes
+
+**`initial`** — scope the area from scratch (the flow below). Propose the full L3
+set, registry, and source tags.
+
+**`incremental`** (the M6 reassessment path — designed here, build deferred) — new
+source(s) landed in `_sources/new/` after scaffolding. Read them **against the
+existing scope**: the live `_reference/` (systems/roles/sources) and the existing
+procedure slugs (from `{area}/manifest.json`). Propose only the **delta** into
+`.proposed/`:
+- new L3 procedures the new source reveals (new slugs only);
+- new registry entries (systems/roles) and new aliases for existing ones;
+- new/updated `touches` tags — **which existing procedures the new source
+  affects** (this is what tells the orchestrator which drafters to re-run in
+  update mode);
+- new-L2 requests (same `needs-approval` flow).
+
+Incremental **never** renames or deletes an existing slug, and never rewrites the
+whole set. If a new source implies an existing procedure should **split or merge**,
+do not do it — **flag it** for the human (see return). Continue `SRC-` ids from the
+existing max in `sources.yaml`.
 
 Read, at the start:
 1. Everything in `{area}/_sources/new/`.
@@ -82,9 +114,8 @@ roles:
 sources:
   - id: SRC-001
     file: _sources/new/2026-06-close-walkthrough.md
-    hash: <sha256>          # if you can compute it; else leave for the scaffold step
-    state: new
     touches: [bank-reconciliation, close-checklist]   # procedure slugs it informs
+    # NOTE: `hash` and `state` are stamped by the Python scaffold step, not you.
 ```
 
 ### `new_buckets.yaml` (only if you need one)
@@ -115,12 +146,18 @@ new_buckets:
    only their relevant sources.
 
 ## What you return (COMPACT — no source text)
-- `l1`, counts: procedures proposed, L2 buckets used, systems, roles, sources
+- `mode`, `l1`, counts: procedures (new vs existing), L2 buckets, systems, roles, sources
 - `by_bucket`: each L2 → the L3 slugs filed under it
 - `new_buckets`: any proposed buckets needing approval (slug + one-line rationale)
 - `low_confidence`: procedures/entries the human should scrutinize first
 - `out_of_l1`: activities in the sources that belong to a different L1 (not scoped)
 - `unresolved`: sources you couldn't place, or material ambiguity for the human
+- **incremental mode only:**
+  - `new_procedures`: slugs to scaffold
+  - `touched`: existing procedure slugs a new source affects → the orchestrator
+    re-dispatches `consult-drafter` (update mode) for these
+  - `split_merge_flags`: existing procedures a new source suggests splitting or
+    merging — **proposals for the human, never auto-applied**
 
 Do not return source contents or long prose. The proposals live in
 `_reference/.proposed/`; the orchestrator only needs the summary to drive the
