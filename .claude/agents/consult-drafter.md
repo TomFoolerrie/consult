@@ -28,11 +28,13 @@ file is the deliverable.
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
 - `mode` — `first-draft` or `update`. Update is driven by either newly-tagged
-  `_sources/`, or **procedure-anchored review notes** (`_review/`, from M8's
-  `review_extract.py`) passed in the dispatch prompt: tracked changes (treat as
-  **high-authority SME input** — apply them) and comments (answer in the body, or
-  raise a GAP if unresolved). Each note carries its location (procedure → A–H
-  subsection → step) + anchor text, so you know exactly where it applies.
+  `_sources/`, or **your procedure's review notes** at
+  `{area}/_review/{slug}.notes.yaml` (from M8's `review_extract.py`). Read that
+  file if it exists — it's named by your own `slug`, so there's nothing to search
+  for. Tracked changes are **high-authority SME input** (apply them); comments are
+  instructions/questions (answer in the body, or raise a GAP if unresolved). Each
+  note carries its location (procedure → A–H subsection → step) + anchor text, so
+  you know exactly where it applies.
 
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do

@@ -41,7 +41,7 @@ Routing is **by folder** (deterministic — the advisor never guesses content):
 | `_reference/.proposed/` exists, not yet confirmed | `confirm` (HUMAN GATE) |
 | manifest exists, procedure skeletons empty | `fill` (fan out one agent per procedure) |
 | `_sources/new/` non-empty **on an already-scaffolded area** | `taxonomy` (incremental) — reads new docs, tags `touches`, may propose scope delta → `confirm` |
-| `_review/` notes present | `apply_review` — re-dispatch `consult-drafter` (update) for the annotated procedures, **skip taxonomy** (M8) |
+| `_review/*.notes.yaml` present | `apply_review` — one `consult-drafter` (update) per slug, each pointed at its `_review/{slug}.notes.yaml`, **skip taxonomy** (M8) |
 | procedures changed vs `.hashes.json` | `aggregate` then `synthesize` |
 | aggregate emitted unmatched-mention WARNINGs | `registry_topup` (HUMAN: add entry/alias, re-run) |
 | all views current | `render` |

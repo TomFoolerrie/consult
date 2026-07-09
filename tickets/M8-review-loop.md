@@ -33,9 +33,12 @@ renumbered).
   and attribute every change/comment to **procedure → A–H subsection → step**, plus
   the exact anchor text. (The procedure heading carries its number/title; map back
   to the `slug` via the manifest.)
-- Output: **procedure-anchored review notes** under `_review/` (see below), one
-  entry per change/comment:
+- Output: **one notes file per procedure that has feedback**, named by slug —
+  `{area}/_review/{slug}.notes.yaml`. A single reviewed `.docx` spans many
+  procedures, so the extractor **splits** the changes/comments by the procedure
+  each is anchored to and writes them into that procedure's file:
   ```yaml
+  # _review/bank-reconciliation.notes.yaml
   procedure: bank-reconciliation
   items:
     - type: tracked-change            # or: comment
@@ -45,6 +48,8 @@ renumbered).
       note: "who actually signs off?" # comment text
       author: J. Smith
   ```
+  One file per slug is what makes dispatch trivial (below) — the filename *is* the
+  routing key.
 - Archive the consumed `.docx` (e.g. `_review/processed/`) after extraction.
 
 ## Where notes land — and why it matters
@@ -63,12 +68,13 @@ or re-invoking taxonomy. Default review path is content → drafter.)
 
 ## Drafter update mode (already specified in the drafter def)
 
-The orchestrator dispatches `consult-drafter` (`mode: update`) for each procedure
-with `_review/` notes, handing it that procedure's notes. The drafter treats
-tracked changes as **high-authority SME input** (apply them) and comments as
-instructions/questions (answer in the body, or raise a GAP if unresolved), then
-emits a clean finished procedure. After a successful pass the orchestrator clears
-the applied notes (archives them).
+The orchestrator lists `{area}/_review/*.notes.yaml` and dispatches
+`consult-drafter` (`mode: update`) once per slug, pointing each at its own
+`_review/{slug}.notes.yaml`. The drafter already has `area` + `slug`, so it reads
+its file directly — no searching. It treats tracked changes as **high-authority
+SME input** (apply them) and comments as instructions/questions (answer in the
+body, or raise a GAP if unresolved), then emits a clean finished procedure. After
+a successful pass the orchestrator archives that procedure's applied notes.
 
 ## Orchestrator wiring (M7 state table)
 
