@@ -59,7 +59,7 @@ except ImportError:
 # CALLOUT_RE (it must still detect a callout with a MALFORMED id to flag it).
 from callouts import (  # noqa: E402
     LABEL_PREFIX, PREFIXES, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
-    BODY_GAP_RE, BARE_GAP_RE, XREF_RE,
+    BODY_GAP_RE, BARE_GAP_RE, XREF_RE, blank_fences as strip_fences,
 )
 
 # A callout label line inside a blockquote (loose id capture so a malformed id
@@ -72,27 +72,9 @@ CALLOUT_RE = re.compile(
 
 DERIVED_MARKER_RE = re.compile(r"<!--\s*derived:", re.IGNORECASE)
 
-# Fenced code blocks (``` or ~~~), blanked (line-count preserving).
+# Fenced code blocks (``` or ~~~) are blanked via callouts.blank_fences
+# (imported above as strip_fences), preserving line count/numbers.
 FENCE_LINE_RE = re.compile(r"^\s*(```|~~~)")
-
-
-def strip_fences(text: str) -> str:
-    """Blank out fenced code blocks (both ``` and ~~~) preserving line count."""
-    out = []
-    in_fence = False
-    fence_tok = None
-    for line in text.splitlines():
-        m = FENCE_LINE_RE.match(line)
-        if m:
-            tok = m.group(1)
-            if not in_fence:
-                in_fence, fence_tok = True, tok
-            elif tok == fence_tok:
-                in_fence, fence_tok = False, None
-            out.append("")
-            continue
-        out.append("" if in_fence else line)
-    return "\n".join(out)
 
 
 def extract_consult_meta(text: str) -> dict:

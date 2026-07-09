@@ -597,8 +597,16 @@ def run(area_arg: str) -> int:
             write_derived(path, heading, kind, "python", builder(ctx))
             written.append(c["file"])
         elif writer == "agent":
-            write_derived(path, heading, kind, "agent", PENDING_PLACEHOLDER)
-            written.append(c["file"])
+            # Agent-owned view: the M5 agent is its ONE writer. Only stamp the
+            # pending placeholder when there is no real content yet (missing file
+            # or a scaffold/placeholder stub) — never clobber an agent's work on
+            # re-aggregation. Staleness vs changed procedures is scope_delta's
+            # job, not ours.
+            existing = path.read_text(encoding="utf-8") if path.exists() else ""
+            if (not existing or PENDING_PLACEHOLDER in existing
+                    or "_Pending generation._" in existing):
+                write_derived(path, heading, kind, "agent", PENDING_PLACEHOLDER)
+                written.append(c["file"])
 
     # ---- Emit the scratch extract bundle for M5. ----
     raw_dependencies = {p["slug"]: p["section_a"] for p in procedures}

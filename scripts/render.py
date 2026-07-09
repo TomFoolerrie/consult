@@ -105,10 +105,20 @@ def _strip_consult_meta(text: str) -> str:
     return "\n".join(out)
 
 
+def _flag_gap_tags(text: str) -> str:
+    """Render body gap tags `[[GAP-NN — label]]` as a visible bold flag.
+
+    doc_model.resolve_tokens deliberately skips them (they are not procedure
+    cross-refs), so without this they reach Word as raw wiki brackets.
+    """
+    return re.sub(r"\[\[\s*(GAP-\d+[^\]]*?)\s*\]\]", r"**[\1]**", text)
+
+
 def _clean_body(text: str, numbers) -> str:
     text = _strip_consult_meta(text)
     text = _strip_derived_markers(text)
     text = _resolve_tokens(text, numbers)
+    text = _flag_gap_tags(text)
     return text.strip("\n")
 
 

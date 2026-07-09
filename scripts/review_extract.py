@@ -153,6 +153,10 @@ def clip(s: str, n: int = 160) -> str:
 # --------------------------------------------------------------------------- #
 # Heading / location model
 # --------------------------------------------------------------------------- #
+UNASSIGNED = "_unassigned"  # sentinel slug for items that can't be attributed to a
+                            # procedure (e.g. anchored in an appendix table); routed
+                            # to _review/_unassigned.notes.yaml so nothing is dropped.
+
 HEADING_RE = re.compile(r"heading\s*([1-9])", re.I)
 NUMBER_PREFIX_RE = re.compile(r"^\s*(\d+(?:\.\d+)*)[\.\)]?\s+(.*)$")
 SUBSECTION_LETTER_RE = re.compile(r"^\s*([A-H])\b")
@@ -299,6 +303,24 @@ def _collapse_changes(events: List[Tuple[str, str, str, str]]) -> List[Tuple[str
     return out
 
 
+def iter_paragraphs(el):
+    """Yield w:p elements under `el` in document order, descending into tables.
+
+    Body children are normally w:p / w:tbl / w:sectPr. Comments and tracked
+    changes anchored inside a table cell (e.g. the Appendix A pain-points
+    table) live several levels down (w:tbl > w:tr > w:tc > w:p) and were
+    previously skipped entirely because the top-level walk only looked at
+    direct w:p children of the body.
+    """
+    for child in el:
+        ln = localname(child)
+        if ln == "p":
+            yield child
+        elif ln in ("tbl", "tr", "tc"):
+            yield from iter_paragraphs(child)
+        # ignore sectPr and anything else — not paragraph-bearing
+
+
 def extract_document(doc_root, comments: Dict[str, dict],
                      num2slug: Dict[str, str], title2slug: Dict[str, str],
                      warnings: List[str]) -> List[Item]:
@@ -316,10 +338,7 @@ def extract_document(doc_root, comments: Dict[str, dict],
     open_comments: Dict[str, dict] = {}
     seen_comment_ids: set = set()
 
-    for p in body:
-        if localname(p) != "p":
-            continue
-
+    for p in iter_paragraphs(body):
         level = paragraph_heading_level(p)
         para_text = gather_visible_text(p)
 
@@ -366,8 +385,8 @@ def extract_document(doc_root, comments: Dict[str, dict],
             if slug is None:
                 warnings.append(
                     f"comment id={cid} anchored outside any procedure "
-                    f"(section: {loc.section_heading or '?'}); skipped")
-                return
+                    f"(section: {loc.section_heading or '?'}); routed to {UNASSIGNED}")
+                slug = UNASSIGNED
             items.append(Item(
                 kind="comment", slug=slug, location=locstr,
                 anchor=clip("".join(rec["anchor"])) or clip(para_text),
@@ -383,13 +402,14 @@ def extract_document(doc_root, comments: Dict[str, dict],
         if events:
             anchor = clip(para_text) or clip("; ".join(t for _, t, _, _ in events))
             for change, author, date in _collapse_changes(events):
-                if loc.slug is None:
+                slug = loc.slug
+                if slug is None:
                     warnings.append(
                         f"tracked change '{clip(change, 60)}' outside any procedure "
-                        f"(section: {loc.section_heading or '?'}); skipped")
-                    continue
+                        f"(section: {loc.section_heading or '?'}); routed to {UNASSIGNED}")
+                    slug = UNASSIGNED
                 items.append(Item(
-                    kind="tracked-change", slug=loc.slug, location=loc.as_string(),
+                    kind="tracked-change", slug=slug, location=loc.as_string(),
                     anchor=anchor, author=author, date=date, change=change,
                 ))
 
@@ -401,8 +421,10 @@ def extract_document(doc_root, comments: Dict[str, dict],
         seen_comment_ids.add(cid)
         slug, locstr = rec["loc"]
         if slug is None:
-            warnings.append(f"comment id={cid} (unterminated range) outside any procedure; skipped")
-            continue
+            warnings.append(
+                f"comment id={cid} (unterminated range) outside any procedure; "
+                f"routed to {UNASSIGNED}")
+            slug = UNASSIGNED
         body_txt = comments.get(cid, {})
         items.append(Item(
             kind="comment", slug=slug, location=locstr,
@@ -553,7 +575,10 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool) 
     print(f"Reviewed doc: {docx_path.name}")
     print(f"Area:         {area}")
     print(f"Backend:      {'lxml' if _LXML else 'xml.etree'}")
-    print(f"Items:        {len(items)} across {len(by_slug)} procedure(s)")
+    unassigned_n = len(by_slug.get(UNASSIGNED, []))
+    n_procs = len([s for s in by_slug if s != UNASSIGNED])
+    print(f"Items:        {len(items)} across {n_procs} procedure(s)"
+          + (f" (+{unassigned_n} unassigned)" if unassigned_n else ""))
     for w in written:
         print(f"  wrote {w}")
     if archived_to:

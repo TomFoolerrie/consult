@@ -161,9 +161,17 @@ class AreaState:
 
     def review_notes(self):
         """Un-archived procedure-anchored review notes (M8). Excludes
-        _review/processed/."""
+        _review/processed/ and the _unassigned bucket (items review_extract
+        could not attribute to a procedure — those need a human, not a
+        drafter dispatch; surfaced separately via unassigned_notes())."""
         pat = os.path.join(self.folder, "_review", "*.notes.yaml")
-        return sorted(glob.glob(pat))
+        return sorted(p for p in glob.glob(pat)
+                      if os.path.basename(p) != "_unassigned.notes.yaml")
+
+    def unassigned_notes(self):
+        """Path to _review/_unassigned.notes.yaml if present, else None."""
+        p = os.path.join(self.folder, "_review", "_unassigned.notes.yaml")
+        return p if os.path.isfile(p) else None
 
     def unfilled_slugs(self):
         out = []
@@ -232,11 +240,25 @@ def decide(folder: str) -> dict:
 
     # 2 — review notes route straight to the drafter (skip taxonomy)
     notes = st.review_notes()
+    unassigned = st.unassigned_notes()
     if notes:
+        details = {"notes": [os.path.relpath(n, folder) for n in notes]}
+        if unassigned:
+            details["unassigned"] = os.path.relpath(unassigned, folder)
         return result(
             "apply_review",
             "review notes present — dispatch consult-drafter (update) per slug",
-            notes=[os.path.relpath(n, folder) for n in notes],
+            **details,
+        )
+    if unassigned:
+        # Only unattributed items remain — a human must triage them (move each
+        # item into the right {slug}.notes.yaml, or archive the file).
+        return result(
+            "review_triage",
+            "_review/_unassigned.notes.yaml holds items review_extract could "
+            "not attribute to a procedure — triage by hand",
+            gate=True,
+            unassigned=os.path.relpath(unassigned, folder),
         )
 
     # 3 — initial scope: no manifest yet, raw sources waiting
