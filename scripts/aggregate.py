@@ -66,35 +66,19 @@ import doc_model  # noqa: E402  (M2 deliverable)
 
 
 # ---------------------------------------------------------------------------
-# Shared ID grammar / callout parsing.
-#
-# NOTE FOR M2: this block is the single definition of the callout label grammar,
-# the tolerant delimiter, and the LABEL→prefix map. `reconcile.py` should IMPORT
-# these from here (`from aggregate import LABEL_TO_PREFIX, parse_callouts, …`)
-# rather than duplicating them, so the two engines never drift. (This ticket may
-# not edit reconcile.py, hence the note instead of the move.)
+# Callout grammar: the drift-critical primitives (LABEL→prefix map, severity
+# enum, tolerant delimiter, ID / gap grammar, fence util, FragmentError) live in
+# the shared `callouts.py` — imported here and by reconcile.py so they never
+# drift. This file keeps only the aggregate-specific matchers built on top.
 # ---------------------------------------------------------------------------
-
-# LABEL → strict ID prefix (README "Extraction / matching contract").
-LABEL_TO_PREFIX = {
-    "CONTROL": "CTRL",
-    "VALIDATION REQUIRED": "GAP",
-    "PAIN POINT": "PP",
-    "IMPROVEMENT OPPORTUNITY": "IO",
-    "SCREENSHOT PLACEHOLDER": "SC",
-}
-
-SEVERITY_ENUM = {"High", "Medium", "Low"}
-
-# Tolerant delimiter class: hyphen-minus, en-dash, em-dash.
-_DELIM = r"[-–—]"
-
-# Strict ID grammar: <PREFIX>-<UPPER-ALNUM segments>. Procedure-local.
-_ID_STRICT = r"(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*"
+from callouts import (  # noqa: E402
+    LABEL_TO_PREFIX, SEVERITY_ENUM, DELIM as _DELIM, ID_STRICT_RE,
+    BODY_GAP_RE, BARE_GAP_RE, FragmentError, blank_fences as _blank_fences,
+)
 
 # Callout label line: `> **<LABEL> — <ID>:** <text>` (colon INSIDE the bold).
 CALLOUT_LINE_RE = re.compile(
-    r"^>\s*\*\*\s*(?P<label>[A-Z][A-Z ]*?)\s*" + _DELIM + r"\s*"
+    r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]*?)\s*" + _DELIM + r"\s*"
     r"(?P<id>[A-Za-z]+-[A-Za-z0-9\-]+)\s*:\s*\*\*\s*(?P<text>.*?)\s*$"
 )
 
@@ -103,39 +87,17 @@ SUBFIELD_RE = re.compile(
     r"^>\s*-\s*\*\*\s*(?P<field>[^:*]+?)\s*:\s*\*\*\s*(?P<value>.*?)\s*$"
 )
 
-# Body gap reference: `[[GAP-NN — TEXT]]` (tolerant delimiter, strict id).
-BODY_GAP_RE = re.compile(
-    r"\[\[\s*(?P<id>GAP-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + _DELIM + r".*?\]\]"
-)
-# Bare gap tag: `[[GAP` not immediately followed by `-`.
-BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-)")
-
 # consult-meta fenced block (info-string `consult-meta`, YAML body).
 CONSULT_META_RE = re.compile(
     r"^(?P<fence>`{3,}|~{3,})\s*consult-meta\s*$(?P<body>.*?)^(?P=fence)\s*$",
     re.MULTILINE | re.DOTALL,
 )
 
-# A generic fenced block (to blank out so callouts inside code are not parsed).
-FENCE_BLOCK_RE = re.compile(r"^(`{3,}|~{3,}).*?^\1\s*$", re.MULTILINE | re.DOTALL)
-
 # A `### A. Heading` sub-section line.
 SUBSECTION_RE = re.compile(r"^###\s+(?P<letter>[A-H])\.\s+(?P<title>.*?)\s*$")
 
 # A `- **Label:** value` list bullet (Quick Reference etc.).
 BULLET_KV_RE = re.compile(r"^\s*-\s*\*\*\s*(?P<k>[^:*]+?)\s*:\s*\*\*\s*(?P<v>.*?)\s*$")
-
-
-class FragmentError(Exception):
-    """A fail-loud, per-procedure parse error."""
-
-
-def _blank_fences(text: str) -> str:
-    """Replace fenced-block bodies with blank lines, preserving line count."""
-    def repl(m: "re.Match[str]") -> str:
-        return "\n" * m.group(0).count("\n")
-
-    return FENCE_BLOCK_RE.sub(repl, text)
 
 
 def split_subsections(text: str) -> dict[str, str]:
@@ -233,7 +195,7 @@ def parse_callouts(slug: str, raw_text: str) -> list[dict]:
             )
         expected = LABEL_TO_PREFIX[label]
 
-        if not re.fullmatch(_ID_STRICT, cid):
+        if not ID_STRICT_RE.match(cid):
             raise FragmentError(
                 f"malformed callout ID {cid!r} at {slug}:{i + 1} "
                 f"(grammar: <PREFIX>-<ALNUM> e.g. {expected}-001)"
@@ -277,7 +239,7 @@ def check_body_gap_refs(slug: str, raw_text: str, defined_gap_ids: set[str]) -> 
             f"bare gap tag in {slug}: use [[GAP-NN — reason]] with an ID"
         )
     for m in BODY_GAP_RE.finditer(text):
-        gid = m.group("id")
+        gid = "GAP-" + m.group(1)
         if gid not in defined_gap_ids:
             raise FragmentError(
                 f"referenced-but-undefined ID {gid!r} in {slug}: the body tag has "
@@ -670,6 +632,10 @@ def run(area_arg: str) -> int:
         print("\nWARNINGS (registry top-up worklist):")
         for w in warnings:
             print(f"- {w}")
+    # M7 signal file: record proc/registry hashes + warnings so the read-only
+    # orchestrator advisor knows aggregate ran clean this pass.
+    import orchestrate
+    orchestrate.emit_aggregate(str(area), warnings)
     return 0
 
 

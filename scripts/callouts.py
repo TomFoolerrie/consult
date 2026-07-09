@@ -1,0 +1,63 @@
+"""callouts.py — the single source of the callout/ID grammar primitives.
+
+Both `aggregate.py` (extracts callouts into rows) and `reconcile.py` (validates
+IDs) import from here so the drift-critical pieces — the LABEL→prefix map, the
+severity enum, the tolerant delimiter, and the ID/gap-tag grammar — are defined
+exactly once. Each engine keeps its own higher-level callout-*line* matcher
+(aggregate's is extract-strict; reconcile's is loose enough to still flag a
+malformed ID), but both build it from the shared `DELIM` and validate against the
+shared map + `ID_STRICT_RE`.
+"""
+
+import re
+
+# LABEL → strict ID prefix (README "Extraction / matching contract").
+LABEL_TO_PREFIX = {
+    "CONTROL": "CTRL",
+    "VALIDATION REQUIRED": "GAP",
+    "PAIN POINT": "PP",
+    "IMPROVEMENT OPPORTUNITY": "IO",
+    "SCREENSHOT PLACEHOLDER": "SC",
+}
+# Back-compat alias (reconcile historically used this name).
+LABEL_PREFIX = LABEL_TO_PREFIX
+PREFIXES = sorted(set(LABEL_TO_PREFIX.values()))
+
+# PP/IO severity enum (validated as a WARNING, never fail-loud).
+SEVERITY_ENUM = {"High", "Medium", "Low"}
+
+# Tolerant delimiter between label and id: hyphen-minus, en-dash, em-dash.
+DELIM = r"[-–—]"
+
+# Strict, anchored ID grammar: <PREFIX>-<UPPER-ALNUM segment>(-<segment>)*.
+ID_STRICT_RE = re.compile(
+    r"^(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$"
+)
+# Any well-formed ID occurrence in prose (for reference tracking).
+ID_INLINE_RE = re.compile(
+    r"\b(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b"
+)
+
+# Body gap reference `[[GAP-NN — reason]]` and the bare (id-less) form.
+BODY_GAP_RE = re.compile(r"\[\[\s*GAP-([A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + DELIM)
+BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-[A-Z0-9])\s*(?:" + DELIM + r"|\]\])")
+
+# Procedure cross-reference token `[[slug]]` (lowercase slug only).
+XREF_RE = re.compile(r"\[\[([a-z0-9][a-z0-9-]*)\]\]")
+
+# A fenced code block (``` or ~~~) — blanked so callouts inside code/examples
+# and the consult-meta block are not parsed as real callouts.
+FENCE_BLOCK_RE = re.compile(r"^(`{3,}|~{3,}).*?^\1\s*$", re.MULTILINE | re.DOTALL)
+
+
+class FragmentError(Exception):
+    """Raised on a fail-loud callout/ID grammar defect in one procedure."""
+
+
+def blank_fences(text: str) -> str:
+    """Replace fenced-block bodies with blank lines, preserving line count."""
+    return FENCE_BLOCK_RE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+
+
+# reconcile historically called this `strip_fences`.
+strip_fences = blank_fences

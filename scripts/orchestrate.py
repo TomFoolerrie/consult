@@ -290,13 +290,25 @@ def decide(folder: str) -> dict:
         return result("reconcile",
                       "derived views changed or not yet reconciled clean this pass")
 
-    # 9 — synthesize: judgment views stale vs the changed procedures
-    synth_basis = _load_json(os.path.join(folder, ".hashes.json")) or {}
+    # 9 — synthesize: judgment views stale vs the changed procedures.
+    # The "what changed per agent kind" signal is owned by scope_delta (its
+    # per-kind .hashes.json baseline) — reuse it rather than re-reading a flat
+    # basis, so there is one change-signal authority and no filename-shape clash.
     pending = st.pending_placeholders()
-    if pending or synth_basis != cur_proc:
+    stale_kinds = []
+    if st.has_manifest:
+        try:
+            import scope_delta
+            for kind in ("dependencies", "raci"):
+                if scope_delta.changed_procedure_slugs(folder, kind):
+                    stale_kinds.append(kind)
+        except Exception:
+            # If the delta engine can't run, fall back to "synthesize if pending".
+            stale_kinds = []
+    if pending or stale_kinds:
         return result("synthesize",
                       "judgment views stale vs changed procedures",
-                      pending=pending)
+                      pending=pending, stale_kinds=stale_kinds)
 
     # 10 — render: everything current + reconciled, no fresh docx
     ren = _load_json(os.path.join(folder, ".render.json")) or {}
@@ -313,6 +325,47 @@ def decide(folder: str) -> dict:
     # 12 — nothing outstanding
     return result("done", "all views current, reconciled, rendered and reviewed",
                   docx=ren.get("docx"))
+
+
+# --------------------------------------------------------------------------- #
+# Signal-file writers (called by the mutating stages, not by `decide`).
+# Centralized here so the signal shapes + hash computation match exactly what
+# the advisor reads. `decide`/`next` remain strictly read-only.
+# --------------------------------------------------------------------------- #
+
+def _write_json(path: str, obj) -> None:
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+
+def emit_aggregate(folder: str, warnings) -> None:
+    """Written by aggregate.py after a successful rebuild → guards 6/7."""
+    st = AreaState(folder)
+    _write_json(os.path.join(folder, ".aggregate.json"), {
+        "proc_hashes": st.proc_hashes(),
+        "registry_hash": st.registry_hash(),
+        "warnings": list(warnings or []),
+    })
+
+
+def emit_reconcile(folder: str, clean: bool) -> None:
+    """Written by reconcile.py after an area-wide check → guard 8."""
+    st = AreaState(folder)
+    _write_json(os.path.join(folder, ".reconcile.json"), {
+        "basis": st.basis_hash(),
+        "clean": bool(clean),
+    })
+
+
+def emit_render(folder: str, docx: str, awaiting_review: bool = True) -> None:
+    """Written by the renderer after producing the .docx → guards 10/11."""
+    st = AreaState(folder)
+    _write_json(os.path.join(folder, ".render.json"), {
+        "basis": st.basis_hash(),
+        "docx": str(docx),
+        "awaiting_review": bool(awaiting_review),
+    })
 
 
 # --------------------------------------------------------------------------- #

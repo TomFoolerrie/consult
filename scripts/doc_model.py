@@ -159,6 +159,14 @@ def validate_manifest(manifest: dict) -> list[str]:
 # display_numbers — the ONLY implementation of the display number
 # --------------------------------------------------------------------------- #
 
+def procedures(manifest: dict) -> list[dict]:
+    """Module-level convenience: the manifest's `role: procedure` components,
+    in manifest `order`. (Callers like scope_delta expect this alongside the
+    AssembledDoc.procedures() method.)"""
+    procs = [c for c in manifest.get("components", []) if c.get("role") == "procedure"]
+    return sorted(procs, key=lambda c: (c.get("order", 0), c.get("file", "")))
+
+
 def display_numbers(manifest: dict) -> dict[str, str]:
     """Return {procedure-slug: "L2.seq"} display numbers.
 

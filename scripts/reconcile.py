@@ -54,44 +54,21 @@ except ImportError:
 # Callout grammar
 # --------------------------------------------------------------------------- #
 
-# Label -> ID prefix (README extraction contract).
-LABEL_PREFIX = {
-    "CONTROL": "CTRL",
-    "VALIDATION REQUIRED": "GAP",
-    "PAIN POINT": "PP",
-    "IMPROVEMENT OPPORTUNITY": "IO",
-    "SCREENSHOT PLACEHOLDER": "SC",
-}
-PREFIXES = sorted(set(LABEL_PREFIX.values()))
+# Callout grammar primitives are shared with aggregate.py via callouts.py so the
+# LABEL→prefix map + ID/gap grammar never drift. reconcile keeps its own loose
+# CALLOUT_RE (it must still detect a callout with a MALFORMED id to flag it).
+from callouts import (  # noqa: E402
+    LABEL_PREFIX, PREFIXES, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
+    BODY_GAP_RE, BARE_GAP_RE, XREF_RE,
+)
 
-# Tolerant delimiter between label and id: hyphen / en-dash / em-dash.
-_DELIM = r"[-–—]"
-
-# A callout label line inside a blockquote:
+# A callout label line inside a blockquote (loose id capture so a malformed id
+# is still seen here and reported, then validated against ID_STRICT_RE):
 #   > **<LABEL> — <ID>:** <text>
 CALLOUT_RE = re.compile(
     r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]+?)\s*" + _DELIM + r"\s*"
     r"(?P<id>[^:*]+?)\s*:\*\*",
 )
-
-# Strict ID grammar: PREFIX-<segment>(-<segment>)*  segments are [A-Z0-9]+.
-ID_STRICT_RE = re.compile(
-    r"^(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$"
-)
-
-# Any well-formed ID occurrence in prose.
-ID_INLINE_RE = re.compile(
-    r"\b(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b"
-)
-
-# Body gap tag with an id: [[GAP-01 — reason]] (tolerant delimiter).
-BODY_GAP_RE = re.compile(r"\[\[\s*GAP-([A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + _DELIM)
-
-# Bare gap tag: [[GAP — ...]] or [[GAP]] with no id (NOT [[GAP-01 ...]]).
-BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-[A-Z0-9])\s*(?:" + _DELIM + r"|\]\])")
-
-# A cross-reference token [[slug]] — lowercase slug only.
-XREF_RE = re.compile(r"\[\[([a-z0-9][a-z0-9-]*)\]\]")
 
 DERIVED_MARKER_RE = re.compile(r"<!--\s*derived:", re.IGNORECASE)
 
@@ -394,6 +371,11 @@ def reconcile(folder: str) -> int:
         print("\nWARNINGS:")
         for w in warnings:
             print(f"  - {w}")
+
+    # M7 signal file: record the current basis + clean flag so the advisor's
+    # reconcile guard is satisfied only when the area verified clean this pass.
+    import orchestrate
+    orchestrate.emit_reconcile(str(folder), not errors)
 
     return 1 if errors else 0
 

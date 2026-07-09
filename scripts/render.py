@@ -209,6 +209,12 @@ def main(argv=None) -> int:
     else:
         cfgi.convert(path, out, a.include_toc, a.landscape, do_cover)
     print("Wrote " + str(out))
+    # M7 signal file (folder input only — single-file render isn't an area):
+    # record basis + docx + awaiting_review so the advisor moves to the review
+    # gate rather than re-rendering.
+    if kind == "folder":
+        import orchestrate
+        orchestrate.emit_render(str(path), str(out), awaiting_review=True)
     return 0
 
 
