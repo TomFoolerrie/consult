@@ -74,27 +74,28 @@ STATIC_FILES = [
     {"file": "04_process-overview.md", "heading": "Process Overview", "order": 5},
 ]
 
-# Derived stubs (band 70–99). Each is empty content + the required derived marker;
-# M3 (python) and M5 (agent) own the actual generation. order == filename prefix,
-# matching the manifest schema example (81 -> 81, 82 -> 82, ...).
+# Derived stubs (back-matter band: filename prefix × 100, i.e. 7000+). The wide
+# offset keeps the band clear of the sparse procedure orders (10, 20, 30, …),
+# which would collide with a 70–99 band after just 6 procedures. M3 (python) and
+# M5 (agent) own the actual generation.
 DERIVED_FILES = [
     {"file": "70_procedure-index.md", "kind": "procedure-index", "writer": "python",
-     "heading": "In-Scope Procedures", "order": 70},
+     "heading": "In-Scope Procedures", "order": 7000},
     {"file": "80_role-dictionary.md", "kind": "role-dictionary", "writer": "python",
-     "heading": "Role Dictionary", "order": 80},
+     "heading": "Role Dictionary", "order": 8000},
     {"file": "81_systems.md", "kind": "systems", "writer": "python",
-     "heading": "Systems & Data Inputs", "order": 81},
+     "heading": "Systems & Data Inputs", "order": 8100},
     {"file": "82_dependencies.md", "kind": "dependencies", "writer": "agent",
-     "heading": "Key Dependencies", "order": 82},
+     "heading": "Key Dependencies", "order": 8200},
     {"file": "84_raci.md", "kind": "raci", "writer": "agent",
-     "heading": "RACI Matrix", "order": 84},
+     "heading": "RACI Matrix", "order": 8400},
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
      "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
-     "order": 88},
+     "order": 8800},
     {"file": "90_appendix-b-gaps.md", "kind": "gap-log", "writer": "python",
-     "heading": "Appendix B — Gap / Validation Log", "order": 90},
+     "heading": "Appendix B — Gap / Validation Log", "order": 9000},
     {"file": "91_appendix-c-screens.md", "kind": "screenshot-index", "writer": "python",
-     "heading": "Appendix C — Screenshot / Evidence Index", "order": 91},
+     "heading": "Appendix C — Screenshot / Evidence Index", "order": 9100},
 ]
 
 PROC_BASE = 10   # first procedure order

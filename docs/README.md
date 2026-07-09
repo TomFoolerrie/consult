@@ -113,10 +113,12 @@ components/
                                     the orchestrator's sole writer; git-ignored)
 ```
 
-Filename prefixes are **coarse bands** (00–09 static, 10–69 procedures, 70–99
+Filename prefixes are **coarse bands** (00–09 static, 10 procedures, 70–99
 derived) for human browsing only. **`manifest.json` `order` is the sole
 authority** for assembly/numbering; a reorder edits `order`, never filenames (so
-per-file git history survives). **`order` values are sparse** (assigned in gaps
+per-file git history survives). In `order` space the derived back-matter sits at
+prefix × 100 (7000+), far above the sparse procedure orders, so any realistic
+procedure count fits below it. **`order` values are sparse** (assigned in gaps
 of 10 — 10, 20, 30…) so a mid-sequence insert gets a value *between* its
 neighbours and renumbers nothing else; only if a gap is exhausted does a local
 renormalize happen (and it touches only the manifest, never filenames).
