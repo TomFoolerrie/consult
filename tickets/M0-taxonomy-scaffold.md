@@ -19,10 +19,11 @@ A–H skeleton), and grounds messy-transcript intake in a canonical noun registr
 ## The flow
 
 ```
-_sources/new/*  + reference taxonomy
+prescribed L1 + _sources/new/*  + reference taxonomy
         │
         ▼  (agent: consult-taxonomy)
-  proposes: procedure set (slug, title, group)   ──┐
+  proposes: procedure set (slug, title, l2, confidence)   ──┐
+            + new-L2-bucket requests (needs-approval)        │
             + first-cut _reference/ (systems, roles, aliases, sources) ─┤
         │                                                               │
         ▼                                                    HUMAN CONFIRM GATE
@@ -37,9 +38,20 @@ _sources/new/*  + reference taxonomy
 
 **New skill `skills/consult-taxonomy/SKILL.md`** (+ a `reference_taxonomy.yaml`
 under its `reference/` as the default backbone; the user may supply their own):
+- Operates in **one prescribed L1** (the orchestrator passes `l1`). Reads the
+  reference taxonomy to get that L1's **L2 sub-process buckets** (the known
+  backbone) and **best-guesses the L3 activities** from the sources, filing each
+  under an L2 bucket. One L3 = one procedure.
 - Read everything in `_sources/new/`; register each in `sources.yaml` (SRC- id +
-  hash + state `new`). Map them onto the reference taxonomy; **propose a procedure
-  set** — `{slug, title, group}` per L3 procedure. Slugs assigned here, once.
+  hash + state `new`). **Propose a procedure set** — `{slug, title, l2,
+  confidence, sources}` per L3. Slugs assigned here, once.
+- **New L2 buckets need approval.** If sources describe work fitting no existing
+  L2 bucket, propose it in `new_buckets.yaml` flagged `needs-approval` and surface
+  it in the return — never silently invent a bucket. The human approves/rejects at
+  the confirm gate (a subagent can't round-trip mid-run; the gate is the
+  permission point). Activities belonging to a **different L1** are reported, not
+  scoped.
+- See `.claude/agents/consult-taxonomy.md` for the full proposal shapes.
 - **Tag sources → procedures.** For each source, record which procedure slugs it
   informs (in `sources.yaml`, e.g. `touches: [bank-reconciliation, close]`). This
   is what lets the orchestrator hand each parallel `consult-drafter` only its

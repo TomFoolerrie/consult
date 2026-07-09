@@ -40,9 +40,10 @@ or it drifts (review #4).
 
 New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
 - `load_manifest(folder)`, `validate_manifest(m)` (v1 schema).
-- `display_numbers(manifest) -> {slug: "g.s"}` — **the only** implementation of
-  group.sequence numbering. Imported by reconcile (M2), aggregate (M3), and the
-  docx builder (M4). No one else computes numbers.
+- `display_numbers(manifest) -> {slug: "L2.seq"}` — **the only** implementation of
+  the display number `{L2-ordinal}.{activity-seq}` (L2s ordered per the reference
+  taxonomy; activity by `order` within its L2). Imported by reconcile (M2),
+  aggregate (M3), and the docx builder (M4). No one else computes numbers.
 - `resolve_tokens(text, numbers, mode) -> text` — replaces `[[slug]]` with the
   display number (or `number + title`); unknown slug → error.
 - `assemble(folder) -> AssembledDoc` — returns **structured** data, not a bare
@@ -56,11 +57,11 @@ New shared module `skills/consult-drafter/scripts/doc_model.py` (name TBD):
   in the manifest (`title`, `subtitle`), not duplicated into a fragment.
 - Emit `manifest.json` per the v1 schema: `{schema, area, title, subtitle,
   components:[…]}` with per-component `file, role, heading, order`, plus `slug` +
-  `group` for procedures and `derived_kind` + `writer` for derived.
+  `l2` for procedures and `derived_kind` + `writer` for derived.
 - Role inference **at bootstrap only**: `derived` if the section carries the M1
   `<!-- derived: KIND; writer: W -->` marker; `static` for the pre-procedure
   human sections; otherwise `procedure` (slug = slugified heading, set once;
-  group from `<!-- group: N -->` marker or 1).
+  `l2` bucket slug from the `<!-- l2: … -->` marker).
 - Filename = `{band}_{slug}.md` with coarse bands (static 00–09, procedures
   10–69, python-index 70–79, agent-derived 80–89, python-appendices 90–99).
   Bands are stable; inserting a procedure reuses band 10 with a new slug and
@@ -102,8 +103,8 @@ across the concatenated text, which is wrong now that IDs are procedure-local
 - Splitting an M1 template produces one `00_`/`static` frontmatter set, one
   fragment per `##` section, and a schema-valid `manifest.json` carrying `title`
   + `subtitle`.
-- `display_numbers` returns the expected `{group}.{seq}` for a multi-procedure,
-  multi-group fixture; it is the only place numbering is computed.
+- `display_numbers` returns the expected `{L2}.{seq}` for a multi-procedure,
+  multi-L2 fixture; it is the only place numbering is computed.
 - `resolve_tokens` turns `[[bank-reconciliation]]` into its number; an unknown
   slug errors.
 - Renaming a procedure heading in-place and reconciling does **not** change its

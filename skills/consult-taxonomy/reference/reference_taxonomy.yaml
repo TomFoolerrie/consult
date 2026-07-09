@@ -1,0 +1,72 @@
+# Reference taxonomy — the L1 / L2 backbone for scoping.
+# L1 = top-level finance function; L2 = sub-process bucket.
+# L3 activities are NOT enumerated here — consult-taxonomy discovers them from
+# the sources and files each under an L2 bucket. This file is the DEFAULT
+# backbone; a user may supply their own. The taxonomy is never mutated at runtime.
+
+taxonomy:
+  name: Overall Finance
+  levels:
+    - id: L1
+      label: Function
+    - id: L2
+      label: Sub-process
+
+  categories:
+    - name: Procure to Pay
+      subcategories:
+        - Vendor Management
+        - Sourcing
+        - Procurement
+        - Receiving
+        - Invoice Processing
+        - Payments
+
+    - name: Order to Cash
+      subcategories:
+        - Credit Analysis
+        - Invoice Customer
+        - Process Accounts Receivable
+        - Manage and Process Collections
+        - Process Adjustments and Deductions
+        - Revenue Recognition
+
+    - name: Record to Report
+      subcategories:
+        - Pre-Close Set-Up
+        - Close
+        - Consolidation
+        - Reporting
+        - Accounting Policy
+
+    - name: Financial Planning & Analysis
+      subcategories:
+        - Strategic Planning & Budgeting
+        - Forecasting
+        - Reporting & Analysis
+        - Business Support
+        - Data Management
+
+    - name: Treasury
+      subcategories:
+        - Cash Management
+        - Investment Management
+        - Liquidity
+        - Financial Risk
+        - Interest Rate Management
+
+    - name: Tax
+      subcategories:
+        - Tax Reporting
+        - Income Tax Compliance
+        - Indirect Tax
+        - Tax Controversy
+        - Tax Strategy & Planning
+
+    - name: Policy, Risk & Controls
+      subcategories:
+        - Policies & Procedures
+        - Risk Assessment
+        - Internal Controls
+        - Monitoring
+        - Reporting

@@ -27,8 +27,8 @@ procedure` fragment, and `_reference/*.yaml`.
 
 **Python-owned files (one writer each) — full rebuild each run, marker re-emitted:**
 - `70_procedure-index.md` (`procedure-index`) — In-Scope index: one row per
-  procedure `{[[slug]] token, title, group, Direction/Frequency/Owner from
-  B. Quick Reference}`.
+  procedure `{[[slug]] token, title, l2 bucket, Direction/Frequency/Owner from
+  B. Quick Reference}`, grouped by L2 bucket in taxonomy order.
 - `80_role-dictionary.md` (`role-dictionary`) — join from `roles.yaml`
   (role, reports-to, responsibilities) + "Appears In" `[[slug]]` list from each
   procedure's `consult-meta` `roles:` list.

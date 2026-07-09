@@ -140,10 +140,13 @@ No numbered-module regex, no appendix regex, no "shallowest level" computation.
   never a copied title. (Nouns — systems/roles — are plain canonical text, not
   tokens.)
 - **Display number (`1.1`) = derived, rendered late.** One shared helper
-  `display_numbers(manifest) -> {slug: "g.s"}` is the *only* implementation of
-  group.sequence. At render time (M4) the docx builder prefixes procedure
-  headings and resolves `[[slug]]` tokens via that map. Numbers live in exactly
-  one place and cannot drift.
+  `display_numbers(manifest) -> {slug: "L2.seq"}` is the *only* implementation of
+  the number. It is `{L2-ordinal}.{activity-seq}`: the L2 bucket's ordinal (L2s
+  ordered as they appear in the reference taxonomy for this L1) dot the procedure's
+  1-based position within that bucket (by `order`). So Close's activities are 1.1,
+  1.2; Consolidation's are 2.1, 2.2. At render time (M4) the docx builder prefixes
+  procedure headings and resolves `[[slug]]` tokens via that map. Numbers live in
+  exactly one place and cannot drift.
 - Callout IDs are **scoped to their procedure** (see below), independent of the
   number, so reordering never cascades.
 
@@ -173,7 +176,7 @@ add/remove/reorder.
 
     { "file": "10_bank-reconciliation.md", "role": "procedure",
       "slug": "bank-reconciliation", "heading": "Bank Reconciliation",
-      "group": 1, "order": 10 },
+      "l2": "close", "order": 10 },
 
     { "file": "81_systems.md", "role": "derived", "derived_kind": "systems",
       "writer": "python", "heading": "Systems & Data Inputs", "order": 81 },
@@ -186,7 +189,9 @@ add/remove/reorder.
 
 - `role` ∈ `static` | `procedure` | `derived`.
   - `static` = human-owned, non-procedure, not generated.
-  - `procedure` = source of truth; carries `slug` + `group` (int, default 1).
+  - `procedure` = source of truth; carries `slug` + `l2` (the L2 sub-process
+    bucket slug it files under — from the reference taxonomy, or an approved new
+    bucket). An L3 activity = one procedure; the L2 bucket is its group.
   - `derived` = generated; carries `derived_kind` and **exactly one** `writer`
     ∈ `python` | `agent`. There are no split-writer files (see below).
 - `role` is authoritative — read from the manifest, never re-inferred at steady

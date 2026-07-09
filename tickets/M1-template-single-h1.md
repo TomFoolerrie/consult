@@ -68,8 +68,9 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
   hand-edit them and so reconcile can verify ownership:
   `<!-- derived: gap-log; writer: python -->`,
   `<!-- derived: roles; writer: agent -->`, etc.
-- Optional per-procedure grouping marker `<!-- group: 2 -->` when an area needs
-  the `2.x` cluster; absent → group 1.
+- Per-procedure L2 marker `<!-- l2: consolidation -->` naming the procedure's L2
+  bucket (drives the `{L2}.{seq}` display number). Set by M0 scaffold from the
+  confirmed `procedures.yaml`; humans rarely touch it.
 
 `skills/consult-drafter/SKILL.md` — **refocus from whole-document to
 single-procedure.** The current SKILL drafts an entire multi-procedure document;

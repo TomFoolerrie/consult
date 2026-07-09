@@ -22,7 +22,7 @@ an already-decided set.
 ## Sketch (not a spec)
 
 - A scoping agent reads new/changed sources and proposes a procedure set (slugs +
-  short titles + suggested group).
+  short titles + suggested L2 bucket).
 - Diff proposed slugs against existing manifest procedures: **new** → create a
   fragment + manifest entry; **missing** → flag for human (never auto-delete a
   human-authored procedure); **split/merge** → propose, human confirms.
