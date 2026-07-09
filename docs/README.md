@@ -108,7 +108,9 @@ components/
     90_appendix-b-gaps.md        derived, PYTHON-owned (pure mechanical)
     91_appendix-c-screens.md     derived, PYTHON-owned (pure mechanical)
     manifest.json                order, grouping, roles, ownership, title/subtitle
-    .hashes.json                 per-procedure content hashes (M5 change signal; git-ignored)
+    .hashes.json                 per-derived-kind procedure-hash baseline (M5 change signal;
+                                    {derived_kind: {slug: sha}}; written by scope_delta.py commit,
+                                    the orchestrator's sole writer; git-ignored)
 ```
 
 Filename prefixes are **coarse bands** (00–09 static, 10–69 procedures, 70–99
@@ -257,7 +259,9 @@ for unaffected rows without a synthetic key.
   | IMPROVEMENT OPPORTUNITY | `IO-` |
   | SCREENSHOT PLACEHOLDER | `SC-` |
 
-- **Body gap tags** `[[GAP-NN — TEXT]]` (bare `[[GAP — …]]` = ERROR).
+- **Body gap tags** `[[GAP-NN — TEXT]]` (bare `[[GAP — …]]` = ERROR). `doc_model.resolve_tokens`
+  deliberately skips them (they aren't procedure cross-refs); `render.py` flags any that reach
+  the docx as a bold `[GAP-NN — TEXT]` marker so an unresolved gap is never silently invisible.
 - **Callout sub-fields** — a callout's structured fields are blockquote bullet
   lines directly under its label line, grammar `> - **<Field>:** <value>` (bold
   label, colon inside the bold, value after). M3 parses these deterministically.

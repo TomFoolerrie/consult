@@ -76,7 +76,10 @@ under its `reference/` as the default backbone; the user may supply their own):
 - Confirm = run `scaffold.py --confirm`: it **promotes** `.proposed/` → the real
   `_reference/`, then scaffolds the manifest + skeletons. Nothing reaches the live
   folder until this runs. This is the one high-blast-radius judgment in the
-  system; it is never auto-applied.
+  system; it is never auto-applied. On a fully successful scaffold, `confirm()`
+  then **deletes `_reference/.proposed/`** — it is the sole stage that clears it,
+  which is what lets the advisor's confirm gate (guard 1) stop firing once the
+  area has actually moved past it.
 - **On the incremental path, promote is a MERGE, not a replace** (r3 review #12):
   a delta in `.proposed/` is merged into the existing `_reference/` (new entries
   added, existing ones untouched unless the delta changes them; approved

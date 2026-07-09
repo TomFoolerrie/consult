@@ -7,8 +7,10 @@
 
 A deterministic Python engine that reads all procedure fragments + the
 `_reference/` registry and (a) regenerates every python-owned derived view in
-full, (b) writes a `> _Pending synthesis (M5)._` placeholder into the agent-owned
-files, and (c) emits an extract bundle for the M5 agents.
+full, (b) stamps a `> _Pending synthesis (M5)._` placeholder into an agent-owned
+file only while it has no real content yet (missing or still a stub — never
+clobbering the M5 agent's write on re-aggregation), and (c) emits an extract
+bundle for the M5 agents.
 
 ## Why
 
@@ -45,9 +47,12 @@ procedure` fragment, and `_reference/*.yaml`.
   (`screenshot-index`) — one row per `GAP-` / `SC-`, Source Procedure `[[slug]]`
   column (IDs procedure-local, so the column disambiguates).
 
-**Agent-owned files — placeholder now, M5 fills them:**
+**Agent-owned files — placeholder until the agent writes, never clobbered after:**
 - `82_dependencies.md`, `84_raci.md` → heading + marker + `> _Pending synthesis
-  (M5)._`. (Each a clean single-writer file. M3 writes only the placeholder.)
+  (M5)._` **the first time** (file missing, or still holding that placeholder/a
+  scaffold stub). Once the M5 agent has written real content, re-running aggregate
+  leaves the file alone — the agent is the file's ONE writer; aggregate only ever
+  seeds it, never overwrites it.
 
 **Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5. Both M5
 agents do prose judgment, so the bundle carries the **relevant procedure prose**
@@ -90,7 +95,9 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
   views), `2` = bad usage / unreadable input.
 - **Manifest-driven output:** the writer set is read from the manifest's
   `derived` components, not hard-coded — `writer: python` dispatches by
-  `derived_kind` to a builder; `writer: agent` gets the pending placeholder. Each
+  `derived_kind` to a builder; `writer: agent` gets the pending placeholder only
+  when the file is missing or still a stub (never once it holds the agent's real
+  content). Each
   file is written as `## <heading>` + `<!-- derived: KIND; writer: W -->` + body,
   so it drops straight into `doc_model.assemble` alongside the fragments.
 - **Shared ID grammar lives in `aggregate.py`** (`LABEL_TO_PREFIX`,
@@ -117,7 +124,8 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
   back-references derived from `consult-meta` slug lists; a `consult-meta` slug
   absent from the registry raises a WARNING (not dropped). No prose is scraped.
 - `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md` and
-  `82_dependencies.md` hold pending placeholders.
+  `82_dependencies.md` hold pending placeholders **until the M5 agent writes them**
+  — re-running aggregate after that leaves their real content untouched.
 - `88_appendix-a.md` rows come only from the `H` section's PP/IO callouts, with
   impact + severity read from the callout (no judgment agent involved).
 - Re-running aggregate after a human adds a registry entry clears that entry's

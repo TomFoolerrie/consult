@@ -41,7 +41,8 @@ bottom, **first match wins.** This is what stops the advisor from re-running
 | # | Guard (first match wins) | Next action |
 |---|---|---|
 | 1 | `_reference/.proposed/` exists | `confirm` (HUMAN GATE) — highest, so a pending proposal is never re-scoped |
-| 2 | `_review/*.notes.yaml` present | `apply_review` — one `consult-drafter` (update) per slug, **skip taxonomy** (M8) |
+| 2 | `_review/*.notes.yaml` present, **excluding** `_unassigned.notes.yaml` | `apply_review` — one `consult-drafter` (update) per slug, **skip taxonomy** (M8); if `_unassigned.notes.yaml` also exists, its path rides along in the details so the human is told about it too |
+| 2b | only `_review/_unassigned.notes.yaml` present (no per-slug notes) | `review_triage` (HUMAN GATE) — `review_extract.py` couldn't attribute these items to a procedure; a human moves each into the right `{slug}.notes.yaml` or archives the file |
 | 3 | no `manifest.json` **and** `_sources/new/` non-empty | `taxonomy` (initial) |
 | 4 | `manifest.json` exists **and** any procedure still carries the `unfilled` sentinel | `fill` (fan out one drafter per unfilled procedure) |
 | 5 | `manifest.json` exists **and** `_sources/new/` non-empty (no unfilled, no `.proposed/`) | `taxonomy` (incremental) |
@@ -75,7 +76,7 @@ are **git-ignored, at the area root**, and are the M7 orchestration contract:
 | File | Written by | Shape | Guards it drives |
 |---|---|---|---|
 | `.aggregate.json` | `aggregate.py` | `{proc_hashes:{slug:sha}, registry_hash:sha, warnings:[…]}` | 6 (stale if proc/registry hash differs), 7 (topup if `warnings`) |
-| `.hashes.json` | synthesize (M5 pass) | `{slug:sha}` — procedures as of last synthesis (the "M5 change signal") | 9 (synthesize if current proc hashes differ) |
+| `.hashes.json` | `scope_delta.py commit` (the orchestrator runs it per kind, after each M5 agent succeeds — the sole writer) | `{derived_kind:{slug:sha}}` — per-kind procedure-hash baseline as of that kind's last successful write (the "M5 change signal") | 9 (synthesize if current proc hashes differ from a kind's baseline) |
 | `.reconcile.json` | `reconcile.py` | `{basis:sha, clean:bool}` | 8 (reconcile if basis stale or not clean) |
 | `.render.json` | renderer (M4) | `{basis:sha, docx:path, awaiting_review:bool}` | 10 (render if basis stale), 11 (review if awaiting) |
 
@@ -119,8 +120,9 @@ compact status (files written, warnings, done) — the orchestrator never ingest
 the drafts or sources itself. It:
 - **Moves sources** `_sources/new/` → `processed/` (and flips `sources.yaml`
   state) only after the fill that consumed them succeeds.
-- **Stops and hands back to the human** at `confirm`, `registry_topup`, and
-  `review`, with a clear message of what to do; it never auto-crosses a gate.
+- **Stops and hands back to the human** at `confirm`, `registry_topup`,
+  `review_triage`, and `review`, with a clear message of what to do; it never
+  auto-crosses a gate.
 - Re-running is always safe — `orchestrate.py` re-derives the next step from
   state, so the user can invoke the skill repeatedly ("continue fixed-assets").
 

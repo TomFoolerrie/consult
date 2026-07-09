@@ -78,9 +78,16 @@ renumbered).
   `word/comments.xml`. `w:commentReference` runs are ignored.
 - **Anchor** is the enclosing span/paragraph visible text (inserted text kept,
   deleted text dropped), squeezed and clipped to ~160 chars.
+- **Paragraphs inside tables are walked too** (`w:tbl` → `w:tr` → `w:tc` → `w:p`),
+  not just direct children of the body — so a comment or tracked change anchored
+  in the Appendix A pain-points table (or any other derived table) is captured
+  instead of silently skipped.
 - **Unattributable feedback** (a change/comment anchored outside any procedure —
-  e.g. in a static or derived section) is **skipped with a WARNING to stderr**,
-  never silently dropped and never written to a bogus slug.
+  e.g. in a static or derived section) is **never silently dropped**: it's
+  reported with a WARNING to stderr *and* written to `_review/_unassigned.notes.yaml`
+  (sentinel slug `_unassigned`) instead of a per-procedure file, so a human can
+  triage it by hand. The run's stdout summary also surfaces the unassigned count
+  (`Items: N across M procedure(s) (+K unassigned)`).
 
 ### Notes file schema (what the drafter reads)
 
@@ -134,7 +141,12 @@ a successful pass the orchestrator archives that procedure's applied notes.
 
 Add: `_review/` notes present → next action `apply_review` = re-dispatch
 `consult-drafter` (update) for the annotated procedures, skip taxonomy → then
-`aggregate` → `render`. Route strictly by folder.
+`aggregate` → `render`. Route strictly by folder. `_review/_unassigned.notes.yaml`
+is excluded from that per-slug dispatch (`AreaState.review_notes()`); if it's the
+**only** notes file present, the advisor returns the `review_triage` human gate
+instead, and when it coexists with real per-slug notes its path rides along in
+`apply_review`'s details so the human is told to triage it too. See M7's guard
+table.
 
 ## Acceptance
 
@@ -145,8 +157,11 @@ Add: `_review/` notes present → next action `apply_review` = re-dispatch
   rendered heading's display number (or title) through `display_numbers`.
 - A `del`→`ins` replacement collapses to one `X → Y` change; a bare insert/delete
   renders as `inserted:`/`deleted:`; author + date are preserved.
-- Feedback anchored outside any procedure is reported as a WARNING, not dropped
-  silently and not misfiled.
+- Feedback anchored outside any procedure is reported as a WARNING and routed to
+  `_review/_unassigned.notes.yaml`, not dropped silently and not misfiled into a
+  real procedure's notes.
+- A comment or tracked change anchored inside a table cell (e.g. Appendix A) is
+  captured, not skipped.
 - Notes land in `_review/`, never `_sources/new/`; the orchestrator routes them to
   the drafter without invoking taxonomy.
 - The drafter update pass applies the tracked change, addresses the comment, and

@@ -36,6 +36,10 @@ orchestrator-invoked scripts under `scripts/`, per the README script layout).
   Appendix A "Source Procedure") show current numbers even though the source
   files store only slugs. A single reorder therefore renumbers headings *and*
   cross-refs consistently, with no stale back-references (review #2).
+  `resolve_tokens` deliberately leaves body gap tags `[[GAP-NN — label]]` alone
+  (they aren't `[[slug]]` cross-refs); `render.py` separately re-renders any that
+  survive as a bold `[GAP-NN — label]` flag so an unresolved gap is visible in
+  Word rather than reaching the reader as a raw wiki-bracket token.
 - **Cover:** branch cover construction on input mode (review r3 #10). *Folder
   input* → title/subtitle come from the **manifest**, and the Document Profile
   card from the `00_document-profile` section (the current `extract_cover_data`
