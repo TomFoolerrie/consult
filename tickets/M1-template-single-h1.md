@@ -44,6 +44,21 @@ precondition for the dead-simple splitter (M2) and for a clean scaffold (M0).
 - Each procedure becomes `## <Plain Title>` — **no leading `1.1` in the
   heading** (the number is derived and rendered late). A–H sub-sections `###`,
   steps `####`.
+- **Per-procedure A–H — callout homes (no separate callout block):** each callout
+  type lives in its semantic section, with the formalized structure defined in
+  `.claude/agents/consult-drafter.md`:
+  - `A. Process Overview` · `B. Quick Reference` · `C. Pre-Requisites` ·
+    `D. Inputs` unchanged.
+  - `E. Step-by-Step` — steps carry judgment-placed inline bolded tags
+    (System/Tool · Navigation Path · Fields/Parameters · Expected Result ·
+    Evidence Required). **GAP (VALIDATION REQUIRED) and SCREENSHOT callouts live
+    inline** at the step they attach to; body gap refs `[[GAP-01 — …]]`.
+  - `F. Key Controls` — **CONTROL callouts replace the old controls table.**
+  - `G. Outputs` unchanged.
+  - `H. Known Issues & Improvement Opportunities` — **PAIN POINT + IMPROVEMENT
+    callouts** (this section is the structured source for Appendix A).
+- **Appendix A retitled** "Pain Points & Improvement Opportunities" (drop "Risks";
+  fed by PP + IO callouts only). Appendix B = gaps, C = screenshots, D = glossary.
 - Each procedure ends with an empty **`consult-meta` end-matter block** (fenced,
   info-string `consult-meta`, YAML body with empty `systems: []` / `roles: []`)
   per the README contract. The fill agent populates the registry slugs; the docx

@@ -72,35 +72,42 @@ review, or auditability — not mechanically on every step:
 - **Evidence Required:** ...
 ```
 
-### Callout block — formalized, directly after the steps, NO header
-After the **last step** of the Step-by-Step section, list all callouts for this
-procedure as a block with **no heading of its own** (they simply follow the
-steps). Each callout uses its fixed structure below. The label line grammar is
-exact (delimiter may be `-`/`–`/`—`); IDs are **procedure-local** (start each
-series at 001/01 — other procedures reuse the same numbers, which is correct):
+### Callouts — formalized, each in its home section
+Callouts are **not** a separate block; each type lives in its semantic section.
+The label line grammar is exact (delimiter may be `-`/`–`/`—`); IDs are
+**procedure-local** (start each series at 001/01 — other procedures reuse the same
+numbers, which is correct). Fixed structures:
 
+**In `F. Key Controls`** — CONTROL callouts (replace the old table):
 ```
 > **CONTROL — CTRL-001:** <what is checked / reconciled / approved>
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** <e.g. each run / monthly>   (TBD + raise GAP if unknown)
 > - **Owner:** <role>                           (TBD + raise GAP if unknown)
+```
 
+**In `H. Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
+callouts (this section IS the structured source for Appendix A — Pain Points &
+Improvement Opportunities):
+```
+> **PAIN POINT — PP-001:** <observed current-state friction, source-grounded>
+
+> **IMPROVEMENT OPPORTUNITY — IO-001:** <future-state opportunity; do not rewrite current state>
+```
+Impact / priority / recommendation for PP/IO are **not** yours — the
+`consult-appendix-a-judgment` agent fills those downstream. State the observation
+only.
+
+**Inline in `E. Step-by-Step`** — at the step they attach to:
+```
 > **VALIDATION REQUIRED — GAP-01:** <the specific fact/decision to confirm>
 > - **Nature:** unknown | conflict | unsupported-assumption
 > - **Owner to confirm:** <role or TBD>
 
-> **PAIN POINT — PP-001:** <observed current-state friction, source-grounded>
-
-> **IMPROVEMENT OPPORTUNITY — IO-001:** <future-state opportunity; do not rewrite current state>
-
 > **SCREENSHOT PLACEHOLDER — SC-01:** <what to capture and what it must validate>
 ```
-
-Impact / priority / recommendation for PP/IO are **not** yours — the
-`consult-risk-judgment` agent fills those downstream. State the observation only.
-A body gap reference (where the unknown occurs in a step) uses `[[GAP-01 — SHORT
-LABEL]]` (never a bare `[[GAP — …]]`) and must match a `VALIDATION REQUIRED`
-callout in the block.
+A body gap reference in a step's prose uses `[[GAP-01 — SHORT LABEL]]` (never a
+bare `[[GAP — …]]`) and must match a `VALIDATION REQUIRED` callout in that step.
 
 ## The non-negotiable rules
 

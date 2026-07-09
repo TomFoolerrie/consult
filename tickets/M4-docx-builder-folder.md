@@ -37,8 +37,8 @@ both procedure headings and `[[slug]]` cross-references (review #1, #2, #4).
   line-scan for a `# ` H1 does not apply — there is no inline H1). *Single-file
   input* → keep the legacy H1/tagline scan. `--no-cover` leaves Document Profile
   inline.
-- **Appendix A render-join:** merge `88_risk-observations.md` (Python) and
-  `89_risk-judgment.md` (agent) into one Risks table, joined on the
+- **Appendix A render-join:** merge `88_appendix-a-observations.md` (Python) and
+  `89_appendix-a-judgment.md` (agent) into one Pain Points & Improvement Opportunities table, joined on the
   `(source-procedure slug, PP-/IO- id)` key. Missing judgment for a row → render
   the observation with blank judgment cells (not an error). This is how Appendix A
   stays one reader-facing table while each source file has a single writer.

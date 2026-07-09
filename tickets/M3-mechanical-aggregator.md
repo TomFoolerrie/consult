@@ -37,22 +37,22 @@ procedure` fragment, and `_reference/*.yaml`.
   Procedures" cell = the `[[slug]]` tokens of procedures whose **`consult-meta`
   `systems:` list** contains that entry's slug. No prose scraping, no alias
   guessing — the slug list is the binding (see README noun-binding contract).
-- `88_risk-observations.md` (`risk-observations`) — one row per `PP-`/`IO-`
+- `88_appendix-a-observations.md` (`appendix-a-observations`) — one row per `PP-`/`IO-`
   callout: `{(slug, id), observation text, Source Procedure [[slug]]}`. This is
-  the Python half of Appendix A; M4 joins it with `89_risk-judgment.md` on
+  the Python half of Appendix A; M4 joins it with `89_appendix-a-judgment.md` on
   `(slug, id)` at render.
 - `90_appendix-b-gaps.md` (`gap-log`) / `91_appendix-c-screens.md`
   (`screenshot-index`) — one row per `GAP-` / `SC-`, Source Procedure `[[slug]]`
   column (IDs procedure-local, so the column disambiguates).
 
 **Agent-owned files — placeholder now, M5 fills them:**
-- `82_dependencies.md`, `84_raci.md`, `89_risk-judgment.md` → heading + marker +
+- `82_dependencies.md`, `84_raci.md`, `89_appendix-a-judgment.md` → heading + marker +
   `> _Pending synthesis (M5)._`. (No shared file, no region markers — each is a
   clean single-writer file. M3 does not write into them beyond the placeholder.)
 
 **Extract bundle `<area>.extract.json` (scratch, git-ignored)** for M5:
-- `risk_observations`: the `(slug, id)` + observation rows M3 wrote to
-  `88_`, so the `89_risk-judgment` agent keys its judgment rows on the same pair.
+- `appendix_a_observations`: the `(slug, id)` + observation rows M3 wrote to
+  `88_`, so the `89_appendix-a-judgment` agent keys its judgment rows on the same pair.
 - `raw_dependencies`: each procedure's `A. Process Overview` text, tagged by slug.
 - `raci_grid`: role × procedure/step incidence (which matched role appears in
   which procedure's steps) as a candidate grid for `84_raci`.
@@ -85,8 +85,8 @@ tolerant (`-`/`–`/`—`); ID grammar strict.
   back-references derived from `consult-meta` slug lists; a `consult-meta` slug
   absent from the registry raises a WARNING (not dropped). No prose is scraped.
 - `80_role-dictionary.md` comes from `roles.yaml`; `84_raci.md`,
-  `82_dependencies.md`, `89_risk-judgment.md` hold pending placeholders.
-- `88_risk-observations.md` rows come only from callouts; `H. Known Issues` is not
+  `82_dependencies.md`, `89_appendix-a-judgment.md` hold pending placeholders.
+- `88_appendix-a-observations.md` rows come only from callouts; `H. Known Issues` is not
   read.
 - Re-running aggregate after a human adds a registry entry clears that entry's
   WARNING (top-up loop works).
