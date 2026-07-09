@@ -114,7 +114,22 @@ def _flag_gap_tags(text: str) -> str:
     return re.sub(r"\[\[\s*(GAP-\d+[^\]]*?)\s*\]\]", r"**[\1]**", text)
 
 
+def _strip_own_heading(text: str) -> str:
+    """Drop the fragment's own leading `## Heading` line.
+
+    Each component file opens with its own H2 (the single-H1/flat-H2 contract),
+    but the assembled doc emits the manifest heading — the numbering/TOC
+    authority — so the body's copy would render every section heading twice.
+    Only a leading H2 is dropped; anything after real content is left alone.
+    """
+    lines = text.lstrip("\n").split("\n", 1)
+    if lines and lines[0].startswith("## "):
+        return lines[1] if len(lines) > 1 else ""
+    return text
+
+
 def _clean_body(text: str, numbers) -> str:
+    text = _strip_own_heading(text)
     text = _strip_consult_meta(text)
     text = _strip_derived_markers(text)
     text = _resolve_tokens(text, numbers)
