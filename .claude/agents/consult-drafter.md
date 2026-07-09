@@ -27,7 +27,12 @@ file is the deliverable.
   first pass; **your own prior draft** on an update pass).
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
-- `mode` — `first-draft` or `update` (new source(s) tagged in, or a reviewer edit).
+- `mode` — `first-draft` or `update`. Update is driven by either newly-tagged
+  `_sources/`, or **procedure-anchored review notes** (`_review/`, from M8's
+  `review_extract.py`) passed in the dispatch prompt: tracked changes (treat as
+  **high-authority SME input** — apply them) and comments (answer in the body, or
+  raise a GAP if unresolved). Each note carries its location (procedure → A–H
+  subsection → step) + anchor text, so you know exactly where it applies.
 
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do

@@ -85,8 +85,10 @@ triggers reassessment (M6) and re-dispatch of the drafters it touches.
 components/
   <l1-area>/                     one area = one "document" = its own git history
     _sources/                    raw input documents (see "Sources lifecycle")
-      new/                       dropped here; not yet consumed
+      new/                       dropped here; not yet consumed → taxonomy reads these
       processed/                 moved here once ingested into procedures
+    _review/                     procedure-anchored review notes (M8) → drafter, NOT taxonomy
+      processed/                 consumed reviewed .docx + applied notes, archived
     _reference/                  the noun database (human-confirmed)
       systems.yaml               canonical systems + aliases + description/limitations
       roles.yaml                 canonical functional roles + reports-to + responsibilities
@@ -351,8 +353,15 @@ M2·doc_model.py (shared spine)      ┴─▶ M0 (taxonomy + registry + confirm
                                           │                          │
                                         M4 (docx builder) ◀──────────┘
 M2·import-splitter = legacy single-file .md → folder (optional, last)
+M8 (review loop: Word tracked-changes + comments → drafter) — after M4
 M6 (taxonomy/registry REASSESSMENT on new sources) — DEFERRED
 ```
+
+**Two "new input" folders, routed by folder (deterministic):** `_sources/new/`
+(raw docs) → `consult-taxonomy` (it reads them to tag `touches` + detect scope
+deltas). `_review/` (procedure-anchored notes from `review_extract.py`, M8) →
+straight to `consult-drafter` update mode, **skipping taxonomy**. The router never
+guesses content — the folder decides.
 
 - **After M1 + M2·doc_model + M0 + fill + M3 + M4**: a full document renders —
   procedures, In-Scope index, Systems, Role Dictionary, Appendix B/C are real.

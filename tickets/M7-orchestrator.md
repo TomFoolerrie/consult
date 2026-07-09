@@ -33,17 +33,24 @@ stage scripts/agents — the MVP analogue of the original `consult-run`.
 it derives the **single next action** from state and prints it (`--json`);
 it never mutates. State signals:
 
+Routing is **by folder** (deterministic — the advisor never guesses content):
+
 | Folder state | Next action |
 |---|---|
 | no `manifest.json`, `_sources/new/` non-empty | `taxonomy` (scope + stage proposals) |
 | `_reference/.proposed/` exists, not yet confirmed | `confirm` (HUMAN GATE) |
 | manifest exists, procedure skeletons empty | `fill` (fan out one agent per procedure) |
+| `_sources/new/` non-empty **on an already-scaffolded area** | `taxonomy` (incremental) — reads new docs, tags `touches`, may propose scope delta → `confirm` |
+| `_review/` notes present | `apply_review` — re-dispatch `consult-drafter` (update) for the annotated procedures, **skip taxonomy** (M8) |
 | procedures changed vs `.hashes.json` | `aggregate` then `synthesize` |
 | aggregate emitted unmatched-mention WARNINGs | `registry_topup` (HUMAN: add entry/alias, re-run) |
 | all views current | `render` |
 | rendered; awaiting review | `review` (HUMAN GATE) |
-| review edits dirtied procedures | back to `aggregate` |
 | nothing outstanding | `done` |
+
+The two "new input" folders route differently on purpose: `_sources/new/` → the
+scope-aware path (taxonomy reads it); `_review/` → straight to the drafter (notes
+are already procedure-anchored by `review_extract.py`). See M8.
 
 **2. `skills/consult-orchestrate/SKILL.md` — the driver the user talks to.**
 Loops `orchestrate.py next`, and for each returned action either runs the
