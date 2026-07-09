@@ -9,6 +9,7 @@ description: >-
   gate before anything scaffolds. Returns a compact proposal summary; writes only under
   _reference/.proposed/. Runs once per area, dispatched by consult-orchestrate.
 tools: Read, Write
+skills: consult-taxonomy
 ---
 
 # consult-taxonomy — scoping + registry stand-up (one L1)

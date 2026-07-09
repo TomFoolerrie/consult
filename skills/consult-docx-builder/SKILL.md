@@ -28,14 +28,14 @@ Two input modes:
 
 - **Component folder (primary).** An area directory containing `manifest.json`
   and its `NN_*.md` components. This is how the orchestrator renders — via the
-  top-level entrypoint `scripts/render.py <area>`, which imports M2's
+  top-level entrypoint `"${CLAUDE_PLUGIN_ROOT}/scripts/render.py" <area>`, which imports M2's
   `doc_model.assemble(folder)` to get the structured document and hands it to
   this converter's `convert_assembled` hook.
 - **Single Markdown file (back-compat).** A finalized single-file draft,
   normally produced by `consult-drafter`.
 - Optional output filename.
 
-The input should already be reconciled — run `reconcile.py` first so IDs
+The input should already be reconciled — run `"${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py"` first so IDs
 (`CTRL-001`, `PP-001`, `IO-001`, `GAP-01`, `SC-01`, `SRC-001`) and their
 appendix rows are consistent before rendering to Word.
 
@@ -46,7 +46,7 @@ the manifest — never in a fragment) and every section is `##`. For folder inpu
 
 - **Title/subtitle come from the manifest**, not from an inline H1 scan; the
   Document Profile card is lifted from the `document-profile` static section.
-- **Display numbers are resolved late, here.** `scripts/render.py` prefixes each
+- **Display numbers are resolved late, here.** `"${CLAUDE_PLUGIN_ROOT}/scripts/render.py"` prefixes each
   `procedure` heading with its `{L2}.{seq}` number and resolves every `[[slug]]`
   cross-reference (in prose *and* derived tables — Systems "Related Procedures",
   Appendix A "Source Procedure") through M2's single `display_numbers` map. A
@@ -61,8 +61,8 @@ never computes them.
 ## Script Location
 
 ```text
-scripts/cfgi_markdown_to_word.py     # the converter (this skill)
-scripts/render.py                    # top-level folder entrypoint (imports doc_model + this converter)
+${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py     # the converter (this skill)
+${CLAUDE_PLUGIN_ROOT}/scripts/render.py                  # top-level folder entrypoint (imports doc_model + this converter)
 ```
 
 ## Commands
@@ -70,37 +70,37 @@ scripts/render.py                    # top-level folder entrypoint (imports doc_
 Render a component folder (what the orchestrator runs):
 
 ```bash
-python3 scripts/render.py <area> -o <out.docx>
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/render.py" <area> -o <out.docx>
 ```
 
 Default single-file conversion (builds a cover page):
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md
+python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md
 ```
 
 Named output:
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx
+python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx
 ```
 
 Insert a generated Table of Contents:
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx --include-toc
+python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx --include-toc
 ```
 
 Landscape orientation (useful for wide appendix tables):
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx --landscape
+python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx --landscape
 ```
 
 Skip the generated cover page:
 
 ```bash
-python scripts/cfgi_markdown_to_word.py input.md -o output.docx --no-cover
+python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx --no-cover
 ```
 
 The converter is opinionated and takes no JSON style configuration — the CFGI

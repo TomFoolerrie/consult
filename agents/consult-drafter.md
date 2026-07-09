@@ -10,7 +10,8 @@ description: >-
   (never leaving resolved-gap artifacts), producing a clean finished document each time.
   Returns a compact status; writes exactly one file (10_<slug>.md). Dispatched
   one-per-procedure, in parallel, by consult-orchestrate.
-tools: Read, Write, Bash(python3 scripts/reconcile.py:*)
+tools: Read, Write, Bash(python3:*)
+skills: consult-drafter
 ---
 
 # consult-drafter — per-procedure fill subagent
@@ -156,7 +157,7 @@ the conflict; never silently choose.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
 
 ## Before you finish
-Run `python3 scripts/reconcile.py {file}` if available and fix any **ERRORS** in
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {file}` if available and fix any **ERRORS** in
 your own file (dangling ID, bare gap tag, prefix/label mismatch). An unregistered
 `consult-meta` slug is a **WARNING, not an ERROR** — leave it as your best-guess
 slug and report it (it's resolved later by the human registry top-up); do **not**

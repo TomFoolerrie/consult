@@ -5,7 +5,7 @@
 ## Goal
 
 Rewrite `skills/consult-drafter/reference/Template.md` and the drafter
-`SKILL.md` structure rules to the heading contract in `tickets/README.md`:
+`SKILL.md` structure rules to the heading contract in `docs/README.md`:
 one `#` title, every section `##`, procedures as `##` with A–H at `###` and
 steps at `####`, derived sections as un-numbered `##`. The per-procedure A–H
 block doubles as the **skeleton M0's `scaffold.py` stamps out** — so the

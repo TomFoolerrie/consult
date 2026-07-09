@@ -8,7 +8,7 @@ description: >-
   roles by canonical name. Change-scoped: only re-derives rows for changed procedures,
   preserving the rest. Writes exactly one file; returns a compact status. Dispatched by
   consult-orchestrate.
-tools: Read, Write, Bash(python3 scripts/reconcile.py:*)
+tools: Read, Write, Bash(python3:*)
 ---
 
 # consult-raci — RACI matrix (one area)

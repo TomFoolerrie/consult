@@ -13,7 +13,7 @@ static (human-owned) or derived (generated) files.
 **Load `reference/Template.md` and `reference/procedure_skeleton.md` after this
 skill.** The skeleton is the exact A–H shape you fill; the template shows how your
 fragment sits in the assembled document. This SKILL is the how-to; the agent
-definition `.claude/agents/consult-drafter.md` is the contract — where they touch,
+definition `agents/consult-drafter.md` is the contract — where they touch,
 the agent definition wins.
 
 ## What you own
@@ -151,7 +151,7 @@ product with no breadcrumbs:
 
 ## Before you finish
 
-Run `python3 scripts/reconcile.py {file}` if available and fix any **ERRORS** in
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {file}` if available and fix any **ERRORS** in
 your own file (dangling ID, bare gap tag, prefix/label mismatch). An unregistered
 `consult-meta` slug is a **WARNING, not an ERROR** — leave your best-guess slug and
 report it. ORPHAN warnings on unpopulated skeleton rows are fine.

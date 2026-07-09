@@ -16,7 +16,7 @@ an already-decided set.
 - The base pipeline (M1–M4) must be solid first; reassessment on top of a shaky
   splitter/aggregator would compound problems.
 - The can-of-worms risk (renumbering churn) is already defused by the
-  identity/number split in `tickets/README.md`: identity = stable slug, number =
+  identity/number split in `docs/README.md`: identity = stable slug, number =
   derived. So M6 can be added later without destabilizing existing files.
 
 ## Sketch (not a spec)

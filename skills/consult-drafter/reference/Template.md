@@ -3,7 +3,7 @@
 _Current-state desktop procedures._
 
 <!--
-  HEADING CONTRACT (tickets/README.md):
+  HEADING CONTRACT (docs/README.md):
   - Exactly ONE `#` in the assembled document — the title above. Its subtitle is
     the italic tagline on the next non-blank line. M2 lifts BOTH into the
     manifest (title + subtitle); the docx cover reads them. Component files on

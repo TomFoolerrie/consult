@@ -6,7 +6,7 @@ description: "How-to brief for the consult-taxonomy scoping subagent: scope one 
 # consult-taxonomy — scoping + reference-registry stand-up
 
 This is the working brief the `consult-taxonomy` agent preloads. The agent
-definition (`.claude/agents/consult-taxonomy.md`) is the contract; this file is
+definition (`agents/consult-taxonomy.md`) is the contract; this file is
 the expanded method. Where they overlap, they must agree — if you change one,
 change the other.
 
@@ -167,7 +167,7 @@ just drives the confirm gate.
 
 The human edits the files in `.proposed/` directly (add/remove/merge procedures,
 fix a role mapping, add an alias, blank a guessed limitation, approve a new
-bucket). Confirm = `python3 scripts/scaffold.py --confirm --area {area} --l1 {l1}`,
+bucket). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
 which promotes `.proposed/` → live `_reference/` (a MERGE), builds `manifest.json`,
 and writes one A–H skeleton per procedure. Nothing you wrote reaches the live
 folder until that runs.
