@@ -78,8 +78,13 @@ the drafts or sources itself. It:
   `consult-dependencies`, `consult-raci` (each preloads its skill brief,
   tool-scoped to just its input reads + its one output file + reconcile/aggregate).
   (The M5 agent defs may already exist from M5 — reuse.)
-- Source move logic (new → processed + `sources.yaml` state) lives in a small
-  Python helper the orchestrator calls (not hand-done, not in M0).
+- Source/review move logic (new → processed + `sources.yaml` state; applied
+  review notes → `_review/processed/`) lives in a small Python helper
+  (`scripts/sources.py`) the orchestrator calls (not hand-done, not in M0).
+- On a **new** area whose `l1` is unknown, the skill asks the user which L1 (from
+  the reference taxonomy) and records it area-level in the manifest; that `l1` is
+  passed to `consult-taxonomy`. See `skills/consult-orchestrate/SKILL.md` for the
+  full action-by-action driver contract.
 
 ## Acceptance
 

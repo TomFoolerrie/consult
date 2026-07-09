@@ -170,6 +170,7 @@ add/remove/reorder.
 {
   "schema": "consult-mvp-manifest/v1",
   "area": "fixed-assets",
+  "l1": "Record to Report",                         // the prescribed L1 function (drives L2 buckets)
   "title": "Fixed Assets — Desktop Procedures",
   "subtitle": "Current-state desktop procedures",   // optional; drives docx cover subtitle
   "components": [
