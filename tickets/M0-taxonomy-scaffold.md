@@ -40,6 +40,11 @@ under its `reference/` as the default backbone; the user may supply their own):
 - Read everything in `_sources/new/`; register each in `sources.yaml` (SRC- id +
   hash + state `new`). Map them onto the reference taxonomy; **propose a procedure
   set** — `{slug, title, group}` per L3 procedure. Slugs assigned here, once.
+- **Tag sources → procedures.** For each source, record which procedure slugs it
+  informs (in `sources.yaml`, e.g. `touches: [bank-reconciliation, close]`). This
+  is what lets the orchestrator hand each parallel `consult-drafter` only its
+  relevant sources instead of every drafter re-reading every transcript. A source
+  may touch many procedures; a procedure may draw on many sources.
 - Extract candidate **nouns** and stand up the registry:
   `systems.yaml` (slug, name, aliases, description, limitations),
   `roles.yaml` (slug, name, reports_to, responsibilities),
@@ -88,6 +93,13 @@ under its `reference/` as the default backbone; the user may supply their own):
 - Mint procedure-**local** IDs (`CTRL-001`, `PP-001`, …) — safe under parallel
   authoring because IDs are scoped per procedure (README "Callout ID scoping").
 - Do not author derived sections.
+
+**The drafter is the procedure's durable owner (first-draft *and* update).** When
+a new source is tagged to a procedure (or a reviewer edit lands), the orchestrator
+re-dispatches `consult-drafter` in `update` mode on that one procedure. In update
+mode it works newly-known facts into the body and **removes the GAPs they close**
+(never leaving "resolved" artifacts), never renumbering existing IDs — producing a
+clean finished document each pass. See `.claude/agents/consult-drafter.md`.
 
 ## Acceptance
 

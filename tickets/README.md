@@ -46,11 +46,13 @@ split into two subfolders:
   exactly what's outstanding.
 
 Each source is registered in `_reference/sources.yaml` with an `SRC-` id, a
-content hash, and its state (`new` | `processed`); procedures cite `SRC-` ids in
-their Source Materials. The **initial run** (M0) consumes everything in `new/`;
-**later** a new file dropped in `new/` is what triggers reassessment (M6). Fill
-and synthesis agents read from `_sources/` (both subfolders) + `sources.yaml` to
-ground their drafting.
+content hash, its state (`new` | `processed`), and a **`touches:` list of the
+procedure slugs it informs** (tagged by `consult-taxonomy`). Procedures cite
+`SRC-` ids in their Source Materials. The `touches` tags are what let the
+orchestrator dispatch each parallel `consult-drafter` **only its relevant
+sources** — no drafter re-reads every transcript. The **initial run** (M0)
+consumes everything in `new/`; **later** a new file dropped in `new/` is what
+triggers reassessment (M6) and re-dispatch of the drafters it touches.
 
 > Real client data: `_sources/` and the engagement folder can be gitignored (or
 > the whole thing kept in a private repo) — same rule as the original system.
