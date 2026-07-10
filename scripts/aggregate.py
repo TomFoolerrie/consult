@@ -362,8 +362,10 @@ def build_role_dictionary(ctx) -> str:
         resp = str(resp).strip()
         used = ctx["order_sorted"](appears.get(slug, set()))
         if used:
-            appears_sentence = "Appears in " + ", ".join(f"[[#{s}]]" for s in used) + "."
-            resp = f"{resp} {appears_sentence}".strip()
+            # Bare ref numbers only — appended after the responsibilities text
+            # (or standing alone when there is none).
+            refs = ", ".join(f"[[#{s}]]" for s in used)
+            resp = f"{resp} ({refs})".strip() if resp else refs
         lines.append(
             f"| {cell(r.get('name', slug))} | "
             f"{cell(str(r.get('reports_to', r.get('reports-to', ''))))} | "
