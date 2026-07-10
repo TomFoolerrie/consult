@@ -226,6 +226,10 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
     """Each derived-table row that names a Source Procedure [[slug]] and an ID
     must reference a (slug, id) pair that exists in that procedure. Runs after
     aggregate; silently no-ops when derived files are absent."""
+    # {slug: {display-id, ...}} — the render-time global numbering authority.
+    display_ids_of: dict[str, set[str]] = {}
+    for (slug, _local), disp in doc_model.callout_display_ids(folder).items():
+        display_ids_of.setdefault(slug, set()).add(disp)
     for comp in manifest.get("components", []):
         if comp.get("role") != "derived":
             continue
@@ -242,11 +246,10 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
             if not line.lstrip().startswith("|"):
                 continue
             # The row's own ID lives in the FIRST cell. Its procedure comes
-            # from the enclosing `#### [[slug]]` group heading (grouped
-            # appendices); only in a legacy flat table (no group heading) does
-            # the row's LAST [[token]] — the old Source Procedure column —
-            # stand in. Free-text cells may quote sibling [[slugs]]/IDs, so
-            # nothing else on the line is trusted for the pairing.
+            # from an enclosing `#### [[slug]]` group heading if one is set,
+            # else from the row's LAST [[token]] (the Procedure column). Free-
+            # text cells may quote sibling [[slugs]]/IDs, so nothing else on
+            # the line is trusted for the pairing.
             first_cell = line.strip().strip("|").split("|", 1)[0]
             ids = {f"{a}-{b}" for a, b in ID_INLINE_RE.findall(first_cell)}
             if not ids:
@@ -260,7 +263,14 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
                 continue
             frag = frags.get(row_slug)
             for _id in ids:
-                if frag is None or _id not in frag.defined:
+                # Aggregate writes DISPLAY ids (doc_model.callout_display_ids);
+                # a row is sound if its id is either the display id of one of
+                # this procedure's callouts or (legacy) a local id it defines.
+                ok = frag is not None and (
+                    _id in frag.defined
+                    or _id in display_ids_of.get(row_slug, ())
+                )
+                if not ok:
                     errors.append(
                         f"{comp.get('file')}:{n}: derived row references "
                         f"({row_slug}, {_id}) which is not defined in that procedure"

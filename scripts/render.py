@@ -105,6 +105,20 @@ def _strip_consult_meta(text: str) -> str:
     return "\n".join(out)
 
 
+_CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
+
+
+def _rewrite_callout_ids(text: str, submap: dict) -> str:
+    """Rewrite one procedure's local callout IDs to their global display IDs.
+
+    submap is {local-id: display-id} for THIS procedure only (context makes the
+    local IDs unambiguous). Single-pass callback substitution: every match is
+    resolved against the original text, so old/new ID overlaps cannot chain.
+    Unknown IDs (e.g. a reference reconcile will flag) pass through untouched.
+    """
+    return _CALLOUT_ID_RE.sub(lambda m: submap.get(m.group(0), m.group(0)), text)
+
+
 def _flag_gap_tags(text: str) -> str:
     """Render body gap tags `[[GAP-NN — label]]` as a visible bold flag.
 
@@ -168,6 +182,15 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
             labels[slug] = f"{labels[slug]} {comp['heading']}"
     assembled = doc_model.assemble(folder)
 
+    # Global callout display IDs (drafters number locally from 01; the global
+    # sequence is a render-time transform — see doc_model.callout_display_ids).
+    # Grouped per slug here; derived views already carry display IDs because
+    # aggregate.py consumes the same map.
+    id_map = doc_model.callout_display_ids(folder)
+    ids_by_slug: dict = {}
+    for (slug, local), disp in id_map.items():
+        ids_by_slug.setdefault(slug, {})[local] = disp
+
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
 
@@ -176,6 +199,10 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
     for section in _sections(assembled):
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
+        if _attr(section, "role") == "procedure":
+            submap = ids_by_slug.get(_attr(section, "slug") or "", {})
+            if submap:
+                raw_body = _rewrite_callout_ids(raw_body, submap)
         body = _clean_body(raw_body, labels)
         is_profile = heading.lower() in _PROFILE_HEADINGS
 

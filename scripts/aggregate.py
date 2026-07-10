@@ -9,9 +9,9 @@ area folder. Reads `manifest.json`, every `role: procedure` fragment, and the
   (a) rebuilds the python-owned derived files in full, each with a single writer,
       `[[slug]]` cross-reference tokens, and a re-emitted
       `<!-- derived: KIND; writer: python -->` marker:
-        70_procedure-index   (procedure-index)
-        80_role-dictionary   (role-dictionary)
-        81_systems           (systems)
+        06_procedure-index   (procedure-index)
+        07_role-dictionary   (role-dictionary)
+        08_systems           (systems)
         88_appendix-a        (appendix-a; typed PP / IO rows)
         90_appendix-b-gaps   (gap-log)
         91_appendix-c-screens(screenshot-index)
@@ -389,38 +389,62 @@ def build_systems(ctx) -> str:
     return "\n".join(lines)
 
 
-def _grouped_by_procedure(ctx, prefix: str):
-    """Yield (procedure, [callouts-with-prefix]) in document order, non-empty only.
+def _grouped_by_l2(ctx, prefix: str):
+    """Yield (l2-title, [(procedure, callout), ...]) in document order.
 
-    Appendix layout convention: rows are grouped under a `#### [[slug]]`
-    sub-heading per procedure (render resolves it to "2.4 Title"). This keeps
-    procedure-local IDs unique within each visible group — no repeated-looking
-    IDs, no Source Procedure column. reconcile's derived-row check reads the
-    group heading for the (slug, id) pairing.
+    Appendix layout convention: rows are grouped under an `#### <L2 title>`
+    sub-heading per sub-process, each row carrying its procedure token in the
+    LAST column (reconcile's derived-row check reads that for the pairing).
+    IDs shown are the document-global display IDs from
+    doc_model.callout_display_ids (ctx["disp"]) — drafters' local IDs never
+    reach the reader, so nothing looks duplicated.
     """
-    for p in ctx["procedures"]:
-        matches = [c for c in p["callouts"] if c["prefix"] == prefix]
-        if matches:
-            yield p, matches
+    for l2 in ctx["l2_order"]:
+        rows = []
+        for p in ctx["procs_by_l2"].get(l2, []):
+            for c in p["callouts"]:
+                if c["prefix"] == prefix:
+                    rows.append((p, c))
+        if rows:
+            yield ctx["l2_titles"].get(l2, l2), rows
+
+
+def _disp(ctx, p, c) -> str:
+    return ctx["disp"].get((p["slug"], c["id"]), c["id"])
+
+
+_ID_MENTION_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
+
+
+def _disp_text(ctx, p, text: str) -> str:
+    """Translate local callout IDs quoted INSIDE a callout's text (e.g. a
+    body-gap token `[[GAP-02 — label]]`) to display IDs. Same context rule as
+    render: an ID inside procedure content is that procedure's local ID."""
+    slug = p["slug"]
+    return _ID_MENTION_RE.sub(
+        lambda m: ctx["disp"].get((slug, m.group(0)), m.group(0)), text or ""
+    )
 
 
 def build_appendix_a(ctx) -> str:
     lines = ["_Pain Points and Improvement Opportunities, aggregated mechanically "
              "from the `H` section callouts (observation, impact, severity authored "
-             "in the callout), grouped by procedure._", ""]
+             "in the callout). IDs are numbered sequentially through the document; "
+             "rows are grouped by sub-process._", ""]
 
     lines.append("### Pain Points")
     any_pp = False
-    for p, cs in _grouped_by_procedure(ctx, "PP"):
+    for l2_title, rows in _grouped_by_l2(ctx, "PP"):
         any_pp = True
-        lines += ["", f"#### {tok(p['slug'])}", "",
-                  "| ID | Observation | Impact | Severity |",
-                  "|---|---|---|---|"]
-        for c in cs:
+        lines += ["", f"#### {l2_title}", "",
+                  "| ID | Observation | Impact | Severity | Procedure |",
+                  "|---|---|---|---|---|"]
+        for p, c in rows:
             f = c["fields"]
             lines.append(
-                f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Impact'))} | "
-                f"{cell(_pick(f, 'Severity'))} |"
+                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
+                f"{tok(p['slug'])} |"
             )
     if not any_pp:
         lines += ["", "_No pain points recorded._"]
@@ -428,15 +452,21 @@ def build_appendix_a(ctx) -> str:
 
     lines.append("### Improvement Opportunities")
     any_io = False
-    for p, cs in _grouped_by_procedure(ctx, "IO"):
+    for l2_title, rows in _grouped_by_l2(ctx, "IO"):
         any_io = True
-        lines += ["", f"#### {tok(p['slug'])}", "",
-                  "| ID | Recommendation | Addresses |",
-                  "|---|---|---|"]
-        for c in cs:
+        lines += ["", f"#### {l2_title}", "",
+                  "| ID | Recommendation | Addresses | Procedure |",
+                  "|---|---|---|---|"]
+        for p, c in rows:
             f = c["fields"]
+            addresses = _pick(f, "Addresses")
+            if addresses:
+                # `Addresses:` names a sibling PP by its LOCAL id — same
+                # procedure by contract — so translate it to display too.
+                addresses = ctx["disp"].get((p["slug"], addresses), addresses)
             lines.append(
-                f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Addresses'))} |"
+                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} | "
+                f"{tok(p['slug'])} |"
             )
     if not any_io:
         lines += ["", "_No improvement opportunities recorded._"]
@@ -445,18 +475,21 @@ def build_appendix_a(ctx) -> str:
 
 def build_gap_log(ctx) -> str:
     lines = ["_Validation gaps aggregated from the `VALIDATION REQUIRED` "
-             "callouts, grouped by procedure._"]
+             "callouts. IDs are numbered sequentially through the document; "
+             "rows are grouped by sub-process._"]
     any_row = False
-    for p, cs in _grouped_by_procedure(ctx, "GAP"):
+    for l2_title, rows in _grouped_by_l2(ctx, "GAP"):
         any_row = True
-        lines += ["", f"#### {tok(p['slug'])}", "",
-                  "| Gap ID | Description | Nature | Owner to Confirm |",
-                  "|---|---|---|---|"]
-        for c in cs:
+        lines += ["", f"#### {l2_title}", "",
+                  "| Gap ID | Description | Nature | Owner to Confirm | Procedure |",
+                  "|---|---|---|---|---|"]
+        for p, c in rows:
             f = c["fields"]
             lines.append(
-                f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Nature'))} | "
-                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} |"
+                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_pick(f, 'Nature'))} | "
+                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} | "
+                f"{tok(p['slug'])} |"
             )
     if not any_row:
         lines += ["", "_No open validation gaps._"]
@@ -465,16 +498,18 @@ def build_gap_log(ctx) -> str:
 
 def build_screenshot_index(ctx) -> str:
     lines = ["_Screenshot placeholders aggregated from the `SCREENSHOT "
-             "PLACEHOLDER` callouts, grouped by procedure._"]
+             "PLACEHOLDER` callouts. IDs are numbered sequentially through "
+             "the document; rows are grouped by sub-process._"]
     any_row = False
-    for p, cs in _grouped_by_procedure(ctx, "SC"):
+    for l2_title, rows in _grouped_by_l2(ctx, "SC"):
         any_row = True
-        lines += ["", f"#### {tok(p['slug'])}", "",
-                  "| SC ID | Caption | Status |",
-                  "|---|---|---|"]
-        for c in cs:
+        lines += ["", f"#### {l2_title}", "",
+                  "| SC ID | Caption | Status | Procedure |",
+                  "|---|---|---|---|"]
+        for p, c in rows:
             lines.append(
-                f"| {c['id']} | {cell(c['text'])} | Pending user input |"
+                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | Pending user input | "
+                f"{tok(p['slug'])} |"
             )
     if not any_row:
         lines += ["", "_No screenshot placeholders recorded._"]
@@ -597,6 +632,9 @@ def run(area_arg: str) -> int:
         procs_by_l2.setdefault(p["l2"], []).append(p)
 
     ctx = {
+        # (slug, local-id) -> document-global display id (render-time
+        # numbering authority; body sections use the same map in render.py).
+        "disp": doc_model.callout_display_ids(area),
         "procedures": sorted(procedures, key=lambda x: order_of.get(x["slug"], 0)),
         "systems_registry": systems_registry,
         "roles_registry": roles_registry,

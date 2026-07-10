@@ -205,6 +205,39 @@ def display_numbers(manifest: dict) -> dict[str, str]:
 
 
 # --------------------------------------------------------------------------- #
+# callout_display_ids — the ONLY implementation of global callout numbering
+# --------------------------------------------------------------------------- #
+
+def callout_display_ids(folder) -> dict[tuple[str, str], str]:
+    """Return {(procedure-slug, local-id): display-id} for the whole area.
+
+    Drafters always number callouts locally from 01 — they never know their
+    place in the document. Global sequential numbering is a DISPLAY transform,
+    derived here exactly like display_numbers: walk procedures in manifest
+    order and hand out one 2-digit counter per prefix across the document
+    (GAP-01…, PP-01…, zero-padded to 2 digits, growing naturally past 99).
+    Procedure files are never rewritten; render and the derived-view builders
+    both consume this one map so body and appendices always agree.
+    """
+    from callouts import iter_defined_ids  # sibling module, same directory
+
+    folder = Path(folder)
+    manifest = load_manifest(folder)
+    counters: dict[str, int] = {}
+    mapping: dict[tuple[str, str], str] = {}
+    for comp in procedures(manifest):
+        slug = comp.get("slug")
+        fpath = folder / (comp.get("file") or "")
+        if not slug or not fpath.is_file():
+            continue
+        text = fpath.read_text(encoding="utf-8")
+        for prefix, local_id in iter_defined_ids(text):
+            counters[prefix] = counters.get(prefix, 0) + 1
+            mapping[(slug, local_id)] = f"{prefix}-{counters[prefix]:02d}"
+    return mapping
+
+
+# --------------------------------------------------------------------------- #
 # resolve_tokens — [[slug]] -> display number (or number + title)
 # --------------------------------------------------------------------------- #
 

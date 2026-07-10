@@ -99,9 +99,9 @@ components/
     10_<proc-slug>.md            procedure fragments (fill-agent/human-owned = SOURCE OF TRUTH)
     10_<proc-slug>.md            (band 10 = procedures; several share the band)
     ...
-    70_procedure-index.md        derived, PYTHON-owned (In-Scope index; pure SELECT)
-    80_role-dictionary.md        derived, PYTHON-owned (join from roles.yaml)
-    81_systems.md                derived, PYTHON-owned (registry × consult-meta usage)
+    06_procedure-index.md        derived, PYTHON-owned (In-Scope index; pure SELECT)
+    07_role-dictionary.md        derived, PYTHON-owned (join from roles.yaml)
+    08_systems.md                derived, PYTHON-owned (registry × consult-meta usage)
     82_dependencies.md           derived, agent-owned  (judgment: reads A. Process Overview)
     84_raci.md                   derived, agent-owned  (judgment: RACI matrix)
     88_appendix-a.md             derived, PYTHON-owned (PP + IO register: obs/impact/severity)
@@ -113,11 +113,13 @@ components/
                                     the orchestrator's sole writer; git-ignored)
 ```
 
-Filename prefixes are **coarse bands** (00–09 static, 10 procedures, 70–99
-derived) for human browsing only. **`manifest.json` `order` is the sole
-authority** for assembly/numbering; a reorder edits `order`, never filenames (so
-per-file git history survives). In `order` space the derived back-matter sits at
-prefix × 100 (7000+), far above the sparse procedure orders, so any realistic
+Filename prefixes are **coarse bands** (00–09 front matter — static sections
+plus the reader-orientation views (index / roles / systems) that precede the
+procedures; 10 procedures; 82+ derived back matter) for human browsing only.
+**`manifest.json` `order` is the sole authority** for assembly/numbering; a
+reorder edits `order`, never filenames (so per-file git history survives). In
+`order` space the front-matter views sit at 6–8 and the derived back-matter at
+prefix × 100 (8200+), far above the sparse procedure orders, so any realistic
 procedure count fits below it. **`order` values are sparse** (assigned in gaps
 of 10 — 10, 20, 30…) so a mid-sequence insert gets a value *between* its
 neighbours and renumbers nothing else; only if a gap is exhausted does a local
@@ -161,12 +163,26 @@ No numbered-module regex, no appendix regex, no "shallowest level" computation.
 ### Callout ID scoping (parallel-authoring safe)
 
 Fill agents run in parallel, so globally-sequential IDs would collide. IDs are
-**local to their procedure**: `CTRL-001` in `bank-reconciliation` and `CTRL-001`
-in `asset-disposal` are distinct. Global identity is the tuple `(slug, local-id)`.
-Derived tables (Appendix A/B/C, Controls) always carry a **Source Procedure**
-column (a `[[slug]]` token), so the pair is unambiguous. IDs are stable for the
-life of the procedure — never renumbered — which keeps them audit-friendly under
-add/remove/reorder.
+**local to their procedure**: drafters always number from 01 (`CTRL-01` in
+`bank-reconciliation` and `CTRL-01` in `asset-disposal` are distinct) — they
+never need to know their place in the document. Global identity is the tuple
+`(slug, local-id)`, and the files on disk are stable for the life of the
+procedure — never renumbered — which keeps review anchors, diffs, and change
+hashes audit-friendly under add/remove/reorder.
+
+**What the reader sees is different**: global sequential numbering is a
+**display transform**, derived at generation time by
+`doc_model.callout_display_ids(folder)` (the single numbering authority,
+mirroring `display_numbers`): walk procedures in manifest order, hand out one
+2-digit counter per prefix across the document (`GAP-01…`, `PP-01…`; naturally
+3 digits past 99). `render.py` rewrites IDs inside each procedure section
+(context makes locals unambiguous) and `aggregate.py` consumes the same map
+when writing derived rows — body and appendices always agree, and no reader
+ever sees a duplicate ID. Appendix rows are grouped by **L2 sub-process**
+(`#### <L2 title>`), each row carrying its `[[slug]]` token in the last
+(Procedure) column — reconcile pairs `(slug, display-id)` from those two
+positions. Agent-owned sections must NOT quote callout IDs (they are not
+rewritten there); they reference `[[slug]]` and describe the item in words.
 
 ---
 
@@ -191,7 +207,7 @@ add/remove/reorder.
       "slug": "bank-reconciliation", "heading": "Bank Reconciliation",
       "l2": "close", "order": 10 },
 
-    { "file": "81_systems.md", "role": "derived", "derived_kind": "systems",
+    { "file": "08_systems.md", "role": "derived", "derived_kind": "systems",
       "writer": "python", "heading": "Systems & Data Inputs", "order": 81 },
 
     { "file": "82_dependencies.md", "role": "derived", "derived_kind": "dependencies",
@@ -223,9 +239,9 @@ writers. This is the first review's rule, restored; region markers are gone.
 | `_reference/*.yaml` | human (seeded by M0 agent, confirmed at gate) | the noun database |
 | `00–04_*` static | human | Document Profile, How to Use, Control, Sources, Process Overview |
 | `10_<slug>` procedure | fill agent / human | the source of truth |
-| `70_procedure-index` | Python | In-Scope index (pure SELECT) |
-| `80_role-dictionary` | Python | join from `roles.yaml` + "Appears In" usage |
-| `81_systems` | Python | registry × `consult-meta` usage join |
+| `06_procedure-index` | Python | In-Scope index (pure SELECT) |
+| `07_role-dictionary` | Python | join from `roles.yaml` + "Appears In" usage |
+| `08_systems` | Python | registry × `consult-meta` usage join |
 | `82_dependencies` | agent | reads each procedure's A. Process Overview |
 | `84_raci` | agent | RACI matrix (seeded by M3's role×procedure grid) |
 | `88_appendix-a` | Python | PP + IO register: id, type, observation, impact, severity, `[[slug]]` |

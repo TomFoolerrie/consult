@@ -61,3 +61,29 @@ def blank_fences(text: str) -> str:
 
 # reconcile historically called this `strip_fences`.
 strip_fences = blank_fences
+
+
+# A callout DEFINITION line: `> **<LABEL> — <ID>:**` (loose id; validation is
+# the parsers' job). Used by iter_defined_ids for display-numbering walks.
+_DEF_LINE_RE = re.compile(
+    r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]+?)\s*" + DELIM + r"\s*"
+    r"(?P<id>[A-Z0-9][A-Z0-9-]*)\s*:\*\*"
+)
+
+
+def iter_defined_ids(text: str):
+    """Yield (prefix, id) for each callout defined in a fragment, in order.
+
+    Fence bodies are blanked first. Only lines whose label is in
+    LABEL_TO_PREFIX and whose id carries the matching prefix are yielded —
+    malformed definitions are the fail-loud parsers' concern, not ours.
+    """
+    for line in blank_fences(text).splitlines():
+        m = _DEF_LINE_RE.match(line)
+        if not m:
+            continue
+        label = re.sub(r"\s+", " ", m.group("label")).strip()
+        prefix = LABEL_TO_PREFIX.get(label)
+        cid = m.group("id").strip()
+        if prefix and cid.startswith(prefix + "-"):
+            yield prefix, cid

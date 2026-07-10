@@ -74,17 +74,19 @@ STATIC_FILES = [
     {"file": "04_process-overview.md", "heading": "Process Overview", "order": 5},
 ]
 
-# Derived stubs (back-matter band: filename prefix × 100, i.e. 7000+). The wide
-# offset keeps the band clear of the sparse procedure orders (10, 20, 30, …),
-# which would collide with a 70–99 band after just 6 procedures. M3 (python) and
-# M5 (agent) own the actual generation.
+# Derived views. Reader-orientation views (procedure index, role dictionary,
+# systems) sit in the FRONT-MATTER band (orders 6–8, after Process Overview at
+# 5, before the first procedure at 10). Synthesis + appendices form the
+# back-matter band at filename prefix × 100 (8200+) — the wide offset keeps it
+# clear of the sparse procedure orders (10, 20, 30, …). M3 (python) and M5
+# (agent) own the actual generation.
 DERIVED_FILES = [
-    {"file": "70_procedure-index.md", "kind": "procedure-index", "writer": "python",
-     "heading": "In-Scope Procedures", "order": 7000},
-    {"file": "80_role-dictionary.md", "kind": "role-dictionary", "writer": "python",
-     "heading": "Role Dictionary", "order": 8000},
-    {"file": "81_systems.md", "kind": "systems", "writer": "python",
-     "heading": "Systems & Data Inputs", "order": 8100},
+    {"file": "06_procedure-index.md", "kind": "procedure-index", "writer": "python",
+     "heading": "In-Scope Procedures", "order": 6},
+    {"file": "07_role-dictionary.md", "kind": "role-dictionary", "writer": "python",
+     "heading": "Role Dictionary", "order": 7},
+    {"file": "08_systems.md", "kind": "systems", "writer": "python",
+     "heading": "Systems & Data Inputs", "order": 8},
     {"file": "82_dependencies.md", "kind": "dependencies", "writer": "agent",
      "heading": "Key Dependencies", "order": 8200},
     {"file": "84_raci.md", "kind": "raci", "writer": "agent",

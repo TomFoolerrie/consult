@@ -65,6 +65,11 @@ Re-emit the section's `<!-- derived: dependencies; writer: agent -->` marker. If
 available, run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` on the
 area folder and fix any dangling `[[slug]]` you introduced.
 
+Never cite callout IDs (GAP-/PP-/CTRL-…) in your section: they are renumbered at
+render time inside procedure sections and appendices, but agent-owned sections
+are not — a quoted ID would go stale. Reference the procedure with `[[slug]]`
+and describe the item in words instead.
+
 ## What you return (COMPACT)
 - `file` written; `rows` (total), `rows_rederived` (this pass)
 - `external_deps`: count of external (non-`[[slug]]`) dependencies

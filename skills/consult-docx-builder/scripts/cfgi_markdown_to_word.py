@@ -324,7 +324,7 @@ def segs(text: str) -> List[Seg]:
 
 def styled_run(p, sg: Seg, color: str = PALETTE["black"], size: int = BODY_SIZE) -> None:
     r = p.add_run(sg.text)
-    r.font.name = "Consolas" if sg.code else BODY_FONT
+    r.font.name = BODY_FONT
     r._element.rPr.rFonts.set(qn("w:eastAsia"), r.font.name)
     r.font.size = Pt(SMALL_SIZE if sg.code else size)
     r.font.color.rgb = rgb(color)
