@@ -570,7 +570,33 @@ def is_callout(line: str) -> bool:
     if line.strip().startswith(">"):
         return True
     u = line.strip().upper().strip("*_ ")
-    return u.startswith(CALLOUT_PREFIXES) or "\u26a0" in line
+    # Prefix must end at a word boundary so prose like "Controller ..." is not
+    # mistaken for a CONTROL callout.
+    return any(
+        u.startswith(p) and (len(u) == len(p) or not u[len(p)].isalpha())
+        for p in CALLOUT_PREFIXES
+    ) or "\u26a0" in line
+
+
+def _is_list_item(line: str) -> bool:
+    return bool(re.match(r"^\s*[-*+]\s+", line) or re.match(r"^\s*\d+[.)]\s+", line))
+
+
+def _is_structural(line: str) -> bool:
+    """Lines that must start their own block and never be joined into a
+    preceding paragraph or list item: headings, table rows, blockquotes /
+    callouts, fences, horizontal rules, images, HTML tables."""
+    st = line.strip()
+    return bool(
+        re.match(r"^#{1,6}\s+", st)
+        or st.startswith("|") or "|" in st and st.count("|") >= 2
+        or st.startswith(">")
+        or st.startswith("```") or st.startswith("~~~")
+        or re.fullmatch(r"(\*\s*){3,}|(-\s*){3,}|(_\s*){3,}", st)
+        or re.match(r"^!\[", st)
+        or re.match(r"^<table\b", st, flags=re.I)
+        or is_callout(st)
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -774,23 +800,43 @@ def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
             i += 1
             continue
 
-        # Lists.
-        if re.match(r"^\s*[-*+]\s+", line):
-            p = para(doc, re.sub(r"^\s*[-*+]\s+", "", line), "List Bullet")
+        # Lists. A list item absorbs following indented or plain continuation
+        # lines (hard-wrapped prose) into the same bullet paragraph until a
+        # blank line, a new list item, or a structural line.
+        lm = re.match(r"^\s*[-*+]\s+", line) or re.match(r"^\s*\d+[.)]\s+", line)
+        if lm:
+            style = "List Bullet" if re.match(r"^\s*[-*+]\s+", line) else "List Number"
+            buf = [line[lm.end():].strip()]
+            i += 1
+            while i < len(lines):
+                nxt = lines[i]
+                ns = nxt.strip()
+                if not ns or _is_structural(nxt) or _is_list_item(nxt):
+                    break
+                buf.append(ns)
+                i += 1
+            p = para(doc, " ".join(buf), style)
             p.paragraph_format.left_indent = Inches(0.25)
             p.paragraph_format.first_line_indent = Inches(-0.15)
-            i += 1
-            continue
-        if re.match(r"^\s*\d+[.)]\s+", line):
-            p = para(doc, re.sub(r"^\s*\d+[.)]\s+", "", line), "List Number")
-            p.paragraph_format.left_indent = Inches(0.25)
-            p.paragraph_format.first_line_indent = Inches(-0.15)
-            i += 1
             continue
 
-        # Plain paragraph.
-        para(doc, st)
+        # Plain paragraph. Consecutive plain lines (hard-wrapped prose) join
+        # into one paragraph; a blank line or structural line ends it.
+        buf = [st]
         i += 1
+        while i < len(lines):
+            nxt = lines[i]
+            ns = nxt.strip()
+            if (not ns or _is_structural(nxt) or _is_list_item(nxt)
+                    or (do_cover and title_skipped and not subtitle_skipped
+                        and ns.startswith("_") and ns.endswith("_"))):
+                break
+            lbl = clean(ns).strip("*_ ")
+            if lbl in SECTION_LABELS or re.fullmatch(r"[A-H]\.\s+.+", lbl):
+                break
+            buf.append(ns)
+            i += 1
+        para(doc, " ".join(buf))
 
 
 def convert(inp: Path, out: Path, include_toc: bool = False,

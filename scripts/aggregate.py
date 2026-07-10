@@ -389,87 +389,95 @@ def build_systems(ctx) -> str:
     return "\n".join(lines)
 
 
-def build_appendix_a(ctx) -> str:
-    pp_rows: list[tuple[str, dict]] = []
-    io_rows: list[tuple[str, dict]] = []
-    for p in ctx["procedures"]:
-        for c in p["callouts"]:
-            if c["prefix"] == "PP":
-                pp_rows.append((p["slug"], c))
-            elif c["prefix"] == "IO":
-                io_rows.append((p["slug"], c))
+def _grouped_by_procedure(ctx, prefix: str):
+    """Yield (procedure, [callouts-with-prefix]) in document order, non-empty only.
 
+    Appendix layout convention: rows are grouped under a `#### [[slug]]`
+    sub-heading per procedure (render resolves it to "2.4 Title"). This keeps
+    procedure-local IDs unique within each visible group — no repeated-looking
+    IDs, no Source Procedure column. reconcile's derived-row check reads the
+    group heading for the (slug, id) pairing.
+    """
+    for p in ctx["procedures"]:
+        matches = [c for c in p["callouts"] if c["prefix"] == prefix]
+        if matches:
+            yield p, matches
+
+
+def build_appendix_a(ctx) -> str:
     lines = ["_Pain Points and Improvement Opportunities, aggregated mechanically "
              "from the `H` section callouts (observation, impact, severity authored "
-             "in the callout)._", ""]
+             "in the callout), grouped by procedure._", ""]
 
     lines.append("### Pain Points")
-    lines.append("")
-    lines.append("| ID | Observation | Impact | Severity | Source Procedure |")
-    lines.append("|---|---|---|---|---|")
-    for slug, c in pp_rows:
-        f = c["fields"]
-        lines.append(
-            f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Impact'))} | "
-            f"{cell(_pick(f, 'Severity'))} | {tok(slug)} |"
-        )
-    if not pp_rows:
-        lines.append("| — | — | — | — | — |")
+    any_pp = False
+    for p, cs in _grouped_by_procedure(ctx, "PP"):
+        any_pp = True
+        lines += ["", f"#### {tok(p['slug'])}", "",
+                  "| ID | Observation | Impact | Severity |",
+                  "|---|---|---|---|"]
+        for c in cs:
+            f = c["fields"]
+            lines.append(
+                f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Impact'))} | "
+                f"{cell(_pick(f, 'Severity'))} |"
+            )
+    if not any_pp:
+        lines += ["", "_No pain points recorded._"]
     lines.append("")
 
     lines.append("### Improvement Opportunities")
-    lines.append("")
-    lines.append("| ID | Recommendation | Addresses | Source Procedure |")
-    lines.append("|---|---|---|---|")
-    for slug, c in io_rows:
-        f = c["fields"]
-        lines.append(
-            f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Addresses'))} | "
-            f"{tok(slug)} |"
-        )
-    if not io_rows:
-        lines.append("| — | — | — | — |")
+    any_io = False
+    for p, cs in _grouped_by_procedure(ctx, "IO"):
+        any_io = True
+        lines += ["", f"#### {tok(p['slug'])}", "",
+                  "| ID | Recommendation | Addresses |",
+                  "|---|---|---|"]
+        for c in cs:
+            f = c["fields"]
+            lines.append(
+                f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Addresses'))} |"
+            )
+    if not any_io:
+        lines += ["", "_No improvement opportunities recorded._"]
     return "\n".join(lines)
 
 
 def build_gap_log(ctx) -> str:
-    lines = ["_Validation gaps aggregated from the `VALIDATION REQUIRED` callouts. "
-             "IDs are procedure-local; the Source Procedure column disambiguates._", ""]
-    lines.append("| Gap ID | Description | Nature | Owner to Confirm | Source Procedure |")
-    lines.append("|---|---|---|---|---|")
+    lines = ["_Validation gaps aggregated from the `VALIDATION REQUIRED` "
+             "callouts, grouped by procedure._"]
     any_row = False
-    for p in ctx["procedures"]:
-        for c in p["callouts"]:
-            if c["prefix"] != "GAP":
-                continue
-            any_row = True
+    for p, cs in _grouped_by_procedure(ctx, "GAP"):
+        any_row = True
+        lines += ["", f"#### {tok(p['slug'])}", "",
+                  "| Gap ID | Description | Nature | Owner to Confirm |",
+                  "|---|---|---|---|"]
+        for c in cs:
             f = c["fields"]
             lines.append(
                 f"| {c['id']} | {cell(c['text'])} | {cell(_pick(f, 'Nature'))} | "
-                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} | {tok(p['slug'])} |"
+                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} |"
             )
     if not any_row:
-        lines.append("| — | — | — | — | — |")
+        lines += ["", "_No open validation gaps._"]
     return "\n".join(lines)
 
 
 def build_screenshot_index(ctx) -> str:
-    lines = ["_Screenshot placeholders aggregated from the `SCREENSHOT PLACEHOLDER` "
-             "callouts. Source Procedure disambiguates procedure-local IDs._", ""]
-    lines.append("| SC ID | Caption | Source Procedure | Status |")
-    lines.append("|---|---|---|---|")
+    lines = ["_Screenshot placeholders aggregated from the `SCREENSHOT "
+             "PLACEHOLDER` callouts, grouped by procedure._"]
     any_row = False
-    for p in ctx["procedures"]:
-        for c in p["callouts"]:
-            if c["prefix"] != "SC":
-                continue
-            any_row = True
+    for p, cs in _grouped_by_procedure(ctx, "SC"):
+        any_row = True
+        lines += ["", f"#### {tok(p['slug'])}", "",
+                  "| SC ID | Caption | Status |",
+                  "|---|---|---|"]
+        for c in cs:
             lines.append(
-                f"| {c['id']} | {cell(c['text'])} | {tok(p['slug'])} | "
-                f"Pending user input |"
+                f"| {c['id']} | {cell(c['text'])} | Pending user input |"
             )
     if not any_row:
-        lines.append("| — | — | — | — |")
+        lines += ["", "_No screenshot placeholders recorded._"]
     return "\n".join(lines)
 
 

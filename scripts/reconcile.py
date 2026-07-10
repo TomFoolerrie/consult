@@ -233,20 +233,30 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
         if not fpath.is_file():
             continue
         text = strip_fences(fpath.read_text(encoding="utf-8"))
+        group_slug = None  # set by `#### [[slug]]` per-procedure group headings
         for n, line in enumerate(text.splitlines(), start=1):
+            if line.lstrip().startswith("#"):
+                hx = XREF_RE.findall(line)
+                group_slug = hx[0] if hx else None
+                continue
             if not line.lstrip().startswith("|"):
                 continue
-            xrefs = XREF_RE.findall(line)
-            if not xrefs:
-                continue
-            # Source Procedure is by convention the LAST column; the row's own
-            # ID lives in the FIRST cell. Free-text cells in between may quote
-            # other [[slugs]] or IDs (a description legitimately citing a
-            # sibling), so neither may be scanned for the pairing.
-            row_slug = xrefs[-1]
+            # The row's own ID lives in the FIRST cell. Its procedure comes
+            # from the enclosing `#### [[slug]]` group heading (grouped
+            # appendices); only in a legacy flat table (no group heading) does
+            # the row's LAST [[token]] — the old Source Procedure column —
+            # stand in. Free-text cells may quote sibling [[slugs]]/IDs, so
+            # nothing else on the line is trusted for the pairing.
             first_cell = line.strip().strip("|").split("|", 1)[0]
             ids = {f"{a}-{b}" for a, b in ID_INLINE_RE.findall(first_cell)}
             if not ids:
+                continue
+            if group_slug is not None:
+                row_slug = group_slug
+            else:
+                xrefs = XREF_RE.findall(line)
+                row_slug = xrefs[-1] if xrefs else None
+            if row_slug is None:
                 continue
             frag = frags.get(row_slug)
             for _id in ids:
