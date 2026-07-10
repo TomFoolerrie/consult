@@ -459,11 +459,9 @@ def build_appendix_a(ctx) -> str:
                   "|---|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
-            addresses = _pick(f, "Addresses")
-            if addresses:
-                # `Addresses:` names a sibling PP by its LOCAL id — same
-                # procedure by contract — so translate it to display too.
-                addresses = ctx["disp"].get((p["slug"], addresses), addresses)
+            # `Addresses:` names sibling PPs by LOCAL id (possibly a comma-
+            # separated list) — same procedure by contract — translate each.
+            addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
             lines.append(
                 f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} | "
                 f"{tok(p['slug'])} |"
