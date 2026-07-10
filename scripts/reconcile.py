@@ -257,8 +257,13 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
             if group_slug is not None:
                 row_slug = group_slug
             else:
+                # Combined "ID ([[#slug]])" first cell is authoritative; the
+                # last token on the line is only the legacy Source-Procedure-
+                # column fallback (free-text cells may quote siblings).
+                first_xrefs = XREF_RE.findall(first_cell)
                 xrefs = XREF_RE.findall(line)
-                row_slug = xrefs[-1] if xrefs else None
+                row_slug = (first_xrefs[0] if first_xrefs
+                            else (xrefs[-1] if xrefs else None))
             if row_slug is None:
                 continue
             frag = frags.get(row_slug)

@@ -334,13 +334,12 @@ def build_procedure_index(ctx) -> str:
             continue
         lines.append(f"### {ctx['l2_titles'].get(l2, l2)}")
         lines.append("")
-        lines.append("| Ref | Procedure | Direction / Type | Frequency | Primary Owner |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| Ref | Procedure | Frequency | Primary Owner |")
+        lines.append("|---|---|---|---|")
         for p in procs:
             qr = p["quick_ref"]
             lines.append(
-                f"| {tok(p['slug'])} | {cell(p['title'])} | "
-                f"{cell(_pick(qr, 'Direction', 'Direction / Type', 'Trigger'))} | "
+                f"| [[#{p['slug']}]] | {cell(p['title'])} | "
                 f"{cell(_pick(qr, 'Frequency', 'Cadence'))} | "
                 f"{cell(_pick(qr, 'Primary Owner', 'Owner', 'Preparer'))} |"
             )
@@ -353,19 +352,22 @@ def build_role_dictionary(ctx) -> str:
     appears = ctx["role_appears_in"]  # slug -> set(procedure slugs)
     lines = ["_Canonical functional roles (from `_reference/roles.yaml`) with the "
              "procedures each appears in._", ""]
-    lines.append("| Functional Role | Reports To | Standard Responsibilities | Appears In |")
-    lines.append("|---|---|---|---|")
+    lines.append("| Functional Role | Reports To | Standard Responsibilities |")
+    lines.append("|---|---|---|")
     for slug in sorted(roles):
         r = roles[slug]
         resp = r.get("responsibilities", "")
         if isinstance(resp, list):
             resp = "; ".join(str(x) for x in resp)
+        resp = str(resp).strip()
         used = ctx["order_sorted"](appears.get(slug, set()))
-        appears_cell = ", ".join(tok(s) for s in used) if used else "—"
+        if used:
+            appears_sentence = "Appears in " + ", ".join(f"[[#{s}]]" for s in used) + "."
+            resp = f"{resp} {appears_sentence}".strip()
         lines.append(
             f"| {cell(r.get('name', slug))} | "
             f"{cell(str(r.get('reports_to', r.get('reports-to', ''))))} | "
-            f"{cell(str(resp))} | {appears_cell} |"
+            f"{cell(resp)} |"
         )
     return "\n".join(lines)
 
@@ -375,16 +377,16 @@ def build_systems(ctx) -> str:
     related = ctx["system_related"]  # slug -> set(procedure slugs)
     lines = ["_Canonical systems (from `_reference/systems.yaml`) with the "
              "procedures that use each, from `consult-meta` bindings._", ""]
-    lines.append("| System / Tool | Role in Process | Related Procedures | Known Limitations |")
-    lines.append("|---|---|---|---|")
+    lines.append("| System / Tool | Role in Process | Related Procedures |")
+    lines.append("|---|---|---|")
     for slug in sorted(systems):
         s = systems[slug]
         used = ctx["order_sorted"](related.get(slug, set()))
-        rel_cell = ", ".join(tok(x) for x in used) if used else "—"
+        rel_cell = ", ".join(f"[[#{x}]]" for x in used) if used else "—"
         lines.append(
             f"| {cell(s.get('name', slug))} | "
             f"{cell(str(s.get('description', s.get('role', ''))))} | "
-            f"{rel_cell} | {cell(str(s.get('limitations', '')))} |"
+            f"{rel_cell} |"
         )
     return "\n".join(lines)
 
@@ -393,8 +395,10 @@ def _grouped_by_l2(ctx, prefix: str):
     """Yield (l2-title, [(procedure, callout), ...]) in document order.
 
     Appendix layout convention: rows are grouped under an `#### <L2 title>`
-    sub-heading per sub-process, each row carrying its procedure token in the
-    LAST column (reconcile's derived-row check reads that for the pairing).
+    sub-heading per sub-process, each row carrying its procedure token as a
+    number-only `[[#slug]]` inside the combined FIRST cell alongside the
+    display ID (reconcile's derived-row check pairs the first-cell ID with
+    the last [[token]] on the row).
     IDs shown are the document-global display IDs from
     doc_model.callout_display_ids (ctx["disp"]) — drafters' local IDs never
     reach the reader, so nothing looks duplicated.
@@ -437,14 +441,14 @@ def build_appendix_a(ctx) -> str:
     for l2_title, rows in _grouped_by_l2(ctx, "PP"):
         any_pp = True
         lines += ["", f"#### {l2_title}", "",
-                  "| ID | Observation | Impact | Severity | Procedure |",
-                  "|---|---|---|---|---|"]
+                  "| ID | Observation | Impact | Severity |",
+                  "|---|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
             lines.append(
-                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | "
-                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
-                f"{tok(p['slug'])} |"
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} |"
             )
     if not any_pp:
         lines += ["", "_No pain points recorded._"]
@@ -455,16 +459,16 @@ def build_appendix_a(ctx) -> str:
     for l2_title, rows in _grouped_by_l2(ctx, "IO"):
         any_io = True
         lines += ["", f"#### {l2_title}", "",
-                  "| ID | Recommendation | Addresses | Procedure |",
-                  "|---|---|---|---|"]
+                  "| ID | Recommendation | Addresses |",
+                  "|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
             # `Addresses:` names sibling PPs by LOCAL id (possibly a comma-
             # separated list) — same procedure by contract — translate each.
             addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
             lines.append(
-                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} | "
-                f"{tok(p['slug'])} |"
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} |"
             )
     if not any_io:
         lines += ["", "_No improvement opportunities recorded._"]
@@ -479,15 +483,15 @@ def build_gap_log(ctx) -> str:
     for l2_title, rows in _grouped_by_l2(ctx, "GAP"):
         any_row = True
         lines += ["", f"#### {l2_title}", "",
-                  "| Gap ID | Description | Nature | Owner to Confirm | Procedure |",
-                  "|---|---|---|---|---|"]
+                  "| Gap ID | Description | Nature | Owner to Confirm |",
+                  "|---|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
             lines.append(
-                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | "
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_disp_text(ctx, p, c['text']))} | "
                 f"{cell(_pick(f, 'Nature'))} | "
-                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} | "
-                f"{tok(p['slug'])} |"
+                f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} |"
             )
     if not any_row:
         lines += ["", "_No open validation gaps._"]
@@ -502,12 +506,12 @@ def build_screenshot_index(ctx) -> str:
     for l2_title, rows in _grouped_by_l2(ctx, "SC"):
         any_row = True
         lines += ["", f"#### {l2_title}", "",
-                  "| SC ID | Caption | Status | Procedure |",
-                  "|---|---|---|---|"]
+                  "| SC ID | Caption | Status |",
+                  "|---|---|---|"]
         for p, c in rows:
             lines.append(
-                f"| {_disp(ctx, p, c)} | {cell(_disp_text(ctx, p, c['text']))} | Pending user input | "
-                f"{tok(p['slug'])} |"
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_disp_text(ctx, p, c['text']))} | Pending user input |"
             )
     if not any_row:
         lines += ["", "_No screenshot placeholders recorded._"]

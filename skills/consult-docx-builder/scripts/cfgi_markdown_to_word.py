@@ -225,7 +225,7 @@ def define_styles(doc) -> None:
         "Title": (40, PALETTE["dark_green"], True, False),
         "Heading 1": (14, PALETTE["dark_green"], False, False),
         "Heading 2": (13, PALETTE["green"], True, False),
-        "Heading 3": (12, PALETTE["green"], False, False),
+        "Heading 3": (12, PALETTE["green"], False, True),
         "Heading 4": (11, PALETTE["black"], True, False),
     }
     for name, (sz, col, b, it) in specs.items():
@@ -453,7 +453,7 @@ def render_cell(cell, value: str, fill: str, color: str, bold: bool = False,
     cell_shading(cell, fill)
     cell_borders(cell, border)
     cell_margins(cell, 80)
-    cell.vertical_alignment = WD_ALIGN_VERTICAL.TOP
+    cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     p = cell.paragraphs[0]
     p.paragraph_format.space_after = Pt(0)
     p.paragraph_format.line_spacing = 1.0
@@ -490,12 +490,6 @@ def add_table(doc, tb: TableBlock, ctx: str = "") -> None:
             elif kind == "pain":
                 fill = PALETTE["light_red"]
                 color = PALETTE["red"] if j < 2 else PALETTE["black"]
-            elif kind == "gap":
-                fill = PALETTE["light_yellow"] if i % 2 == 0 else PALETTE["white"]
-            elif kind == "control":
-                fill = PALETTE["light_green"] if i % 2 == 0 else PALETTE["white"]
-            elif kind == "screenshot":
-                fill = PALETTE["label_gray"] if i % 2 == 0 else PALETTE["white"]
             render_cell(t.cell(i + off, j), v, fill, color, bold, border)
     doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
@@ -552,7 +546,8 @@ def add_callout(doc, text: str) -> None:
         p = c.paragraphs[0] if k == 0 else c.add_paragraph()
         p.paragraph_format.space_after = Pt(0)
         if kind == "bullet":
-            p.paragraph_format.left_indent = Inches(0.2)
+            p.paragraph_format.left_indent = Inches(0.39)
+            p.paragraph_format.first_line_indent = Inches(-0.19)
             styled_run(p, Seg("•  ", italic=True), col, BODY_SIZE)
         for s in segs(txt):
             s.italic = True
