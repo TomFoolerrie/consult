@@ -42,8 +42,9 @@ ID_INLINE_RE = re.compile(
 BODY_GAP_RE = re.compile(r"\[\[\s*GAP-([A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + DELIM)
 BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-[A-Z0-9])\s*(?:" + DELIM + r"|\]\])")
 
-# Procedure cross-reference token `[[slug]]` (lowercase slug only).
-XREF_RE = re.compile(r"\[\[([a-z0-9][a-z0-9-]*)\]\]")
+# Procedure cross-reference token: `[[slug]]` (resolves to number + title) or
+# `[[#slug]]` (number only — for table refs where the title is its own column).
+XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
 
 # A fenced code block (``` or ~~~) — blanked so callouts inside code/examples
 # and the consult-meta block are not parsed as real callouts.

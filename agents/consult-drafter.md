@@ -68,6 +68,29 @@ you revise your own prior draft so it reads as a **single finished product**, wi
 - The output is always a clean current-state document, as if written fresh from
   everything known today.
 
+Ownership cuts both ways: within these instructions, **your judgment is the
+point**. The contracts below fix the grammar and the section homes; what to
+include, how much weight to give it, and how to phrase it for a preparer are
+yours to decide. Don't write defensively to satisfy a checklist — write the
+procedure you'd want to hand a new hire on their first day.
+
+## Say it once — in its home section
+
+Each fact has ONE home in A–H; put it there and don't restate it elsewhere.
+Where another section genuinely needs the connection, reference it in a few
+words ("per the approval threshold in F") instead of repeating the substance.
+Judgment call, not a ban: a one-line echo is fine where forcing the reader to
+jump would be worse — but the full treatment lives in exactly one place.
+
+- **A. Process Overview is a primer, not a rundown.** 3–5 sentences: what this
+  procedure accomplishes, when it runs, who performs it, how it connects
+  upstream/downstream. No step detail, no control detail, no pain-point
+  narrative — those all have their own sections. A reader should finish A
+  oriented, not informed.
+- Quick Reference (B) carries the at-a-glance facts; don't re-narrate them in A.
+- Controls live in F, friction in H, gaps at their step in E. A step in E may
+  *name* the control it triggers; it doesn't re-describe it.
+
 ## What you produce — structure
 
 A finalized `{file}`: the A–H procedure, current-state, practical for a preparer

@@ -278,6 +278,16 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
             return title
         return f"{num} {title}".strip()
 
+    def _fmt_number(slug: str) -> str:
+        if slug not in numbers:
+            raise KeyError(f"unknown [[#{slug}]] cross-reference")
+        val = numbers[slug]
+        if isinstance(val, str):
+            # Callers may pass "1.1" or a prebuilt "1.1 Title" label — the
+            # number is always the leading token.
+            return val.split(" ", 1)[0]
+        return val.get("number", "")
+
     out = []
     i = 0
     n = len(text)
@@ -292,10 +302,15 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
             out.append(text[start:])
             break
         inner = text[start + 2:end]
+        # `[[#slug]]` forces number-only resolution (table Ref cells where the
+        # title is its own column); `[[slug]]` follows the caller's mode.
+        number_only = inner.lstrip().startswith("#")
+        bare = inner.lstrip().lstrip("#") if number_only else inner
         # Leave gap/callout-style body tags alone: they contain a space+dash or
         # match an ID grammar, not a bare procedure slug.
-        if _is_procedure_slug(inner):
-            out.append(_fmt(inner.strip()))
+        if _is_procedure_slug(bare):
+            out.append(_fmt_number(bare.strip()) if number_only
+                       else _fmt(bare.strip()))
         else:
             out.append(text[start:end + 2])
         i = end + 2
