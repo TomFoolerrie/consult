@@ -82,9 +82,10 @@ CALLOUT_LINE_RE = re.compile(
     r"(?P<id>[A-Za-z]+-[A-Za-z0-9\-]+)\s*:\s*\*\*\s*(?P<text>.*?)\s*$"
 )
 
-# Callout sub-field bullet: `> - **<Field>:** <value>`.
+# Callout sub-field bullet: `> - **<Field>:** <value>`. Leading whitespace is
+# allowed — drafters legitimately nest callouts inside list items.
 SUBFIELD_RE = re.compile(
-    r"^>\s*-\s*\*\*\s*(?P<field>[^:*]+?)\s*:\s*\*\*\s*(?P<value>.*?)\s*$"
+    r"^\s*>\s*-\s*\*\*\s*(?P<field>[^:*]+?)\s*:\s*\*\*\s*(?P<value>.*?)\s*$"
 )
 
 # consult-meta fenced block (info-string `consult-meta`, YAML body).
@@ -213,19 +214,39 @@ def parse_callouts(slug: str, raw_text: str) -> list[dict]:
             )
         seen[cid] = i + 1
 
-        # Consume sub-field bullets directly beneath the label line.
+        # Consume the WHOLE contiguous blockquote below the label line:
+        # plain `> ...` continuation lines extend the callout text (drafters
+        # hard-wrap long sentences), `> - **Field:** value` bullets become
+        # sub-fields, and a wrapped field value's continuation lines extend
+        # that field. Stop at the first non-quote line or a new callout.
         fields: dict[str, str] = {}
+        text_parts = [m.group("text").strip()]
+        cur_field: str | None = None
         j = i + 1
         while j < len(lines):
-            sm = SUBFIELD_RE.match(lines[j])
-            if not sm:
-                break
-            fields[sm.group("field").strip()] = sm.group("value").strip()
+            line = lines[j]
+            if CALLOUT_LINE_RE.match(line):
+                break  # a new callout starts its own block
+            sm = SUBFIELD_RE.match(line)
+            if sm:
+                cur_field = sm.group("field").strip()
+                fields[cur_field] = sm.group("value").strip()
+                j += 1
+                continue
+            qm = re.match(r"^\s*>\s?(.*)$", line)
+            if qm is None:
+                break  # blockquote ended
+            cont = qm.group(1).strip()
+            if cont:
+                if cur_field is not None:
+                    fields[cur_field] = (fields[cur_field] + " " + cont).strip()
+                else:
+                    text_parts.append(cont)
             j += 1
 
         callouts.append(
             {"label": label, "prefix": prefix, "id": cid,
-             "text": m.group("text").strip(), "fields": fields}
+             "text": " ".join(p for p in text_parts if p), "fields": fields}
         )
         i = j
     return callouts

@@ -157,6 +157,15 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
     numbers = doc_model.display_numbers(manifest)
+    # Token resolution map: [[slug]] -> "1.1 Vendor Onboarding". Bare numbers
+    # are correct for section headings, but in prose and derived tables (where
+    # procedure-local IDs repeat across rows) the number alone is cryptic —
+    # number + title makes every cross-reference self-explanatory.
+    labels = dict(numbers)
+    for comp in manifest.get("components", []):
+        slug = comp.get("slug")
+        if slug and slug in labels and comp.get("heading"):
+            labels[slug] = f"{labels[slug]} {comp['heading']}"
     assembled = doc_model.assemble(folder)
 
     title = _attr(assembled, "title") or ""
@@ -167,7 +176,7 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
     for section in _sections(assembled):
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
-        body = _clean_body(raw_body, numbers)
+        body = _clean_body(raw_body, labels)
         is_profile = heading.lower() in _PROFILE_HEADINGS
 
         # Lift the Document Profile onto the cover card (only when a cover is

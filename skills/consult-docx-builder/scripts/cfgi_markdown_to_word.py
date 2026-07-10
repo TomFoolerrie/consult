@@ -282,23 +282,43 @@ def strip_links(t: str) -> str:
     return re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
 
 
+_BOLD_RE = re.compile(r"\*\*([^*]+?)\*\*")
+# Underscore italics only open at a word boundary and close before one, so
+# snake_case identifiers are never treated as emphasis.
+_ITALIC_RE = re.compile(r"\*([^*]+?)\*|(?<!\w)_([A-Za-z](?:`[^`]*`|[^_])*)_(?!\w)")
+_CODE_RE = re.compile(r"`([^`]+?)`")
+
+
+def _emit_code(t: str, out: List[Seg], bold: bool = False, italic: bool = False) -> None:
+    for k, part in enumerate(_CODE_RE.split(t)):
+        if part:
+            out.append(Seg(part, bold=bold, italic=italic, code=(k % 2 == 1)))
+
+
+def _emit_italic(t: str, out: List[Seg], bold: bool = False) -> None:
+    pos = 0
+    for m in _ITALIC_RE.finditer(t):
+        if m.start() > pos:
+            _emit_code(t[pos:m.start()], out, bold)
+        _emit_code(m.group(1) or m.group(2), out, bold, italic=True)
+        pos = m.end()
+    if pos < len(t):
+        _emit_code(t[pos:], out, bold)
+
+
 def segs(text: str) -> List[Seg]:
+    # Nested inline pass: bold outermost, then italics, then code spans, so
+    # markers inside a bold span (e.g. **Notes on `A?` rows:**) still resolve.
     text = strip_links(clean(text))
-    pat = re.compile(r"(`([^`]+?)`)|(\*\*([^*]+?)\*\*)|(\*([^*]+?)\*)")
     out: List[Seg] = []
     pos = 0
-    for m in pat.finditer(text):
+    for m in _BOLD_RE.finditer(text):
         if m.start() > pos:
-            out.append(Seg(text[pos:m.start()]))
-        if m.group(2):
-            out.append(Seg(m.group(2), code=True))
-        elif m.group(4):
-            out.append(Seg(m.group(4), bold=True))
-        elif m.group(6):
-            out.append(Seg(m.group(6), italic=True))
+            _emit_italic(text[pos:m.start()], out)
+        _emit_italic(m.group(1), out, bold=True)
         pos = m.end()
     if pos < len(text):
-        out.append(Seg(text[pos:]))
+        _emit_italic(text[pos:], out)
     return [s for s in out if s.text]
 
 
@@ -499,18 +519,44 @@ def callout_style(text: str) -> Tuple[str, str]:
 
 
 def add_callout(doc, text: str) -> None:
-    fill, col = callout_style(text)
+    # Strip blockquote markers up front; the callout box carries the emphasis.
+    lines = [re.sub(r"^\s*>\s?", "", ln) for ln in text.split("\n")]
+    fill, col = callout_style("\n".join(lines))
     t = doc.add_table(rows=1, cols=1)
     c = t.cell(0, 0)
     c.text = ""
     cell_shading(c, fill)
     cell_borders(c, fill)
     cell_margins(c, 120)
-    p = c.paragraphs[0]
-    p.paragraph_format.space_after = Pt(0)
-    for s in segs(text):
-        s.italic = True
-        styled_run(p, s, col, BODY_SIZE)
+    # Group lines: "- " lines become sub-bullets; consecutive plain lines wrap
+    # into a single paragraph; blank quote lines separate paragraphs.
+    blocks: List[Tuple[str, str]] = []
+    buf: List[str] = []
+
+    def flush() -> None:
+        if buf:
+            blocks.append(("para", " ".join(buf)))
+            buf.clear()
+
+    for ln in lines:
+        s = ln.strip()
+        if not s:
+            flush()
+        elif re.match(r"^[-*+]\s+", s):
+            flush()
+            blocks.append(("bullet", re.sub(r"^[-*+]\s+", "", s)))
+        else:
+            buf.append(s)
+    flush()
+    for k, (kind, txt) in enumerate(blocks):
+        p = c.paragraphs[0] if k == 0 else c.add_paragraph()
+        p.paragraph_format.space_after = Pt(0)
+        if kind == "bullet":
+            p.paragraph_format.left_indent = Inches(0.2)
+            styled_run(p, Seg("•  ", italic=True), col, BODY_SIZE)
+        for s in segs(txt):
+            s.italic = True
+            styled_run(p, s, col, BODY_SIZE)
     doc.add_paragraph()
 
 

@@ -239,8 +239,13 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
             xrefs = XREF_RE.findall(line)
             if not xrefs:
                 continue
-            row_slug = xrefs[0]
-            ids = {f"{a}-{b}" for a, b in ID_INLINE_RE.findall(line)}
+            # Source Procedure is by convention the LAST column; the row's own
+            # ID lives in the FIRST cell. Free-text cells in between may quote
+            # other [[slugs]] or IDs (a description legitimately citing a
+            # sibling), so neither may be scanned for the pairing.
+            row_slug = xrefs[-1]
+            first_cell = line.strip().strip("|").split("|", 1)[0]
+            ids = {f"{a}-{b}" for a, b in ID_INLINE_RE.findall(first_cell)}
             if not ids:
                 continue
             frag = frags.get(row_slug)
