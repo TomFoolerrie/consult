@@ -332,10 +332,24 @@ def styled_run(p, sg: Seg, color: str = PALETTE["black"], size: int = BODY_SIZE)
     r.italic = sg.italic
 
 
+# Direct run-level formatting for section headings. Heading runs previously
+# received body-default direct formatting (10pt / black / bold=False /
+# italic=False) from styled_run, which overrides the Heading 2/3 paragraph
+# STYLES in Word. Direct-format the runs to match the style instead.
+HEADING_RUN_FMT = {
+    "Heading 2": (13, PALETTE["green"], True, False),   # size, color, bold, italic
+    "Heading 3": (12, PALETTE["green"], False, True),
+}
+
+
 def para(doc, text: str, style: Optional[str] = None,
          color: str = PALETTE["black"], size: int = BODY_SIZE):
     p = doc.add_paragraph(style=style)
+    fmt = HEADING_RUN_FMT.get(style or "")
     for s in segs(text):
+        if fmt:
+            size, color, s.bold, s.italic = fmt[0], fmt[1], fmt[2], fmt[3]
+            s.code = False   # keep heading runs at heading size, not code size
         styled_run(p, s, color, size)
     return p
 
@@ -465,6 +479,43 @@ def render_cell(cell, value: str, fill: str, color: str, bold: bool = False,
         styled_run(p, s, color, BODY_SIZE)
 
 
+def _column_widths(tb: TableBlock, n: int, usable) -> List[int]:
+    """Content-proportional column widths (EMU), min 0.6\" per column.
+
+    Weight per column = max per-cell score, where a cell scores
+    min(len(text), 60) so one huge cell can't take the whole page."""
+
+    def score(txt: str) -> int:
+        return min(len(strip_links(clean(txt))), 60)
+
+    weights: List[float] = []
+    for j in range(n):
+        col = ([tb.header[j]] if tb.header and j < len(tb.header) else [])
+        col += [r[j] for r in tb.rows if j < len(r)]
+        weights.append(float(max([score(c) for c in col] + [4])))
+    min_w = int(Inches(0.6))
+    total = sum(weights)
+    widths = [max(min_w, int(usable * w / total)) for w in weights]
+    # Rescale the above-minimum columns so the table fills the usable width.
+    flex = [j for j in range(n) if widths[j] > min_w]
+    spare = usable - min_w * (n - len(flex))
+    if flex and spare > min_w * len(flex):
+        fsum = sum(widths[j] for j in flex)
+        for j in flex:
+            widths[j] = max(min_w, int(spare * widths[j] / fsum))
+    widths[widths.index(max(widths))] += usable - sum(widths)  # rounding remainder
+    return widths
+
+
+def _fixed_layout(t) -> None:
+    tblPr = t._tbl.tblPr
+    layout = tblPr.find(qn("w:tblLayout"))
+    if layout is None:
+        layout = OxmlElement("w:tblLayout")
+        tblPr.append(layout)
+    layout.set(qn("w:type"), "fixed")
+
+
 def add_table(doc, tb: TableBlock, ctx: str = "") -> None:
     if not tb.header and not tb.rows:
         return
@@ -474,7 +525,17 @@ def add_table(doc, tb: TableBlock, ctx: str = "") -> None:
     t = doc.add_table(rows=nrows, cols=n)
     t.style = "Normal Table"
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    t.autofit = True
+    # Content-proportional fixed column widths: set tblGrid (column.width) and
+    # tcW on every cell, with autofit off + fixed layout so Word honors them.
+    t.autofit = False
+    _fixed_layout(t)
+    sec = doc.sections[-1]
+    usable = int(sec.page_width - sec.left_margin - sec.right_margin)
+    widths = _column_widths(tb, n, usable)
+    for j, w in enumerate(widths):
+        t.columns[j].width = w
+        for cell in t.columns[j].cells:
+            cell.width = w
     off = 0
     if tb.header:
         for j, v in enumerate(tb.header):
@@ -519,6 +580,7 @@ def add_callout(doc, text: str) -> None:
     t = doc.add_table(rows=1, cols=1)
     c = t.cell(0, 0)
     c.text = ""
+    c.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     cell_shading(c, fill)
     cell_borders(c, fill)
     cell_margins(c, 120)
