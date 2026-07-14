@@ -29,6 +29,107 @@ You must keep **your own context flat**. That means:
 - Your job is: advise → act (script or dispatch) → move files → stop at gates →
   repeat. Nothing you do should scale with document size.
 
+## The system model — read once, reason from it everywhere
+
+The action table below covers the happy path; THIS is what lets you handle
+everything else without reverse-engineering the scripts.
+
+**Two databases, everything else is a view.**
+1. Procedure fragments (`10_<slug>.md`) — the verbs; source of truth.
+2. `_reference/` registry — the nouns (systems, roles + `people:` person→role
+   map, SRC- sources with `touches:` tags, glossary).
+Every other section (index, role dictionary, systems, appendices, RACI,
+dependencies) is a **projection** — regenerated, never hand-fixed. Corollary:
+when something is wrong in a derived section, the fix is ALWAYS upstream (a
+fragment or the registry), then regenerate. Never patch a view.
+
+**Identity and numbering.**
+- `slug` = permanent identity, minted once at scoping. Display numbers
+  ("2.3") derive from manifest order + `l2_order` at render; `[[slug]]`
+  tokens resolve to them late. So reordering is always safe and numbers are
+  never stored anywhere.
+- Callout IDs are **procedure-local** (every drafter starts at 01; collisions
+  across procedures are correct). Global 2-digit display IDs ("GAP-07") are a
+  render-time transform. Corollary: an ID quoted in chat/Word is a DISPLAY id;
+  on disk it's local. The maps in `doc_model.callout_display_ids` translate.
+  Agent-owned sections (RACI, dependencies) never quote callout IDs at all.
+
+**Folder state is the ONLY state.** There is no database, no memory: the
+advisor re-derives everything from what's on disk, which is why re-invoking
+after any interruption is safe and why every stage is idempotent. Deterministic
+stages leave git-ignored signal files; if a stage "keeps firing", its signal
+file wasn't written — that's a stage bug to surface, not a loop to ride.
+
+**One writer per file.** Fragments ← drafters. Registry ← human (agent
+proposes into `.proposed/`). Python-derived views ← aggregate. 82/84 ← their
+agents. `_client/` ← human only. You yourself write NOTHING except by running
+scripts. If you're ever tempted to edit a fragment directly — don't; dispatch
+the drafter that owns it.
+
+**Judgment vs mechanics — the token boundary.** Everything deterministic is
+free: scaffold, aggregate, reconcile, render (both modes), kits, the whole
+review return-trip (screenshot extraction, workbook answers, tracked-changes
+apply, comment extraction). Tokens are spent ONLY on: taxonomy (once per
+scope), drafters (first-fill, and updates consuming notes), dependencies+RACI
+(change-scoped). When the user asks "what will X cost", answer from this
+boundary: count the drafter dispatches, everything else is zero.
+
+**The review loop in one breath.** Working render stamps provenance
+(bookmarks + `_review/.maps/` sidecars) → kits go out per owner → returns
+land in `_review/returned/` → `ingest_returns` applies/ingests everything
+mechanical → only notes (comments, gap answers, failed applies) reach
+drafters → final render strips gap scaffolding and embeds captured
+screenshots. Precision of the mechanical apply is structural (verify-or-
+revert); its failures degrade to notes, never to corrupted fragments.
+
+### Signals dictionary (what the folder is telling you)
+
+| On disk | Meaning |
+|---|---|
+| `_reference/.proposed/` exists | scope proposals awaiting the human confirm gate; consumed (deleted) by scaffold --confirm |
+| `<!-- unfilled -->` in a fragment | skeleton not yet drafted → `fill` |
+| `_sources/new/` non-empty | unconsumed inputs → taxonomy (initial or incremental) |
+| `sources.yaml` `touches:` | which drafters each source feeds — the fan-out routing |
+| `.aggregate.json` | last aggregate basis + registry-warning list (top-up gate reads this) |
+| `.hashes.json` | per-derived-kind procedure-hash baseline; ONLY `scope_delta.py commit` writes it — skip it after synthesize and guard 9 fires forever |
+| `.reconcile.json` | `{basis, clean}` — render is gated on clean at the current basis |
+| `.render.json` | `{basis, docx, awaiting_review}` — the review resting state |
+| `_review/kits/` | derived send-outs; regenerate freely with kits.py |
+| `_review/returned/` non-empty | un-ingested returns → `ingest_returns` outranks everything below confirm |
+| `_review/*.notes.yaml` | judgment work queued for drafters (merge-appended; multiple sources) |
+| `_review/_unassigned.notes.yaml` | items no procedure owns → human triage gate |
+| `_review/.maps/*.json` | render provenance (apply anchors); never hand-edit |
+| `_assets/screens/<slug>/SC-*.png` | captured evidence; final render embeds; hand-dropping a file here is first-class |
+| `_client/org-chart.yaml`, `taxonomy.yaml` | optional client context: person→role grounding + L1 boundary authority (taxonomy agent reads; reconcile enforces names) |
+| scope note comment in a skeleton | merged variant pair — drafter writes shared flow once, branches at divergence |
+
+### Failure playbook
+
+- **Advisor returns the same action twice with no progress** → the stage
+  didn't write its signal file or didn't do its work; report the stage bug,
+  don't loop.
+- **aggregate exits non-zero** → a malformed callout in ONE fragment
+  (fail-loud names it). Dispatch that procedure's drafter (update mode) with
+  the error text; never hand-fix.
+- **reconcile ERRORs** — route by class: ID grammar / dangling ID / bare gap
+  tag → that fragment's drafter. Dangling `[[slug]]` → whoever wrote it
+  (fragment drafter, or RACI/dependencies agent for 82/84). NAMED INDIVIDUAL
+  → drafter for that fragment (role-only rule; roles.yaml `people` has the
+  mapping). Derived-row pair unknown → re-run aggregate first (stale view)
+  before suspecting a fragment. Manifest/order errors → scaffold-level;
+  surface to the human.
+- **reconcile WARNINGs** (unregistered slugs, possible name tokens) → carry
+  them to the next gate message; they never block render.
+- **review_apply falls back a lot** → normal for reviewers who disabled
+  tracked changes or restructured heavily; the notes carry everything, the
+  drafters absorb it. Only report a defect if it applied something WRONG
+  (it structurally shouldn't be able to).
+- **Kit lands in `role-*` / `unassigned/`** → roles.yaml `people:` or the org
+  chart is missing/thin; tell the user which role has no person mapped.
+- **User asks for the client deliverable while gaps are open** → that's
+  allowed by design: `--mode final` strips and reports counts; relay the
+  counts so the acceptance is informed.
+
 ## How you are invoked
 
 "build <area>", "continue <area>", or `/consult-orchestrate <area>`. If the area
