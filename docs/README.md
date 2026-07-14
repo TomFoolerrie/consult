@@ -88,7 +88,12 @@ components/
       new/                       dropped here; not yet consumed → taxonomy reads these
       processed/                 moved here once ingested into procedures
     _review/                     procedure-anchored review notes (M8) → drafter, NOT taxonomy
+      kits/                      per-owner review kits (M9, derived — regenerate at will)
+      returned/                  drop kit returns here → advisor `ingest_returns` (M9/M10)
+      .maps/                     render-time provenance sidecars (M10 apply anchors)
       processed/                 consumed reviewed .docx + applied notes, archived
+    _assets/screens/<slug>/      captured screenshots (SC-id keyed) → final-mode embeds;
+                                   hand-dropping a PNG here is as valid as the ingest script
     _reference/                  the noun database (human-confirmed)
       systems.yaml               canonical systems + aliases + description/limitations
       roles.yaml                 canonical functional roles + reports-to + people (person→role map)
@@ -393,7 +398,23 @@ tool-scoped, run by the orchestrator — never inline):
 | RACI | `consult-raci` | `84_raci.md` |
 
 Deterministic stages (`scaffold`, `aggregate`, `render`, `reconcile`,
-`scope_delta`) are plain Python the orchestrator runs directly — no agent.
+`scope_delta`, `kits`, and the whole review return-trip — `screens_ingest`,
+`gaps_ingest`, `review_apply`, `review_extract`) are plain Python the
+orchestrator runs directly — no agent.
+
+### The review loop is person-shaped and mostly deterministic (M9/M10)
+
+A working-mode render also emits **per-owner review kits**
+(`_review/kits/<person>/`): the per-L3 docs that person owns (tracked changes
+on by default), a gap workbook, and a screenshot template — ownership resolved
+Preparer role → `roles.yaml people:` → lowest org-chart rank. Returned files
+drop into `_review/returned/`; the advisor's `ingest_returns` action then runs,
+zero-token: screenshots → `_assets/screens/`, workbook answers → notes,
+**tracked changes applied mechanically** (render-time provenance anchors +
+verify-or-revert; anything unverifiable becomes a note), comments → notes.
+Only the notes — the judgment layer — reach drafters. `render.py --mode final`
+produces the client deliverable: open gaps stripped (count reported), captured
+screenshots embedded with italic captions.
 
 ## Build order (a real DAG)
 

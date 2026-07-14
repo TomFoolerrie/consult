@@ -159,6 +159,13 @@ class AreaState:
 
     # ---- guard signals ----------------------------------------------------
 
+    def returned_files(self):
+        """Un-ingested review-kit returns (M9/M10): anything the human dropped
+        into _review/returned/ — reviewed docs, gap workbooks, screenshot
+        templates. Ingestion scripts consume + archive them."""
+        pat = os.path.join(self.folder, "_review", "returned", "*")
+        return sorted(p for p in glob.glob(pat) if os.path.isfile(p))
+
     def review_notes(self):
         """Un-archived procedure-anchored review notes (M8). Excludes
         _review/processed/ and the _unassigned bucket (items review_extract
@@ -236,6 +243,18 @@ def decide(folder: str) -> dict:
             "_reference/.proposed/ exists — human must review/edit, then confirm",
             gate=True,
             proposed_dir=os.path.relpath(st.proposed_dir, folder),
+        )
+
+    # 1.5 — returned review-kit files must be ingested before anything else:
+    #       deterministic apply/ingest first, so drafters only see what
+    #       actually needs judgment (M9/M10).
+    returned = st.returned_files()
+    if returned:
+        return result(
+            "ingest_returns",
+            "_review/returned/ holds un-ingested review returns — run the "
+            "deterministic ingest scripts (screens, gaps, apply, extract)",
+            files=[os.path.relpath(p, folder) for p in returned],
         )
 
     # 2 — review notes route straight to the drafter (skip taxonomy)

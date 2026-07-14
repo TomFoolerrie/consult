@@ -1,5 +1,16 @@
 # M10 — Deterministic tracked-changes apply
 
+> **Status: BUILT** (`scripts/review_apply.py`). Deltas from this design:
+> callout boxes are 1×1 tables, so anchored cell paragraphs ARE appliable —
+> the table fallback applies only to UNanchored table edits (derived/agent
+> tables, which are never bookmarked); verification synthesizes the rendered
+> text from the current fragment through an ALIGNED re-run of the render
+> transforms (IDs, [[slug]] tokens, gap flags, marker strip), so the splice
+> preserves formatting/tokens outside the edit region; only edited segments
+> are re-emitted (no cosmetic reflow of untouched hard-wrapped lines);
+> review_apply never archives — review_extract --comments-only runs after it
+> and archives the doc.
+
 ## Goal
 
 Apply reviewers' **tracked changes** back into the markdown fragments

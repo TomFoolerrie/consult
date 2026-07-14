@@ -1,5 +1,13 @@
 # M9 — Dual-mode render + per-owner review kits
 
+> **Status: BUILT.** Deltas from this design: the gap workbook carries a
+> hidden `Ref (do not edit)` column (`slug#LOCAL-ID`) so answers round-trip
+> with no display-ID guessing; workbooks fall back to a built-in stdlib xlsx
+> writer (never CSV); screenshot templates self-identify via a core-property
+> doc id + `_review/.maps/` sidecar (same pattern as review docs); notes files
+> are merge-append (`notes_util.py`) since a slug now accumulates notes from
+> several returned files.
+
 ## Goal
 
 Make the review loop person-shaped and the deliverable mode-aware:

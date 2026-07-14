@@ -515,6 +515,9 @@ def infer_area(docx_path: Path, area_arg: Optional[str]) -> Path:
     # Dropped into {area}/_review/ (the normal path) -> area is its parent.
     if parent.name == "_review":
         return parent.parent
+    # Kit returns land in {area}/_review/returned/.
+    if parent.name == "returned" and parent.parent.name == "_review":
+        return parent.parent.parent
     if (parent / "manifest.json").exists():
         return parent
     return parent
