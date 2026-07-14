@@ -1,6 +1,6 @@
 # CONSULT MVP — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M6) references the
+Shared architecture for the MVP rebuild. Every ticket (M0–M10) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
 
