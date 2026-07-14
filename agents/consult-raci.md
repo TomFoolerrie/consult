@@ -91,6 +91,10 @@ render time inside procedure sections and appendices, but agent-owned sections
 are not — a quoted ID would go stale. Reference the procedure with `[[slug]]`
 and describe the item in words instead.
 
+Never name an individual — columns and footnotes use canonical **roles** only.
+If an input leaks a personal name, map it to its role via `roles.yaml`
+(`people:` lists / aliases) and flag it in your return.
+
 ## What you return (COMPACT)
 - `file` written; `activities` (rows), `roles` (columns), `rows_rederived`
 - `no_single_accountable`: activities carrying an assumed `A*`

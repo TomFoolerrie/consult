@@ -581,7 +581,22 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     for sf in STATIC_FILES:
         _write_if_absent(sf["file"], render_static(sf["heading"]))
     for p in procedures:
-        _write_if_absent(f"10_{p['slug']}.md", render_skeleton(p["title"]))
+        content = render_skeleton(p["title"])
+        # A merged near-duplicate pair carries `variants:` in procedures.yaml.
+        # Stamp the coverage into the skeleton so the drafter documents the
+        # shared flow once and branches where the variants diverge. HTML
+        # comments are stripped at render, so this never reaches Word.
+        variants = [str(v) for v in (p.get("variants") or []) if v]
+        if variants:
+            note = (
+                "<!-- scope note: covers variants — " + "; ".join(variants)
+                + ". Document the shared flow once; branch at the step(s) "
+                  "where the variants diverge. -->"
+            )
+            content = content.replace(
+                "<!-- unfilled -->", "<!-- unfilled -->\n\n" + note, 1
+            )
+        _write_if_absent(f"10_{p['slug']}.md", content)
     for d in DERIVED_FILES:
         _write_if_absent(d["file"], render_derived(d["kind"], d["writer"], d["heading"]))
 

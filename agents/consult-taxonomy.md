@@ -65,6 +65,9 @@ Read, at the start:
 2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
    buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
    your **known backbone**: the buckets L3 activities file under.
+3. `{area}/_client/`, if present — optional client-supplied context:
+   `org-chart.yaml` (person → title) and `taxonomy.yaml` (the client's own
+   L1→L2→L3 map). See "Client context" below.
 
 ## The hierarchy you are building
 
@@ -79,6 +82,42 @@ Best-guess the L3 set and each L3's L2 bucket. When the sources describe work th
 **doesn't fit any existing L2 bucket**, do NOT silently invent one — propose a new
 bucket flagged `needs-approval` (see below); the human decides at the gate.
 
+## Client context (optional — use it when present)
+
+`{area}/_client/` holds client-supplied reference files the human may or may not
+provide. Never write to this folder; never invent its contents. (Schema examples:
+`skills/consult-taxonomy/reference/org_chart.example.yaml` /
+`client_taxonomy.example.yaml`.)
+
+- **`org-chart.yaml`** — person → title map. Use it to ground `roles.yaml`:
+  prefer the client's real titles as canonical role names, and list each person
+  under their role's `people:` field. A person named in the sources but absent
+  from the org chart still gets mapped — best-guess the role from context at
+  `confidence: low` rather than dropping them.
+- **`taxonomy.yaml`** — the client's own L1→L2→L3 map. It is the **boundary
+  authority**: if it places an activity under a different L1 than yours, report
+  it in `out_of_l1` instead of scoping it — one process is never documented in
+  two L1s. Use its L3 names as a naming/filing prior for the L3s you discover.
+  It *supplements* the reference taxonomy: `l2` slug values still come from the
+  reference backbone (map client L2 names onto backbone buckets; a client L2
+  with no backbone home is a new-bucket request, same needs-approval flow).
+
+## One activity, one procedure — merge near-duplicate L3s
+
+Before finalizing the set, compare your candidate L3s pairwise. Two candidates
+that share the same core flow — same actors, systems, and step sequence — and
+differ only by a small delta (e.g. *New Vendor Setup* vs *Vendor Banking Change*
+with one added verification step) are **ONE procedure with variants**, not two.
+Near-identical twin documents are bloat the client maintains twice.
+
+- **Merge:** one slug, a title covering both, and a `variants:` list in
+  `procedures.yaml`. Scaffold stamps the variants into the skeleton so the
+  drafter documents the shared flow once and branches where they diverge.
+- **Unsure?** Keep them separate but report the pair in `overlap_flags` — the
+  human decides at the confirm gate.
+- Distinct activities that merely share a phase stay separate — merge only
+  near-duplicates; never force an unnatural superset.
+
 ## What you write — all under `{area}/_reference/.proposed/` (staging only)
 
 Never touch the live `_reference/` or scaffold anything. Write:
@@ -92,6 +131,8 @@ procedures:
                                    #   or a proposed new one below)
     confidence: high | medium | low
     sources: [SRC-001, SRC-003]    # which sources describe this L3
+    variants: []                   # only on a merged near-duplicate pair, e.g.
+                                   #   ["New vendor setup", "Vendor banking change"]
 ```
 
 ### `systems.yaml` / `roles.yaml` (the canonical noun registry)
@@ -107,6 +148,8 @@ roles:
   - slug: ap-clerk
     name: AP Clerk
     aliases: ["the AP lady", "accounts payable clerk"]
+    people: ["Luis Ortega"]        # individuals holding the role (org chart /
+                                   #   sources) — prose names ROLES, never people
     reports_to: controller
     confidence: high | medium | low
 ```
@@ -146,11 +189,19 @@ new_buckets:
 5. **Slugs are identity, set once, kebab-case.** Deduplicate; don't collide.
 6. **Tag every source.** Each SRC- entry gets a `touches` list so drafters get
    only their relevant sources.
+7. **Individuals map to roles.** Every person named in the sources (or org
+   chart) belongs under some role's `people:` list — that mapping is what lets
+   drafters (and the reconcile name check) keep individuals out of prose. A
+   person you can't place: best-guess a role at `confidence: low`, and report
+   them in `unmapped_people`, rather than dropping them.
 
 ## What you return (COMPACT — no source text)
 - `mode`, `l1`, counts: procedures (new vs existing), L2 buckets, systems, roles, sources
 - `by_bucket`: each L2 → the L3 slugs filed under it
 - `new_buckets`: any proposed buckets needing approval (slug + one-line rationale)
+- `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants)
+- `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides)
+- `unmapped_people`: individuals you could not confidently map to a role
 - `low_confidence`: procedures/entries the human should scrutinize first
 - `out_of_l1`: activities in the sources that belong to a different L1 (not scoped)
 - `unresolved`: sources you couldn't place, or material ambiguity for the human

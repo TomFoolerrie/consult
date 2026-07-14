@@ -61,8 +61,23 @@ under its `reference/` as the default backbone; the user may supply their own):
   may touch many procedures; a procedure may draw on many sources.
 - Extract candidate **nouns** and stand up the registry:
   `systems.yaml` (slug, name, aliases, description, limitations),
-  `roles.yaml` (slug, name, reports_to, responsibilities),
+  `roles.yaml` (slug, name, reports_to, responsibilities, `people` — the
+  person→role map that keeps individuals out of prose),
   `sources.yaml` (SRC- registry), optional `glossary.yaml`.
+- **Optional client context at `{area}/_client/`** (human-dropped, never
+  agent-written): `org-chart.yaml` (person → title; grounds `roles.yaml` titles
+  + `people` lists, and feeds reconcile's named-individual check) and
+  `taxonomy.yaml` (the client's own L1→L2→L3 map; the **L1 boundary
+  authority** — an activity it places under another L1 goes to `out_of_l1`, so
+  one process is never documented in two L1s). Schema examples live at
+  `skills/consult-taxonomy/reference/*.example.yaml`.
+- **Merge near-duplicate L3s.** Candidate L3s sharing the same core flow with
+  only a small delta (e.g. new-vendor setup vs vendor banking change) are
+  proposed as ONE procedure with a `variants:` list, not two near-identical
+  documents; uncertain pairs are reported in `overlap_flags` for the human at
+  the confirm gate. Scaffold stamps `variants` into the skeleton as a
+  `<!-- scope note … -->` so the drafter writes the shared flow once and
+  branches at the divergence (render strips all HTML comments).
 - **Credibility guardrail:** `description` / `limitations` are **sourced from the
   transcript (cite the source line) or left blank/`TBD` — never invented.** Same
   anti-anchoring rule as the original taxonomy-baselines guardrail.

@@ -20,9 +20,14 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
     - dangling `[[slug]]` cross-reference (no such procedure)
     - a manifest `derived` file missing its `<!-- derived: ... -->` marker
     - a derived-table row whose (Source-Procedure slug, id) pair is unknown
+    - a known individual's FULL NAME in procedure/derived prose (names come
+      from roles.yaml `people:` lists + `_client/org-chart.yaml`; procedures
+      refer to people by ROLE, never by name)
 
   WARNING (exit stays 0):
     - a `consult-meta` systems:/roles: slug absent from `_reference/*.yaml`
+    - a standalone first/last name of a known individual in procedure/derived
+      prose (possible leak — could be a coincidence, so the human judges)
 
 Usage:
     python3 scripts/reconcile.py <area-folder>
@@ -136,6 +141,105 @@ def load_registry_slugs(folder: Path) -> tuple[set[str], set[str]]:
                     bucket.add(k)
         _harvest_slugs(data, bucket)
     return systems, roles
+
+
+def load_people_names(folder: Path) -> list[str]:
+    """Known individuals: roles.yaml `people:` lists + _client/org-chart.yaml.
+
+    Both sources are optional; with neither present the name check is a no-op
+    (the drafters' role-only rule still applies, it just isn't enforced)."""
+    names: list[str] = []
+    if yaml is None:
+        return names
+
+    rfile = folder / "_reference" / "roles.yaml"
+    if rfile.is_file():
+        try:
+            data = yaml.safe_load(rfile.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            data = {}
+        for entry in data.get("roles") or []:
+            if isinstance(entry, dict):
+                for p in entry.get("people") or []:
+                    if isinstance(p, str):
+                        names.append(p.strip())
+
+    cfile = folder / "_client" / "org-chart.yaml"
+    if cfile.is_file():
+        try:
+            data = yaml.safe_load(cfile.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            data = {}
+        for entry in data.get("people") or []:
+            if isinstance(entry, dict) and isinstance(entry.get("name"), str):
+                names.append(entry["name"].strip())
+            elif isinstance(entry, str):
+                names.append(entry.strip())
+
+    seen: set[str] = set()
+    out: list[str] = []
+    for n in names:
+        if n and n.lower() not in seen:
+            seen.add(n.lower())
+            out.append(n)
+    return out
+
+
+def check_named_individuals(folder: Path, manifest: dict,
+                            errors: list[str], warnings: list[str]) -> None:
+    """Individuals appear in prose by ROLE, never by name.
+
+    A multi-token full name is unambiguous → ERROR. A standalone first/last
+    name token (or a single-token person entry) could be a coincidence
+    ("Mark", "Price") → WARNING, case-sensitive, for the human to judge.
+    Static front matter (role: static) is exempt — e.g. the Document Profile
+    legitimately credits interviewees by name."""
+    names = load_people_names(folder)
+    if not names:
+        return
+
+    full: list[tuple[str, re.Pattern]] = []
+    token_owner: dict[str, str] = {}
+    for name in names:
+        parts = name.split()
+        if len(parts) >= 2:
+            full.append((name, re.compile(
+                r"\b" + r"\s+".join(re.escape(p) for p in parts) + r"\b",
+                re.IGNORECASE)))
+            for tok in parts:
+                if len(tok) >= 3:
+                    token_owner.setdefault(tok, name)
+        elif len(name) >= 3:
+            token_owner.setdefault(name, name)
+    token_res = [(tok, owner, re.compile(r"\b" + re.escape(tok) + r"\b"))
+                 for tok, owner in token_owner.items()]
+
+    for comp in manifest.get("components", []):
+        if comp.get("role") not in ("procedure", "derived"):
+            continue
+        file = comp.get("file", "")
+        fpath = folder / file
+        if not fpath.is_file():
+            continue
+        text = strip_fences(fpath.read_text(encoding="utf-8"))
+        for n, line in enumerate(text.splitlines(), start=1):
+            spans: list[tuple[int, int]] = []
+            for name, rx in full:
+                for m in rx.finditer(line):
+                    spans.append(m.span())
+                    errors.append(
+                        f"{file}:{n}: NAMED INDIVIDUAL {name!r} — refer to "
+                        f"people by role (roles.yaml `people` mapping)"
+                    )
+            for tok, owner, rx in token_res:
+                for m in rx.finditer(line):
+                    if any(s <= m.start() and m.end() <= e for s, e in spans):
+                        continue
+                    warnings.append(
+                        f"{file}:{n}: possible named individual {tok!r} "
+                        f"({owner}) — use the role instead"
+                    )
+                    break  # one warning per token per line
 
 
 # --------------------------------------------------------------------------- #
@@ -371,6 +475,9 @@ def reconcile(folder: str) -> int:
 
     # 6. derived-table (slug,id) check (after aggregate)
     check_derived_tables(folder, manifest, frags, errors)
+
+    # 7. named-individual check (roles.yaml people + _client/org-chart.yaml)
+    check_named_individuals(folder, manifest, errors, warnings)
 
     # report
     if errors:

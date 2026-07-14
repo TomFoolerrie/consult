@@ -91,9 +91,12 @@ components/
       processed/                 consumed reviewed .docx + applied notes, archived
     _reference/                  the noun database (human-confirmed)
       systems.yaml               canonical systems + aliases + description/limitations
-      roles.yaml                 canonical functional roles + reports-to + responsibilities
+      roles.yaml                 canonical functional roles + reports-to + people (person→role map)
       glossary.yaml              (optional) Appendix D terms
       sources.yaml               SRC- registry (source materials + hash + new|processed)
+    _client/                     OPTIONAL human-dropped client context (never agent-written)
+      org-chart.yaml             person → title map → roles.yaml `people` + reconcile name check
+      taxonomy.yaml              client's own L1→L2→L3 map → L1 boundary authority at scoping
     00_document-profile.md       static (human-owned) — H2 sections
     04_process-overview.md       static (human-owned) — Purpose narrative
     10_<proc-slug>.md            procedure fragments (fill-agent/human-owned = SOURCE OF TRUTH)
@@ -237,6 +240,7 @@ writers. This is the first review's rule, restored; region markers are gone.
 | File | Writer | Contents |
 |---|---|---|
 | `_reference/*.yaml` | human (seeded by M0 agent, confirmed at gate) | the noun database |
+| `_client/*.yaml` | human only (optional) | client context: org chart, client taxonomy — read by M0 agent + reconcile |
 | `00–04_*` static | human | Document Profile, How to Use, Control, Sources, Process Overview |
 | `10_<slug>` procedure | fill agent / human | the source of truth |
 | `06_procedure-index` | Python | In-Scope index (pure SELECT) |
@@ -336,8 +340,14 @@ roles:   [ap-clerk, controller]
 - `reconcile.py` checks every slug against `_reference/`; an **unresolved slug is a
   WARNING, not an ERROR** (it names a real noun the registry doesn't have yet —
   the human top-up loop resolves it; it must not block the area). ERRORs are
-  reserved for ID-grammar defects, dangling `[[slug]]`, duplicate `order`, and
-  missing derived markers.
+  reserved for ID-grammar defects, dangling `[[slug]]`, duplicate `order`,
+  missing derived markers, and named individuals (below).
+- **Individuals are referred to by role, never by name.** `roles.yaml` entries
+  carry a `people:` list (seeded from `_client/org-chart.yaml` when provided);
+  `reconcile.py` scans procedure + derived prose for those names — a full name
+  is an **ERROR**, a standalone first/last name a **WARNING** (could be a
+  coincidence; the human judges). Static front matter is exempt (the Document
+  Profile legitimately credits interviewees).
 - This is the ONLY structured emission the fill agent produces beyond the prose
   (decision (a) — minimal). IDs stay as strict-grammar callouts in prose.
 

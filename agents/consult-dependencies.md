@@ -70,6 +70,10 @@ render time inside procedure sections and appendices, but agent-owned sections
 are not — a quoted ID would go stale. Reference the procedure with `[[slug]]`
 and describe the item in words instead.
 
+Never name an individual — dependencies are stated between **roles**, systems,
+and procedures. If an input leaks a personal name, map it to its role via
+`roles.yaml` (`people:` lists / aliases) and flag it in your return.
+
 ## What you return (COMPACT)
 - `file` written; `rows` (total), `rows_rederived` (this pass)
 - `external_deps`: count of external (non-`[[slug]]`) dependencies

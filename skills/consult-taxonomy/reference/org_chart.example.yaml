@@ -1,0 +1,23 @@
+# Example _client/org-chart.yaml — OPTIONAL client-supplied person → title map.
+#
+# Drop a file shaped like this at {area}/_client/org-chart.yaml (human-authored,
+# never agent-written). When present:
+#   - consult-taxonomy grounds roles.yaml on it: the client's real titles become
+#     canonical role names, and each person is listed under their role's
+#     `people:` field.
+#   - reconcile.py enforces the role-only rule against it: an individual's full
+#     name appearing in procedure/derived prose is an ERROR; a standalone
+#     first/last name is a WARNING.
+#
+# Only `name` and `title` are required per entry.
+
+people:
+  - name: Jane Smith
+    title: AP Manager
+    reports_to: Robert Chen        # optional, by name
+  - name: Robert Chen
+    title: Corporate Controller
+  - name: Luis Ortega
+    title: AP Clerk
+    reports_to: Jane Smith
+    notes: "Also covers vendor master maintenance."   # optional

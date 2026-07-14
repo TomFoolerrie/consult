@@ -150,6 +150,15 @@ against other procedures.
 A body gap reference in a step's prose uses `[[GAP-01 — SHORT LABEL]]` (never a
 bare `[[GAP — …]]`) and must match a `VALIDATION REQUIRED` callout in that step.
 
+### Variant procedures — one shared flow, explicit branches
+A skeleton stamped with a `<!-- scope note: covers variants … -->` comment
+covers two or more near-duplicate activities deliberately merged at scoping
+(e.g. *New Vendor Setup* + *Vendor Banking Change*). Document the shared flow
+**once**; at the step(s) where the variants diverge, branch explicitly ("For a
+banking change, additionally …"). Never write parallel near-identical step
+sequences. Leave the scope-note comment in place — it is authoring metadata and
+is stripped at render.
+
 ## The non-negotiable rules
 
 ### 1. Evidence discipline — never fabricate
@@ -164,6 +173,13 @@ the conflict; never silently choose.
 ### 2. Nouns — canonical prose + consult-meta slugs
 - In prose, name systems/roles by their **canonical registry name** (resolve "the
   AP lady" → `AP Clerk`, "our system" → `SAP S/4HANA`).
+- **Individuals are NEVER named.** Sources speak in people ("Sarah sends the
+  file…"); the procedure speaks in roles. Resolve every personal name via the
+  `people:` lists / aliases in `roles.yaml` and write the **role name**. A name
+  with no mapping: best-guess the role from context, write the role, and report
+  the name → role guess in your status (`unmapped_people`) — the person's name
+  itself never appears in your file. `reconcile.py` fails the area on a leaked
+  full name, so this is enforced, not stylistic.
 - Populate the **`consult-meta` end-matter block** with the registry **slugs** you
   used (the machine binding, not the prose):
   ```consult-meta
@@ -197,6 +213,8 @@ A short status object/paragraph:
   (PP), improvements (IO)
 - `consult_meta`: the systems/roles slugs you wrote
 - `unregistered`: any system/role you used that had no registry entry (human top-up)
+- `unmapped_people`: personal names in your sources with no `people:` mapping,
+  plus the role you resolved each to (human confirms at top-up)
 - `conflicts`: source conflicts you logged as GAPs (id + one line each)
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
   `revised` (one line on what changed)

@@ -16,8 +16,8 @@ assembly glue and delegates styling to the bundled CFGI converter:
      display numbers via the same map, so derived tables (Systems "Related
      Procedures", Appendix A "Source Procedure") stay consistent with headings
      after any reorder.
-  4. `<!-- derived: ... -->` markers and any fenced ```consult-meta``` block are
-     stripped so neither reaches Word.
+  4. HTML comments (derived markers, scaffold scope notes) and any fenced
+     ```consult-meta``` block are stripped so none of them reaches Word.
   5. Cover construction branches on input mode: folder -> title/subtitle from
      the manifest and the Document Profile card lifted from the
      `document-profile` static section; single-file -> the converter's legacy
@@ -79,9 +79,10 @@ def _resolve_tokens(text: str, numbers) -> str:
 # --------------------------------------------------------------------------- #
 # Body cleaning (things that must never reach Word)
 # --------------------------------------------------------------------------- #
-def _strip_derived_markers(text: str) -> str:
-    """Remove `<!-- derived: KIND; writer: W -->` (and bare derived) comments."""
-    return re.sub(r"<!--\s*derived\b.*?-->", "", text, flags=re.DOTALL | re.IGNORECASE)
+def _strip_html_comments(text: str) -> str:
+    """Remove ALL `<!-- ... -->` comments (derived markers, scaffold scope
+    notes, stray sentinels) — comments are authoring metadata, never content."""
+    return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
 
 
 def _strip_consult_meta(text: str) -> str:
@@ -145,7 +146,7 @@ def _strip_own_heading(text: str) -> str:
 def _clean_body(text: str, numbers) -> str:
     text = _strip_own_heading(text)
     text = _strip_consult_meta(text)
-    text = _strip_derived_markers(text)
+    text = _strip_html_comments(text)
     text = _resolve_tokens(text, numbers)
     text = _flag_gap_tags(text)
     return text.strip("\n")

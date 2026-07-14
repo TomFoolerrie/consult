@@ -56,11 +56,31 @@ File each discovered L3 under an L2 bucket. When work fits **no** existing bucke
 propose a new bucket (needs-approval) rather than forcing a bad fit or inventing a
 bucket silently.
 
+## Client context (optional inputs at `{area}/_client/`)
+
+The human may drop client-supplied reference files at `{area}/_client/` — read
+them when present, never write to that folder, never invent their contents.
+Schema examples live beside this skill:
+`reference/org_chart.example.yaml` and `reference/client_taxonomy.example.yaml`.
+
+- **`org-chart.yaml`** (person → title): ground `roles.yaml` on it — the
+  client's real titles become canonical role names, and each person is listed
+  under their role's `people:` field. People named in sources but absent from
+  the org chart still get mapped (best-guess role, `confidence: low`).
+- **`taxonomy.yaml`** (the client's own L1→L2→L3 map): the **boundary
+  authority**. An activity it places under a different L1 than yours goes to
+  `out_of_l1`, not into scope — one process is never documented in two L1s.
+  Its L3 names are a naming/filing prior. It supplements the reference
+  backbone: `l2` slugs still come from the reference taxonomy (map client L2
+  names onto backbone buckets; a client L2 with no home is a new-bucket
+  request, same needs-approval flow).
+
 ## Method
 
 ### 1. Read
 - Everything in `{area}/_sources/new/` (the unconsumed inputs).
 - The `taxonomy`: find your L1 by `slug`, read its L2 buckets and their slugs.
+- `{area}/_client/` if present (org chart + client taxonomy — see above).
 - **incremental only:** also read the live `_reference/` (systems/roles/sources)
   and the existing procedure slugs from `{area}/manifest.json`, so you propose a
   *delta* against what already exists.
@@ -74,10 +94,21 @@ procedures:
     l2: close                      # a known bucket slug, or an approved new one
     confidence: high | medium | low
     sources: [SRC-001, SRC-003]    # which sources describe this L3
+    variants: []                   # only on a merged near-duplicate pair, e.g.
+                                   #   ["New vendor setup", "Vendor banking change"]
 ```
 Slugs are identity: unique, kebab-case, never colliding. Scaffold builds the
 manifest from this file; `procedures.yaml` itself is **not** a live registry file
 and is never promoted.
+
+**Merge near-duplicate L3s.** Before finalizing the set, compare candidates
+pairwise: two L3s sharing the same core flow (actors, systems, step sequence)
+that differ only by a small delta are **one procedure with `variants:`**, not
+two — twin documents are bloat the client maintains twice. Scaffold stamps the
+variants into the skeleton so the drafter writes the shared flow once and
+branches at the divergence. Genuinely unsure → keep them separate and report
+the pair in `overlap_flags` for the human. Distinct activities that merely
+share a phase stay separate.
 
 ### 3. Stand up the noun registry → `.proposed/systems.yaml`, `.proposed/roles.yaml`
 ```yaml
@@ -92,6 +123,8 @@ roles:
   - slug: ap-clerk
     name: AP Clerk
     aliases: ["the AP lady", "accounts payable clerk"]
+    people: ["Luis Ortega"]        # individuals holding the role (org chart /
+                                   #   sources) — prose names ROLES, never people
     reports_to: controller
     confidence: high | medium | low
 ```
@@ -99,6 +132,13 @@ The registry's primary purpose is **intake grounding**: it is the lookup a draft
 uses to normalize a messy mention ("the AP lady", "our system") into a canonical
 name. Rich, honest aliases are the highest-value thing you produce here.
 `description`/`limitations` follow the credibility guardrail — sourced or blank.
+
+**`people:` is the person → role mapping.** Every individual named in the
+sources or the org chart belongs under some role's `people:` list. Drafters use
+it to resolve "Sarah sends the file…" into the role name, and `reconcile.py`
+enforces it (a listed person's full name in procedure/derived prose is an
+ERROR). A person you can't confidently place: best-guess a role at
+`confidence: low` and report them in `unmapped_people` — never drop them.
 
 ### 4. Register + tag the sources → `.proposed/sources.yaml`
 ```yaml
@@ -154,6 +194,9 @@ leaves untouched entries intact) — so you only need to emit what changed.
   sources.
 - `by_bucket`: each L2 → the L3 slugs filed under it.
 - `new_buckets`: proposed buckets needing approval (slug + one-line rationale).
+- `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants).
+- `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides).
+- `unmapped_people`: individuals you could not confidently map to a role.
 - `low_confidence`: procedures/entries the human should scrutinize first.
 - `out_of_l1`: activities in the sources belonging to a different L1 (not scoped).
 - `unresolved`: sources you couldn't place, or material ambiguity for the human.
@@ -166,8 +209,8 @@ just drives the confirm gate.
 ## The confirm gate (what happens after you)
 
 The human edits the files in `.proposed/` directly (add/remove/merge procedures,
-fix a role mapping, add an alias, blank a guessed limitation, approve a new
-bucket). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
+split a merged variant pair back into two, fix a role or person mapping, add an
+alias, blank a guessed limitation, approve a new bucket). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
 which promotes `.proposed/` → live `_reference/` (a MERGE), builds `manifest.json`,
 and writes one A–H skeleton per procedure. Nothing you wrote reaches the live
 folder until that runs.

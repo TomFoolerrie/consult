@@ -36,6 +36,11 @@ The L2 bucket is not in the fragment either; it lives only in the manifest.
 On your **first write**, remove the `<!-- unfilled -->` sentinel — that is the
 signal you are no longer a skeleton.
 
+A skeleton stamped with a `<!-- scope note: covers variants … -->` comment
+merges near-duplicate activities: document the shared flow **once** and branch
+explicitly at the step(s) where the variants diverge — never parallel
+near-identical sequences. Keep the comment (it is stripped at render).
+
 ## Evidence discipline — never fabricate
 
 You may add connective tissue: sequence steps, normalize role names to canonical
@@ -121,6 +126,11 @@ A body gap reference in a step's prose is `[[GAP-01 — SHORT LABEL]]` (never a 
 
 - In prose, name systems/roles by their **canonical registry name** (resolve "the
   AP lady" → `AP Clerk`, "our system" → `SAP S/4HANA`).
+- **Individuals are NEVER named.** Resolve every personal name via the `people:`
+  lists / aliases in `roles.yaml` and write the **role name** instead ("Sarah
+  sends the file" → "The AP Clerk sends the file"). A name with no mapping:
+  best-guess the role from context, write the role, and report the guess in
+  `unmapped_people`. `reconcile.py` fails the area on a leaked full name.
 - Populate the **`consult-meta` end-matter block** with the registry **slugs** you
   used — this is the machine binding, not the prose:
   ```consult-meta
@@ -170,6 +180,8 @@ procedure bodies.
   (PP), improvements (IO)
 - `consult_meta`: the systems/roles slugs you wrote
 - `unregistered`: any system/role you used with no registry entry
+- `unmapped_people`: personal names with no `people:` mapping + the role you
+  resolved each to
 - `conflicts`: source conflicts logged as GAPs (id + one line each)
 - on update: `gaps_closed`, `tbds_filled`, `revised` (one line)
 - `reconcile`: pass / the ERRORS you couldn't resolve

@@ -1,0 +1,30 @@
+# Example _client/taxonomy.yaml — OPTIONAL client-supplied L1→L2→L3 process map.
+#
+# Drop a file shaped like this at {area}/_client/taxonomy.yaml (human-authored,
+# never agent-written). When present, consult-taxonomy treats it as the
+# BOUNDARY AUTHORITY: an activity this map places under a different L1 than the
+# one being scoped is reported `out_of_l1` instead of scoped — one process is
+# never documented in two L1s. Its L3 names also serve as a naming/filing prior
+# for discovered L3s.
+#
+# It SUPPLEMENTS the reference taxonomy (structural slugs still come from the
+# reference backbone); names here are plain client language, not slugs. The
+# `l3:` lists are optional — an L1/L2-only map still settles boundaries.
+
+taxonomy:
+  - l1: Procure to Pay
+    l2:
+      - name: Vendor Management
+        l3:
+          - New Vendor Setup
+          - Vendor Banking Change
+          - Vendor Master Data Maintenance
+      - name: Invoice Processing
+        l3:
+          - PO Invoice Entry
+          - Non-PO Invoice Entry
+  - l1: Treasury
+    l2:
+      - name: Cash Management
+        l3:
+          - Positive Pay File Submission
