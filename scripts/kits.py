@@ -256,9 +256,12 @@ def _readme(person: str, kit: dict, area_title: str) -> str:
         "documentation. Three quick asks, all in this folder:",
         "",
         "1. **Review your procedure document(s)** and correct anything that is",
-        "   wrong or missing — edit directly in Word. Tracked changes is",
-        "   already on; just type. Add comments for anything you want to",
-        "   explain rather than fix.",
+        "   wrong or missing — edit directly in Word. The document opens locked",
+        "   in *Reviewing* mode: every edit is recorded automatically, even if",
+        "   it displays as normal text (Word's *Simple Markup* view). Just",
+        "   type — nothing extra to turn on. To see your edits as redlines,",
+        "   pick **All Markup** in the Review ribbon. Add comments for anything",
+        "   you want to explain rather than fix.",
         doc_lines,
     ]
     if kit["gaps"]:
