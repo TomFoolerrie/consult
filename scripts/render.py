@@ -3,7 +3,8 @@
 render.py — thin top-level entrypoint the orchestrator invokes to build a Word
 deliverable from a component folder (or, for back-compat, a single .md file).
 
-    python3 scripts/render.py <area> -o <out.docx>
+    python3 scripts/render.py <area> -o <out.docx> [--mode working|final]
+                              [--slugs a,b] [--track-changes]
 
 For a **folder** (an area dir containing `manifest.json`) this module does the
 assembly glue and delegates styling to the bundled CFGI converter:
@@ -18,10 +19,34 @@ assembly glue and delegates styling to the bundled CFGI converter:
      after any reorder.
   4. HTML comments (derived markers, scaffold scope notes) and any fenced
      ```consult-meta``` block are stripped so none of them reaches Word.
+     All body cleaning is LINE-COUNT-PRESERVING (comments/meta are blanked,
+     not removed) so rendered paragraphs map straight back to fragment lines —
+     the provenance the M10 review-apply pipeline depends on.
   5. Cover construction branches on input mode: folder -> title/subtitle from
      the manifest and the Document Profile card lifted from the
      `document-profile` static section; single-file -> the converter's legacy
      H1/tagline scan.
+
+Modes (M9):
+  --mode working (default)  everything visible (gaps, pain points); emits
+                            provenance bookmarks + a sidecar review map under
+                            {area}/_review/.maps/ keyed by the doc id stamped
+                            into the docx core properties.
+  --mode final              client-facing: VALIDATION REQUIRED callouts,
+                            [[GAP-…]] body flags, and the gap-log appendix are
+                            stripped (counts reported, never refused);
+                            SCREENSHOT PLACEHOLDER callouts whose captured
+                            image exists at _assets/screens/{slug}/{SC-id}.*
+                            render as the embedded image with an italic
+                            caption below (manual drop-in of a PNG at that
+                            path is a first-class alternative to the ingest
+                            script).
+  --slugs a,b               subset render: only those procedure sections (no
+                            cover/front/back matter) — the per-owner kit docs.
+                            Display numbers + callout display IDs still come
+                            from the FULL manifest so kit docs match the full
+                            draft. Never writes the .render.json signal.
+  --track-changes           kit docs open with tracked changes already on.
 
 The assembled Markdown/structure is then handed to
 `cfgi_markdown_to_word.convert_assembled` (folder) or `.convert` (single file).
@@ -29,8 +54,11 @@ The assembled Markdown/structure is then handed to
 """
 from __future__ import annotations
 import argparse
+import hashlib
+import json
 import re
 import sys
+import uuid
 from pathlib import Path
 
 # Make both scripts/ (doc_model) and the skill's scripts/ (the converter)
@@ -45,9 +73,16 @@ for _p in (_SCRIPTS_DIR, _SKILL_SCRIPTS):
 import doc_model  # noqa: E402  (M2-owned shared spine)
 import cfgi_markdown_to_word as cfgi  # noqa: E402  (bundled converter)
 
+from docx.oxml import OxmlElement  # noqa: E402
+from docx.oxml.ns import qn  # noqa: E402
+
 # Static section(s) lifted onto the cover as the Document Profile card. Reuse
 # the converter's set so the two stay in lock-step.
 _PROFILE_HEADINGS = set(cfgi.COVER_SECTIONS)  # {"document profile"}
+
+# Where captured screenshots live (per procedure, keyed by LOCAL SC id).
+SCREENS_DIR = "_assets/screens"
+_IMG_EXTS = (".png", ".jpg", ".jpeg", ".gif")
 
 
 # --------------------------------------------------------------------------- #
@@ -77,16 +112,20 @@ def _resolve_tokens(text: str, numbers) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Body cleaning (things that must never reach Word)
+# Body cleaning (things that must never reach Word) — LINE-COUNT-PRESERVING
 # --------------------------------------------------------------------------- #
 def _strip_html_comments(text: str) -> str:
-    """Remove ALL `<!-- ... -->` comments (derived markers, scaffold scope
-    notes, stray sentinels) — comments are authoring metadata, never content."""
-    return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    """Blank ALL `<!-- ... -->` comments (derived markers, scaffold scope
+    notes, stray sentinels) — authoring metadata, never content. Multi-line
+    comments are replaced by the same number of newlines so provenance line
+    mapping survives."""
+    return re.sub(r"<!--.*?-->",
+                  lambda m: "\n" * m.group(0).count("\n"),
+                  text, flags=re.DOTALL)
 
 
 def _strip_consult_meta(text: str) -> str:
-    """Drop any fenced block whose info-string is `consult-meta` (```/~~~)."""
+    """Blank any fenced block whose info-string is `consult-meta` (```/~~~)."""
     lines = text.split("\n")
     out = []
     i = 0
@@ -96,10 +135,14 @@ def _strip_consult_meta(text: str) -> str:
         if m:
             fence_char = m.group(1)[0]
             close_re = re.compile(r"^\s*" + re.escape(fence_char) + r"{3,}\s*$")
+            out.append("")
             i += 1
             while i < len(lines) and not close_re.match(lines[i]):
+                out.append("")
                 i += 1
-            i += 1  # consume the closing fence
+            if i < len(lines):
+                out.append("")   # the closing fence
+                i += 1
             continue
         out.append(lines[i])
         i += 1
@@ -130,17 +173,20 @@ def _flag_gap_tags(text: str) -> str:
 
 
 def _strip_own_heading(text: str) -> str:
-    """Drop the fragment's own leading `## Heading` line.
+    """Blank the fragment's own leading `## Heading` line (line preserved).
 
     Each component file opens with its own H2 (the single-H1/flat-H2 contract),
     but the assembled doc emits the manifest heading — the numbering/TOC
     authority — so the body's copy would render every section heading twice.
-    Only a leading H2 is dropped; anything after real content is left alone.
+    Only a leading H2 is blanked; anything after real content is left alone.
     """
-    lines = text.lstrip("\n").split("\n", 1)
-    if lines and lines[0].startswith("## "):
-        return lines[1] if len(lines) > 1 else ""
-    return text
+    lines = text.split("\n")
+    for idx, ln in enumerate(lines):
+        if ln.strip():
+            if ln.startswith("## "):
+                lines[idx] = ""
+            break
+    return "\n".join(lines)
 
 
 def _clean_body(text: str, numbers) -> str:
@@ -149,7 +195,138 @@ def _clean_body(text: str, numbers) -> str:
     text = _strip_html_comments(text)
     text = _resolve_tokens(text, numbers)
     text = _flag_gap_tags(text)
-    return text.strip("\n")
+    return text
+
+
+# --------------------------------------------------------------------------- #
+# Final-mode transforms (line count NOT preserved — final mode has no
+# provenance; there is no review round against a final deliverable)
+# --------------------------------------------------------------------------- #
+_VR_LINE = re.compile(r"^\s*>\s*\*\*\s*VALIDATION REQUIRED\b")
+_SC_LINE = re.compile(
+    r"^\s*>\s*\*\*\s*SCREENSHOT PLACEHOLDER\s*[-–—]\s*"
+    r"(?P<id>SC-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*:\*\*\s*(?P<text>.*)$"
+)
+
+
+def _find_screen(folder: Path, slug: str, local_id: str) -> Path | None:
+    base = folder / SCREENS_DIR / (slug or "")
+    for ext in _IMG_EXTS:
+        p = base / f"{local_id}{ext}"
+        if p.is_file():
+            return p
+    return None
+
+
+def _final_transform(text: str, slug: str, folder: Path,
+                     disp_to_local: dict, stats: dict) -> str:
+    """Strip open-gap scaffolding; swap captured screenshots in for their
+    placeholder boxes. Runs AFTER the display-ID rewrite, so SC labels carry
+    display ids here; `disp_to_local` maps them back to the asset filename."""
+    out: list[str] = []
+    lines = text.split("\n")
+    i = 0
+    while i < len(lines):
+        ln = lines[i]
+        if _VR_LINE.match(ln):
+            stats["gaps_stripped"] += 1
+            i += 1
+            while i < len(lines) and lines[i].lstrip().startswith(">"):
+                i += 1
+            continue
+        m = _SC_LINE.match(ln)
+        if m:
+            block_start = i
+            disp_id, desc = m.group("id"), m.group("text").strip()
+            i += 1
+            extra: list[str] = []
+            while i < len(lines) and lines[i].lstrip().startswith(">"):
+                t = lines[i].lstrip().lstrip(">").strip()
+                if t and not t.startswith("- **"):
+                    extra.append(t)
+                i += 1
+            local = disp_to_local.get(disp_id, disp_id)
+            img = _find_screen(folder, slug, local)
+            if img:
+                stats["screens_embedded"] += 1
+                caption = " ".join([f"{disp_id}:", desc] + extra).strip()
+                out.append(f"![{caption}]({img})")
+            else:
+                stats["screens_placeholder"] += 1
+                out.extend(lines[block_start:i])
+            continue
+        # inline body gap tags vanish in final mode
+        stripped, n = re.subn(r"\s*\[\[\s*GAP-[^\]]*\]\]", "", ln)
+        stats["gap_tags_stripped"] += n
+        out.append(stripped)
+        i += 1
+    return "\n".join(out)
+
+
+# --------------------------------------------------------------------------- #
+# Provenance (M9 stamps it; M10 consumes it)
+# --------------------------------------------------------------------------- #
+def _add_bookmark(p, name: str, bid: int) -> None:
+    start = OxmlElement("w:bookmarkStart")
+    start.set(qn("w:id"), str(bid))
+    start.set(qn("w:name"), name)
+    end = OxmlElement("w:bookmarkEnd")
+    end.set(qn("w:id"), str(bid))
+    pPr = p._p.find(qn("w:pPr"))
+    p._p.insert(1 if pPr is not None else 0, start)
+    p._p.append(end)
+
+
+class Prov:
+    """Provenance collector handed to the converter's render_body.
+
+    `origins` is a list parallel to the assembled body lines; each entry is
+    None (heading/derived glue) or {file, slug, l2, line} where `line` is the
+    0-based line index in the SOURCE fragment (cleaning preserves counts, so
+    assembled body line k of a section ↔ fragment file line k).
+    """
+
+    def __init__(self):
+        self.origins: list = []
+        self.entries: dict[str, dict] = {}
+        self._n = 0
+
+    def mark(self, paras, i0: int, i1: int, kind: str) -> None:
+        o = self.origins[i0] if 0 <= i0 < len(self.origins) else None
+        oe = self.origins[i1 - 1] if 0 <= i1 - 1 < len(self.origins) else None
+        if not o or not oe or oe["file"] != o["file"]:
+            return
+        for sub, p in enumerate(paras):
+            name = f"cw_{self._n:05d}"
+            _add_bookmark(p, name, 9000 + self._n)
+            self._n += 1
+            self.entries[name] = {
+                "file": o["file"],
+                "slug": o.get("slug"),
+                "l2": o.get("l2"),
+                "lines": [o["line"], oe["line"]],
+                "kind": kind,
+                "sub": sub,
+                "hash": hashlib.sha1(p.text.encode("utf-8")).hexdigest(),
+            }
+
+
+def _write_review_map(folder: Path, out: Path, doc_id: str, prov: Prov,
+                      basis: dict) -> Path:
+    maps_dir = folder / "_review" / ".maps"
+    maps_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": "consult-review-map/v1",
+        "doc_id": doc_id,
+        "area": folder.name,
+        "docx": out.name,
+        "basis": basis,
+        "entries": prov.entries,
+    }
+    map_path = maps_dir / f"{doc_id}.json"
+    map_path.write_text(json.dumps(payload, indent=1, ensure_ascii=False) + "\n",
+                        encoding="utf-8")
+    return map_path
 
 
 # --------------------------------------------------------------------------- #
@@ -167,8 +344,12 @@ def _heading_for(section, numbers) -> str:
     return heading
 
 
-def _render_folder(folder: Path, out: Path, include_toc: bool,
-                   landscape: bool, do_cover: bool) -> None:
+def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
+                  landscape: bool = False, do_cover: bool = True,
+                  mode: str = "working", slugs: list[str] | None = None,
+                  track_changes: bool = False, emit_signal: bool = True) -> dict:
+    """Render an area folder. Returns a stats dict (counts + doc_id/map)."""
+    folder = Path(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
     numbers = doc_model.display_numbers(manifest)
@@ -177,34 +358,69 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
     # procedure-local IDs repeat across rows) the number alone is cryptic —
     # number + title makes every cross-reference self-explanatory.
     labels = dict(numbers)
+    l2_of: dict[str, str] = {}
     for comp in manifest.get("components", []):
         slug = comp.get("slug")
         if slug and slug in labels and comp.get("heading"):
             labels[slug] = f"{labels[slug]} {comp['heading']}"
+        if slug:
+            l2_of[slug] = comp.get("l2", "")
     assembled = doc_model.assemble(folder)
 
     # Global callout display IDs (drafters number locally from 01; the global
     # sequence is a render-time transform — see doc_model.callout_display_ids).
-    # Grouped per slug here; derived views already carry display IDs because
-    # aggregate.py consumes the same map.
+    # ALWAYS computed over the full folder, so subset (kit) docs and derived
+    # views agree with the full draft.
     id_map = doc_model.callout_display_ids(folder)
     ids_by_slug: dict = {}
+    disp_to_local_by_slug: dict = {}
     for (slug, local), disp in id_map.items():
         ids_by_slug.setdefault(slug, {})[local] = disp
+        disp_to_local_by_slug.setdefault(slug, {})[disp] = local
 
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
+    stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
+             "screens_embedded": 0, "screens_placeholder": 0}
+
+    subset = slugs is not None
+    if subset:
+        unknown = [s for s in slugs if s not in numbers]
+        if unknown:
+            raise SystemExit(f"error: unknown procedure slug(s): {', '.join(unknown)}")
+        do_cover = False   # kit docs are lean: content starts at the heading
+
+    provenance = (mode == "working")
+    prov = Prov() if provenance else None
 
     profile_md = ""
-    body_parts = []
+    body_lines: list[str] = []
+    origins: list = []
+
+    def emit(line: str, origin=None):
+        body_lines.append(line)
+        origins.append(origin)
+
     for section in _sections(assembled):
+        role = _attr(section, "role")
+        slug = _attr(section, "slug") or ""
+        if subset and not (role == "procedure" and slug in slugs):
+            continue
+        if mode == "final" and _attr(section, "derived_kind") == "gap-log":
+            continue
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
-        if _attr(section, "role") == "procedure":
-            submap = ids_by_slug.get(_attr(section, "slug") or "", {})
+        if role == "procedure":
+            submap = ids_by_slug.get(slug, {})
             if submap:
                 raw_body = _rewrite_callout_ids(raw_body, submap)
+        if mode == "final" and role == "procedure":
+            raw_body = _final_transform(
+                raw_body, slug, folder,
+                disp_to_local_by_slug.get(slug, {}), stats)
         body = _clean_body(raw_body, labels)
+        if mode == "final":
+            body = body.strip("\n")
         is_profile = heading.lower() in _PROFILE_HEADINGS
 
         # Lift the Document Profile onto the cover card (only when a cover is
@@ -213,17 +429,51 @@ def _render_folder(folder: Path, out: Path, include_toc: bool,
             profile_md = body
             continue
 
-        body_parts.append(f"## {_heading_for(section, numbers)}")
-        body_parts.append("")
-        if body:
-            body_parts.append(body)
-            body_parts.append("")
+        emit(f"## {_heading_for(section, numbers)}")
+        emit("")
+        if body.strip("\n"):
+            fname = _attr(section, "file")
+            trackable = role in ("procedure", "static")
+            for k, ln in enumerate(body.split("\n")):
+                emit(ln, {"file": fname, "slug": slug or None,
+                          "l2": l2_of.get(slug, ""), "line": k}
+                     if (provenance and trackable and fname) else None)
+            emit("")
 
-    body_md = "\n".join(body_parts)
+    if prov is not None:
+        prov.origins = origins
+
+    body_md = "\n".join(body_lines)
+    doc_id = uuid.uuid4().hex[:12]
     cfgi.convert_assembled(
         body_md, out, title=title, subtitle=subtitle, profile_md=profile_md,
         include_toc=include_toc, landscape=landscape, do_cover=do_cover,
+        prov=prov, track_changes=track_changes,
     )
+    stats["docx"] = str(out)
+
+    if prov is not None and prov.entries:
+        # Stamp the doc id into core properties so a RETURNED copy finds its
+        # map no matter what the file got renamed to along the way.
+        from docx import Document as _Doc
+        d = _Doc(str(out))
+        d.core_properties.category = f"cw-map:{doc_id}"
+        d.save(str(out))
+        basis = {}
+        for comp in manifest.get("components", []):
+            fp = folder / comp.get("file", "")
+            if comp.get("role") in ("procedure", "static") and fp.is_file():
+                basis[comp["file"]] = hashlib.sha1(fp.read_bytes()).hexdigest()
+        map_path = _write_review_map(folder, out, doc_id, prov, basis)
+        stats["doc_id"] = doc_id
+        stats["map"] = str(map_path)
+
+    # M7 signal file (full working/final render only — kit subset docs and
+    # programmatic calls must not flip the advisor's review state).
+    if emit_signal and not subset:
+        import orchestrate
+        orchestrate.emit_render(str(folder), str(out), awaiting_review=True)
+    return stats
 
 
 # --------------------------------------------------------------------------- #
@@ -258,6 +508,12 @@ def main(argv=None) -> int:
         description="Render a CONSULT component folder (or single .md) to a CFGI-styled .docx")
     ap.add_argument("area", help="area folder (containing manifest.json) or a single .md file")
     ap.add_argument("-o", "--output")
+    ap.add_argument("--mode", choices=("working", "final"), default="working",
+                    help="working: everything visible + provenance; final: client-facing (gaps stripped, screenshots embedded)")
+    ap.add_argument("--slugs", default=None,
+                    help="comma-separated procedure slugs — subset (kit) render")
+    ap.add_argument("--track-changes", action="store_true",
+                    help="emit the docx with tracked changes on by default")
     ap.add_argument("--include-toc", action="store_true", help="Insert a generated Table of Contents")
     ap.add_argument("--landscape", action="store_true", help="Use landscape orientation")
     ap.add_argument("--no-cover", action="store_true", help="Skip the generated cover page")
@@ -267,16 +523,22 @@ def main(argv=None) -> int:
     out = _infer_output(kind, path, a.output)
     do_cover = not a.no_cover
     if kind == "folder":
-        _render_folder(path, out, a.include_toc, a.landscape, do_cover)
+        slugs = [s.strip() for s in a.slugs.split(",") if s.strip()] if a.slugs else None
+        stats = render_folder(
+            path, out, include_toc=a.include_toc, landscape=a.landscape,
+            do_cover=do_cover, mode=a.mode, slugs=slugs,
+            track_changes=a.track_changes)
+        print("Wrote " + str(out))
+        if a.mode == "final":
+            print(f"final mode: stripped {stats['gaps_stripped']} open gap callout(s) "
+                  f"+ {stats['gap_tags_stripped']} inline tag(s); "
+                  f"{stats['screens_embedded']} screenshot(s) embedded, "
+                  f"{stats['screens_placeholder']} placeholder(s) remain")
     else:
+        if a.mode != "working" or a.slugs or a.track_changes:
+            raise SystemExit("error: --mode/--slugs/--track-changes require an area folder")
         cfgi.convert(path, out, a.include_toc, a.landscape, do_cover)
-    print("Wrote " + str(out))
-    # M7 signal file (folder input only — single-file render isn't an area):
-    # record basis + docx + awaiting_review so the advisor moves to the review
-    # gate rather than re-rendering.
-    if kind == "folder":
-        import orchestrate
-        orchestrate.emit_render(str(path), str(out), awaiting_review=True)
+        print("Wrote " + str(out))
     return 0
 
 

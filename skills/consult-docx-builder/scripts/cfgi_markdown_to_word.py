@@ -573,7 +573,39 @@ def callout_style(text: str) -> Tuple[str, str]:
     return PALETTE["light_green"], PALETTE["dark_green"]
 
 
-def add_callout(doc, text: str) -> None:
+def enable_track_changes(doc) -> None:
+    """Turn tracked changes ON by default (settings.xml <w:trackChanges/>).
+
+    Reviewers can still toggle it off, but a kit doc opens recording — the
+    review contract without anyone having to remember the ribbon."""
+    settings = doc.settings.element
+    if settings.find(qn("w:trackChanges")) is None:
+        settings.append(OxmlElement("w:trackChanges"))
+
+
+def add_image(doc, path: Path, caption: str = "") -> None:
+    """Embed an image scaled to the usable width, with a small italic caption
+    paragraph below it (final-mode screenshot rendering)."""
+    sec = doc.sections[-1]
+    usable = sec.page_width - sec.left_margin - sec.right_margin
+    p = doc.add_paragraph()
+    run = p.add_run()
+    shape = run.add_picture(str(path))
+    if shape.width > usable:
+        shape.height = int(shape.height * usable / shape.width)
+        shape.width = usable
+    if caption:
+        cp = doc.add_paragraph()
+        cp.paragraph_format.space_before = Pt(2)
+        cp.paragraph_format.space_after = Pt(10)
+        r = cp.add_run(caption)
+        r.italic = True
+        r.font.name = BODY_FONT
+        r.font.size = Pt(SMALL_SIZE)
+        r.font.color.rgb = rgb(PALETTE["gray_text"])
+
+
+def add_callout(doc, text: str) -> List:
     # Strip blockquote markers up front; the callout box carries the emphasis.
     lines = [re.sub(r"^\s*>\s?", "", ln) for ln in text.split("\n")]
     fill, col = callout_style("\n".join(lines))
@@ -604,6 +636,7 @@ def add_callout(doc, text: str) -> None:
         else:
             buf.append(s)
     flush()
+    out_paras = []
     for k, (kind, txt) in enumerate(blocks):
         p = c.paragraphs[0] if k == 0 else c.add_paragraph()
         p.paragraph_format.space_after = Pt(0)
@@ -614,7 +647,9 @@ def add_callout(doc, text: str) -> None:
         for s in segs(txt):
             s.italic = True
             styled_run(p, s, col, BODY_SIZE)
+        out_paras.append(p)
     doc.add_paragraph()
+    return out_paras
 
 
 CALLOUT_PREFIXES = (
@@ -743,13 +778,21 @@ def _emit_toc(doc) -> None:
     doc.add_page_break()
 
 
-def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
+def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None:
     """Render assembled Markdown body lines into `doc`.
 
     Shared by the single-file `convert` and the pre-assembled folder
     `convert_assembled` paths. `do_cover` only governs inline suppression of
     the title H1 and lifted cover sections; the cover itself is built by the
-    caller."""
+    caller.
+
+    `prov` (optional) is a provenance collector with a
+    `mark(paras, i_start, i_end, kind)` method — called with the emitted
+    paragraph(s) and the half-open source-line span [i_start, i_end) that
+    produced them, for paragraphs, list items, and callout blocks (the units
+    the M10 review-apply pipeline can splice back). Headings and tables are
+    deliberately not marked: heading edits are manifest identity and table
+    edits route to notes/triage."""
     ctx: List[str] = []
     i = 0
     title_skipped = not do_cover      # if no cover, don't swallow the first H1
@@ -841,19 +884,28 @@ def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
 
         # Blockquote / labeled callout (screenshots always stay text callouts).
         if is_callout(st):
+            i0 = i
             block = [st]
             i += 1
             while i < len(lines) and lines[i].strip().startswith(">"):
                 block.append(lines[i].strip())
                 i += 1
-            add_callout(doc, "\n".join(block))
+            paras = add_callout(doc, "\n".join(block))
+            if prov is not None:
+                prov.mark(paras, i0, i, "callout")
             continue
 
-        # Image links render as a screenshot placeholder callout, never inserted.
+        # Image links: embed the file (scaled, italic caption below) when it
+        # exists on disk — the final-mode screenshot path. A dangling path
+        # renders as a screenshot placeholder callout, never a broken image.
         im = re.match(r"^!\[([^\]]*)\]\(([^)]+)\)", st)
         if im:
             cap = im.group(1).strip()
-            add_callout(doc, "SCREENSHOT PLACEHOLDER: " + (cap or "insert screenshot"))
+            img = Path(im.group(2).strip())
+            if img.is_file():
+                add_image(doc, img, cap)
+            else:
+                add_callout(doc, "SCREENSHOT PLACEHOLDER: " + (cap or "insert screenshot"))
             i += 1
             continue
 
@@ -862,6 +914,7 @@ def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
         # blank line, a new list item, or a structural line.
         lm = re.match(r"^\s*[-*+]\s+", line) or re.match(r"^\s*\d+[.)]\s+", line)
         if lm:
+            i0 = i
             style = "List Bullet" if re.match(r"^\s*[-*+]\s+", line) else "List Number"
             buf = [line[lm.end():].strip()]
             i += 1
@@ -875,10 +928,13 @@ def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
             p = para(doc, " ".join(buf), style)
             p.paragraph_format.left_indent = Inches(0.25)
             p.paragraph_format.first_line_indent = Inches(-0.15)
+            if prov is not None:
+                prov.mark([p], i0, i, "bullet")
             continue
 
         # Plain paragraph. Consecutive plain lines (hard-wrapped prose) join
         # into one paragraph; a blank line or structural line ends it.
+        i0 = i
         buf = [st]
         i += 1
         while i < len(lines):
@@ -893,7 +949,9 @@ def render_body(doc, lines: List[str], do_cover: bool = True) -> None:
                 break
             buf.append(ns)
             i += 1
-        para(doc, " ".join(buf))
+        p = para(doc, " ".join(buf))
+        if prov is not None:
+            prov.mark([p], i0, i, "para")
 
 
 def convert(inp: Path, out: Path, include_toc: bool = False,
@@ -913,7 +971,8 @@ def convert(inp: Path, out: Path, include_toc: bool = False,
 
 def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
                       profile_md: str = "", include_toc: bool = False,
-                      landscape: bool = False, do_cover: bool = True) -> None:
+                      landscape: bool = False, do_cover: bool = True,
+                      prov=None, track_changes: bool = False) -> None:
     """Render pre-assembled folder content produced by scripts/render.py.
 
     Additive hook for the M4 folder path. Title/subtitle come from the
@@ -934,7 +993,9 @@ def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
         build_cover(doc, title, subtitle, rows)
     if include_toc:
         _emit_toc(doc)
-    render_body(doc, body_md.split("\n"), do_cover=False)
+    render_body(doc, body_md.split("\n"), do_cover=False, prov=prov)
+    if track_changes:
+        enable_track_changes(doc)
     doc.save(str(out))
 
 

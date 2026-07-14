@@ -30,11 +30,19 @@ What it does
 
 CLI
 ---
-  python3 scripts/review_extract.py <reviewed.docx> [--area <area-folder>]
+  python3 scripts/review_extract.py <reviewed.docx | dir-of-docx>
+                                     [--area <area-folder>] [--comments-only]
                                      [--no-archive] [--dry-run]
 
-Notes land in _review/, never _sources/new/ — the folder is the routing signal
-(review notes are content corrections to existing procedures; taxonomy is skipped).
+A directory input processes every *.docx inside it (the kit return path).
+--comments-only skips tracked-change items — used when the M10 deterministic
+apply (`review_apply.py`) has already consumed the ins/del layer, so only the
+judgment layer (comments) flows to the drafters from here.
+
+Notes are MERGED into _review/{slug}.notes.yaml (never overwrite — a slug's
+notes accumulate from several returned files), never _sources/new/ — the
+folder is the routing signal (review notes are content corrections to existing
+procedures; taxonomy is skipped).
 """
 from __future__ import annotations
 
@@ -512,7 +520,8 @@ def infer_area(docx_path: Path, area_arg: Optional[str]) -> Path:
     return parent
 
 
-def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool) -> int:
+def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool,
+        comments_only: bool = False) -> int:
     if not docx_path.exists():
         print(f"error: file not found: {docx_path}", file=sys.stderr)
         return 2
@@ -540,6 +549,8 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool) 
 
     warnings: List[str] = []
     items = extract_document(doc_root, comments, num2slug, title2slug, warnings)
+    if comments_only:
+        items = [it for it in items if it.kind == "comment"]
 
     # Group by slug, preserving document order.
     by_slug: Dict[str, List[Item]] = {}
@@ -549,14 +560,25 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool) 
     review_dir = area / "_review"
     written: List[str] = []
     for slug, its in sorted(by_slug.items()):
-        content = render_notes_yaml(slug, docx_path.name, its)
+        dicts = []
+        for it in its:
+            d = {"type": it.kind, "location": it.location, "anchor": it.anchor,
+                 "author": it.author, "date": it.date, "source": docx_path.name}
+            if it.kind == "tracked-change":
+                d["change"] = it.change
+            else:
+                d["note"] = it.note
+            dicts.append(d)
         out = review_dir / f"{slug}.notes.yaml"
         if dry_run:
-            print(f"--- {out} ---")
-            print(content)
+            print(f"--- {out} (+{len(dicts)} item(s)) ---")
+            for d in dicts:
+                print(f"  {d}")
         else:
-            review_dir.mkdir(parents=True, exist_ok=True)
-            out.write_text(content, encoding="utf-8")
+            from notes_util import append_items
+            added = append_items(area, slug, dicts)
+            written.append(f"{out} (+{added} item{'s' if added != 1 else ''})")
+            continue
         written.append(f"{out} ({len(its)} item{'s' if len(its) != 1 else ''})")
 
     # Archive the consumed .docx.
@@ -594,14 +616,28 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         description="Extract Word tracked-changes + comments into procedure-anchored "
                     "review notes ({area}/_review/{slug}.notes.yaml).")
-    ap.add_argument("docx", help="path to the reviewed .docx")
+    ap.add_argument("docx", help="path to the reviewed .docx, or a directory of them")
     ap.add_argument("--area", help="area folder (default: inferred from the docx path)")
+    ap.add_argument("--comments-only", action="store_true",
+                    help="skip tracked changes (review_apply.py consumed them)")
     ap.add_argument("--no-archive", action="store_true",
                     help="do not move the consumed .docx into _review/processed/")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the notes instead of writing files (implies no archive)")
     a = ap.parse_args(argv)
-    return run(Path(a.docx), a.area, archive=not a.no_archive, dry_run=a.dry_run)
+    target = Path(a.docx)
+    if target.is_dir():
+        files = sorted(target.glob("*.docx"))
+        if not files:
+            print(f"no .docx files in {target}")
+            return 0
+        rc = 0
+        for f in files:
+            rc = max(rc, run(f, a.area, archive=not a.no_archive,
+                             dry_run=a.dry_run, comments_only=a.comments_only))
+        return rc
+    return run(target, a.area, archive=not a.no_archive, dry_run=a.dry_run,
+               comments_only=a.comments_only)
 
 
 if __name__ == "__main__":
