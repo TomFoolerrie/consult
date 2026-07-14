@@ -573,14 +573,50 @@ def callout_style(text: str) -> Tuple[str, str]:
     return PALETTE["light_green"], PALETTE["dark_green"]
 
 
+# CT_Settings children that come AFTER w:trackChanges in the schema sequence.
+# settings.xml is ORDER-VALIDATED: Word's open-time repair silently DROPS a
+# trackChanges element that appears out of sequence (e.g. appended at the
+# end), so it must be inserted before the first of these already present.
+_SETTINGS_AFTER_TRACK_CHANGES = {
+    "doNotTrackMoves", "doNotTrackFormatting", "documentProtection",
+    "autoFormatOverride", "styleLockTheme", "styleLockQFSet", "defaultTabStop",
+    "autoHyphenation", "consecutiveHyphenLimit", "hyphenationZone",
+    "doNotHyphenateCaps", "showEnvelope", "summaryLength", "clickAndTypeStyle",
+    "defaultTableStyle", "evenAndOddHeaders", "bookFoldRevPrinting",
+    "bookFoldPrinting", "bookFoldPrintingSheets",
+    "drawingGridHorizontalSpacing", "drawingGridVerticalSpacing",
+    "displayHorizontalDrawingGridEvery", "displayVerticalDrawingGridEvery",
+    "doNotUseMarginsForDrawingGridOrigin", "drawingGridHorizontalOrigin",
+    "drawingGridVerticalOrigin", "doNotShadeFormData", "noPunctuationKerning",
+    "characterSpacingControl", "printTwoOnOne", "strictFirstAndLastChars",
+    "noLineBreaksAfter", "noLineBreaksBefore", "savePreviewPicture",
+    "doNotValidateAgainstSchema", "saveInvalidXml", "ignoreMixedContent",
+    "alwaysShowPlaceholderText", "doNotDemarcateInvalidXml", "saveXmlDataOnly",
+    "useXSLTWhenSaving", "saveThroughXslt", "showXMLTags",
+    "alwaysMergeEmptyNamespace", "updateFields", "hdrShapeDefaults",
+    "footnotePr", "endnotePr", "compat", "rsids", "mathPr", "attachedSchema",
+    "themeFontLang", "clrSchemeMapping", "doNotIncludeSubdocsInStats",
+    "doNotAutoCompressPictures", "forceUpgrade", "captions",
+    "readModeInkLockDown", "smartTagType", "shapeDefaults",
+    "doNotEmbedSmartTags", "decimalSymbol", "listSeparator",
+}
+
+
 def enable_track_changes(doc) -> None:
     """Turn tracked changes ON by default (settings.xml <w:trackChanges/>).
 
     Reviewers can still toggle it off, but a kit doc opens recording — the
-    review contract without anyone having to remember the ribbon."""
+    review contract without anyone having to remember the ribbon. The element
+    is inserted at its schema-valid position (see note above)."""
     settings = doc.settings.element
-    if settings.find(qn("w:trackChanges")) is None:
-        settings.append(OxmlElement("w:trackChanges"))
+    if settings.find(qn("w:trackChanges")) is not None:
+        return
+    tc = OxmlElement("w:trackChanges")
+    for child in settings:
+        if child.tag.rsplit("}", 1)[-1] in _SETTINGS_AFTER_TRACK_CHANGES:
+            child.addprevious(tc)
+            return
+    settings.append(tc)
 
 
 def add_image(doc, path: Path, caption: str = "") -> None:
