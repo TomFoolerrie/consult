@@ -603,20 +603,33 @@ _SETTINGS_AFTER_TRACK_CHANGES = {
 
 
 def enable_track_changes(doc) -> None:
-    """Turn tracked changes ON by default (settings.xml <w:trackChanges/>).
+    """Force tracked changes ON (belt and suspenders).
 
-    Reviewers can still toggle it off, but a kit doc opens recording — the
-    review contract without anyone having to remember the ribbon. The element
-    is inserted at its schema-valid position (see note above)."""
+    1. <w:trackChanges/> — the "recording is on" default, at its schema-valid
+       position (see note above).
+    2. <w:documentProtection w:edit="trackedChanges" w:enforcement="1"/> —
+       Word's own "Lock Tracking": every edit IS tracked and the toggle is
+       locked. No password hash is set, so a reviewer who genuinely needs to
+       unlock can: Review → Track Changes → Lock Tracking → leave the
+       password blank → OK. This is the review contract for kit docs, not a
+       hint Word may ignore."""
     settings = doc.settings.element
-    if settings.find(qn("w:trackChanges")) is not None:
-        return
-    tc = OxmlElement("w:trackChanges")
-    for child in settings:
-        if child.tag.rsplit("}", 1)[-1] in _SETTINGS_AFTER_TRACK_CHANGES:
-            child.addprevious(tc)
-            return
-    settings.append(tc)
+    tc = settings.find(qn("w:trackChanges"))
+    if tc is None:
+        tc = OxmlElement("w:trackChanges")
+        placed = False
+        for child in settings:
+            if child.tag.rsplit("}", 1)[-1] in _SETTINGS_AFTER_TRACK_CHANGES:
+                child.addprevious(tc)
+                placed = True
+                break
+        if not placed:
+            settings.append(tc)
+    if settings.find(qn("w:documentProtection")) is None:
+        dp = OxmlElement("w:documentProtection")
+        dp.set(qn("w:edit"), "trackedChanges")
+        dp.set(qn("w:enforcement"), "1")
+        tc.addnext(dp)   # schema slot: shortly after trackChanges
 
 
 def add_image(doc, path: Path, caption: str = "") -> None:
