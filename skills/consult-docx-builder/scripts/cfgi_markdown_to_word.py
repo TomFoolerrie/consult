@@ -249,6 +249,59 @@ def define_styles(doc) -> None:
             pass
 
 
+def _fresh_list_num(doc, start: int = 1) -> Optional[int]:
+    """Allocate a new numbering instance so an ordered list restarts at
+    `start`. Word ties the List Number style to one document-wide counter;
+    without a per-list <w:num>, separate lists number continuously."""
+    try:
+        from docx.opc.constants import RELATIONSHIP_TYPE as RT
+        numbering = doc.part.part_related_by(RT.NUMBERING).element
+    except (KeyError, AttributeError):
+        return None
+    abs_id = getattr(doc, "_cw_list_abs_id", None)
+    if abs_id is None:
+        ids = [int(a.get(qn("w:abstractNumId")))
+               for a in numbering.findall(qn("w:abstractNum"))]
+        abs_id = max(ids, default=-1) + 1
+        absn = OxmlElement("w:abstractNum")
+        absn.set(qn("w:abstractNumId"), str(abs_id))
+        lvl = OxmlElement("w:lvl")
+        lvl.set(qn("w:ilvl"), "0")
+        for tag, val in (("w:start", "1"), ("w:numFmt", "decimal"),
+                         ("w:lvlText", "%1."), ("w:lvlJc", "left")):
+            e = OxmlElement(tag)
+            e.set(qn("w:val"), val)
+            lvl.append(e)
+        absn.append(lvl)
+        nums = numbering.findall(qn("w:num"))
+        if nums:
+            nums[0].addprevious(absn)
+        else:
+            numbering.append(absn)
+        doc._cw_list_abs_id = abs_id
+    num_ids = [int(n.get(qn("w:numId"))) for n in numbering.findall(qn("w:num"))]
+    new_id = max(num_ids, default=0) + 1
+    num = OxmlElement("w:num")
+    num.set(qn("w:numId"), str(new_id))
+    ref = OxmlElement("w:abstractNumId")
+    ref.set(qn("w:val"), str(abs_id))
+    num.append(ref)
+    ov = OxmlElement("w:lvlOverride")
+    ov.set(qn("w:ilvl"), "0")
+    so = OxmlElement("w:startOverride")
+    so.set(qn("w:val"), str(start))
+    ov.append(so)
+    num.append(ov)
+    numbering.append(num)
+    return new_id
+
+
+def _set_list_num(p, num_id: int) -> None:
+    numPr = p._p.get_or_add_pPr().get_or_add_numPr()
+    numPr.get_or_add_ilvl().set(qn("w:val"), "0")
+    numPr.get_or_add_numId().set(qn("w:val"), str(num_id))
+
+
 def configure(doc, landscape: bool = False) -> None:
     s = doc.sections[0]
     s.top_margin = s.bottom_margin = s.left_margin = s.right_margin = Inches(1)
@@ -846,6 +899,8 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
     i = 0
     title_skipped = not do_cover      # if no cover, don't swallow the first H1
     subtitle_skipped = not do_cover
+    olist_num_id = None               # numbering instance of the ordered list in progress
+    olist_prev_end = -1               # line index where the previous ordered item ended
     skip_until_level: Optional[int] = None
 
     while i < len(lines):
@@ -964,7 +1019,8 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
         lm = re.match(r"^\s*[-*+]\s+", line) or re.match(r"^\s*\d+[.)]\s+", line)
         if lm:
             i0 = i
-            style = "List Bullet" if re.match(r"^\s*[-*+]\s+", line) else "List Number"
+            om = re.match(r"^\s*(\d+)[.)]\s+", line)
+            style = "List Number" if om else "List Bullet"
             buf = [line[lm.end():].strip()]
             i += 1
             while i < len(lines):
@@ -977,6 +1033,17 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
             p = para(doc, " ".join(buf), style)
             p.paragraph_format.left_indent = Inches(0.25)
             p.paragraph_format.first_line_indent = Inches(-0.15)
+            if om:
+                # Restart numbering when this item doesn't directly continue
+                # the previous ordered run (or the source restarts at 1);
+                # seeding with the source's own number keeps md and docx in
+                # exact agreement even across blank-line breaks.
+                n = int(om.group(1))
+                if olist_num_id is None or i0 != olist_prev_end or n == 1:
+                    olist_num_id = _fresh_list_num(doc, n)
+                olist_prev_end = i
+                if olist_num_id:
+                    _set_list_num(p, olist_num_id)
             if prov is not None:
                 prov.mark([p], i0, i, "bullet")
             continue
