@@ -454,13 +454,25 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
             "heading": sf["heading"], "order": sf["order"],
         })
 
+    known = {p["slug"] for p in procedures}
     for p in procedures:
         slug = p["slug"]
-        components.append({
+        comp = {
             "file": f"10_{slug}.md", "role": "procedure",
             "slug": slug, "heading": p["title"], "l2": p["l2"],
             "order": proc_orders[slug],
-        })
+        }
+        # M11 ordering hints: validated here (mechanics), decided by taxonomy
+        # (judgment). Unknown or self references are dropped with a warning —
+        # the manifest only ever carries hints the advisor can act on.
+        upstream = [str(u) for u in (p.get("upstream") or []) if u]
+        valid = [u for u in upstream if u in known and u != slug]
+        for bad in [u for u in upstream if u not in valid]:
+            print(f"  WARNING: {slug}: dropping upstream hint '{bad}' "
+                  "(unknown slug or self-reference)")
+        if valid:
+            comp["upstream"] = valid
+        components.append(comp)
 
     for d in DERIVED_FILES:
         components.append({

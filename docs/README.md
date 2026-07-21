@@ -1,6 +1,6 @@
 # CONSULT MVP — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M10) references the
+Shared architecture for the MVP rebuild. Every ticket (M0–M11) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
 
@@ -213,7 +213,10 @@ rewritten there); they reference `[[slug]]` and describe the item in words.
 
     { "file": "10_bank-reconciliation.md", "role": "procedure",
       "slug": "bank-reconciliation", "heading": "Bank Reconciliation",
-      "l2": "close", "order": 10 },
+      "l2": "close", "order": 10,
+      "upstream": ["cash-application"] },              // optional M11 ordering hint
+                                                       //   (taxonomy-decided, scaffold-
+                                                       //    validated): drafted after these
 
     { "file": "08_systems.md", "role": "derived", "derived_kind": "systems",
       "writer": "python", "heading": "Systems & Data Inputs", "order": 81 },
@@ -415,6 +418,27 @@ verify-or-revert; anything unverifiable becomes a note), comments → notes.
 Only the notes — the judgment layer — reach drafters. `render.py --mode final`
 produces the client deliverable: open gaps stripped (count reported), captured
 screenshots embedded with italic captions.
+
+### Drafting order is hint-driven and optional (M11)
+
+Taxonomy may stamp a procedure with `upstream: [slugs]` when the sources
+clearly show it consuming another procedure's output. Scaffold validates the
+hints into the manifest; the advisor's `fill` then returns **waves** — only
+slugs whose upstreams are already drafted, the rest `deferred` — and lists
+`upstream_files` so downstream drafters get their upstream fragments as
+**read-only seam context** (never edited; conflicts become GAPs). No hints →
+one wave, exactly the pre-M11 behavior. Wave progress is carried by the
+existing `unfilled` sentinels — no new state. Drafters also share a cheap
+terminology digest under `_reference/conventions/` (one file per slug,
+advisory, not hashed into any signal).
+
+### Tests
+
+`python3 -m pytest tests/` (CI runs it on every push/PR — see
+`.github/workflows/tests.yml`). Tests build synthetic areas under pytest
+`tmp_path` and pin the observable contracts: advisor precedence + M11 waves,
+scaffold manifest rules, aggregate/reconcile checks, render modes + numbering
++ provenance, kits/ingest round-trips, and the M10 verified-or-fallback apply.
 
 ## Build order (a real DAG)
 

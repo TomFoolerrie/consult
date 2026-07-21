@@ -118,6 +118,32 @@ Near-identical twin documents are bloat the client maintains twice.
 - Distinct activities that merely share a phase stay separate — merge only
   near-duplicates; never force an unnatural superset.
 
+**The variant-vs-separate test.** Two candidates are a **variant pair** (one
+procedure) when they share the same trigger, the same preparer role, the same
+core system, and the same output — and diverge only as a conditional branch at
+a few steps (entity, region, payment method, vendor type). *A diamond inside
+one box on a flow diagram.* They are **separate procedures** when the trigger
+differs, the preparer role differs, there is a real handoff between them (one's
+output is the other's input), or each has its own control/review point. *An
+arrow between two boxes.* When the handoff arm fires, that same judgment
+usually tells you the direction — record it as an `upstream:` hint on the
+downstream procedure (below).
+
+## Ordering hints — `upstream:` (optional, use sparingly)
+
+When the sources **clearly** show one procedure consuming another's output
+(invoice intake feeds the payment run), stamp the downstream procedure with
+`upstream: [<producer slugs>]` in `procedures.yaml`. The orchestrator drafts
+producers first and hands their finished fragments to downstream drafters as
+read-only context, so the handoff seam is described consistently on both sides.
+
+- Hint **only** on evidenced producer→consumer handoffs. When in doubt, omit —
+  an absent hint means "no opinion", never "no relationship"; drafting merely
+  runs in parallel there, as it always has.
+- Hints reference procedure slugs inside this area only (never another L1).
+- Do not build long chains for their own sake; two or three hops where the
+  flow is obvious is the expected shape.
+
 ## What you write — all under `{area}/_reference/.proposed/` (staging only)
 
 Never touch the live `_reference/` or scaffold anything. Write:
@@ -133,6 +159,8 @@ procedures:
     sources: [SRC-001, SRC-003]    # which sources describe this L3
     variants: []                   # only on a merged near-duplicate pair, e.g.
                                    #   ["New vendor setup", "Vendor banking change"]
+    upstream: []                   # optional ordering hint: slugs whose output
+                                   #   this procedure consumes (drafted first)
 ```
 
 ### `systems.yaml` / `roles.yaml` (the canonical noun registry)
@@ -200,6 +228,7 @@ new_buckets:
 - `by_bucket`: each L2 → the L3 slugs filed under it
 - `new_buckets`: any proposed buckets needing approval (slug + one-line rationale)
 - `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants)
+- `ordered`: upstream hints you stamped (downstream slug → upstream slugs)
 - `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides)
 - `unmapped_people`: individuals you could not confidently map to a role
 - `low_confidence`: procedures/entries the human should scrutinize first

@@ -96,6 +96,8 @@ procedures:
     sources: [SRC-001, SRC-003]    # which sources describe this L3
     variants: []                   # only on a merged near-duplicate pair, e.g.
                                    #   ["New vendor setup", "Vendor banking change"]
+    upstream: []                   # optional ordering hint: slugs whose output
+                                   #   this procedure consumes (drafted first)
 ```
 Slugs are identity: unique, kebab-case, never colliding. Scaffold builds the
 manifest from this file; `procedures.yaml` itself is **not** a live registry file
@@ -109,6 +111,18 @@ variants into the skeleton so the drafter writes the shared flow once and
 branches at the divergence. Genuinely unsure → keep them separate and report
 the pair in `overlap_flags` for the human. Distinct activities that merely
 share a phase stay separate.
+
+**Variant vs separate — the test.** One procedure (variant pair): same
+trigger, same preparer role, same core system, same output; divergence is a
+conditional branch at a few steps — *a diamond inside one box*. Separate
+procedures: different trigger, different preparer role, a real handoff between
+them (one's output feeds the other), or distinct control points — *an arrow
+between two boxes*. When the handoff arm decides it, also stamp the downstream
+procedure with `upstream: [<producer slug>]` — the orchestrator drafts
+producers first and passes their fragments to downstream drafters read-only,
+so the seam is described consistently. Hint only on clearly evidenced
+handoffs; when in doubt, omit (absent = "no opinion", drafting just runs in
+parallel as always).
 
 ### 3. Stand up the noun registry → `.proposed/systems.yaml`, `.proposed/roles.yaml`
 ```yaml

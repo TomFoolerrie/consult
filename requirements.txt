@@ -1,2 +1,5 @@
 python-docx
 pyyaml
+
+# dev
+pytest

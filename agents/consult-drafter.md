@@ -28,6 +28,9 @@ file is the deliverable.
   first pass; **your own prior draft** on an update pass).
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
+- `upstream` — optional (M11): paths to the **already-drafted fragments of
+  procedures whose output this one consumes**. Read-only seam context — see
+  "Upstream context" below.
 - `mode` — `first-draft` or `update`. **One trigger per dispatch** (the dispatch
   prompt tells you which):
   - `first-draft` → fill the empty skeleton from your tagged `sources`. **Remove
@@ -49,6 +52,37 @@ Read, at the start:
 2. The tagged `sources` under `{area}/_sources/`.
 3. `{area}/_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, and
    `glossary.yaml` if present — the canonical nouns + SRC- ids.
+4. `{area}/_reference/conventions/*.md` if present — phrasing decisions made by
+   drafters who ran before you (see "Conventions digest" below).
+5. Any `upstream` fragments passed in your dispatch.
+
+## Upstream context — read-only seam alignment (M11)
+
+When your dispatch includes `upstream` fragments, use them for exactly one
+thing: making the **handoff seam** consistent. How the artifact you consume is
+named there, what system and state it arrives in, which registry nouns that
+drafter used — describe your intake side in the same terms.
+
+- **Never edit an upstream file.** One writer per file; those fragments belong
+  to their own drafters.
+- Upstream is context, not evidence. Facts in your procedure still come from
+  **your tagged sources**. If the upstream fragment contradicts your sources
+  about the handoff (different report name, different timing), do not silently
+  harmonize either side — document per your sources and raise a GAP naming the
+  mismatch and the upstream procedure. The reconciliation is a human call.
+- Don't restate upstream content. Your reader gets the upstream procedure in
+  the same document; A. Process Overview links the flow in a sentence, no more.
+
+## Conventions digest — cheap terminology glue (M11)
+
+`{area}/_reference/conventions/` holds one small file per procedure with
+reusable **phrasing decisions**: how report names are capitalized, date/period
+formats, recurring step formulations ("Navigate to … > …"). Before drafting,
+read whatever is there and match it. After drafting, you may write
+`_reference/conventions/{slug}.md` (your slug only — one writer per file) with
+at most ~10 lines of decisions the next drafter would otherwise have to
+re-make. Facts and canonical nouns do NOT belong here — the registry owns
+nouns; sources own facts. Nothing breaks if you write nothing.
 
 ## You own this procedure — first draft AND every update
 

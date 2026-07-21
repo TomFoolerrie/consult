@@ -144,6 +144,7 @@ class AreaState:
 
         # procedure + derived components from the manifest
         self.procedures = []   # list of (slug, abspath)
+        self.upstream = {}     # slug -> [upstream slugs] (M11 ordering hints)
         self.agent_derived = []  # abspaths of writer==agent derived files
         self.derived_files = []  # all derived abspaths
         if self.manifest:
@@ -151,7 +152,10 @@ class AreaState:
                 path = os.path.join(folder, c["file"])
                 role = c.get("role")
                 if role == "procedure":
-                    self.procedures.append((c.get("slug", c["file"]), path))
+                    slug = c.get("slug", c["file"])
+                    self.procedures.append((slug, path))
+                    if c.get("upstream"):
+                        self.upstream[slug] = list(c["upstream"])
                 elif role == "derived":
                     self.derived_files.append(path)
                     if c.get("writer") == "agent":
@@ -293,9 +297,39 @@ def decide(folder: str) -> dict:
     #     so a freshly-scaffolded area fills rather than re-scoping)
     unfilled = st.unfilled_slugs()
     if unfilled:
-        return result("fill",
-                      "%d procedure(s) still carry the unfilled sentinel" % len(unfilled),
-                      unfilled=unfilled)
+        # M11 waves: dispatch only the slugs whose upstream hints are already
+        # filled; the rest are deferred to the next pass. Wave progress needs
+        # no state file — it IS the set of remaining `unfilled` sentinels, so
+        # the advisor stays a pure function of folder state. A cycle (empty
+        # wave while work remains) degrades to dispatching everything.
+        pending = set(unfilled)
+        wave = [s for s in unfilled
+                if not any(u in pending for u in st.upstream.get(s, []))]
+        deferred = [s for s in unfilled if s not in wave]
+        if not wave:
+            wave, deferred = unfilled, []
+            reason = ("%d procedure(s) unfilled; upstream hints form a cycle "
+                      "— dispatching all at once" % len(unfilled))
+        elif deferred:
+            reason = ("%d procedure(s) unfilled; wave of %d ready "
+                      "(upstream filled), %d deferred to later waves"
+                      % (len(unfilled), len(wave), len(deferred)))
+        else:
+            reason = "%d procedure(s) still carry the unfilled sentinel" % len(unfilled)
+        details = {"unfilled": wave}
+        if deferred:
+            details["deferred"] = deferred
+        paths = dict(st.procedures)
+        upstream_files = {}
+        for s in wave:
+            ups = [os.path.relpath(paths[u], folder)
+                   for u in st.upstream.get(s, [])
+                   if u in paths and u not in pending]
+            if ups:
+                upstream_files[s] = ups
+        if upstream_files:
+            details["upstream_files"] = upstream_files
+        return result("fill", reason, **details)
 
     # 5 — incremental scope: new sources arrived after scaffolding
     if _dir_has_files(st.sources_new):
