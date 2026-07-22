@@ -287,3 +287,70 @@ def test_synthesize_on_pending_placeholder(tmp_path):
     d = orchestrate.decide(area)
     assert d["action"] == "synthesize"
     assert d["details"]["pending"] == ["82_dependencies.md"]
+
+
+# --------------------------------------------------------------------------- #
+# checkpoint — the durable-state git commit the driver runs after each stage
+# --------------------------------------------------------------------------- #
+
+def _git(cwd, *args):
+    import subprocess
+    return subprocess.run(["git", "-C", str(cwd), *args],
+                          capture_output=True, text=True, check=True)
+
+
+def _init_repo(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "user.email", "t@example.com")
+    _git(tmp_path, "config", "user.name", "T")
+    return tmp_path
+
+
+def test_checkpoint_commits_area_changes(tmp_path):
+    """A dirty area commits with the consult(<area>): <stage> message; a second
+    call with no changes is a no-op."""
+    _init_repo(tmp_path)
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+
+    out = orchestrate.checkpoint(area, "fill")
+    assert out["committed"] is True
+    msg = _git(tmp_path, "log", "-1", "--pretty=%s").stdout.strip()
+    assert msg == "consult(%s): fill" % os.path.basename(area)
+    assert _git(tmp_path, "status", "--porcelain").stdout.strip() == ""
+
+    again = orchestrate.checkpoint(area, "fill")
+    assert again["committed"] is False
+    assert again["reason"] == "nothing to commit"
+
+
+def test_checkpoint_scopes_to_area_pathspec(tmp_path):
+    """Staged work OUTSIDE the area is never swept into a checkpoint commit."""
+    _init_repo(tmp_path)
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    outside = tmp_path / "unrelated.txt"
+    outside.write_text("keep me out\n", encoding="utf-8")
+    _git(tmp_path, "add", "unrelated.txt")
+
+    out = orchestrate.checkpoint(area, "aggregate")
+    assert out["committed"] is True
+    committed = _git(tmp_path, "show", "--name-only", "--pretty=",
+                     "HEAD").stdout
+    assert "unrelated.txt" not in committed
+    # the unrelated file is still staged, untouched
+    assert "unrelated.txt" in _git(tmp_path, "diff", "--cached",
+                                   "--name-only").stdout
+
+
+def test_checkpoint_noop_outside_git(tmp_path):
+    """An area outside any git work tree is a reported no-op, not an error."""
+    import subprocess
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    env_probe = subprocess.run(
+        ["git", "-C", area, "rev-parse", "--is-inside-work-tree"],
+        capture_output=True, text=True)
+    if env_probe.returncode == 0:  # pragma: no cover - tmp under a repo
+        import pytest
+        pytest.skip("tmp_path unexpectedly inside a git work tree")
+    out = orchestrate.checkpoint(area, "fill")
+    assert out["committed"] is False
+    assert "not inside a git work tree" in out["reason"]

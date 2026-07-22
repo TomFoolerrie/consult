@@ -2,9 +2,13 @@
 """orchestrate.py — the CONSULT read-only state advisor (M7).
 
 Given an engagement *area* folder, derive the SINGLE next action from folder
-state and print it (``next --area <area> --json``). This script **never
-mutates**: it is a pure function of on-disk state, so re-running it is always
-safe and idempotent (M7 "Design note"). All state changes happen in the stage
+state and print it (``next --area <area> --json``). The advisor (``next`` /
+``decide``) **never mutates**: it is a pure function of on-disk state, so
+re-running it is always safe and idempotent (M7 "Design note"). The only
+mutating pieces hosted here are the centralized signal-file writers (emit_*)
+and the ``checkpoint`` subcommand — a git commit of the area folder the driver
+runs after each successful mutating stage, so engagement state is durable
+without any agent remembering to commit. All state changes happen in the stage
 scripts (scaffold/aggregate/reconcile/render) and the subagents' writes; the
 driver skill (skills/consult-orchestrate/SKILL.md) performs them.
 
@@ -446,6 +450,51 @@ def emit_render(folder: str, docx: str, awaiting_review: bool = True) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Git checkpoint (called by the driver after each successful mutating stage).
+# Folder state is the only state, so losing the folder loses the engagement —
+# the checkpoint makes every advisor-step durable without relying on an agent
+# remembering to commit. Scoped strictly to the area folder; never pushes.
+# --------------------------------------------------------------------------- #
+
+def checkpoint(folder: str, stage: str) -> dict:
+    """Commit the area folder's current state as `consult(<area>): <stage>`.
+
+    Deterministic and safe to over-call: a no-op (with a reason) when the area
+    is not inside a git work tree or nothing under it changed. Stages only the
+    area pathspec, and commits only that pathspec, so unrelated staged work
+    elsewhere in the repo is never swept into the checkpoint. Signal files
+    (.aggregate.json etc.) are git-ignored and stay out on their own.
+    """
+    import subprocess
+
+    def _git(*args):
+        return subprocess.run(["git", "-C", folder, *args],
+                              capture_output=True, text=True)
+
+    probe = _git("rev-parse", "--is-inside-work-tree")
+    if probe.returncode != 0 or probe.stdout.strip() != "true":
+        return {"committed": False, "stage": stage,
+                "reason": "area is not inside a git work tree"}
+
+    add = _git("add", "-A", "--", ".")
+    if add.returncode != 0:
+        return {"committed": False, "stage": stage,
+                "reason": "git add failed: " + add.stderr.strip()}
+
+    if _git("diff", "--cached", "--quiet", "--", ".").returncode == 0:
+        return {"committed": False, "stage": stage,
+                "reason": "nothing to commit"}
+
+    area_name = os.path.basename(os.path.abspath(folder))
+    commit = _git("commit", "-m", f"consult({area_name}): {stage}", "--", ".")
+    if commit.returncode != 0:
+        return {"committed": False, "stage": stage,
+                "reason": "git commit failed: " + commit.stderr.strip()}
+    sha = _git("rev-parse", "--short", "HEAD").stdout.strip()
+    return {"committed": True, "stage": stage, "commit": sha}
+
+
+# --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
 
@@ -458,12 +507,24 @@ def main(argv=None):
                         help="area folder path or bare area name under components/")
     p_next.add_argument("--json", action="store_true",
                         help="emit JSON (default; kept for explicitness)")
+    p_ckpt = sub.add_parser(
+        "checkpoint",
+        help="commit the area folder's state after a successful stage")
+    p_ckpt.add_argument("--area", required=True,
+                        help="area folder path or bare area name under components/")
+    p_ckpt.add_argument("--stage", required=True,
+                        help="stage name just completed (goes in the commit message)")
     args = parser.parse_args(argv)
 
     if args.cmd == "next":
         folder = resolve_area(args.area)
         decision = decide(folder)
         print(json.dumps(decision, indent=2, sort_keys=False))
+        return 0
+    if args.cmd == "checkpoint":
+        folder = resolve_area(args.area)
+        outcome = checkpoint(folder, args.stage)
+        print(json.dumps(outcome, indent=2, sort_keys=False))
         return 0
     return 2
 

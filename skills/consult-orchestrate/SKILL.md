@@ -144,10 +144,21 @@ pass to `consult-taxonomy`.
 loop:
   action = run  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" next --area <area> --json
   perform(action)          # run a script, or dispatch subagent(s)
+  if perform mutated the area:   # every action except a gate you stopped at / done
+      run  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" checkpoint --area <area> --stage <action>
   if action is a HUMAN GATE: stop, tell the user what to do, end turn
   if action == done: report and stop
   else: repeat
 ```
+
+**Git checkpoints are part of the loop, not a courtesy.** Folder state is the
+only state, so an uncommitted area is an engagement one bad `rm` from gone.
+After every action that changed the folder — including the human-triggered
+`scaffold --confirm` at the confirm gate — run the `checkpoint` subcommand
+above. It is deterministic and safe to over-call: it stages and commits ONLY
+the area pathspec (message `consult(<area>): <stage>`), no-ops when nothing
+changed or the area isn't in a git repo, and never pushes. Don't hand-craft
+`git add`/`git commit` yourself; the subcommand is the one writer.
 
 `orchestrate.py` is **read-only** — it never mutates; it derives the next action
 from folder state (see M7). Re-running is always safe. Because it cannot run the
