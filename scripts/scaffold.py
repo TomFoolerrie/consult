@@ -15,6 +15,13 @@ promotes `.proposed/` into the live `_reference/` (a MERGE, never a wipe), then
 scaffolds `manifest.json` (v1) + one A–H skeleton per confirmed procedure + the
 static front-matter files + empty derived stubs.
 
+The manifest is treated the same way: procedures already in the live manifest
+are ALWAYS preserved and the proposal delta is merged into them (re-emitted
+slugs update in place, new slugs append). An incremental pass whose new sources
+only touch existing procedures may therefore run with an empty — or absent —
+procedures.yaml: registry merge + source stamping still happen and `.proposed/`
+is still consumed, so the advisor loop advances normally.
+
 Nothing touches the live folder until `--confirm` is passed. The step is
 idempotent: re-running with the same confirmed set is a no-op; adding one
 procedure creates only its file and a manifest entry with a sparse `order`
@@ -515,25 +522,62 @@ def resolve_l1(area: Path, arg_l1: str | None) -> str:
     )
 
 
+def _manifest_procedures(existing_manifest: dict) -> list[dict]:
+    """Recover the procedure list already committed to the live manifest.
+
+    The manifest is the authoritative record of everything in scope; a proposal
+    round only ever ADDS to it (or re-emits entries to update them). Procedures
+    the delta did not re-emit must survive the rebuild.
+    """
+    procs: list[dict] = []
+    for c in existing_manifest.get("components", []) or []:
+        if c.get("role") != "procedure" or not c.get("slug"):
+            continue
+        p = {"slug": c["slug"], "title": c.get("heading") or c["slug"],
+             "l2": c.get("l2")}
+        if c.get("upstream"):
+            p["upstream"] = list(c["upstream"])
+        procs.append(p)
+    return procs
+
+
 def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
             title_arg: str | None, subtitle_arg: str | None) -> int:
     proposed = area / "_reference" / ".proposed"
     if not proposed.is_dir():
         raise SystemExit(f"error: no proposals at {proposed} (run consult-taxonomy first)")
 
-    procedures = _load_yaml(proposed / "procedures.yaml").get("procedures", []) or []
-    if not procedures:
-        raise SystemExit(f"error: no procedures in {proposed / 'procedures.yaml'}")
+    proposed_procs = _load_yaml(proposed / "procedures.yaml").get("procedures", []) or []
 
-    # Basic proposal sanity: unique kebab slugs, every proc has an l2.
+    # The live manifest is authoritative for what is already in scope: merge the
+    # proposal delta INTO it, never rebuild from the delta alone. This also lets
+    # an incremental pass whose new sources only touch existing procedures run
+    # with an empty (or absent) procedures.yaml — registry merge + source
+    # stamping still happen and .proposed/ is still consumed.
+    manifest_path = area / "manifest.json"
+    existing_manifest = {}
+    if manifest_path.is_file():
+        try:
+            existing_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception:
+            existing_manifest = {}
+    # Basic proposal sanity: unique kebab slugs, every proc has an l2. Checked
+    # on the raw proposal list BEFORE merging (the merge would silently dedupe).
     seen = set()
-    for p in procedures:
+    for p in proposed_procs:
         slug = p.get("slug")
         if not slug or not p.get("l2") or not p.get("title"):
             raise SystemExit(f"error: procedure entry missing slug/l2/title: {p!r}")
         if slug in seen:
             raise SystemExit(f"error: duplicate procedure slug {slug!r}")
         seen.add(slug)
+
+    procedures = _merge_by_key(_manifest_procedures(existing_manifest), proposed_procs)
+    if not procedures:
+        raise SystemExit(
+            f"error: no procedures in {proposed / 'procedures.yaml'} "
+            "and no existing manifest to preserve"
+        )
 
     l1 = resolve_l1(area, l1_arg)
 
@@ -543,13 +587,6 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
 
     # 2) Compute ordering authorities.
     tax_buckets = load_l1_buckets(taxonomy, l1)
-    existing_manifest = {}
-    manifest_path = area / "manifest.json"
-    if manifest_path.is_file():
-        try:
-            existing_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except Exception:
-            existing_manifest = {}
     existing_l2_order = existing_manifest.get("l2_order", []) or []
     existing_orders = {
         c["slug"]: c["order"]
@@ -621,7 +658,8 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
 
     print(f"scaffolded {area}")
     print(f"  l1={l1}  l2_order={l2_order}")
-    print(f"  procedures={len(procedures)}  created={len(created)}  skipped(existing)={len(skipped)}")
+    print(f"  procedures={len(procedures)} (proposal delta={len(proposed_procs)})  "
+          f"created={len(created)}  skipped(existing)={len(skipped)}")
     if created:
         print("  created: " + ", ".join(created))
     return 0

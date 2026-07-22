@@ -237,6 +237,73 @@ def test_confirm_stamps_source_hashes(tmp_path):
     assert src["state"] == "new"
 
 
+def test_confirm_preserves_manifest_procedures_missing_from_proposal(tmp_path):
+    """The live manifest is authoritative: a later proposal round that omits an
+    existing procedure must NOT drop it from the rebuilt manifest."""
+    area, taxonomy = _setup_confirm_area(tmp_path)
+    scaffold.confirm(area, "finance", taxonomy, None, None)
+
+    # second round proposes only ONE new procedure; existing two are omitted
+    proposed = area / "_reference" / ".proposed"
+    proposed.mkdir(parents=True)
+    (proposed / "procedures.yaml").write_text(yaml.safe_dump({
+        "procedures": [
+            {"slug": "fx-hedging", "title": "FX Hedging", "l2": "cash"},
+        ]
+    }), encoding="utf-8")
+    scaffold.confirm(area, "finance", taxonomy, None, None)
+
+    manifest = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    procs = {c["slug"]: c for c in manifest["components"]
+             if c.get("role") == "procedure"}
+    assert set(procs) == {"cash-recon", "payment-run", "fx-hedging"}
+    # preserved procedure keeps its upstream hint and heading
+    assert procs["payment-run"]["upstream"] == ["cash-recon"]
+    assert procs["cash-recon"]["heading"] == "Cash Reconciliation"
+
+
+def test_confirm_with_empty_procedures_does_registry_only_pass(tmp_path):
+    """Incremental pass touching only existing procedures: an empty
+    procedures.yaml still merges the registry, keeps the manifest intact, and
+    consumes .proposed/."""
+    area, taxonomy = _setup_confirm_area(tmp_path)
+    scaffold.confirm(area, "finance", taxonomy, None, None)
+    manifest1 = (area / "manifest.json").read_text(encoding="utf-8")
+
+    proposed = area / "_reference" / ".proposed"
+    proposed.mkdir(parents=True)
+    (proposed / "procedures.yaml").write_text(
+        yaml.safe_dump({"procedures": []}), encoding="utf-8")
+    (proposed / "systems.yaml").write_text(yaml.safe_dump({
+        "systems": [{"slug": "blackline", "name": "BlackLine"}]
+    }), encoding="utf-8")
+    rc = scaffold.confirm(area, None, taxonomy, None, None)
+    assert rc == 0
+
+    # manifest procedures unchanged, registry merged, proposal set consumed
+    manifest2 = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    old_procs = {c["slug"] for c in json.loads(manifest1)["components"]
+                 if c.get("role") == "procedure"}
+    new_procs = {c["slug"] for c in manifest2["components"]
+                 if c.get("role") == "procedure"}
+    assert new_procs == old_procs
+    live = yaml.safe_load((area / "_reference" / "systems.yaml").read_text(encoding="utf-8"))
+    assert [s["slug"] for s in live["systems"]] == ["sap", "blackline"]
+    assert not (area / "_reference" / ".proposed").exists()
+
+
+def test_confirm_empty_procedures_and_no_manifest_still_errors(tmp_path):
+    """Initial scoping with an empty procedures.yaml has nothing to scaffold —
+    that is still a hard error."""
+    import pytest
+    area, taxonomy = _setup_confirm_area(tmp_path)
+    proposed = area / "_reference" / ".proposed"
+    (proposed / "procedures.yaml").write_text(
+        yaml.safe_dump({"procedures": []}), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        scaffold.confirm(area, "finance", taxonomy, None, None)
+
+
 def test_confirm_rejects_duplicate_slug(tmp_path):
     """Proposal sanity: a duplicate procedure slug aborts the confirm with SystemExit."""
     import pytest
