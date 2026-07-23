@@ -1034,12 +1034,14 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
             p.paragraph_format.left_indent = Inches(0.25)
             p.paragraph_format.first_line_indent = Inches(-0.15)
             if om:
-                # Restart numbering when this item doesn't directly continue
-                # the previous ordered run (or the source restarts at 1);
-                # seeding with the source's own number keeps md and docx in
-                # exact agreement even across blank-line breaks.
+                # CommonMark list semantics: a contiguous run of ordered items
+                # is ONE list whose first literal number seeds the start (so
+                # the "1. / 1. / 1." idiom renders 1, 2, 3). Any break — blank
+                # line, bullet, heading, callout — starts a fresh numbering
+                # instance seeded with the item's own number, so separate
+                # lists never continue each other's counter.
                 n = int(om.group(1))
-                if olist_num_id is None or i0 != olist_prev_end or n == 1:
+                if olist_num_id is None or i0 != olist_prev_end:
                     olist_num_id = _fresh_list_num(doc, n)
                 olist_prev_end = i
                 if olist_num_id:

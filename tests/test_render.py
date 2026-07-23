@@ -410,6 +410,36 @@ def test_two_ordered_lists_restart_numbering(tmp_path):
         assert so is not None and so.get(qn("w:val")) == "1"
 
 
+def test_repeated_one_idiom_is_one_continuous_list(tmp_path):
+    """CommonMark semantics: a contiguous run numbered '1. / 1. / 1.' is ONE
+    list (renders 1, 2, 3) — no per-item restart."""
+    md = tmp_path / "ones.md"
+    md.write_text("## S\n\n1. alpha\n1. beta\n1. gamma\n", encoding="utf-8")
+    out = tmp_path / "ones.docx"
+    cfgi.convert(md, out, include_toc=False, landscape=False, do_cover=False)
+    nums = _num_ids(Document(str(out)))
+    ids = [nid for _, nid in nums]
+    assert len(ids) == 3 and len(set(ids)) == 1, \
+        "contiguous ordered items must share one numbering instance"
+
+
+def test_blank_separated_restart_seeds_literal_number(tmp_path):
+    """An ordered item after a break restarts a fresh instance seeded with its
+    own literal number, so displayed numbers always match the source."""
+    md = tmp_path / "seed.md"
+    md.write_text("## S\n\n1. alpha\n2. beta\n\n3. gamma\n", encoding="utf-8")
+    out = tmp_path / "seed.docx"
+    cfgi.convert(md, out, include_toc=False, landscape=False, do_cover=False)
+    doc = Document(str(out))
+    nums = _num_ids(doc)
+    ids = [nid for _, nid in nums]
+    assert ids[0] == ids[1] != ids[2]
+    numbering = doc.part.part_related_by(RT.NUMBERING).element
+    by_id = {n.get(qn("w:numId")): n for n in numbering.findall(qn("w:num"))}
+    so = by_id[ids[2]].find(qn("w:lvlOverride") + "/" + qn("w:startOverride"))
+    assert so is not None and so.get(qn("w:val")) == "3"
+
+
 # --------------------------------------------------------------------------- #
 # converter: tracked changes
 # --------------------------------------------------------------------------- #

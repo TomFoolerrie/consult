@@ -163,7 +163,9 @@ the drafts or sources itself. It:
 - Fill dispatches procedures **in parallel** (N subagents for N procedures).
 - Consumed sources end in `_sources/processed/` with `sources.yaml` state
   `processed`; nothing is moved before its fill succeeds.
-- `orchestrate.py` is read-only (re-running `next` never changes state).
+- `orchestrate.py next` is read-only (re-running it never changes state). The
+  later-added `checkpoint` subcommand commits the area folder (and seeds its
+  `.gitignore`) — the deliberate exception, never run by `next`/`decide`.
 - Editing a procedure post-review and re-invoking resumes at `aggregate` and
   spends tokens only on the changed procedure (delegates to M5's delta).
 - Interrupting mid-pass and re-invoking resumes correctly from state.

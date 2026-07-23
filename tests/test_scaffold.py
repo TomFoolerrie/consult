@@ -110,6 +110,32 @@ def test_build_manifest_drops_unknown_and_self_upstream_with_warning(tmp_path, c
     assert "dropping upstream hint 'a'" in out
 
 
+def test_build_manifest_dedupes_upstream(tmp_path):
+    """Duplicate upstream hints collapse to one occurrence in the manifest."""
+    m = _mk_manifest(tmp_path, [
+        {"slug": "a", "title": "A", "l2": "ops"},
+        {"slug": "b", "title": "B", "l2": "ops", "upstream": ["a", "a"]},
+    ])
+    comp = next(c for c in m["components"] if c.get("slug") == "b")
+    assert comp["upstream"] == ["a"]
+
+
+def test_merge_by_key_preserves_omitted_fields():
+    """A re-emitted entry merges field-wise: fields the re-emission omits
+    (upstream, variants, people) survive; explicit values still override."""
+    existing = [{"slug": "pay", "title": "Pay", "l2": "ops",
+                 "upstream": ["intake"], "variants": ["Wire", "ACH"]}]
+    proposed = [{"slug": "pay", "title": "Payment Run", "l2": "ops"}]
+    (merged,) = scaffold._merge_by_key(existing, proposed)
+    assert merged["title"] == "Payment Run"
+    assert merged["upstream"] == ["intake"]
+    assert merged["variants"] == ["Wire", "ACH"]
+    # explicit empty value still clears
+    (cleared,) = scaffold._merge_by_key(
+        existing, [{"slug": "pay", "upstream": []}])
+    assert cleared["upstream"] == []
+
+
 def test_build_manifest_validates_against_doc_model(tmp_path):
     """The manifest build_manifest produces passes doc_model.validate_manifest cleanly."""
     import doc_model

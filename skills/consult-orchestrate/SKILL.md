@@ -160,8 +160,11 @@ the area pathspec (message `consult(<area>): <stage>`), no-ops when nothing
 changed or the area isn't in a git repo, and never pushes. Don't hand-craft
 `git add`/`git commit` yourself; the subcommand is the one writer.
 
-`orchestrate.py` is **read-only** — it never mutates; it derives the next action
-from folder state (see M7). Re-running is always safe. Because it cannot run the
+`orchestrate.py next` is **read-only** — it never mutates; it derives the next
+action from folder state (see M7). Re-running is always safe. (The `checkpoint`
+subcommand above is the one deliberate exception: it commits the area folder —
+and seeds an area `.gitignore` on first use — but never touches folder content
+the stages produced.) Because `next` cannot run the
 mutating stages itself, each deterministic stage leaves a small git-ignored
 state file at the area root that the advisor reads next loop: `aggregate.py` →
 `.aggregate.json` (`{proc_hashes, registry_hash, warnings}`); the synthesis pass

@@ -376,6 +376,43 @@ def test_fragment_changed_since_render_routes_to_notes(area, returned):
     assert "mismatch" in item["change"]
 
 
+def test_forward_rerender_mismatch_reverts_the_splice(area, returned):
+    """The M10 safety net itself: if the converter cannot reproduce the
+    reviewer-accepted text from the spliced markdown (here: inserted literal
+    `**` markers, which forward-render as bold and vanish from the text),
+    the splice is reverted and the edit falls back to notes."""
+    before = (area / "bank-rec.md").read_text(encoding="utf-8")
+    d = Document(str(returned))
+    track_replace(d, "monthly bank statement", "monthly", "**weekly**")
+    d.save(str(returned))
+
+    report = apply_run(area, returned)
+    assert (area / "bank-rec.md").read_text(encoding="utf-8") == before
+    assert report["files"][0]["applied"] == 0
+    assert report["files"][0]["noted"] == 1
+    (item,) = load_notes(area, "bank-rec")
+    assert "forward re-render mismatch" in item["change"]
+
+
+def test_grammar_error_triggers_transactional_revert(area, returned):
+    """An edit that renders identically but introduces a reconcile grammar
+    error (a dangling callout ID mention) reverts the WHOLE file's applies
+    and routes to notes — fragments are never left grammar-broken."""
+    before = (area / "bank-rec.md").read_text(encoding="utf-8")
+    d = Document(str(returned))
+    track_replace(d, "Compare balances", "investigate any differences",
+                  "investigate any differences per CTRL-99")
+    d.save(str(returned))
+
+    report = apply_run(area, returned)
+    assert (area / "bank-rec.md").read_text(encoding="utf-8") == before
+    assert report["files"][0]["applied"] == 0
+    assert report["files"][0]["noted"] == 1
+    (item,) = load_notes(area, "bank-rec")
+    assert "grammar errors" in item["change"]
+    assert "DANGLING ID CTRL-99" in item["change"]
+
+
 def test_docx_without_review_map_is_skipped(area, tmp_path):
     """A returned doc with no cw-map category / sidecar map is left for
     review_extract — reported as skipped, nothing applied or noted."""

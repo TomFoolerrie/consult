@@ -144,8 +144,12 @@ def _entry_key(entry: dict) -> str | None:
 def _merge_by_key(existing: list, proposed: list) -> list:
     """Merge proposed entries into existing, keyed by slug/id/term.
 
-    New entries are appended; an entry the delta re-emits overrides the existing
-    one; existing entries the delta did NOT re-emit are preserved (never wiped).
+    New entries are appended; an entry the delta re-emits overrides the
+    existing one FIELD-WISE ({**existing, **proposed}): fields the re-emission
+    omits are preserved, not wiped — so a title tweak at the confirm gate
+    can't silently destroy `upstream`/`variants`/`people`. Emitting an
+    explicit empty value still clears a field. Existing entries the delta did
+    NOT re-emit are preserved untouched.
     Order: existing order first, then new entries in proposed order.
     """
     out = list(existing or [])
@@ -159,7 +163,8 @@ def _merge_by_key(existing: list, proposed: list) -> list:
             continue
         k = _entry_key(e)
         if k is not None and k in index:
-            out[index[k]] = e          # delta re-emitted this entry -> it wins
+            old = out[index[k]]
+            out[index[k]] = {**old, **e} if isinstance(old, dict) else e
         else:
             if k is not None:
                 index[k] = len(out)
@@ -472,7 +477,7 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
         # M11 ordering hints: validated here (mechanics), decided by taxonomy
         # (judgment). Unknown or self references are dropped with a warning —
         # the manifest only ever carries hints the advisor can act on.
-        upstream = [str(u) for u in (p.get("upstream") or []) if u]
+        upstream = list(dict.fromkeys(str(u) for u in (p.get("upstream") or []) if u))
         valid = [u for u in upstream if u in known and u != slug]
         for bad in [u for u in upstream if u not in valid]:
             print(f"  WARNING: {slug}: dropping upstream hint '{bad}' "

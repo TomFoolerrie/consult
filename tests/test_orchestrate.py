@@ -221,6 +221,41 @@ def test_emit_aggregate_roundtrip_and_procedure_edit_restales(tmp_path):
     assert orchestrate.decide(area)["action"] == "aggregate"
 
 
+def test_registry_edit_restales_aggregate(tmp_path):
+    """Guard 6, registry arm: editing a _reference/*.yaml after emit_aggregate
+    (the registry top-up loop) makes decide() return `aggregate` again."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _touch(area, "_reference", "systems.yaml", content="systems: []\n")
+    orchestrate.emit_aggregate(area, warnings=[])
+    assert orchestrate.decide(area)["action"] == "reconcile"
+    _touch(area, "_reference", "systems.yaml",
+           content="systems:\n  - slug: sap\n    name: SAP\n")
+    assert orchestrate.decide(area)["action"] == "aggregate"
+
+
+def test_checkpoint_seeds_gitignore_and_skips_signal_files(tmp_path):
+    """checkpoint in a fresh git repo seeds the area .gitignore so signal
+    files and _review/kits/ stay out of the commit, while fragments (and
+    sources) are committed."""
+    import subprocess
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _touch(area, "_sources", "new", "transcript.txt", content="client words")
+    _touch(area, ".aggregate.json", content="{}")
+    _touch(area, "_review", "kits", "p", "README.md", content="kit")
+    subprocess.run(["git", "init", "-q", area], check=True)
+    for k, v in (("user.email", "t@t"), ("user.name", "t")):
+        subprocess.run(["git", "-C", area, "config", k, v], check=True)
+    res = orchestrate.checkpoint(area, "aggregate")
+    assert res["committed"] is True
+    tracked = subprocess.run(["git", "-C", area, "ls-files"],
+                             capture_output=True, text=True).stdout.split()
+    assert "10_a.md" in tracked
+    assert "_sources/new/transcript.txt" in tracked
+    assert ".gitignore" in tracked
+    assert ".aggregate.json" not in tracked
+    assert not any(t.startswith("_review/kits/") for t in tracked)
+
+
 def test_registry_topup_gate_on_aggregate_warnings(tmp_path):
     """Guard 7: unmatched-mention warnings recorded by emit_aggregate return `registry_topup` (human gate) with the warnings."""
     area = make_area(tmp_path, [{"slug": "a", "filled": True}])
