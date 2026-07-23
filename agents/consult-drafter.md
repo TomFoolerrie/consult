@@ -4,8 +4,9 @@ description: >-
   Durable owner of ONE procedure component — first drafter AND update drafter. Given its
   A–H skeleton (or its own prior draft), the procedure's tagged _sources/, and the
   _reference/ registry, it drafts/revises the current-state desktop procedure: fills the
-  A–H structure with judgment-placed inline step tags, appends a formalized callout block
-  after the steps, mints procedure-local IDs, and populates the consult-meta slug block.
+  A–H structure with judgment-placed inline step tags, places formalized callouts in their
+  home sections (CONTROL→F, PP/IO→H, GAP/SC inline in E), mints procedure-local IDs, and
+  populates the consult-meta slug block.
   On updates it works newly-known facts into the body and REMOVES the gaps they close
   (never leaving resolved-gap artifacts), producing a clean finished document each time.
   Returns a compact status; writes exactly one file (10_<slug>.md). Dispatched
@@ -158,7 +159,7 @@ numbers, which is correct). Fixed structures:
 ```
 
 **In `H. Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
-callouts (this section IS the structured source for Appendix A — Pain Points &
+callouts (this section IS the structured source for Appendix A — Risks, Pain Points &
 Improvement Opportunities, which is assembled **mechanically** from these
 callouts, so fill every field):
 ```
@@ -237,8 +238,7 @@ errors on other procedures' fragments — those are their drafters' concern and 
 orchestrator's hard-gate reconcile will catch them. An unregistered
 `consult-meta` slug is a **WARNING, not an ERROR** — leave it as your best-guess
 slug and report it (it's resolved later by the human registry top-up); do **not**
-invent a registry entry to silence it. ORPHAN warnings on unpopulated template
-rows are also fine.
+invent a registry entry to silence it.
 
 ## What you return (COMPACT — no draft text)
 A short status object/paragraph:

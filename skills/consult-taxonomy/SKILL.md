@@ -170,6 +170,20 @@ sources:
 - **Do NOT set `hash` or `state`.** Those are deterministic byte-work stamped by
   `scaffold.py` at confirm, not by you.
 
+### 4b. Glossary (optional) → `.proposed/glossary.yaml`
+```yaml
+glossary:
+  - term: "Rollforward"
+    definition: ""     # ONLY if a source states/implies it; else blank
+```
+Client-specific terms worth an Appendix D entry. Same credibility guardrail as
+descriptions: sourced or blank. Promoted by the same MERGE as the other
+registry files; drafters read it for canonical terminology.
+
+### 4c. Area metadata → `.proposed/area.yaml`
+Write `l1: <your L1 slug>` so the confirm step can resolve the L1 without a
+`--l1` flag.
+
 ### 5. New buckets (only if needed) → `.proposed/new_buckets.yaml`
 ```yaml
 new_buckets:
@@ -179,9 +193,14 @@ new_buckets:
     status: needs-approval
 ```
 Surface every new bucket in your return. The human decides at the gate — you
-cannot round-trip approval mid-run, so the gate is the permission point. If the
-human approves, scaffold appends the bucket to the manifest's `l2_order` (giving
-it a display-number ordinal); the immutable taxonomy is never mutated.
+cannot round-trip approval mid-run, so the gate is the permission point.
+**Approval is mechanical:** a new bucket takes effect simply because procedures
+in `procedures.yaml` carry it as their `l2` when confirm runs — scaffold appends
+any used non-taxonomy bucket to the manifest's `l2_order` (giving it a
+display-number ordinal). Rejection means the human re-files those procedures
+under a known bucket before confirming. `new_buckets.yaml` itself is advisory
+context for the human; scaffold never reads it. The immutable taxonomy is never
+mutated.
 
 ## Modes
 
@@ -209,6 +228,7 @@ leaves untouched entries intact) — so you only need to emit what changed.
 - `by_bucket`: each L2 → the L3 slugs filed under it.
 - `new_buckets`: proposed buckets needing approval (slug + one-line rationale).
 - `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants).
+- `ordered`: upstream hints you stamped (downstream slug → upstream slugs).
 - `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides).
 - `unmapped_people`: individuals you could not confidently map to a role.
 - `low_confidence`: procedures/entries the human should scrutinize first.

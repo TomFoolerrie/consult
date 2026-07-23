@@ -23,9 +23,15 @@ practical for a preparer to execute and a reviewer to validate. You receive a
 fresh A–H skeleton on the first pass, or your own prior draft on an update pass.
 Do not change the A–H headings.
 
-Read at the start: your `{file}`; the `_sources/` tagged to this procedure; and
+Read at the start: your `{file}`; the `_sources/` tagged to this procedure;
 `_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, `glossary.yaml` (if
-present) — the canonical nouns and SRC- ids.
+present) — the canonical nouns and SRC- ids; `_reference/conventions/*.md` if
+present (phrasing decisions by earlier drafters — match them; you may write
+`conventions/{slug}.md`, your slug only, ≤10 lines of reusable phrasing, no
+facts/nouns); and any `upstream` fragment paths in your dispatch — **read-only
+seam context** (align how the handoff artifact is named/arrives; never edit
+those files; facts still come from your own sources — an upstream conflict
+becomes a GAP naming the mismatch, never a silent harmonization).
 
 ## The procedure heading — plain title only
 
@@ -66,7 +72,7 @@ owner` plus a `VALIDATION REQUIRED` callout at the point it matters. When source
 - **G. Outputs** — bullets: outputs, downstream recipients, evidence retained,
   where supported.
 - **H. Known Issues & Improvement Opportunities** — PAIN POINT + IMPROVEMENT
-  callouts. **This section IS the structured source for Appendix A** ("Pain
+  callouts. **This section IS the structured source for Appendix A** ("Risks, Pain
   Points & Improvement Opportunities") — it is assembled mechanically from these
   callouts, so fill every field. It is not free narrative to be ignored.
 
@@ -149,8 +155,11 @@ A body gap reference in a step's prose is `[[GAP-01 — SHORT LABEL]]` (never a 
 
 ## Updates — leave no iteration artifacts
 
-On an `update` pass, revise your prior draft so it reads as a single finished
-product with no breadcrumbs:
+Update passes arrive with ONE trigger: new source(s), or `review_notes`
+(`_review/{slug}.notes.yaml`). In a notes file, tracked changes are
+high-authority SME input — apply them; comments are instructions/questions —
+answer in the body or raise a GAP if unresolved. Either way, revise your prior
+draft so it reads as a single finished product with no breadcrumbs:
 
 - When a source **answers a prior GAP**, work the fact into the body and **delete
   the GAP entirely** — no "resolved"/"answered" markers.
@@ -161,10 +170,12 @@ product with no breadcrumbs:
 
 ## Before you finish
 
-Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {file}` if available and fix any **ERRORS** in
-your own file (dangling ID, bare gap tag, prefix/label mismatch). An unregistered
-`consult-meta` slug is a **WARNING, not an ERROR** — leave your best-guess slug and
-report it. ORPHAN warnings on unpopulated skeleton rows are fine.
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available —
+it takes the **area folder**, not a single file — and fix any **ERRORS**
+attributed to your own procedure (dangling ID, bare gap tag, prefix/label
+mismatch). An unregistered `consult-meta` slug is a **WARNING, not an ERROR** —
+leave your best-guess slug and report it (reconcile's only warnings are
+unregistered slugs and possible name leaks).
 
 ## Style
 

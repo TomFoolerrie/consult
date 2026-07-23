@@ -457,6 +457,20 @@ def emit_render(folder: str, docx: str, awaiting_review: bool = True) -> None:
 # remembering to commit. Scoped strictly to the area folder; never pushes.
 # --------------------------------------------------------------------------- #
 
+def accept_review(folder: str) -> dict:
+    """Clear `awaiting_review` in .render.json — the user's explicit acceptance
+    of the rendered document. This is the ONLY writer that flips the flag; the
+    renderer always sets it true. Without it the advisor returns the `review`
+    gate forever. No-op (with a reason) when there is no render signal."""
+    path = os.path.join(folder, ".render.json")
+    ren = _load_json(path)
+    if not ren:
+        return {"accepted": False, "reason": "no .render.json — nothing rendered"}
+    ren["awaiting_review"] = False
+    _write_json(path, ren)
+    return {"accepted": True, "docx": ren.get("docx")}
+
+
 # Seeded into an area on first checkpoint if no .gitignore exists: keeps the
 # advisor's signal files and regenerable kit output out of the host repo, per
 # the documented state-file contract. Everything else (fragments, registry,
@@ -542,7 +556,17 @@ def main(argv=None):
                         help="area folder path or bare area name under components/")
     p_ckpt.add_argument("--stage", required=True,
                         help="stage name just completed (goes in the commit message)")
+    p_acc = sub.add_parser(
+        "accept",
+        help="record the user's acceptance of the rendered docx "
+             "(clears awaiting_review so the advisor can reach `done`)")
+    p_acc.add_argument("--area", required=True,
+                       help="area folder path or bare area name under components/")
     args = parser.parse_args(argv)
+
+    if args.cmd == "accept":
+        print(json.dumps(accept_review(resolve_area(args.area)), indent=2))
+        return 0
 
     if args.cmd == "next":
         folder = resolve_area(args.area)

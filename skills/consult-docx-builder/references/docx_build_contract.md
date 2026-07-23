@@ -1,8 +1,10 @@
-# DOCX Build Contract
+# DOCX Build Contract — single-file CLI
 
-The builder renders finalized `consult-drafter` process-documentation Markdown
-into a CFGI-styled Word document. It styles and renders only — it does not author,
-edit, or reconcile content.
+This file documents the converter's **single-file CLI** only. The primary
+production path is the folder pipeline (`scripts/render.py <area>`, which calls
+`convert_assembled` with modes, subset renders, tracked changes, and
+provenance) — see SKILL.md for that. The builder styles and renders only — it
+does not author, edit, or reconcile content.
 
 ## Supported Input
 
@@ -42,14 +44,16 @@ If `-o/--output` is omitted, the output path is the input stem plus
 - Heading levels map straight through to Word Heading 1–4.
 - Callout boxes are colored by label; table shading is chosen by table header
   (field, control, gap, screenshot, standard).
-- Screenshot references render as placeholder callouts; images are never
-  inserted.
+- An image link whose file exists on disk is embedded (scaled to page width,
+  italic caption below); a dangling path renders as a screenshot placeholder
+  callout, never a broken image.
+- Ordered lists follow CommonMark semantics: a contiguous run is one list
+  seeded by its first literal number; any break restarts numbering.
 
 ## Out of Scope
 
 - Drafting or editing content
 - Cleaning transcripts
-- Reconciling or validating IDs (done upstream by `consult-drafter`)
+- Reconciling or validating IDs (done upstream by `scripts/reconcile.py`)
 - Resolving comments
-- Inserting real screenshots or evidence
 - Slide or graphic production

@@ -7,7 +7,8 @@ description: >-
   aliases), the SRC- source registry with source→procedure tags, and any new-L2-bucket
   requests flagged for human approval. Best-guesses freely; a human confirms/edits at the
   gate before anything scaffolds. Returns a compact proposal summary; writes only under
-  _reference/.proposed/. Runs once per area, dispatched by consult-orchestrate.
+  _reference/.proposed/. Runs once per area (initial), re-dispatched when new
+  sources land (incremental). Dispatched by consult-orchestrate.
 tools: Read, Write
 skills: consult-taxonomy
 ---
@@ -25,7 +26,7 @@ confirms first.
 - `l1` — the prescribed L1 function you operate in, given as its **taxonomy slug**
   (e.g. `record-to-report`; matches a `slug:` in the taxonomy). **Stay inside this
   L1.** Do not scope activities that belong to another L1 — flag them (see return).
-- `taxonomy` — path to the reference taxonomy
+- `taxonomy` (dispatched as `taxonomy_path`) — path to the reference taxonomy
   (`skills/consult-taxonomy/reference/reference_taxonomy.yaml`, or a user override).
 - `mode` — `initial` (first scope of a fresh area) or `incremental` (new sources
   arrived after the area was already scaffolded).
@@ -189,6 +190,18 @@ sources:
     file: _sources/new/2026-06-close-walkthrough.md
     touches: [bank-reconciliation, close-checklist]   # procedure slugs it informs
     # NOTE: `hash` and `state` are stamped by the Python scaffold step, not you.
+```
+
+### `glossary.yaml` (optional)
+```yaml
+glossary:
+  - term: "Rollforward"
+    definition: ""     # ONLY if a source states/implies it; else blank
+```
+
+### `area.yaml`
+```yaml
+l1: record-to-report   # lets the confirm step resolve the L1 without --l1
 ```
 
 ### `new_buckets.yaml` (only if you need one)

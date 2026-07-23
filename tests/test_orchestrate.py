@@ -256,6 +256,22 @@ def test_checkpoint_seeds_gitignore_and_skips_signal_files(tmp_path):
     assert not any(t.startswith("_review/kits/") for t in tracked)
 
 
+def test_accept_review_clears_the_review_gate(tmp_path):
+    """orchestrate accept flips awaiting_review so a fully-walked area moves
+    from the `review` gate to `done`; with nothing rendered it no-ops."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    assert orchestrate.accept_review(area)["accepted"] is False
+    orchestrate.emit_aggregate(area, warnings=[])
+    orchestrate.emit_reconcile(area, clean=True)
+    scope_delta.commit(area, "dependencies")
+    scope_delta.commit(area, "raci")
+    orchestrate.emit_render(area, "out.docx", awaiting_review=True)
+    assert orchestrate.decide(area)["action"] == "review"
+    res = orchestrate.accept_review(area)
+    assert res["accepted"] is True and res["docx"] == "out.docx"
+    assert orchestrate.decide(area)["action"] == "done"
+
+
 def test_registry_topup_gate_on_aggregate_warnings(tmp_path):
     """Guard 7: unmatched-mention warnings recorded by emit_aggregate return `registry_topup` (human gate) with the warnings."""
     area = make_area(tmp_path, [{"slug": "a", "filled": True}])

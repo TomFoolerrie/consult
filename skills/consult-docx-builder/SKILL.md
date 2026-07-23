@@ -73,6 +73,17 @@ Render a component folder (what the orchestrator runs):
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/render.py" <area> -o <out.docx>
 ```
 
+Folder-render flags:
+- `--mode working|final` (default `working`). Working = everything visible +
+  provenance anchors. Final = client deliverable: VALIDATION REQUIRED callouts,
+  inline `[[GAP-…]]` tags, and the gap-log appendix stripped (counts reported);
+  captured screenshots embedded with italic captions.
+- `--slugs a,b,c` — subset/kit render (cover + those procedures only), keeping
+  full-manifest numbering and display IDs; does not touch the advisor's render
+  signal.
+- `--track-changes` — force tracked-changes recording ON and lock-track the
+  document (reviewer edits are always captured).
+
 Default single-file conversion (builds a cover page):
 
 ```bash
@@ -124,13 +135,27 @@ house style is fixed.
   `SCREENSHOT PLACEHOLDER` (gray) each render as a distinct shaded box.
 - **Tables auto-styled by kind** — field/summary, control, gap (zebra),
   screenshot, and standard, detected from the table header.
-- **Screenshots stay placeholders** — Markdown image links render as screenshot
-  placeholder callouts; real images are never inserted.
+- **Screenshots** — an image link whose file exists on disk is embedded
+  (scaled to page width, italic gray caption below); a dangling path renders as
+  a screenshot placeholder callout, never a broken image. Final-mode renders
+  embed captured `_assets/screens/` evidence this way.
+- **Ordered lists** — CommonMark semantics: contiguous ordered items form one
+  list seeded by the first literal number (`1./1./1.` renders 1, 2, 3); any
+  break (blank line, bullet, heading, callout) restarts numbering, so separate
+  lists never continue each other's counter.
+- **Tracked changes** — with `track_changes` (or `render.py --track-changes`)
+  the document records edits by default and is lock-tracked
+  (`w:documentProtection edit="trackedChanges"`); Word shows this as
+  "Reviewing" mode.
+- **Provenance (folder/working mode)** — each rendered block gets an opaque
+  `cw_` bookmark and a review map is written to `{area}/_review/.maps/`; this
+  is what makes the mechanical review-apply possible. Single-file mode has no
+  provenance.
 
 ## Workflow
 
 1. Confirm the Markdown file exists and appears finalized.
-2. Confirm it was reconciled by `consult-drafter` (no dangling IDs).
+2. Confirm it was reconciled (`scripts/reconcile.py` clean — no dangling IDs).
 3. Choose an output filename if none was provided.
 4. Run the converter.
 5. Confirm the `.docx` was written.
@@ -142,7 +167,8 @@ house style is fixed.
 - A `Document Profile` table is present (drives the cover page).
 - Canonical sections and the A–H procedure subsections are present.
 - Tables use GitHub-style Markdown (or clean HTML) tables.
-- Screenshot references are text placeholders, not real image links.
+- Image links either point at real files on disk (they will be embedded) or
+  are intended placeholders (dangling paths render as placeholder callouts).
 - Appendix B (Gap / Validation Log) and Appendix C (Screenshot / Evidence
   Index) are present when the body contains gap or screenshot IDs.
 
