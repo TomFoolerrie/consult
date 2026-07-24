@@ -2,7 +2,7 @@
 name: consult-orchestrate
 description: >-
   The one entry point for advancing a CONSULT engagement area end to end. Invoke it as
-  "build / continue <area>". It loops the read-only orchestrate.py state advisor, performs
+  "build / continue {area}". It loops the read-only orchestrate.py state advisor, performs
   the single next action it returns — running a deterministic Python script itself, or
   dispatching an isolated subagent (taxonomy, one drafter per procedure, dependencies,
   raci) — moves consumed inputs, and stops at the human gates (confirm scope, registry
