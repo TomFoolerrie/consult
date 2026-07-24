@@ -15,6 +15,7 @@ _Canonical functional roles (from `_reference/roles.yaml`) with the procedures e
 | Cost Center Owner | — | [[#requisition-and-approval]], [[#po-issuance-and-change-orders]], [[#non-po-invoice-entry-and-approval]] |
 | Department Head | — | — |
 | Functional Vice President | — | [[#requisition-and-approval]], [[#non-po-invoice-entry-and-approval]], [[#wire-and-manual-payment]] |
+| Implementation Partner | — | [[#vendor-master-data-maintenance]] |
 | IT Manager | cfo | [[#new-vendor-onboarding]], [[#vendor-banking-change]], [[#vendor-master-data-maintenance]], [[#po-issuance-and-change-orders]], [[#goods-receipt]], [[#return-to-vendor]], [[#invoice-intake-and-capture]], [[#po-invoice-entry-and-three-way-match]], [[#non-po-invoice-entry-and-approval]] |
 | Plant Manager | — | [[#confirming-po]] |
 | Procurement Lead | cfo | [[#new-vendor-onboarding]], [[#vendor-banking-change]], [[#requisition-and-approval]], [[#po-issuance-and-change-orders]], [[#confirming-po]], [[#goods-receipt]], [[#vendor-statement-reconciliation]] |

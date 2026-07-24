@@ -178,3 +178,13 @@ roles:
   people: []
   reports_to: ''
   confidence: high
+- slug: implementation-partner
+  name: Implementation Partner
+  aliases:
+  - implementation partner
+  - the implementation partner
+  - legacy implementation partner
+  - the consultants who did the NetSuite implementation
+  people: []
+  reports_to: ''
+  confidence: low
