@@ -1,0 +1,45 @@
+glossary:
+- term: AP Inbox
+  definition: The shared Outlook mailbox ap-invoices@ to which suppliers are directed
+    to send invoices.
+- term: The cage
+  definition: A fenced area in the back corner of the Plant 2 receiving dock where
+    inbound material that cannot be tied to a purchase order is held until someone
+    claims it.
+- term: Confirming PO
+  definition: A purchase order created after the fact, when a vendor has already performed
+    work or delivered goods without a PO in place.
+- term: Match Exception - Hold
+  definition: The NetSuite bill status applied when the three-way match fails, blocking
+    release until the exception is resolved.
+- term: AFE
+  definition: Authorization for expenditure. A capital expenditure requisition will
+    not route in Coupa without an approved AFE number in a custom field.
+- term: NTE
+  definition: Not-to-exceed. The annual value cap on a blanket purchase order, released
+    against by receipt.
+- term: Received-not-invoiced (RNI)
+  definition: The systematic month-end accrual derived from a NetSuite saved search
+    of open receipts with no bill.
+- term: Known-not-received
+  definition: The manual month-end accrual for commitments that have not yet been
+    received, compiled by emailing department heads.
+- term: Positive pay
+  definition: The bank control under which a check issue file is transmitted at check
+    print and mismatched items are returned to the Company as exceptions for pay/return
+    disposition.
+- term: ACH debit block
+  definition: A control on the operating account permitting only named originators
+    on a filter list to debit the account; all others are rejected.
+- term: Punchout
+  definition: A Coupa catalog path where the requester shops on the supplier's own
+    site and returns with a cart that becomes a requisition.
+- term: SIM
+  definition: Coupa Supplier Information Management. The portal through which an invited
+    supplier self-registers banking, W-9, insurance certificates and diversity classification.
+- term: Three-way match
+  definition: The required agreement of approved purchase order, recorded goods receipt,
+    and supplier invoice before a payable is eligible for release.
+- term: NIG-
+  definition: The prefix of the Nordhaven purchase order number format, followed by
+    a sequential number.

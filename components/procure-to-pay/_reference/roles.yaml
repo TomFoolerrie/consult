@@ -1,0 +1,180 @@
+roles:
+- slug: cfo
+  name: Chief Financial Officer
+  aliases:
+  - CFO
+  - Emmett
+  people:
+  - Emmett Suzuki
+  reports_to: ''
+  confidence: high
+- slug: corporate-controller
+  name: Corporate Controller
+  aliases:
+  - Controller
+  - the Controller
+  - Corinne
+  people:
+  - Corinne Baptiste
+  reports_to: cfo
+  confidence: high
+- slug: assistant-controller
+  name: Assistant Controller
+  aliases:
+  - Assistant Controller
+  - Delphine
+  people:
+  - Delphine Arceneaux
+  reports_to: corporate-controller
+  confidence: high
+- slug: ap-manager
+  name: Accounts Payable Manager
+  aliases:
+  - AP Manager
+  - AP Mgr
+  - Marisol
+  people:
+  - Marisol Vance
+  reports_to: corporate-controller
+  confidence: high
+- slug: senior-ap-specialist
+  name: Senior Accounts Payable Specialist
+  aliases:
+  - Senior AP Specialist
+  - Sr AP Spec
+  - AP Specialist
+  - Accounts Payable Specialist
+  - Priya
+  - my senior
+  people:
+  - Priya Raghunathan
+  reports_to: ap-manager
+  confidence: high
+- slug: ap-clerk
+  name: Accounts Payable Clerk
+  aliases:
+  - AP Clerk
+  - AP Clerk (PT)
+  - Tobias
+  - Bo
+  people:
+  - Tobias Lindqvist
+  - Bo Whitfield
+  reports_to: ap-manager
+  confidence: high
+- slug: treasury-analyst
+  name: Treasury Analyst
+  aliases:
+  - Treasury Analyst
+  - treasury
+  - Renata
+  people:
+  - Renata Kowalczyk
+  reports_to: corporate-controller
+  confidence: high
+- slug: procurement-lead
+  name: Procurement Lead
+  aliases:
+  - Procurement Lead
+  - Proc Lead
+  - procurement
+  - Dev
+  - Dev's team
+  people:
+  - Dev Anand Rao
+  reports_to: cfo
+  confidence: high
+- slug: buyer
+  name: Buyer
+  aliases:
+  - Buyer
+  - the buyer
+  - the buyers
+  - responsible Buyer
+  - Yusuf
+  people:
+  - Yusuf Adeyemi
+  reports_to: procurement-lead
+  confidence: high
+- slug: receiving-supervisor
+  name: Receiving Supervisor
+  aliases:
+  - Receiving Supervisor
+  - Recv Supv
+  - Hal
+  - the dock
+  - my guys
+  - receivers
+  people:
+  - Hal Ostrowski
+  reports_to: cfo
+  confidence: high
+- slug: it-manager
+  name: IT Manager
+  aliases:
+  - IT Manager
+  - IT
+  - NetSuite administrator
+  - the NetSuite administrator role
+  - NS admin
+  - Gideon
+  people:
+  - Gideon Pruitt
+  reports_to: cfo
+  confidence: high
+- slug: cost-center-owner
+  name: Cost Center Owner
+  aliases:
+  - cost center owner
+  - cost center manager
+  - Cost Center Owner
+  people: []
+  reports_to: ''
+  confidence: medium
+- slug: functional-vp
+  name: Functional Vice President
+  aliases:
+  - functional VP
+  - Functional Vice President
+  - their VP
+  people: []
+  reports_to: ''
+  confidence: medium
+- slug: requester
+  name: Requester
+  aliases:
+  - requester
+  - the requester
+  - plant maintenance planner
+  - engineer
+  - somebody in marketing
+  - the department
+  people: []
+  reports_to: ''
+  confidence: medium
+- slug: plant-manager
+  name: Plant Manager
+  aliases:
+  - plant manager
+  - the plant
+  people: []
+  reports_to: ''
+  confidence: low
+- slug: department-head
+  name: Department Head
+  aliases:
+  - department heads
+  - cost center owner
+  people: []
+  reports_to: ''
+  confidence: low
+- slug: supplier
+  name: Supplier
+  aliases:
+  - supplier
+  - vendor
+  - the vendor
+  - third-party supplier
+  people: []
+  reports_to: ''
+  confidence: high

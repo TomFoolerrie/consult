@@ -1,0 +1,115 @@
+systems:
+- slug: coupa
+  name: Coupa
+  aliases:
+  - Coupa
+  - the Coupa side
+  - SIM
+  - Supplier Information Management
+  - Coupa SIM
+  - the supplier portal
+  description: System of record for the supplier record from a sourcing standpoint;
+    handles requisitions, PO issuance and change orders, supplier onboarding, and
+    supplier self-registration via the Supplier Information Management portal.
+  limitations: Hosted and punchout catalog pricing is stale and does not always reflect
+    negotiated contract pricing, allowing off-contract buying. The blanket-PO not-to-exceed
+    burn-down report exists but is not run on a schedule.
+  confidence: high
+- slug: netsuite
+  name: NetSuite
+  aliases:
+  - NetSuite
+  - NS
+  - the ERP
+  - the enterprise resource planning system
+  - the system
+  description: System of record for the general ledger, the vendor master for payment
+    purposes, item receipts, bills, the Pay Bills payment run, non-PO invoice approval
+    routing, and bank reconciliation.
+  limitations: Supplier records arriving from the nightly Coupa sync sometimes land
+    with a blank payment term and are corrected by hand. Approval escalation after
+    three business days is specified in the SOP but approvals are reported to sit
+    for two weeks with no escalation.
+  confidence: high
+- slug: ephesoft
+  name: Ephesoft
+  aliases:
+  - Ephesoft
+  - the OCR thing
+  - the document capture application
+  - the imaging system
+  description: Document capture / OCR application that extracts invoice header data
+    (vendor, invoice number, invoice date, total, PO reference) and routes low-confidence
+    documents to a manual validation queue.
+  limitations: PO number extraction is unreliable when the PO reference is not in
+    a standard position on the invoice face; a PO number in body paragraph text is
+    not captured. The confidence threshold value is disputed across sources.
+  confidence: high
+- slug: chase-connect
+  name: Chase Connect
+  aliases:
+  - Chase Connect
+  - the portal
+  - the payments portal
+  - the banking portal
+  - the commercial banking portal
+  - Chase
+  description: Bank portal used for ACH (NACHA) file upload and release, wire initiation
+    and approval, positive pay exception review and disposition, and the ACH debit
+    block filter list.
+  limitations: ''
+  confidence: high
+- slug: ap-inbox
+  name: AP Inbox
+  aliases:
+  - AP Inbox
+  - ap-invoices@
+  - the shared mailbox
+  - the accounts payable electronic mailbox
+  description: Shared Outlook mailbox to which suppliers are directed to send invoices
+    per PO terms; receives roughly ninety percent of invoice volume.
+  limitations: ''
+  confidence: high
+- slug: concur
+  name: Concur
+  aliases:
+  - Concur
+  - the Concur audit queue
+  description: Travel and expense system used for employee expense reports and the
+    corporate card program. The client explicitly files this outside Procure to Pay
+    under Travel & Expense; reimbursement runs through the payroll ACH file on a separate
+    bank account.
+  limitations: ''
+  confidence: high
+- slug: finance-shared-drive
+  name: Finance Shared Drive
+  aliases:
+  - the shared drive
+  - Finance/Treasury/Forms
+  - the finance shared drive
+  description: Network file share holding the Wire Transfer Request Form PDF, the
+    manual known-not-received accrual spreadsheet, and (per SOP) vendor statement
+    reconciliation worksheets.
+  limitations: ''
+  confidence: medium
+- slug: irs-tin-match
+  name: IRS TIN Matching
+  aliases:
+  - IRS TIN match
+  - TIN match
+  description: Used during supplier diligence to verify that the W-9 legal name matches
+    the taxpayer identification number.
+  limitations: ''
+  confidence: medium
+- slug: ofac-sdn-list
+  name: OFAC SDN List
+  aliases:
+  - OFAC
+  - OFAC SDN list
+  - the Treasury site
+  description: Sanctions screening performed as a manual lookup on the Treasury website
+    during supplier diligence; the result is screenshotted and attached to the Coupa
+    supplier record.
+  limitations: Screening is a manual lookup rather than an automated or monitored
+    screen.
+  confidence: medium
