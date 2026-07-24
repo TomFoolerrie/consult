@@ -62,7 +62,11 @@ Both variants require a completed written authorization in hand before anything 
 
 **For a wire transfer:** the Treasury Analyst keys the wire in Chase Connect from the signed request form, entering the beneficiary and amount. Same-day value requires entry ahead of the 2:00 PM Eastern cutoff.
 
-**For a manual / emergency check:** the check is prepared against the Corporate Controller's written authorization, printed on the MICR printer in the Accounts Payable room from stock held in the locked drawer, with the signature plate retrieved from the safe. The detailed preparation sequence for this variant is TBD — confirm with process owner (see [[GAP-02 — MANUAL CHECK VARIANT UNCONFIRMED]]).
+**For a manual / emergency check:** the check is prepared against the Corporate Controller's written authorization, printed on the MICR printer in the Accounts Payable room from stock held in the locked drawer, with the signature plate retrieved from the safe. The detailed preparation sequence for this variant is TBD — confirm with process owner.
+
+> **VALIDATION REQUIRED — GAP-04:** The preparation sequence for a manual / emergency check — who prints it, from which NetSuite transaction, and how the signature plate is drawn and returned — was not described by any interviewee.
+> - **Nature:** unknown
+> - **Owner to confirm:** Accounts Payable Manager
 
 - **System / Tool:** Chase Connect (wire transfer variant).
 - **Fields / Parameters:** Beneficiary bank detail and payment amount per the signed Wire Transfer Request Form.

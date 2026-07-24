@@ -87,6 +87,10 @@ Ephesoft pushes the captured invoice into NetSuite, where it is created as a Bil
 - **Expected Result:** A NetSuite Bill in a pending state, carrying the captured header values and the invoice image.
 - **Evidence Required:** The invoice image retained as an attachment to the NetSuite Bill.
 
+> **VALIDATION REQUIRED — GAP-05:** The role accountable for the seven-year retention of the invoice image, and whether any check confirms the image is in fact attached to the Bill. The seven-year period is stated in SRC-006 §4.5, a 2023 document; no source names an owner or a verification step.
+> - **Nature:** unknown
+> - **Owner to confirm:** Accounts Payable Manager
+
 > **SCREENSHOT PLACEHOLDER — SC-02:** A NetSuite Bill in the pending state showing the captured header values and the attached invoice image — validates the handoff into invoice entry and the image retention point.
 
 ### F. Key Controls
@@ -134,5 +138,4 @@ Ephesoft pushes the captured invoice into NetSuite, where it is created as a Bil
 systems: [ap-inbox, ephesoft, netsuite]
 roles:   [ap-clerk, senior-ap-specialist, ap-manager, it-manager, supplier]
 ```
-</content>
-</invoke>
+
