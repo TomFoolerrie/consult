@@ -1,0 +1,1011 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "1b2dea8aaf06",
+ "area": "procure-to-pay",
+ "docx": "1.3_vendor-master-data-maintenance.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    6,
+    17
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "e49dda2f0106cb176f0f21871bd0d32ce4d92b0b"
+  },
+  "cw_00001": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    21,
+    21
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "46e8d4b97bb7784178371f5faa5c8133fbaad9b7"
+  },
+  "cw_00002": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b54a55fa981bd9e5161f54088b4d298d7c260070"
+  },
+  "cw_00003": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bd6e9a25b3a606ca097a5d834c0ec606cfd90ec"
+  },
+  "cw_00004": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9be84e7053a556abeaa54742406b87e06750a337"
+  },
+  "cw_00005": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "78d47066a73865b08f901e3ae9e3b4af18f8ce75"
+  },
+  "cw_00006": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6e23609fe1dd21e3d1644f42d8f4cb8c67b3f7e5"
+  },
+  "cw_00007": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    30,
+    30
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5ce245831da31002e9a27fddf02fe99c2b8c71eb"
+  },
+  "cw_00008": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4828907dc8b43f9cf1fbe15b2d94ee12a5bd441d"
+  },
+  "cw_00009": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    32,
+    32
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "abd5a258a70c0b38d14451fea5709bddfad77df8"
+  },
+  "cw_00010": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    36,
+    36
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5b24ffca39a7c213595ddfd8014178d43a78438b"
+  },
+  "cw_00011": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "df10603b6076ab912cb85e2dd2fefd694f3f2631"
+  },
+  "cw_00012": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    38,
+    38
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "db347b2d900e38cd83bfa5a94bdc40a0e8b390ad"
+  },
+  "cw_00013": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d73b25b5119f7ae25d30fdddf54de36ce05908e7"
+  },
+  "cw_00014": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    45,
+    48
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "02fafde04590194108af3c4f6c8a04a87485f176"
+  },
+  "cw_00015": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    50,
+    50
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00016": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    51,
+    51
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "05d3c412d261e93a66ccff12f9856f77be7d9d96"
+  },
+  "cw_00017": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    53,
+    55
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ce36416be0d427d098363b17e24e5f1f0a48c8aa"
+  },
+  "cw_00018": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    53,
+    55
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00019": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    53,
+    55
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00020": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    59,
+    66
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "b92558704e6c6b69e9c3c315595376dd43c63e29"
+  },
+  "cw_00021": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    68,
+    68
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00022": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    69,
+    69
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b92330ab60064c6d19491f9ba0df47a0f301462c"
+  },
+  "cw_00023": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8af78d8d58e4175a1ce9af1efc85cc8185003057"
+  },
+  "cw_00024": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00025": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "b8a20d8b3a3d6fe07ac095e0c42e9e2b7deb404a"
+  },
+  "cw_00026": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8efa4db8ba94aa9a1c3617c836c2afa67673bd0d"
+  },
+  "cw_00027": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00028": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00029": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    79,
+    79
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "220415a899c1eb165817477d481169f11059555c"
+  },
+  "cw_00030": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    83,
+    86
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "91d7fb27dffa4b35838fa696b8d81f25ec56c8f7"
+  },
+  "cw_00031": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    88,
+    88
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00032": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    89,
+    89
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1128f437fd7cc4f28611ed610e1eca9fe3306541"
+  },
+  "cw_00033": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    90,
+    90
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9eee4d0ae6b74f1438c98ca9b6c4d7e2bb9c1f08"
+  },
+  "cw_00034": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    94,
+    97
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "16fa6bf28756e79b253b730679235932841750c5"
+  },
+  "cw_00035": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    99,
+    99
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00036": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    100,
+    100
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4dd06315106d53d58129c2c50ade32416c93bb01"
+  },
+  "cw_00037": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    102,
+    104
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0bd1f9a3b1a37dd2e1e831b4e5d4415842a511c9"
+  },
+  "cw_00038": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    102,
+    104
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00039": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    102,
+    104
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00040": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    106,
+    108
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5d92c6a69d59431042f69d9e7fbf083c1e66204b"
+  },
+  "cw_00041": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    106,
+    108
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00042": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    106,
+    108
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00043": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    112,
+    114
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1781b38222a9618b68c8d454d992ca91a302262f"
+  },
+  "cw_00044": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    116,
+    116
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a337f0403df3866397b05519dec85927d45dd851"
+  },
+  "cw_00045": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    117,
+    117
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cb413e191e0d6493c84855f96b60decc1e77d9a7"
+  },
+  "cw_00046": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    119,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4cac63bec883aecb9d5c60e334cf9a192c6ba9ae"
+  },
+  "cw_00047": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5bb733c5fd5b41f6092a37c78302c46d32e325b9"
+  },
+  "cw_00048": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00049": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9761375324dcefaff35091a298ce53cdc1d9950c"
+  },
+  "cw_00050": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00051": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3e16910a4cbfb0aff4de184af8a755600b0c132e"
+  },
+  "cw_00052": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00053": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ca824875a831c25b6ea501687a5f6d6a8892bdd7"
+  },
+  "cw_00054": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00055": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "781a27341b895bb8f43ab08ae0ff9f4fbf199f33"
+  },
+  "cw_00056": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00057": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "63380bd80085b24bbbe52ccd7917ab7676f8d7ca"
+  },
+  "cw_00058": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "b7ce505a46a370635d400f5f5f095dd3d5c92c42"
+  },
+  "cw_00059": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    140,
+    140
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8aec10ae6e22a4590aeab35f8898a09c198ffa62"
+  },
+  "cw_00060": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    141,
+    141
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cf1d292f27c98d87e4811260a07580b13c6291a4"
+  },
+  "cw_00061": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    142,
+    142
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "615bee3113c7ed0f3d1bd3222a62173e40a0ced3"
+  },
+  "cw_00062": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f9eb828c628d8b8b6121d846f546a094c9cb57fa"
+  },
+  "cw_00063": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "d17fff4a7a777cb8f34c463d5f6357c0c05c722d"
+  },
+  "cw_00064": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00065": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3d37705bbb2536f3db74c89deed3169df9acfe93"
+  },
+  "cw_00066": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "c04917a791fcf8572b85e05d1a13876883106204"
+  },
+  "cw_00067": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00068": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ce39bacd41362faf98489554831c6139eb13c4a4"
+  },
+  "cw_00069": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "f6ab995b2841d512fb0ebb1daf08e223928fa251"
+  },
+  "cw_00070": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00071": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "350d8c2687fce9c40b94b6a60f1c9b04f073b6b5"
+  },
+  "cw_00072": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ee56d91da3fb3ce3a0ba95db335231d131ed58c5"
+  },
+  "cw_00073": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00074": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    162,
+    163
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8bdd48fc676f389209a0ab9ff9713c8e1e1be396"
+  },
+  "cw_00075": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    162,
+    163
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0f0eb3bcbb90ce8231e00b30d1f8c050118bc709"
+  },
+  "cw_00076": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    165,
+    166
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a5a9bdcbcbe988bd4520cd35954cb42756809867"
+  },
+  "cw_00077": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    165,
+    166
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "adde71011e58fb50d336a428b01966712b582b02"
+  },
+  "cw_00078": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    168,
+    169
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f83a4056ed3106af9c4309e01c98ca7fa64c9fc9"
+  },
+  "cw_00079": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    168,
+    169
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0a67bee95d2f4d2be3c263c86cc30bc39165226f"
+  },
+  "cw_00080": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    171,
+    172
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6caa30676bdad1eaccb6683029bb0d137fccec2e"
+  },
+  "cw_00081": {
+   "file": "10_vendor-master-data-maintenance.md",
+   "slug": "vendor-master-data-maintenance",
+   "l2": "vendor-management",
+   "lines": [
+    171,
+    172
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a255dffe25ce23c4b047606d77a2114f8c67c7f8"
+  }
+ }
+}

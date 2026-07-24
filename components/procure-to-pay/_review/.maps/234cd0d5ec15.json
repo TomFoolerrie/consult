@@ -1,0 +1,1467 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "234cd0d5ec15",
+ "area": "procure-to-pay",
+ "docx": "3.1_goods-receipt.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    6,
+    18
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "35eae9ac19609e945c85840159f58822e9a858d4"
+  },
+  "cw_00001": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "632f1e70521b50df17ea1d1a17ec1f732c46448d"
+  },
+  "cw_00002": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "721a11b962d7292b902e9ecb169e505e50a2c37f"
+  },
+  "cw_00003": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4ca489bf58055a6f602a28a328fb01e240ac2e49"
+  },
+  "cw_00004": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8e81a3a6c402b7e83f3c2fa0df20c1ab2bc111eb"
+  },
+  "cw_00005": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6150c3844d3ecc51c078d7a8f63d142558ad32a7"
+  },
+  "cw_00006": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    27,
+    27
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "db2f81de0abbb60ae9fcc557f86f30a2b0357b1c"
+  },
+  "cw_00007": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "17cc2543cb7887457c83310a8e6880b42fd5eec1"
+  },
+  "cw_00008": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    32,
+    32
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6dc0d40a29d7db700e2e706671abf8bccf35459b"
+  },
+  "cw_00009": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d59833f7d61247b28bda7c71cfb81e542ddfad84"
+  },
+  "cw_00010": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "50f55e7df3a9e911bc26d5db0d16800c80abb162"
+  },
+  "cw_00011": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    38,
+    38
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1bea95c4d86a8c4497aa9b231394f883bcaca04b"
+  },
+  "cw_00012": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "18178e66f221fa608cf96fa193007c1eebe0b9aa"
+  },
+  "cw_00013": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    40,
+    40
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6dd377d56e1ecd74158097b0ebf313a8672b7042"
+  },
+  "cw_00014": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    46,
+    48
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "db67bd225065dd6a1ba0c99ddb0af67a4b361ede"
+  },
+  "cw_00015": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    50,
+    50
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b994954790b6dd0bf5b1f7e9b0b255272509639a"
+  },
+  "cw_00016": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    54,
+    57
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "5b6855bdb1d176eef86dd9d8b4e353d752744fcb"
+  },
+  "cw_00017": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    59,
+    59
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9f12c82e4d01798a4d127d89eaa5ce53704ab89b"
+  },
+  "cw_00018": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    60,
+    60
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8b34f97cf7c72f01daa381d3ade1a02a001df639"
+  },
+  "cw_00019": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    62,
+    64
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f546e794faa44ec690e1c6204dab1b32030ece02"
+  },
+  "cw_00020": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    62,
+    64
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00021": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    62,
+    64
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7f0d29ea36b8f8d7ae407b0a2b4fbe4a7f9789b5"
+  },
+  "cw_00022": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    68,
+    72
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9edc2490b49225ccaed5424aba32bb3a13bdef7c"
+  },
+  "cw_00023": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    74,
+    74
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00024": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    75,
+    75
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "286bcb5322219483ede87f0ee380a3e89c90eaa9"
+  },
+  "cw_00025": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    76,
+    76
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f14f18f5f33b0d96c0c303d4c468ae69a5ef2efa"
+  },
+  "cw_00026": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    77,
+    77
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a5f1209d97ce71e9d93eea7363e6ffb6b084092e"
+  },
+  "cw_00027": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    81,
+    85
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "c514da9c1d1eec23c5a4d8d481a97dcfd34bc2d1"
+  },
+  "cw_00028": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    87,
+    87
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5b64cb4a3fc7a01feeb746861ac9df4dd3f825fa"
+  },
+  "cw_00029": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    89,
+    91
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "857d9d9ae66d3a9d5f584fa85bd613e71bf31998"
+  },
+  "cw_00030": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    89,
+    91
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00031": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    89,
+    91
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "33257343fede45de3d8ba81194ad48253d54118d"
+  },
+  "cw_00032": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    95,
+    98
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "d0a46ec0beaa5267cc24f095f24581a1ca0b2f73"
+  },
+  "cw_00033": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    100,
+    101
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2a83b0d8396b1f52e23a0da9e675f3cc17458b20"
+  },
+  "cw_00034": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    103,
+    103
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00035": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    104,
+    104
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "286bcb5322219483ede87f0ee380a3e89c90eaa9"
+  },
+  "cw_00036": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    105,
+    105
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "74281dcf7552297bc67bdd401871914cf9d3dc68"
+  },
+  "cw_00037": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    106,
+    106
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3af7de3f99bc354f3fe435f439ab30787d378222"
+  },
+  "cw_00038": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    107,
+    107
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1b2792216eaf04d038beb5c50bd37e3f03a9d41c"
+  },
+  "cw_00039": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    109,
+    109
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a14b51a3755f24392105bb45b1e557e31fafc34a"
+  },
+  "cw_00040": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    113,
+    117
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2a3467aaa03944542a5a536e1a5e8146cbe0d6fe"
+  },
+  "cw_00041": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    119,
+    119
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00042": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    120,
+    120
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cad0caa929a611f1db065fda796dc9a4ada2633c"
+  },
+  "cw_00043": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    122,
+    124
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "785d1bf4678ab9d33ba61b8dd2b48678dadca533"
+  },
+  "cw_00044": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    122,
+    124
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00045": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    122,
+    124
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "b2805c0904f0f946bcfd6e6f002328c6b08dc0ef"
+  },
+  "cw_00046": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    128,
+    134
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "c8f199aa1970c6adf4890f84bb1181d3eecebd35"
+  },
+  "cw_00047": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    136,
+    136
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00048": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    137,
+    137
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "04df4f6c173799fdfad2711a071835ebccced07e"
+  },
+  "cw_00049": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "66ed5f93bc85cbac2f712fb8d4ba12427937bc62"
+  },
+  "cw_00050": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00051": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "fbcec1340d60e827f3888484d055a672307cdff5"
+  },
+  "cw_00052": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    145,
+    148
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "6f7eaeab56c1bebd360a9d695c359804b13c8bf0"
+  },
+  "cw_00053": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    150,
+    150
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5fc25a62adeed7dfd28aec25659225153ed4a961"
+  },
+  "cw_00054": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    152,
+    154
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "11cd19e9f1e4f3cae7c0a6714f1b952af433a3fe"
+  },
+  "cw_00055": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    152,
+    154
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00056": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    152,
+    154
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "27dfee014444e0dd0f4c9c4cefd0d4e3be4b1d13"
+  },
+  "cw_00057": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    158,
+    159
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "f81de86e18084f8e8c10e537b267c88f86a1a310"
+  },
+  "cw_00058": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    161,
+    161
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00059": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    162,
+    162
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "314adb4cbb48fcb8ae507ac586d492ac563377ad"
+  },
+  "cw_00060": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    166,
+    168
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "860f6121ddecabe0c87145bd64f4d66ce6f4406f"
+  },
+  "cw_00061": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    170,
+    170
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fc2989173b9eb23d44c52b8e189d0a690d09d040"
+  },
+  "cw_00062": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    172,
+    174
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4a7cf874dfad8b489740159f82760f6db76b7639"
+  },
+  "cw_00063": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    172,
+    174
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00064": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    172,
+    174
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "8cadfb2012c55c02eea8453985b3d0e770b10410"
+  },
+  "cw_00065": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    178,
+    183
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "ea404859e9856806d5db086b0f5dfebf9684c044"
+  },
+  "cw_00066": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    185,
+    185
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "01b901c67ffe696ec581a23d57156f8d4feedea5"
+  },
+  "cw_00067": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5ab583aeaa0e6364fc4ee74834bbffa1a9643eda"
+  },
+  "cw_00068": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00069": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "518c2c566328d8ac8a4585b00d1a116df59c816b"
+  },
+  "cw_00070": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    193,
+    196
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "2c0a694844209a5388953758973157089c0dcd63"
+  },
+  "cw_00071": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    193,
+    196
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00072": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    193,
+    196
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "449cf9980be689d71fcf8266cc85a3fb9cbb76f4"
+  },
+  "cw_00073": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    193,
+    196
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "45ef513baeb423d9687d1ff4655fed14efa6083e"
+  },
+  "cw_00074": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    198,
+    201
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8d89c73edbc0ec896616998ebac4049e93098999"
+  },
+  "cw_00075": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    198,
+    201
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00076": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    198,
+    201
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "449cf9980be689d71fcf8266cc85a3fb9cbb76f4"
+  },
+  "cw_00077": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    198,
+    201
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "45ef513baeb423d9687d1ff4655fed14efa6083e"
+  },
+  "cw_00078": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    203,
+    206
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "73f5e66cae3bd41042e51abec49f6ce2fd64393c"
+  },
+  "cw_00079": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    203,
+    206
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00080": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    203,
+    206
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "e6f8cb411fcc623450d55c79b9682948701e9a3c"
+  },
+  "cw_00081": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    203,
+    206
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "d08bb5ad6a7fe4a78967fc1fd830ce99ba68bd80"
+  },
+  "cw_00082": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    208,
+    211
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b6674e1b6b64b2d86c8d9cc0c609e2ebacf12414"
+  },
+  "cw_00083": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    208,
+    211
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00084": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    208,
+    211
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "023e61e3c923c410ba11dac35428e4cd4d0527c2"
+  },
+  "cw_00085": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    208,
+    211
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "2a129adf05091fdcc0adafeacaed21e0367afbc9"
+  },
+  "cw_00086": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    215,
+    215
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c8de2655723353e80b3c609e04e73adf33325b84"
+  },
+  "cw_00087": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    216,
+    216
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "177584d27995756353bc9f1ac70777b432fa7380"
+  },
+  "cw_00088": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    217,
+    217
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cdb757ee36fed443688813de3802de1f0c8b834d"
+  },
+  "cw_00089": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    218,
+    218
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "254a3d1853616253695ff452612c84d5efef62e0"
+  },
+  "cw_00090": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    222,
+    224
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "2f60f212dc79edb36f255c71738e1e0bafc670eb"
+  },
+  "cw_00091": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    222,
+    224
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a4a96ab378a3b9bc9986ef6a1997d51d3ec9180a"
+  },
+  "cw_00092": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    222,
+    224
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00093": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    226,
+    228
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4fef1849723ae719bb2cd08461194126735406ca"
+  },
+  "cw_00094": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    226,
+    228
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "7a2231b08f2f736938ac992e58c99f4bbf401aae"
+  },
+  "cw_00095": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    226,
+    228
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00096": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    230,
+    232
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "98197a06c01c6ec849124ed6e01403d7296c981d"
+  },
+  "cw_00097": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    230,
+    232
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "25961e8fd1306eb2c5951acd54a874188f4580ad"
+  },
+  "cw_00098": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    230,
+    232
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00099": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    234,
+    236
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "564d5b3960c41ad3eec375d9997c575ad4a70cb5"
+  },
+  "cw_00100": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    234,
+    236
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2c350445d63d62233116de5ee9b716a79f9e85d8"
+  },
+  "cw_00101": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    234,
+    236
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00102": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    238,
+    240
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a5bb1f755f99013cbe3e0619d366c933a80ebb1f"
+  },
+  "cw_00103": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    238,
+    240
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "9d89d3f3f8469efe58a2ff3650e9d365ac2519a2"
+  },
+  "cw_00104": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    238,
+    240
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00105": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    242,
+    244
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7522fc873f9175e0b94911529f9b4d6d5a431ec7"
+  },
+  "cw_00106": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    242,
+    244
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "60853eec08583d9301bb8a4ae5561a1b2095c5e1"
+  },
+  "cw_00107": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    242,
+    244
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00108": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    246,
+    247
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d70e23cdacdc5f505f294880bb193d07ffa2fc22"
+  },
+  "cw_00109": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    246,
+    247
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "dbe5a66ac2063317997e4c4428eb03f161f4dc64"
+  },
+  "cw_00110": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    249,
+    250
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8fe414cfbaba7149579581a81e8f7a3de2b2604a"
+  },
+  "cw_00111": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    249,
+    250
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ea66e2341d5ef418cf8db9e3d3f1d11d690a3612"
+  },
+  "cw_00112": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    252,
+    253
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "849d6a1b76ee210126f6759393018a739f0bac61"
+  },
+  "cw_00113": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    252,
+    253
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0b9a4c677e86100b21be0897ee3c1f0a85d55969"
+  },
+  "cw_00114": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    255,
+    256
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "bd64fdb5d42fd468c267d1929bc7ce861c19d0b9"
+  },
+  "cw_00115": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    255,
+    256
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "97d1e15622dbabb7bc3398817e82ede468a170f5"
+  },
+  "cw_00116": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    258,
+    259
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1fbf717bc102b835de84051668146bfe3d9345f9"
+  },
+  "cw_00117": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    258,
+    259
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "b215b074bb894ef156afccdc62bc6749dc652f0d"
+  },
+  "cw_00118": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    261,
+    262
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c82729894a17eea621a72500bb3b6baba607fc47"
+  },
+  "cw_00119": {
+   "file": "10_goods-receipt.md",
+   "slug": "goods-receipt",
+   "l2": "receiving",
+   "lines": [
+    261,
+    262
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "540f0d9f7e37db5da0132459ff1a7e7839148658"
+  }
+ }
+}

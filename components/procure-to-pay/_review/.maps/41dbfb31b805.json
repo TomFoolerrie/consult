@@ -1,0 +1,12 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "41dbfb31b805",
+ "docx": "screenshots_dev-anand-rao.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "confirming-po",
+   "local": "SC-01",
+   "disp": "SC-13"
+  }
+ }
+}

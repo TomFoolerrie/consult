@@ -1,0 +1,1299 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "3ae182bc57d4",
+ "area": "procure-to-pay",
+ "docx": "2.2_po-issuance-and-change-orders.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    6,
+    19
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "d74f7954b802abd9b60646114926106b1fd67c16"
+  },
+  "cw_00001": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "198a7d5edc5e85879523e89418d5aec89ac62032"
+  },
+  "cw_00002": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "69b9d41a94ea1425432489f57e893e5c8e455095"
+  },
+  "cw_00003": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5d56cd229be0b7c83e912f442d0179e75f5149aa"
+  },
+  "cw_00004": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a524367c8e8b7496cf751b6780b62987516430e7"
+  },
+  "cw_00005": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    27,
+    27
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e2a249c230ea88fa9c3fedfc4b6429a5c692574d"
+  },
+  "cw_00006": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    28,
+    28
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b0a34dc968816333a6ee527a381b812a7d3ca272"
+  },
+  "cw_00007": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    32,
+    32
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9814ea2a5b93ddcb3bc64a110590e0fdf6282e46"
+  },
+  "cw_00008": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "99b3f61816597368ea01d0deb15b3eaccb34454e"
+  },
+  "cw_00009": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    34,
+    34
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "835469bc8cc7932e014766436e9aa03ce21d7d2b"
+  },
+  "cw_00010": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    35,
+    35
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "309475940796341f3e00ad2ba62ea4679aa411fe"
+  },
+  "cw_00011": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4fe2a0c5a624b19c81948871e85eb78c03304f10"
+  },
+  "cw_00012": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    40,
+    40
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fc834509af7ba07d38de83ef9408f8e28073e27f"
+  },
+  "cw_00013": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    41,
+    41
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ca7bd161661637c156a6f5a189202dc8747613f1"
+  },
+  "cw_00014": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    42,
+    42
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a6c8c169124dfc3eef957dff298416e59ea0637b"
+  },
+  "cw_00015": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    48,
+    54
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "3d70fa01ab42b456adf246381137282a951a22a3"
+  },
+  "cw_00016": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    56,
+    56
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00017": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    58,
+    60
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "db00703186fe214ad9b65361939fdddb63a0a43a"
+  },
+  "cw_00018": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    58,
+    60
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00019": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    58,
+    60
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00020": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    64,
+    65
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9e849ccefb382e05d60a517b9510d4a95208fbae"
+  },
+  "cw_00021": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "4788d8b33a18fce93501039f227e81436c7b9117"
+  },
+  "cw_00022": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    71,
+    71
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00023": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    72,
+    72
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f5426c9519223cc88d392a180479b1a4d43c83d9"
+  },
+  "cw_00024": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    73,
+    73
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7a38098fd9beea96c22e092593519a21380b758b"
+  },
+  "cw_00025": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "69de680e33d216a28100557074e9976fd2c38e3d"
+  },
+  "cw_00026": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00027": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00028": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    79,
+    79
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a36a41780c53b15ab10506e4bdc2a016b9c40388"
+  },
+  "cw_00029": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    83,
+    85
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "a354641bab4b40c25e89d032b3a430226bb0ae6d"
+  },
+  "cw_00030": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    87,
+    87
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00031": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    88,
+    88
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a42546f8d71f3c47b038f7f8f86d9f1a65d971af"
+  },
+  "cw_00032": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "454c1b5afa7ed21342ba293aa48277cbc19ba7d7"
+  },
+  "cw_00033": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00034": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00035": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    96,
+    98
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9bc3383d86c977b99e228dbc21d6548794c78ad7"
+  },
+  "cw_00036": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    100,
+    100
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4d4f3f85c60607a65601380726ad13bb548fed79"
+  },
+  "cw_00037": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    101,
+    101
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9e249750926c43493436fb7ca692b87cdec3250a"
+  },
+  "cw_00038": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    103,
+    105
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "45c21abd266de3436f951c2c01a55a105844db8e"
+  },
+  "cw_00039": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    103,
+    105
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00040": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    103,
+    105
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "2c4f05df2d87872e4890f359e95106663cd47867"
+  },
+  "cw_00041": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    109,
+    114
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "93541f4b644e2001c6ffd2229eaa5e9556176855"
+  },
+  "cw_00042": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    116,
+    116
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00043": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    117,
+    117
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9115b76a7e57ac0ef5d83c8c6f87a84296078856"
+  },
+  "cw_00044": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    119,
+    121
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "bfb0073fa1395347bea14938c34a01d1b61235de"
+  },
+  "cw_00045": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    119,
+    121
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00046": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    119,
+    121
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00047": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    123,
+    123
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "00c6a5c6db9320a660d8656e054ef918b660be35"
+  },
+  "cw_00048": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    127,
+    129
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "52b4625fc060cbfb022be76a7fd788b32d4dd1c3"
+  },
+  "cw_00049": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    131,
+    131
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00050": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    132,
+    132
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cc80eb888a64615ded100b7f662a906b12622c66"
+  },
+  "cw_00051": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    133,
+    133
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9954e8bd3df4dca0b85dd6799f9d5007382dbd69"
+  },
+  "cw_00052": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    134,
+    134
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "11ccad69f339dd4e017452667b8b432928e8fc3a"
+  },
+  "cw_00053": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    136,
+    138
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "54062ab777b853362213dea34e94845367e993ea"
+  },
+  "cw_00054": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    136,
+    138
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00055": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    136,
+    138
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00056": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    142,
+    148
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "6cf5208b32403a38a87e95436831ba6440604ba9"
+  },
+  "cw_00057": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    150,
+    150
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00058": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    151,
+    151
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "464950930e20b156c0e606ed2f50e0e857395d0c"
+  },
+  "cw_00059": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    152,
+    152
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "790437f31ffba3c2eb7fdacb3d62fcfb142828f1"
+  },
+  "cw_00060": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    153,
+    153
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "aacbcc987225341891d1a2a10541c15467b08d08"
+  },
+  "cw_00061": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    155,
+    157
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "54186231690fa13a69cc22a5f1142637a83f6ec6"
+  },
+  "cw_00062": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    155,
+    157
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00063": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    155,
+    157
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "97b4b0e8385b22ebfd95e6f8d8be6d151e78c6b8"
+  },
+  "cw_00064": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    159,
+    159
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4bc9dffd13b8907e9247ee302853eb097e9b249e"
+  },
+  "cw_00065": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    163,
+    166
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "fe98d14dfa900cdabc239b1fe2855f44f70df7b5"
+  },
+  "cw_00066": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    168,
+    168
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4d4f3f85c60607a65601380726ad13bb548fed79"
+  },
+  "cw_00067": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    169,
+    169
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "614225a9b5e72cb59083a17c43fd99fa3157341f"
+  },
+  "cw_00068": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    171,
+    173
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "fbc975add7659caa2dc0efd230897352f443ac86"
+  },
+  "cw_00069": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    171,
+    173
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00070": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    171,
+    173
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00071": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    177,
+    180
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c8a003938c9c07b6be7d6fd45ffb850cde61bf37"
+  },
+  "cw_00072": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    177,
+    180
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00073": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    177,
+    180
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "65402d103a7e8f7520312a7176a386ae459f74ba"
+  },
+  "cw_00074": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    177,
+    180
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00075": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    182,
+    185
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0af23d81a255723302f5111aea37adeeedd47819"
+  },
+  "cw_00076": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    182,
+    185
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00077": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    182,
+    185
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "cec2c1f4c9c0c57a5f0956dddb263c8534c8ccb2"
+  },
+  "cw_00078": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    182,
+    185
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00079": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    187,
+    190
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5d7209f80b919c28cb2f0a251c32268d72f12050"
+  },
+  "cw_00080": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    187,
+    190
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00081": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    187,
+    190
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9af4c9036bbdac3c2333d909b62c328fe0aa6b84"
+  },
+  "cw_00082": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    187,
+    190
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "96b1acd77b4509dc3dce8eb7371ce0b0aada5409"
+  },
+  "cw_00083": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    192,
+    195
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1db5d33a74d1730d09e9264fd1df124ecd8844bc"
+  },
+  "cw_00084": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    192,
+    195
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00085": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    192,
+    195
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "db565a7d2724dafcb14f1f304d448aa8e236e398"
+  },
+  "cw_00086": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    192,
+    195
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00087": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    199,
+    199
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "969c45352ea9ced9ca3837133ef9059ec8137fd3"
+  },
+  "cw_00088": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    200,
+    200
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "55af772ce4eb9e1fd913f5909b8b7f027048a763"
+  },
+  "cw_00089": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    201,
+    201
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0fb6aa0c6343b63201a0e0d6a2136fe5dd07fbd4"
+  },
+  "cw_00090": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    202,
+    202
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "23689cbbb68bb638866656c9adfcd3420900271c"
+  },
+  "cw_00091": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    206,
+    208
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "681c8cc9b06fdde2c1c0a2321b58738a573cab2e"
+  },
+  "cw_00092": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    206,
+    208
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "d19d6c694cf89638d90938085a7c3feb7f1986b1"
+  },
+  "cw_00093": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    206,
+    208
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00094": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    210,
+    212
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f7b2b570ba55e3a5dcc2f8c76cc82849eb1c27c8"
+  },
+  "cw_00095": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    210,
+    212
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "c5c134e1ab31a1338cd54bf70d1a716685318540"
+  },
+  "cw_00096": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    210,
+    212
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00097": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    214,
+    216
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "323f381a843d908c471f273051258b7ddfff8c10"
+  },
+  "cw_00098": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    214,
+    216
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "5712e41e4bf20469244cf951e1d59c8a368a74aa"
+  },
+  "cw_00099": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    214,
+    216
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00100": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    218,
+    219
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d54b6c3cf0dc5058f3ea5a4393d15941b9dedb63"
+  },
+  "cw_00101": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    218,
+    219
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "d904c41f6ec8be54bd4c610b0c9e5eae0269c524"
+  },
+  "cw_00102": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    221,
+    222
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b08176c88dec4831f9c76ac2475ab981c144479b"
+  },
+  "cw_00103": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    221,
+    222
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "06f1edfa3dace00e8dc1a9248c318ecf8683618a"
+  },
+  "cw_00104": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    224,
+    225
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0998193639ddd2de444dda2becabfc66828e430c"
+  },
+  "cw_00105": {
+   "file": "10_po-issuance-and-change-orders.md",
+   "slug": "po-issuance-and-change-orders",
+   "l2": "procurement",
+   "lines": [
+    224,
+    225
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "7b27a792eb3684cebd373c32cdde39cc6d85d2de"
+  }
+ }
+}

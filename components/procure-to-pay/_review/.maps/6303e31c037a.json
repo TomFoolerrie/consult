@@ -1,0 +1,1359 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "6303e31c037a",
+ "area": "procure-to-pay",
+ "docx": "1.1_new-vendor-onboarding.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    4,
+    17
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "b4e0d0dd9ee61405418684b5189aca73b7502827"
+  },
+  "cw_00001": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    21,
+    21
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "465c4dc62312b510c1ca8d37e7dc8b539fc28089"
+  },
+  "cw_00002": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "69b9d41a94ea1425432489f57e893e5c8e455095"
+  },
+  "cw_00003": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "158efb37ff577cee96bfcb4a0c5b8d955ee5285c"
+  },
+  "cw_00004": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fe0f6084c879ef7beef260f8f7895b8f34e9757f"
+  },
+  "cw_00005": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a442c6ef1154c7f0087d3b39157dd438d4fbd503"
+  },
+  "cw_00006": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5493393c200b15b4363a49a4cb1f8f10fcc6a3b1"
+  },
+  "cw_00007": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    30,
+    30
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5c8ebb097bf9d09b6a5556aea8c0846cb2df6af1"
+  },
+  "cw_00008": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "655ee8c4255c7705de0c9c877a89e912c1456248"
+  },
+  "cw_00009": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    32,
+    32
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3943d72431bd05881398008ac447e51b2b486785"
+  },
+  "cw_00010": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "657551320d4854f6c7a5ace2ec34dfa6384d2c45"
+  },
+  "cw_00011": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b0e62241dda55c664ceef363b3feecaa27a68b76"
+  },
+  "cw_00012": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    38,
+    38
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fdfa7e8a3ed8cf2b2606ab53e2270ba918559575"
+  },
+  "cw_00013": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0571a3914a2440116d9c7c71729e944e39bb1d52"
+  },
+  "cw_00014": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    40,
+    40
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f939e1fe8df931cd5b18cd9f611695eef0c333f0"
+  },
+  "cw_00015": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    41,
+    41
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8978548c894b88ae95f23bdecf898c398cee94ae"
+  },
+  "cw_00016": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    42,
+    42
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "22e42b5b17dae678a83b8e1bba458d4cddac742f"
+  },
+  "cw_00017": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    48,
+    50
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "3a1c11b2bf2fb62d0364a4242277125db57981fe"
+  },
+  "cw_00018": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    52,
+    52
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00019": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    53,
+    53
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "108fd24a45f54cb2a8033aa94fc24c7d15f37c0e"
+  },
+  "cw_00020": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    54,
+    54
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "eccb9545bc8fa8ffb0a47e3e2cffd2931790fd91"
+  },
+  "cw_00021": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    56,
+    56
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "10d6e3cd82854cd4db53f04831a9fd876ad82f54"
+  },
+  "cw_00022": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    60,
+    62
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2bfbf9ac0a17dc3996a68f970d943706284731cd"
+  },
+  "cw_00023": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    64,
+    64
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00024": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    65,
+    65
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "390c0570ecb9d1691a64bf4533f73b4cd34b60f7"
+  },
+  "cw_00025": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0a4f05adae691330f9eceb201d8b561dccf008c3"
+  },
+  "cw_00026": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00027": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00028": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    73,
+    78
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "6d45d0b9669ed261983b8c2bd61fc410c8e9ab5e"
+  },
+  "cw_00029": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    80,
+    80
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00030": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    81,
+    81
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "16a5c8c039aa5fc3f968d81e7c37d6d9451a9871"
+  },
+  "cw_00031": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    83,
+    85
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "cb29f093ecc92c05355bc6ef9912abca866b7917"
+  },
+  "cw_00032": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    83,
+    85
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00033": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    83,
+    85
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00034": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    89,
+    93
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "052f038c39aac58fff69ee71a03657288d790c93"
+  },
+  "cw_00035": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    95,
+    95
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d73f1f956e6b65dfac289c39c543df99bec506f2"
+  },
+  "cw_00036": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    96,
+    96
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cd2d12bd7dfbc480fefb9c834d6dbbbbd32d5f0d"
+  },
+  "cw_00037": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    97,
+    97
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8fb75e01bee0ab3aeaf3ee5b8655c3c220a967a5"
+  },
+  "cw_00038": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    99,
+    101
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7202a665856437ff3191f07cd4c236bd5fc86f13"
+  },
+  "cw_00039": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    99,
+    101
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00040": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    99,
+    101
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00041": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    103,
+    103
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "767143d71b0366166edb0920704f55a116ff5d91"
+  },
+  "cw_00042": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    107,
+    110
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "fed126ffe2ffc47d3fb0a01cd5e32168a4c4f7b7"
+  },
+  "cw_00043": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    112,
+    112
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c1d8fb81a299ba63dda119c7893a5894651c7cd1"
+  },
+  "cw_00044": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    113,
+    113
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "47e60831b4ee61df426a03894bcf408fbaecc81e"
+  },
+  "cw_00045": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    114,
+    114
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f540e2d39b415ef3c9df724c4126f37377513554"
+  },
+  "cw_00046": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    115,
+    115
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8cbe7952aac2e23fc6af94a106d08cf65d383e7d"
+  },
+  "cw_00047": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "805e78d3366d623ae4f1b67039b3bdef5f06ba8f"
+  },
+  "cw_00048": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00049": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00050": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    125
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1be810f265c274251d337bc607c2aa7e8b11a0ab"
+  },
+  "cw_00051": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    127,
+    127
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00052": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    128
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e16e3a730ede9cd4c5b66187a6ade921ebbf7149"
+  },
+  "cw_00053": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    129,
+    129
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7f850f9e0f10b985e76f76cf8dad05d23b75783e"
+  },
+  "cw_00054": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "48670d14b525a73b3ac60e4ea360b4a9c1e1b8aa"
+  },
+  "cw_00055": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a71640509125b7f70eee44118299094d4f3bfd7e"
+  },
+  "cw_00056": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00057": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    137,
+    141
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "191d0924d4dfff2684137fa8cab4a7caff319f70"
+  },
+  "cw_00058": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    143,
+    143
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00059": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    144,
+    144
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1128f437fd7cc4f28611ed610e1eca9fe3306541"
+  },
+  "cw_00060": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    145,
+    145
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2421d6acb16600aa5694cf1176dadcd93d30ab51"
+  },
+  "cw_00061": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    147,
+    149
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "70f5673b4c3f58d7bde5b5ac1290b5d778b97825"
+  },
+  "cw_00062": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    147,
+    149
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00063": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    147,
+    149
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00064": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    151,
+    153
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0f8f3b30e7ed04d56dd745f7a71a194efae81062"
+  },
+  "cw_00065": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    151,
+    153
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00066": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    151,
+    153
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "b8a20d8b3a3d6fe07ac095e0c42e9e2b7deb404a"
+  },
+  "cw_00067": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    155,
+    155
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b34f02540e999d59150ea5f130a2680e47dbb59e"
+  },
+  "cw_00068": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    159,
+    162
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "74a908b4e388a0fe88cf978a3a4d0fd4812e5865"
+  },
+  "cw_00069": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    159,
+    162
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00070": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    159,
+    162
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "fada7bf2521fd374573c56759993e8fc2b9f6b33"
+  },
+  "cw_00071": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    159,
+    162
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00072": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    164,
+    167
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7a87430e897ae5d62ba28959cf01d5b01084dd0b"
+  },
+  "cw_00073": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    164,
+    167
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00074": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    164,
+    167
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "fada7bf2521fd374573c56759993e8fc2b9f6b33"
+  },
+  "cw_00075": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    164,
+    167
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00076": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    169,
+    172
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0352e0be01351501ae267f828037fcecddc85311"
+  },
+  "cw_00077": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    169,
+    172
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00078": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    169,
+    172
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "fada7bf2521fd374573c56759993e8fc2b9f6b33"
+  },
+  "cw_00079": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    169,
+    172
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00080": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    174,
+    177
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "79803f44e04470101fc77ffe2deffb9dfbcf5257"
+  },
+  "cw_00081": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    174,
+    177
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00082": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    174,
+    177
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "4016306413f7c81294fb9206c303da2b02c24d6d"
+  },
+  "cw_00083": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    174,
+    177
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00084": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    179,
+    182
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d2ba2edfc02eaf63436dba4f3d75ed1e90b10931"
+  },
+  "cw_00085": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    179,
+    182
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00086": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    179,
+    182
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9761375324dcefaff35091a298ce53cdc1d9950c"
+  },
+  "cw_00087": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    179,
+    182
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00088": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    186,
+    186
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a6394ea6a7d2348063d4da21cc197de227f2a1d3"
+  },
+  "cw_00089": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    187,
+    187
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "84dbe3195af8d263be712b40f8b0bacd14a424e3"
+  },
+  "cw_00090": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    188,
+    188
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a6e41dbc973a079e148e0a7f976f5c18e543ea60"
+  },
+  "cw_00091": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    192,
+    194
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "2b15fddf53dbf3d28fdb7d41a35443405d816444"
+  },
+  "cw_00092": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    192,
+    194
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "4806697fb0268c02a67d34772f0aa4b9cd8a8645"
+  },
+  "cw_00093": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    192,
+    194
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00094": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    196,
+    198
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "2df5d0f5708cc2eeb6d0b246c08123b62cd03bd7"
+  },
+  "cw_00095": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    196,
+    198
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "201a6996686d9cfe930d2bc181c22178a4111f59"
+  },
+  "cw_00096": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    196,
+    198
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00097": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    200,
+    202
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "00cec3176f2db891e46dff947b72b30e1e9b6b64"
+  },
+  "cw_00098": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    200,
+    202
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e16613cd1a8fdaabee55f4038e448f79b7c4f913"
+  },
+  "cw_00099": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    200,
+    202
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00100": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    204,
+    206
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a86b1c28428d91bde60774a30196936657a1614b"
+  },
+  "cw_00101": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    204,
+    206
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "1d29756a625ff0139cc40fa1f215e61c6333a546"
+  },
+  "cw_00102": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    204,
+    206
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00103": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    208,
+    209
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c4c48fe1f00e7567e2f79e00e3e5c3e4d97b6bd9"
+  },
+  "cw_00104": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    208,
+    209
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "5cbc4013ca6f77f81e3876b6c9295fbe4fa3bf0d"
+  },
+  "cw_00105": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    211,
+    212
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0ec0a4106e8d45671946e22e97dc20311a7d8a96"
+  },
+  "cw_00106": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    211,
+    212
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "8dd614fb109baef9ab6d8236647d23255b7ea59c"
+  },
+  "cw_00107": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    214,
+    215
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "02fdcf02ebbbf14dc5904884283492ac7aa291e3"
+  },
+  "cw_00108": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    214,
+    215
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e67b87fcca6d60abb548f59f88436d73e0c158d3"
+  },
+  "cw_00109": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    217,
+    218
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "e0c2a8ebdd4a37a3cdcaf2815e976ca9b3b65efe"
+  },
+  "cw_00110": {
+   "file": "10_new-vendor-onboarding.md",
+   "slug": "new-vendor-onboarding",
+   "l2": "vendor-management",
+   "lines": [
+    217,
+    218
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2f15d8a3762b92c20c0fb822263ab36635562577"
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "848ad6069f26",
+ "docx": "screenshots_gideon-pruitt.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "vendor-banking-change",
+   "local": "SC-01",
+   "disp": "SC-04"
+  },
+  "scr_001": {
+   "slug": "vendor-banking-change",
+   "local": "SC-02",
+   "disp": "SC-05"
+  }
+ }
+}

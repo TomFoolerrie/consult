@@ -1,0 +1,1047 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "7f5caa532c5b",
+ "area": "procure-to-pay",
+ "docx": "1.2_vendor-banking-change.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    4,
+    16
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "81e781436f43bc969cd09a5b8860dea0291595c3"
+  },
+  "cw_00001": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    20,
+    20
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f91ff1689e2d09f1c3646cf531dd4c07602c4628"
+  },
+  "cw_00002": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    21,
+    21
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "69b9d41a94ea1425432489f57e893e5c8e455095"
+  },
+  "cw_00003": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8be4728212670b834b3e9eb6ea6a7e1fa310adcf"
+  },
+  "cw_00004": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c80b2d7ae5910552d19585f459f69675370a5f7c"
+  },
+  "cw_00005": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5e026715d4fbeded0cc76b80c1b3a31078000ad0"
+  },
+  "cw_00006": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "51e6e1288f8adfac6be3dd2943c6e23baa51523b"
+  },
+  "cw_00007": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    29,
+    29
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8fb0bbc9a1017db82e596c70ea137baca53ba11b"
+  },
+  "cw_00008": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    30,
+    30
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b4f7c3836de7ab60f8342847a409b8aeaaf0c46c"
+  },
+  "cw_00009": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4db63cc932f7790e09f026b77d57c4a0ded8ee1a"
+  },
+  "cw_00010": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    35,
+    35
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7ad562fe663337bf3f8a3dc685e8ae7db83e2215"
+  },
+  "cw_00011": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    36,
+    36
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b33f66893755e546b435abf04d4f8051ec704330"
+  },
+  "cw_00012": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6bce71302c3246d5047fba82e123038f605ae33b"
+  },
+  "cw_00013": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    43,
+    45
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "c3064db1a9974f54f141b76356f45b5c9c48a8de"
+  },
+  "cw_00014": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    47,
+    47
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "27ec134d28630b26d8135def02a7dfcc5dcaac9d"
+  },
+  "cw_00015": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    48,
+    48
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1ca50fb977c9ecd8774d9222a25cad297d9d7ac0"
+  },
+  "cw_00016": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    50,
+    52
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3d9b4cd38e82fa7647243d96a12ae1eaf5d460c1"
+  },
+  "cw_00017": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    50,
+    52
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00018": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    50,
+    52
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00019": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    56,
+    59
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "64e04ab51b4c4ad80a28fa1fe953673faeb4dd94"
+  },
+  "cw_00020": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    61,
+    61
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00021": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    62,
+    62
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f741029eb9fb07286f159da72f2c039556bbd518"
+  },
+  "cw_00022": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    63,
+    63
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "93d291ff59f199b6e67bc84ab5d8c081e045fb9f"
+  },
+  "cw_00023": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "9decbd12ecf8f1e82db95b1e9651ed8d16c036b6"
+  },
+  "cw_00024": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00025": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00026": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    71,
+    77
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "0e28650695139a3c5d0309d17b90e70913dcc85c"
+  },
+  "cw_00027": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    79,
+    79
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "890d2bc037c7aec839e3065ab70fb9b60442d42b"
+  },
+  "cw_00028": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    80,
+    80
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "67b4e91f020ffe2d31866ed3e2aa748c93fcdb1a"
+  },
+  "cw_00029": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    81,
+    81
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8128c3c555bb07b64aa3c3a5b96333d87fff8f68"
+  },
+  "cw_00030": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    82,
+    82
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cef1870acdbafd7eed474a8c22bab447c19da99b"
+  },
+  "cw_00031": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    84,
+    86
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0ca617ede506b68a8cea87c5387c1b2e4a535d29"
+  },
+  "cw_00032": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    84,
+    86
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00033": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    84,
+    86
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00034": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    88,
+    88
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0afc5ae8c97016785278bdefa4d1790a9d6efea2"
+  },
+  "cw_00035": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    92,
+    94
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "5f1ad4d00c1802640bc29a57fb52fb35dd10b438"
+  },
+  "cw_00036": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    96,
+    96
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00037": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    97,
+    97
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1e7358c7987a0af6cddfbdf5fc3b819595b13c09"
+  },
+  "cw_00038": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    98,
+    98
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9b5715a5d07105ac601e84313bb64024dbdf4425"
+  },
+  "cw_00039": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "437323f14f8489ee860cbcc688e897cb42766179"
+  },
+  "cw_00040": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00041": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00042": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    106,
+    109
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "07f4ac16a2cd4793a4e8c7defce6d0c8f5a56ba0"
+  },
+  "cw_00043": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    111,
+    111
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00044": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    112,
+    112
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "131bef8abfebfa417809f18c4c73e662154cdf01"
+  },
+  "cw_00045": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    113,
+    113
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "95eb2919ae80d3ccd5f84ffa41b52154a65de4f9"
+  },
+  "cw_00046": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    115,
+    117
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1be926a48661d70438905e9e6fee607d9e63690e"
+  },
+  "cw_00047": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    115,
+    117
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00048": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    115,
+    117
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "b8a20d8b3a3d6fe07ac095e0c42e9e2b7deb404a"
+  },
+  "cw_00049": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    119,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "166bfe7cbe98847c04a87044710dc0cde2dbc74a"
+  },
+  "cw_00050": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7f0b4071506257ba83417caa25e015d7b703e4bf"
+  },
+  "cw_00051": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00052": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "eddb302df89763130129265efa1eff12aef835f4"
+  },
+  "cw_00053": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    123,
+    126
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "87a05ca0d6a42096b9e432a56fb183fa23abb5d8"
+  },
+  "cw_00054": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ae9d9fc8dfb3ae5d91a3bee25d290faee45f9200"
+  },
+  "cw_00055": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00056": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "eddb302df89763130129265efa1eff12aef835f4"
+  },
+  "cw_00057": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "d4e386f311b739496a38901224e6fa78502337fd"
+  },
+  "cw_00058": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6a783c1852487cc17f2cc83ef58f2544627a7be5"
+  },
+  "cw_00059": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00060": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9761375324dcefaff35091a298ce53cdc1d9950c"
+  },
+  "cw_00061": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    133,
+    136
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00062": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    140,
+    140
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ff36f1f4a282a8d2910e4499a21f7c7b1bfe4897"
+  },
+  "cw_00063": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    141,
+    141
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "eea063ad070bc9777e96425a8cd122ed03088aa4"
+  },
+  "cw_00064": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    142,
+    142
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a2c024c73a61ce4fe11bdb8fda8c05c4a4089c7e"
+  },
+  "cw_00065": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "dfc1004a408dd397cc972852f40d863c62bd86fb"
+  },
+  "cw_00066": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "5ee38651598b26f59af87e33021fbaffadd8e2c3"
+  },
+  "cw_00067": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    146,
+    148
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00068": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7d0419b2aa07fc0547e72b6c51326650a5eb6501"
+  },
+  "cw_00069": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e643556bc3069bf866faeb16a5130c0afd30e3fa"
+  },
+  "cw_00070": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    150,
+    152
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00071": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "47887928606ffb3c16b89c23f8d283bfbe0539a7"
+  },
+  "cw_00072": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "65084c92cabccd225b76cfb74cd7803d30c9051b"
+  },
+  "cw_00073": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    154,
+    156
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00074": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b25eb00cd4149765afc939c12f4d1a1b39bc0f64"
+  },
+  "cw_00075": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e03c6fa9faac913db42def32d07139af6fe6b3fb"
+  },
+  "cw_00076": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00077": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    162,
+    163
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7d93fce4ea355994b249d92bf1ec71f88f093bba"
+  },
+  "cw_00078": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    162,
+    163
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "eb47421d86a0bd0626f28433c11d6c557d610154"
+  },
+  "cw_00079": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    165,
+    166
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1fc297f443eedf97759f44d7b7733a3c2913d250"
+  },
+  "cw_00080": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    165,
+    166
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "8c040cc1defe06de2d4f668ecf6a5abe6e69b20d"
+  },
+  "cw_00081": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    168,
+    169
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4fcd74fcc01a23defc69a85f1e3f29b712279ea2"
+  },
+  "cw_00082": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    168,
+    169
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "3b3a3781907490699f784954f04cda84869d8ac1"
+  },
+  "cw_00083": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    171,
+    172
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d6fa7453794208f73c627396e3ae381e59d5870d"
+  },
+  "cw_00084": {
+   "file": "10_vendor-banking-change.md",
+   "slug": "vendor-banking-change",
+   "l2": "vendor-management",
+   "lines": [
+    171,
+    172
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "6114bda37b59e260ca0b3979ac24ff07b7322a42"
+  }
+ }
+}

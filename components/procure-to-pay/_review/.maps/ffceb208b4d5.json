@@ -1,0 +1,1071 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "ffceb208b4d5",
+ "area": "procure-to-pay",
+ "docx": "5.2_wire-and-manual-payment.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    6,
+    6
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "f84367e561e574b74a6a999cc412864332a8834b"
+  },
+  "cw_00001": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    10,
+    10
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4cae189f3d3aa98f564fe1df67929e86a09a0e99"
+  },
+  "cw_00002": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    11,
+    11
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fca9d4a756242352d1f8d0fe31fe24437abbea99"
+  },
+  "cw_00003": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    12,
+    12
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7e8984f3ae445e80685141876323a9012d6617b4"
+  },
+  "cw_00004": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    13,
+    13
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "aeec8c71a3de0f1179102a3b902a096c1aa295ca"
+  },
+  "cw_00005": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    14,
+    14
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "80104a3f87664998e89724da97dc68f5f312f472"
+  },
+  "cw_00006": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    15,
+    15
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9c570650e782cbfb33abfdcff0e1025fb3a5fd0b"
+  },
+  "cw_00007": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    19,
+    19
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "874b091d0342e20e04cbaeeb69b83a6872433245"
+  },
+  "cw_00008": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    20,
+    20
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f5c29fd3fe5a36b0952a3d6b62a1192993cf4cb4"
+  },
+  "cw_00009": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    21,
+    21
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4c7719ed34834771079fd0bf4a49e33e8c212905"
+  },
+  "cw_00010": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4f381775f2272f249cdac6bf1eaa6349edd30b2f"
+  },
+  "cw_00011": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6582e7f08e8e49584d346e4175c9fa77c00d5d2c"
+  },
+  "cw_00012": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    27,
+    27
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e344ae40d1119476c4374ebe3d75692b86032f34"
+  },
+  "cw_00013": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    28,
+    28
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "853ff3d117d6783bb9f44512f9aeb4fb0dc6089e"
+  },
+  "cw_00014": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    29,
+    29
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "043e91129cd0ccb426a4132352aade175dc54070"
+  },
+  "cw_00015": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    30,
+    30
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "27283227c0852c428e4946297c4ef3ca167155e4"
+  },
+  "cw_00016": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    36,
+    36
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2ce351ca9143b154ffd87909549a5a20326f1eee"
+  },
+  "cw_00017": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    38,
+    38
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cf5e1923ccea0e0fdd619528e6968524b7595288"
+  },
+  "cw_00018": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    40,
+    42
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "fb91ddbf7decb80d0bd4d1c62dea3d570ef53e59"
+  },
+  "cw_00019": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    40,
+    42
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00020": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    40,
+    42
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00021": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    46,
+    46
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "4756ecd891e6ab586dd911a792ab8f28fb21629c"
+  },
+  "cw_00022": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    48,
+    48
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "7f34387e43589468be802e63cc6317f5e015829b"
+  },
+  "cw_00023": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    50,
+    50
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "06a544bc3be7e7664b994c7cc16eb24ec90a72aa"
+  },
+  "cw_00024": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    52,
+    52
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "635789081d6e20e3d43ef7c27beda6316fbf961c"
+  },
+  "cw_00025": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    53,
+    53
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "35f34f93f091039b098efded102fd6ae5d6963e7"
+  },
+  "cw_00026": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    54,
+    54
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e9761de0a7b89ef48023725866216ca5efcba639"
+  },
+  "cw_00027": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    56,
+    58
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8253d3df0c159146eb4fdee0d4b23cf1466ea1cf"
+  },
+  "cw_00028": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    56,
+    58
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00029": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    56,
+    58
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00030": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    62,
+    62
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "31ca48bca601b5cedfbe85f2960f0eade81211ff"
+  },
+  "cw_00031": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    64,
+    64
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "4cb87a08a62af59a8082bcd3566d0eeef4ef5dd7"
+  },
+  "cw_00032": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    66,
+    68
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "88625b8a31adeded7eba1a9c547111a8f0676046"
+  },
+  "cw_00033": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    66,
+    68
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00034": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    66,
+    68
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00035": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    70,
+    70
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "61b762e304c199b6d774e31616556ed17c54740b"
+  },
+  "cw_00036": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    71,
+    71
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b62ac2be1f21800f89c2dbafba1c88de3c084583"
+  },
+  "cw_00037": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    72,
+    72
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a4c8c27a9f56ebbc5408eb3c1ce8f7ec432ced1c"
+  },
+  "cw_00038": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    74,
+    74
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0a81031ca03069faed746691d5237e6af564ef23"
+  },
+  "cw_00039": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    78,
+    78
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "bd2fdf401ee1a6bfbd46f6c232bca2c25ca4f7d1"
+  },
+  "cw_00040": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    80,
+    80
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "a31ff2bd62c1db46fe74fdc7ec30b86705725c82"
+  },
+  "cw_00041": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    82,
+    82
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "61b762e304c199b6d774e31616556ed17c54740b"
+  },
+  "cw_00042": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    83,
+    83
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "31eacb0305644c224b8cde999f87511e32bae0d9"
+  },
+  "cw_00043": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    84,
+    84
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9fb7e917405ac40e9cd49694f9131a26aacc915b"
+  },
+  "cw_00044": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    86,
+    86
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ef6f9a6143d6f88607a17f72c7802a747397cb42"
+  },
+  "cw_00045": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    90,
+    90
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "affc9f9da8bb6e23b420d423fd1fc26ba21d5392"
+  },
+  "cw_00046": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    92,
+    92
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1d2ec06bb87c0cbb7de737bcaf65026cae0e6b24"
+  },
+  "cw_00047": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    93,
+    93
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b83d8b525cd129d449bcaadde50dae0db8f68978"
+  },
+  "cw_00048": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    95,
+    97
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "47abd923d858329a874d55ed04a85beb3c131599"
+  },
+  "cw_00049": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    95,
+    97
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00050": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    95,
+    97
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00051": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    101,
+    104
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6e53e8fb31c04f75cabf9f5954a648f9a03917e4"
+  },
+  "cw_00052": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    101,
+    104
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00053": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    101,
+    104
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "043f40a7d7896938d560d91ec489b988f6731b62"
+  },
+  "cw_00054": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    101,
+    104
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "7af9e22fe648b288702113a38a33fae6abead5da"
+  },
+  "cw_00055": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    106,
+    109
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3953b920087f0831da0f8ee5150229e404a43847"
+  },
+  "cw_00056": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    106,
+    109
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00057": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    106,
+    109
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "043f40a7d7896938d560d91ec489b988f6731b62"
+  },
+  "cw_00058": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    106,
+    109
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00059": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    111,
+    114
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "52ca95c99fe035bf9fc632536d2b78bd166930a5"
+  },
+  "cw_00060": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    111,
+    114
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00061": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    111,
+    114
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "10b4796b79fcaf361d3c22a554707fc3ec4c9079"
+  },
+  "cw_00062": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    111,
+    114
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00063": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    116,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "19f9462a2cd6e758e612abcc8f3a9ebd422bcffa"
+  },
+  "cw_00064": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    116,
+    119
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00065": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    116,
+    119
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "05bfc745e61ef421726d97f10637d78392bacf28"
+  },
+  "cw_00066": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    116,
+    119
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00067": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    123,
+    123
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ce2d6d3eeae0845c1b8a6b44bc7cce9622d94c31"
+  },
+  "cw_00068": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    124,
+    124
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "41d8c375b9c7b77b5170fc41ddb4069d464b3f13"
+  },
+  "cw_00069": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    125,
+    125
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c476760cf1bf8be42d67700dd54483c9e636b035"
+  },
+  "cw_00070": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    126,
+    126
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "bcb368ab07bf79fc333a8aa27c55ea59eecef2d6"
+  },
+  "cw_00071": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    127,
+    127
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3c1a240eed4084fbf39842e6865eb00f1eb7df2b"
+  },
+  "cw_00072": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6c9876b2b2af7a80ba745db6592c82fd980b80ab"
+  },
+  "cw_00073": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "81c08b1fa857dff964924ce27bed3e3e9cf15399"
+  },
+  "cw_00074": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    131,
+    133
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00075": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    135,
+    137
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0353f96db65ec42725898887de8076de542f4140"
+  },
+  "cw_00076": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    135,
+    137
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "5e481c8571a192264fc09d03ff9e671d8cb7ce8f"
+  },
+  "cw_00077": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    135,
+    137
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00078": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "76523f8d43881079692ab692a421a465f688bf52"
+  },
+  "cw_00079": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "4b74b180e45b4cd1b2d4b9779b37181f13785136"
+  },
+  "cw_00080": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    139,
+    141
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00081": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    143,
+    144
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c080469ae1bb0663cc3b93712f92d6e2cea2cf7d"
+  },
+  "cw_00082": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    143,
+    144
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "9b54da5798d7bf0fabaed4d3420f86bd28e95894"
+  },
+  "cw_00083": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    146,
+    147
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7a644364a83608a8e74abfbd361defd21a3f2279"
+  },
+  "cw_00084": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    146,
+    147
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "f4dd5b8db66d62b4ed0fcbd9504e21989b2d34bd"
+  },
+  "cw_00085": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    149,
+    150
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ce979d2a748104fbb5d14adb07efed3102361772"
+  },
+  "cw_00086": {
+   "file": "10_wire-and-manual-payment.md",
+   "slug": "wire-and-manual-payment",
+   "l2": "payments",
+   "lines": [
+    149,
+    150
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "313f6e1e46ebd6e5ea693b82a353c2f7aeaa0b67"
+  }
+ }
+}

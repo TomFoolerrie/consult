@@ -1,0 +1,1191 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "299d9179f7a0",
+ "area": "procure-to-pay",
+ "docx": "2.1_requisition-and-approval.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "5afb491eed75f4b6408683eb5b49633d2050f178",
+  "10_vendor-banking-change.md": "aaf9b068f382af1634ede596a08af6e0fe75493d",
+  "10_vendor-master-data-maintenance.md": "1db89f1ebf933e447f75f32c90881bc36f8598dd",
+  "10_requisition-and-approval.md": "28e2c6be3384867366d95981f67d89227409f687",
+  "10_po-issuance-and-change-orders.md": "5288db7062f0cad60793bfc235bbe94bed26cd52",
+  "10_confirming-po.md": "76a8d1f0c5320cb50024fdb7736418d43e1a07d2",
+  "10_goods-receipt.md": "3b40dd2f0b3cccacb173453f04be1f4f2517ad91",
+  "10_return-to-vendor.md": "e25bd9259e902e21ded69662e55da74c6e134902",
+  "10_invoice-intake-and-capture.md": "119ea75dc929de5043d49635febb5062883ce9cf",
+  "10_po-invoice-entry-and-three-way-match.md": "8b8bde3be1cb59628a6f8bc24204779f1b4d94e2",
+  "10_non-po-invoice-entry-and-approval.md": "b79f62a256f27f37754b7d6f18f2099cf2ad1848",
+  "10_vendor-statement-reconciliation.md": "dfc3fe74c0253ff8baffbab8219a628e97edc2f5",
+  "10_weekly-payment-run.md": "162b82bb35af29a914886acc4ccd31e670b5a065",
+  "10_wire-and-manual-payment.md": "94b32e866a6affdc093ab3280018c1ce9e27f68f",
+  "10_positive-pay-exception-handling.md": "5fb58a441b081a5569bdb5dc593f62c226908998"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    6,
+    18
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "c25e40207a660cca5aa1710cb0824f0cb1da3e0b"
+  },
+  "cw_00001": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    22,
+    22
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ba512e169d04daf5549fbf3359938102efe21fad"
+  },
+  "cw_00002": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "69b9d41a94ea1425432489f57e893e5c8e455095"
+  },
+  "cw_00003": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4da80b765814c5eef236bc660048027e8ea29876"
+  },
+  "cw_00004": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "033d833ef30efedcc13b987d67e1e1d0601bbbcc"
+  },
+  "cw_00005": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f9d684b6a36a96a85993431d1ba06106c840ab09"
+  },
+  "cw_00006": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    27,
+    27
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "39aaf804cf1a361f8efd6466c5f72c45ebc86838"
+  },
+  "cw_00007": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a8a496590227520d303c1410f340abd5a6c2910a"
+  },
+  "cw_00008": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    32,
+    32
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fce426934932cc8f4f391bba9a5c2db8c841cc2c"
+  },
+  "cw_00009": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b95e1164fb6fcf1510e5cadeb3dbcd8e046af406"
+  },
+  "cw_00010": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    34,
+    34
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c798d548896d7d909c1817bd2927cb89df1bd19a"
+  },
+  "cw_00011": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    38,
+    38
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0df2676943144a7f08567f1a0104dd5c970d22c6"
+  },
+  "cw_00012": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "40aec6080624aede28147e55246fbb18d161bbcf"
+  },
+  "cw_00013": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    40,
+    40
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "96cb29c6c208ca1795192ae8a1d055acb8823271"
+  },
+  "cw_00014": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    41,
+    41
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "be43123eafe0817382de68aab8f1fe3c11a9b63a"
+  },
+  "cw_00015": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    42,
+    42
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c674b454a796a571f87ad50bbbcedbe6fb2e98c5"
+  },
+  "cw_00016": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    48,
+    52
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "7b9e10dfd7329372bcdeb1cc07efa0e666cf46ef"
+  },
+  "cw_00017": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    54,
+    54
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00018": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    58,
+    59
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "a044f96212df0830abed280ba915c3693113255f"
+  },
+  "cw_00019": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    61,
+    63
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3b8c6ed06889d97a70c9b9b27e4b023a5469d020"
+  },
+  "cw_00020": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    64,
+    65
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ef5a9feccf809e37dd41184fa850e505fe56db45"
+  },
+  "cw_00021": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    66,
+    67
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c0bbb6a25fdb3c99d3a2180c1486d907aabdee2b"
+  },
+  "cw_00022": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    69,
+    69
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00023": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    70,
+    70
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f8e20ff36a5df0d254dbb19b09deaae720c46137"
+  },
+  "cw_00024": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    71,
+    71
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "82b7f7ef719d32cd9d1b7201ea33ffa3e0fc7901"
+  },
+  "cw_00025": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    73,
+    75
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "dff18460933f36371e8b21d728728982210ce525"
+  },
+  "cw_00026": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    73,
+    75
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00027": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    73,
+    75
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00028": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    77,
+    77
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b312c4412148c8723fe380c9e77c1412009c9921"
+  },
+  "cw_00029": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    81,
+    84
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "7ba19f6e22f38e67ceec7fbc2aa45d8103b5d6f9"
+  },
+  "cw_00030": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    86,
+    86
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00031": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    87,
+    87
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7c1920678400b4055766545b75093558715f6fc2"
+  },
+  "cw_00032": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    88,
+    88
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "53043325aa8b3c56272ed7582d0af9173a881903"
+  },
+  "cw_00033": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "cd1d37c7accae0de8ba87cb9b87f9dfa3b437817"
+  },
+  "cw_00034": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00035": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    90,
+    92
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00036": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    96,
+    105
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "8ce3dd56303fb8f93a02a124022c6ed8a260070c"
+  },
+  "cw_00037": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    107,
+    107
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00038": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    108,
+    108
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "653aef856ee40fcd2b77b383d3e68c34e3326f8c"
+  },
+  "cw_00039": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    109,
+    109
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b57606539c3767004cf99add2f92cc6dfeaed2ad"
+  },
+  "cw_00040": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    110,
+    110
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "44b13ec98996fdfff4bba1e29d9c3a548c79a9e7"
+  },
+  "cw_00041": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    112,
+    114
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6108669553df42c37d6cfb4a93c6e3dd171628c7"
+  },
+  "cw_00042": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    112,
+    114
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00043": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    112,
+    114
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "1a8d337da2aa9bfed42819499c871f903797766e"
+  },
+  "cw_00044": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    116,
+    116
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "673f3e3dad4a1957469f91a8ec1f7cf36dbbb175"
+  },
+  "cw_00045": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    120,
+    122
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "bcbf1d45edfc097f39e24175ad147a518ae41ef8"
+  },
+  "cw_00046": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    124,
+    124
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00047": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    125,
+    125
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "90914b153c270dde4ab0d9f5e4f55c173fadd509"
+  },
+  "cw_00048": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    126,
+    126
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4655993de7c9491354c9e872c5840b22763799ad"
+  },
+  "cw_00049": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    128,
+    130
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "290760dd67b8d8badf5db727da8af93eee376d96"
+  },
+  "cw_00050": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    128,
+    130
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00051": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    128,
+    130
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00052": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    132,
+    134
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d9955aa63d99e5eb60e2e2225f0fe07486e8f258"
+  },
+  "cw_00053": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    132,
+    134
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00054": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    132,
+    134
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00055": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    138,
+    140
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "50531c46b98c6e1a51bc49ee2740f3d33e97c7fb"
+  },
+  "cw_00056": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    142,
+    142
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2bb8a681eb0eead1236ba188380ea8b375e60b29"
+  },
+  "cw_00057": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    143,
+    143
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b2594263c5c9f163a56f38bee8ec83f7d5bef3a5"
+  },
+  "cw_00058": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    147,
+    150
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "49c39a90e7cc22c692068276bd29fc6fa796b0c5"
+  },
+  "cw_00059": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    147,
+    150
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00060": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    147,
+    150
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "42b6c449c6545e7cee08bf9680ddfe92495bc9ca"
+  },
+  "cw_00061": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    147,
+    150
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "7c5501cc74dc4a8195c3c5c17889701164ca8665"
+  },
+  "cw_00062": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    152,
+    155
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5483e1a0c2484f2c56760e0d7729d61a55f30463"
+  },
+  "cw_00063": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    152,
+    155
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00064": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    152,
+    155
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "42b6c449c6545e7cee08bf9680ddfe92495bc9ca"
+  },
+  "cw_00065": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    152,
+    155
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00066": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    157,
+    160
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8649f06550ce4f490f121071be01f502ff1e1cd1"
+  },
+  "cw_00067": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    157,
+    160
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00068": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    157,
+    160
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "8822afffec39ca424c5999c6e43385e7764ba24e"
+  },
+  "cw_00069": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    157,
+    160
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00070": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    162,
+    165
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "aad08eb04dbcae3fcec00f103caf1130d81a345b"
+  },
+  "cw_00071": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    162,
+    165
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00072": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    162,
+    165
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ac3e7f769dcf739304eab8f001639b2f0a177531"
+  },
+  "cw_00073": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    162,
+    165
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "e577e7df87bdd3f29e526fb3d423a3575ea2c0ad"
+  },
+  "cw_00074": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    169,
+    169
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c185473ad63417f6813bc77d8097907b55c6c26e"
+  },
+  "cw_00075": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    170,
+    170
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8bdd82ba5382dcd3f1ed3e458306858c78b8500b"
+  },
+  "cw_00076": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    171,
+    171
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7706ab958e3e5f6e6a61c4d45f57efd9c5775ef5"
+  },
+  "cw_00077": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    175,
+    177
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1340004829f394b46611f07bcc283aa18a42f9ad"
+  },
+  "cw_00078": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    175,
+    177
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a99f5d6464e2e48100be363cbd4894d33ff63935"
+  },
+  "cw_00079": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    175,
+    177
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00080": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    179,
+    181
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "734146dc42c80fd05410b2dba82a37593141fb95"
+  },
+  "cw_00081": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    179,
+    181
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "c5278c55295596ca3ec4cc5ac008671d582e169d"
+  },
+  "cw_00082": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    179,
+    181
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00083": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    183,
+    185
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "919ee94e67828b711bcef64ba4cf5c199c95d4d7"
+  },
+  "cw_00084": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    183,
+    185
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "b4f7dca5e18fea7572ef7a5d7240ef2cbe9b68d1"
+  },
+  "cw_00085": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    183,
+    185
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00086": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a3dd7e86cbb9948e7a9ae57e2821080f5b9d5cf3"
+  },
+  "cw_00087": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2464676d5a106c7d73aaaff5145e590d65391ff7"
+  },
+  "cw_00088": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    187,
+    189
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00089": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    191,
+    192
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ee2e6c804e91d384f1dc63b2f6a50d6d349b0c6c"
+  },
+  "cw_00090": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    191,
+    192
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "6e5296471d63fb6570c88071dafd73201a9aee59"
+  },
+  "cw_00091": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    194,
+    195
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4496e546c2a5ccdce640b63a40e872282f9ea152"
+  },
+  "cw_00092": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    194,
+    195
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "eb82a60f6434c0678483487e92f28576e1ac8b7a"
+  },
+  "cw_00093": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    197,
+    198
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "03f957519038c7517139396e78be762c97f33144"
+  },
+  "cw_00094": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    197,
+    198
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ba6fd4982878637b0f5e0eb841791e9b0b718ed4"
+  },
+  "cw_00095": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    200,
+    201
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "8acd45726c280bf986c0a04528774f6955913ce3"
+  },
+  "cw_00096": {
+   "file": "10_requisition-and-approval.md",
+   "slug": "requisition-and-approval",
+   "l2": "procurement",
+   "lines": [
+    200,
+    201
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "bd5ef1197d369d8c9617a708382688ccc34040df"
+  }
+ }
+}
