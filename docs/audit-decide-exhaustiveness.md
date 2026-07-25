@@ -95,3 +95,107 @@ non-empty.
 The harness that builds these states and prints the resulting action is not yet
 in the repo (it lives in scratch). It is worth landing under `tests/` as a
 regression suite — F1 and F2 are both the kind of defect that returns silently.
+
+---
+
+# Part 2 — workflow cycles
+
+Realistic engagement workflows run against the built area. Same method: build the
+state, ask `decide()`, run the stages it routes to.
+
+Verified working: a reviewer kit landing in `_review/returned/` routes to
+`ingest_returns` (guard 1.5); re-stamping the `unfilled` sentinel by hand
+correctly forces a re-draft of one procedure via guard 4.
+
+## F7 — A new source that only enriches existing procedures never converges — **high**
+
+The designed behaviour is stated at `docs/README.md:60` — a new file in
+`_sources/new/` "triggers reassessment (M6) and re-dispatch of the drafters it
+touches." M6 is DEFERRED (`:459`), and this is what the gap does.
+
+Guard 4 dispatches on the `unfilled` sentinel, which only new skeletons carry.
+An already-drafted procedure a new source `touches` has no sentinel and no note,
+so nothing dispatches an update drafter for it. Measured:
+
+```
+drop new source → taxonomy (incremental) → confirm → scaffold creates nothing
+               → taxonomy (incremental) → taxonomy (incremental) → ...
+mark-processed --filled <slug> → moved 0 source(s)
+```
+
+The source cannot retire (`touches` never becomes a subset of newly-filled
+slugs), so guard 5 re-fires forever, re-spending a taxonomy dispatch per lap.
+
+**Direction.** Incremental taxonomy writes a `_review/{slug}.notes.yaml` per
+touched *existing* procedure, so guard 2 dispatches update drafters for exactly
+the mapped slugs. Two consequences: `apply_review`'s dispatch carries no
+`sources` list by design, so the note must carry the `SRC-` id for the drafter to
+resolve; and `mark-processed --filled` must count successful *update* slugs, or
+the source still never retires.
+
+## F8 — Retiring a procedure deadlocks the ladder — **high**
+
+Removing a procedure from the manifest leaves `[[slug]]` references behind.
+Python-derived views regenerate clean, but two classes do not:
+
+- **sibling procedures** (`10_goods-receipt.md`, `10_po-invoice-…`) — drafter-owned
+- **agent-derived views** (`82_dependencies.md`, `84_raci.md`) — agent-owned
+
+`reconcile.py` correctly reports every dangling reference and exits 1, so
+`decide()` returns `reconcile` forever. The deadlock is an **ordering** one:
+`scope_delta` reports all remaining procedures stale, so `synthesize` (guard 9)
+would regenerate `82`/`84` — but `reconcile` (guard 8) precedes it and never
+clears. The verifier runs before the producer that would satisfy it. The sibling
+procedures need drafter updates, which need notes that nothing writes.
+
+Retiring a procedure is therefore a hand-edit operation with no support, and the
+orphaned fragment left on disk is never noticed by any component.
+
+## F9 — A registry rename leaves every procedure's prose stale, silently — **medium**
+
+Renaming a canonical system (`name: NetSuite` → `Oracle NetSuite ERP`, old name
+kept as an alias — the designed path) regenerates the Systems view via slug
+bindings, while all fifteen procedures keep saying "NetSuite" in prose.
+`aggregate` exits 0 with **no** unmatched-mention warning, because the old name is
+still a legitimate alias. The deliverable ships with the table and the steps
+disagreeing.
+
+This follows correctly from the two-database design (identity by slug, prose as
+plain text) — the gap is that no workflow re-words prose after a rename. M12
+cannot supply it: its `naming` rule is a mechanical majority, and here the
+majority *is* the old name, while alias-matching classifies it as a legitimate
+synonym warranting no dispatch.
+
+## F10 — `--mode final` overwrites the review signal — **medium**
+
+Final-mode render writes the same `.render.json` as working mode: it sets
+`awaiting_review: true` again and replaces `docx` with the client-facing file.
+So producing the deliverable re-opens the review gate, silently discards an
+`accept` that already happened, and points the recorded artifact at the final
+export. The signal has no `mode` field, so working and final are
+indistinguishable afterwards.
+
+**Direction.** `--mode final` should behave like `--slugs` and never write the
+signal — it is a terminal export, not a state transition.
+
+## F11 — No cross-area orchestration — **informational**
+
+`next` requires a single `--area`. A six-area engagement means running the
+advisor six times with no combined view of what is outstanding. M13 shares
+client *config* across areas; nothing shares *orchestration*.
+
+---
+
+# The pattern behind F1, F7 and F8
+
+All three are one failure mode: **`decide()` returns an action that cannot change
+the state it was chosen for.** An orphan note routes to a drafter with no
+procedure; a source touching only drafted procedures routes to taxonomy that
+proposes nothing new; dangling references route to a reconcile that cannot
+regenerate what holds them.
+
+The invariant worth enforcing: *an action is only returnable if executing it can
+change the state that selected it.* When nothing satisfies that, the correct
+result is a **gate naming what the human must do** — never a stage that will be
+re-selected unchanged on the next call. `review_triage` is already this shape and
+is the model to follow.
