@@ -1,7 +1,29 @@
 # M15 — Verbosity: measured, not capped
 
-> **Status: DESIGNED.** Smallest of the four; deliberately does less than the
-> original proposal (hard word caps + reconcile warnings), for the reasons below.
+> **Status: RETIRED into [M16](M16-section-model.md).** Not built, and not to be
+> built as specified.
+>
+> **Why retired.** The measurement half (`stats.py`, outliers at ≥2× the area
+> median) is a thing to triage rather than a thing that saves time: with 15
+> procedures the median is a thin sample, one legitimately heavy procedure masks
+> a second, and the ≤0.4× thin-flag mostly fires on procedures that are short
+> because the process is short. The signal it reached for — total words per
+> procedure, sorted — needs no median, ratio or outlier machinery.
+>
+> **What survives, carried into M16.** (a) The bounded field caps in §2 below,
+> as *definitions of a field's job* and prose rules in the drafter contract —
+> not machine checks. (b) §3's decision that reconcile stays the correctness
+> gate and never carries length warnings. (c) The core premise — that the real
+> bloat drivers are structural and belong to a section's *role*, not to word
+> budgets — which is what M16 is built on.
+>
+> Measurement on the live area later showed the framing needed one correction:
+> repetition and length are different problems. C+D+G are 11% of the document
+> while E+H are 69%, so structural work is a *repetition* fix and cannot be
+> justified as a length fix. M16 makes that split explicit.
+>
+> The text below is preserved as the original reasoning; read M16 for what is
+> actually being built.
 
 ## Goal
 

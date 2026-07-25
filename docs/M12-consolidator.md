@@ -1,6 +1,6 @@
 # M12 — Consolidator (cross-procedure consistency pass)
 
-> **Status: DESIGNED.** Build after the design questions below are settled.
+> **Status: DESIGNED — open questions settled.** Ready to build.
 
 ## Goal
 
@@ -20,12 +20,57 @@ safe. The cost is seam and terminology inconsistency, which today the human
 finds by reading the assembled draft and fixing it by hand (the work this
 ticket replaces).
 
-M11's `upstream` hints attack the same problem *before* text exists, and they
-have two limits: they only cover seams somebody thought to hint, and handing a
-drafter an upstream fragment risks **anchoring** (echoing the upstream's framing
-instead of drafting from its own sources). A post-draft pass has neither
-problem: full visibility, and no influence on how the text was written. M11
-stays for the pre-draft case; M12 is the instrument that does the real work.
+### What the existing machinery already covers (and what it can't)
+
+**`aggregate.py` guarantees the derived views are consistent — and is
+structurally blind to prose.** It joins *markup*: callout label lines,
+sub-field bullets, gap tags, and the `consult-meta` slug lists. Per its own
+contract, nouns bind via those slug lists, *never* by scraping prose. So the
+Systems view, Role Dictionary and appendices cannot drift — they project
+identity, not language.
+
+The consequence: **the views were never the problem.** Two procedures can both
+bind `systems/netsuite` (aggregate satisfied, view perfect) while one calls a
+report "AP Aging Summary" in its steps and the other calls it "the AP aging
+report". Nothing mechanical can see that, because seeing it means deciding
+those two strings denote one thing.
+
+**Aggregate works on identity; M12 works on equivalence.** Identity is exact
+match — decidable in Python, which is why it is a script. Equivalence is a
+judgment about meaning, which is why this is an agent. The same split explains
+the other categories: aggregate counts callouts, it does not weigh
+explanations, so `duplication` is invisible to it; `seam` and `sequence`
+require holding two procedures' described behaviour side by side, which is not
+a join.
+
+Corollary, and the reason for the fact-conflict rule below: M12 has neither
+sources nor structured bindings — only prose. It can report that two
+procedures disagree; it has no basis for saying which is right. Aggregate has
+the opposite limitation. No component adjudicates; that is the human's job, at
+the gates.
+
+### Relationship to M11 (both survive — they do opposite things)
+
+M11's `upstream` hints and wave ordering attack the same problem *before* text
+exists. **M11 prevents; M12 detects.** Neither replaces the other:
+
+- Waves cover only seams somebody thought to hint, and handing a drafter an
+  upstream fragment risks **anchoring** (echoing the upstream's framing rather
+  than drafting from its own sources).
+- More decisively: **waves propagate consistency; they cannot detect that a
+  chain agreed on the wrong thing.** Upstream context flows one direction, so
+  if the upstream drafter used the minority name, every downstream drafter
+  inherits it — consistently. Waves make a chain *agree*; only a post-draft
+  pass can ask whether the agreement is right.
+
+A post-draft pass has neither limit: full visibility, and no influence on how
+the text was written.
+
+**The integration that closes the loop:** a `naming` finding proposes an entry
+in M11's `_reference/conventions/` digest as well as writing notes. Notes fix
+the prose that exists; the digest stops the next re-draft from re-drifting.
+Without it, M12 re-finds the same drift after every fill pass. (The digest is
+human-confirmed, exactly like a registry alias — see routing below.)
 
 ## Design
 
@@ -42,16 +87,26 @@ Rerunnable at any time; it only ever appends notes.
 
 One `consult-consolidator` subagent **per L2 bucket** (dispatched in parallel),
 each reading only the fragments in its bucket — that keeps each context bounded
-and matches how a reader experiences the document. Then **one cross-bucket pass**
-reading only:
+and matches how a reader experiences the document. Then **one cross-bucket
+pass**.
 
-- every procedure's `A. Process Overview` and `B. Quick Reference` (the primer +
-  at-a-glance layer, where cross-area drift shows up), and
+The per-bucket agents catch seam and sequence mismatches, which are almost
+always local to a bucket. The cross-bucket agent catches global noun and
+report-name drift, plus the duplication the per-bucket agents cannot see.
+
+**Cross-bucket input (revised — the earlier A+B-only scope had a blind spot).**
+Reading only `A. Process Overview` and `B. Quick Reference` misses any
+full-treatment duplication living in the step section, which is where most
+duplication actually is. The cross-bucket agent reads:
+
+- every procedure's `A` and `B` (the primer + at-a-glance layer, where
+  cross-area drift surfaces),
+- every procedure's **step headings plus the first line of each step body** —
+  enough to recognise "this fact is explained here too" without pulling 48% of
+  the document into one context, and
 - the `_reference/` registry.
 
-The cross-bucket agent catches global noun/report-name drift; the per-bucket
-agents catch duplication and seam mismatches, which are almost always local to
-a bucket. An area with one L2 bucket runs one agent and skips the second phase.
+An area with one L2 bucket runs one agent and skips the second phase.
 
 ### What it may raise (the finding taxonomy — the anti-noise contract)
 
@@ -59,7 +114,7 @@ a bucket. An area with one L2 bucket runs one agent and skips the second phase.
 
 | Category | Definition | Routed to |
 |---|---|---|
-| `naming` | the same artifact/report/system referred to differently across procedures | every procedure using the non-canonical form (registry alias top-up if the registry lacks it) |
+| `naming` | the same artifact/report/system referred to differently across procedures | see routing below |
 | `duplication` | the same fact given full treatment in 2+ procedures | the procedure that is NOT its home section (per "say it once") |
 | `seam` | two procedures describe one handoff inconsistently (artifact, timing, state, system) | both sides |
 | `phrasing` | a recurring formulation done differently for no reason (nav paths, date/period formats) | the minority-form procedures |
@@ -70,12 +125,50 @@ a bucket. An area with one L2 bucket runs one agent and skips the second phase.
 - Anything visible in ONE procedure alone. Single-procedure quality is the
   drafter's job and the human's read; a consolidator finding must be a
   *relationship*.
-- Style, tone, word choice, length. (Verbosity is M15, and it's measured, not
-  judged.)
+- Style, tone, word choice, length. (Structural verbosity is M16's business,
+  and it is governed by section role, not judged here.)
 - Facts. It has no sources; it cannot know which of two conflicting statements
-  is right. A conflict is reported as a conflict, never resolved.
+  is right. **A conflict is reported as a conflict, never resolved**, and is
+  segregated from findings in the report.
 - New GAPs, callouts, IDs, or scope changes. Not its office.
-- Registry edits. It may *recommend* an alias; the human confirms.
+- Registry edits. It may *recommend* an alias or a conventions entry; the human
+  confirms.
+
+### `naming` — mechanical majority, and where the fix goes
+
+**Counted over `consult-meta` slug bindings, not over prose.**
+`aggregate.parse_consult_meta()` already returns each procedure's declared
+system and role slugs; majority usage is counted from those. Counting over
+prose would rebuild exactly the fuzzy scraping the architecture rejects.
+
+Agent judgment applies only to artifacts the registry does not cover (report
+names, file names, status labels), and to overriding a mechanical majority —
+permitted, but the note must justify why the minority form is the better term.
+No majority (an even split) is **not** resolved: it is reported as requiring a
+human decision.
+
+**Routing — registry/digest first, text second.** Three names for one report is
+usually a vocabulary problem, not eight prose problems:
+
+| Situation | Fix |
+|---|---|
+| noun is in `_reference/` but a procedure used a non-canonical form | notes to the minority-form procedures |
+| noun is in `_reference/` and the form used is a legitimate synonym | **alias top-up** proposed on the registry entry; no drafter dispatch |
+| noun is NOT in `_reference/` at all | registry top-up proposed (the existing human loop), plus notes |
+| a recurring phrasing rather than a noun | **`conventions/` entry** proposed, plus notes to the minority forms |
+
+This deliberately meets `aggregate.py`'s existing behaviour at the boundary:
+aggregate already WARNs on a *declared* `consult-meta` slug absent from the
+registry. M12 catches the complementary case — a noun that was never declared
+because the drafter simply wrote it into a sentence. Both feed the same human
+registry top-up loop; M12 does not invent a parallel path.
+
+### Finding cap
+
+**Per category, per bucket — 10.** A per-area cap lets one noisy category
+crowd out the others; per-bucket keeps the review bounded without hiding a
+whole class of finding. When a cap truncates, the report says what was dropped
+(the standing no-silent-caps rule).
 
 ### Output
 
@@ -92,14 +185,74 @@ need no new instructions:
     Called "AP Aging Summary" in [[invoice-intake]] and [[vendor-statements]];
     this is the minority form. Use the majority name unless your sources
     specifically say otherwise.
-  peers: [invoice-intake, vendor-statements]
+  peers: invoice-intake, vendor-statements
   source: consolidate
 ```
 
-Plus a compact human-facing report: findings per category, procedures touched,
-and **the drafter-dispatch count that accepting them implies** — the cost, shown
-before it's spent. The human can delete notes they disagree with before the
-advisor's `apply_review` picks them up (the existing triage path — no new gate).
+**Note on `notes_util`:** its `_KEYS` tuple is a fixed superset and must be
+extended with `category` and `peers`. `peers` is stored as a **comma-joined
+string**, not a list — `_scalar()` would otherwise emit Python list syntax into
+the YAML.
+
+### The human-facing report
+
+Printed at the point the human decides whether to spend the stage. Three
+things it does deliberately: **the dispatch count is the headline**, because it
+is the cost; **conflicts are segregated** from findings, because they are
+reported and never resolved; and a seam finding **names when waves already had
+a hint and missed it**, which is the evidence for judging whether the stage
+earns its keep in this area.
+
+```
+CONSOLIDATION — procure-to-pay
+15 procedures · 5 L2 buckets · 6 agents (5 bucket + 1 cross-bucket)
+
+naming                                                        3 findings
+  "AP Aging Summary"          majority 4  ·  minority 1
+    minority form in weekly-payment-run ("the AP aging report")
+    → registry: alias top-up proposed on systems/netsuite
+  "Match Exception - Hold"    majority 3  ·  minority 1
+    minority form in goods-receipt ("exception hold status")
+  "positive pay exception file"  no majority — 2 v 2, agent flagged
+    → JUDGMENT: no canonical form; human decision needed
+
+duplication                                                   2 findings
+  three-way match tolerance explained in full in 3 procedures
+    home: po-invoice-entry-and-three-way-match
+    → cross-reference only: goods-receipt, weekly-payment-run
+  vendor banking callback described in full in 2 procedures
+    home: vendor-banking-change
+    → cross-reference only: vendor-master-data-maintenance
+
+seam                                                          2 findings
+  goods-receipt ↔ po-invoice-entry-and-three-way-match
+    artifact named differently either side of the handoff
+    (upstream hint present — waves did not catch this)
+  weekly-payment-run ↔ positive-pay-exception-handling
+    timing stated inconsistently (same-day vs next-day file)
+
+phrasing                                                      1 finding
+sequence                                                      0 findings
+
+CONFLICTS — reported, not resolved                                     1
+  wire-and-manual-payment and weekly-payment-run disagree on who
+  releases an ACH batch. No source available to this pass.
+
+────────────────────────────────────────────────────────────
+8 findings · 7 procedures touched
+ACCEPTING IMPLIES 7 DRAFTER DISPATCHES  (one per slug, batched)
+2 registry alias top-ups proposed · 1 conventions entry proposed
+1 human decision required before dispatch (no-majority naming)
+
+Notes written to _review/{slug}.notes.yaml — nothing else changed.
+Delete any note you disagree with before apply_review runs.
+```
+
+The human can delete notes they disagree with before the advisor's
+`apply_review` picks them up (the existing triage path — no new gate).
+**Dispatches are per slug, not per finding:** `apply_review` already batches a
+slug's notes into one drafter pass, so eight findings across seven procedures
+is seven passes.
 
 ### What the drafter does with them
 
@@ -116,18 +269,22 @@ one full read of the area (chunked, parallel) plus one drafter update per
 touched procedure. Roughly comparable to a fill pass on the procedures it
 touches. That is the trade for work currently done by hand.
 
-## Open design questions (settle before building)
+## Settled decisions (were open questions)
 
-1. **Propose vs decide.** Position taken above: *propose only.* An agent
-   rewriting eight fragments for consistency is exactly the change class that
-   silently degrades good text. Revisit only if note volume proves tedious.
-2. **Majority rule for `naming`.** Pick the majority form mechanically, or let
-   the agent judge? Leaning mechanical-with-override: count usages, name the
-   majority, let the agent flag when the minority form is clearly the better
-   term (a judgment it must justify in the note).
-3. **Finding cap.** A hard per-category cap (say 10) forces prioritization and
-   bounds the review; risk is silent truncation. If capped, the report must say
-   what was dropped (the existing no-silent-caps rule).
+1. **Propose only — never writes fragments.** The earlier justification (an
+   agent rewriting eight fragments silently degrades good text) is true but
+   unprovable. The decisive reason is **provenance**: a consolidator reads the
+   drafted area, not the sources, so anything it wrote would be the only text
+   in the deliverable with no evidentiary parent — and indistinguishable in the
+   fragment from text a drafter derived from a transcript. The system's core
+   claim is that every statement traces to a source. Secondary but real: the
+   one-writer-per-file rule is what makes `.maps/` provenance sidecars and
+   review anchors work; a second writer makes a line's owner unknowable.
+   **Not revisitable on note-volume grounds** — volume is addressed by
+   per-slug batching, above.
+2. **`naming` majority is mechanical**, counted over `consult-meta` bindings,
+   with a justified agent override and no auto-resolution of ties. See above.
+3. **Cap is per category per bucket (10)**, with truncation reported.
 
 ## Acceptance
 
@@ -137,9 +294,16 @@ touches. That is the trade for work currently done by hand.
   raised.
 - A seeded naming drift (one procedure renaming a report) is caught and routed
   to the minority-form procedure only.
+- A seeded duplication **inside the step section** (not in A or B) is caught by
+  the cross-bucket pass.
+- A seeded even-split naming case is reported as requiring a human decision,
+  not silently resolved.
+- A seeded factual conflict appears under CONFLICTS and produces no
+  harmonizing note.
+- A category exceeding its per-bucket cap reports what was dropped.
 - Rerunning immediately produces zero new notes (dedupe).
 - Accepting the notes → drafters run → the reported dispatch count matches what
-  actually ran.
+  actually ran (per slug, not per finding).
 
 ## Out of scope
 
@@ -147,3 +311,4 @@ touches. That is the trade for work currently done by hand.
   parent config are the cross-area consistency layer — see M13).
 - Auto-applying findings.
 - Reordering procedures (manifest `order` is a human/scoping decision).
+- Retiring M11 — waves prevent, this detects; both stay (see Why).

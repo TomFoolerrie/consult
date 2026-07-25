@@ -138,3 +138,16 @@ two-database model, the one-writer-per-file rule, and the fail-loud parsing
 contract. The engine scripts under `scripts/` are built and compile. This is
 an **MVP**: expect rough edges, and see [`docs/README.md`](docs/README.md) for
 the authoritative architecture, contracts, and build order.
+
+## History
+
+This is CONSULT's second architecture. The first — a taxonomy-driven diagnostic
+engine built on a shared `state.json` / `register.json` state machine — is
+preserved on the **`v0-taxonomy-engine`** branch. It worked, but its shared
+mutable state cost an entire hardening slice, and its central ID minter forced
+serialization into every parallel fan-out.
+
+[`docs/retrospective-v0.md`](docs/retrospective-v0.md) records what carried
+forward, what the one-writer-per-file rule replaced, and the three capabilities
+v0 had that this system still owes — most importantly its lens-conflict rule
+(when two sources disagree, raise a gap rather than guess).
