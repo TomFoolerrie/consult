@@ -1,6 +1,6 @@
 # CONSULT MVP — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M16) references the
+Shared architecture for the MVP rebuild. Every ticket (M0–M17) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
 
@@ -465,11 +465,12 @@ M11 (dependency-ordered drafting waves + upstream context) — BUILT, off unless
 
 | Ticket | What | Why it's in this order |
 |---|---|---|
-| M12 | **Consolidator** — whole-area consistency pass, notes only | the real answer to cross-procedure drift; open questions now settled (propose-only on provenance grounds, mechanical `naming` majority, per-bucket cap). Build **last** — it should run against text already in its final shape |
+| M12 | **Consolidator** — whole-area consistency pass, notes only | the real answer to cross-procedure drift; open questions now settled (propose-only on provenance grounds, mechanical `naming` majority, per-bucket cap). Build **last** (it needs the whole pipeline in place) but **run early** — at M17's draft-ready gate, before `synthesize`, so its note churn precedes the tail instead of forcing a second pass |
 | M13 | Engagement-level `_client/` config resolution | small; unblocks sharing client context across areas (and M14's profile) |
 | M14 | Document profile — which sections/callouts/derived views exist, changeable mid-engagement | depends on M13 for where the profile lives |
 | ~~M15~~ | ~~Verbosity measured, not capped~~ | **RETIRED into M16** — measurement proved low-signal; its field caps and the no-length-checks-in-reconcile decision are carried there |
 | M16 | **Section model — one home per fact** (7 sections, tag-on-change, callout `note`/`detail`, step `Condition:`) | a repetition fix, not a length fix; four independently shippable moves, cheapest first — M14 supplies the migration guard |
+| M17 | **Stage gates** — draft-ready boundary (guard 8.5) + sticky `hold:` list | the ladder never stops between `fill` and `review`, so the "am I happy with the verbs and nouns?" decision lands after the spend. Gate ships alone; holds need M13 |
 
 **Two "new input" folders, routed by folder (deterministic):** `_sources/new/`
 (raw docs) → `consult-taxonomy` (it reads them to tag `touches` + detect scope

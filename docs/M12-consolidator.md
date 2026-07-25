@@ -76,10 +76,44 @@ human-confirmed, exactly like a registry alias — see routing below.)
 
 ### Invocation
 
-`consolidate` — a stage the human asks for when the draft feels ready, not an
-automatic step in the fill loop. The advisor never demands it (it has no way to
-know "ready"); the orchestrate skill offers it at the `review` gate:
-"the draft is complete — run a consolidation pass before sending kits?"
+`consolidate` — a stage the human asks for, offered at the **draft-ready gate**
+(M17): every procedure filled, `aggregate` and `reconcile` done (both free), and
+nothing yet spent on `synthesize` or `render`.
+
+The advisor still never demands it — it has no way to know "ready", so the gate
+asks rather than acts. M17 changes only *where* the question is asked.
+
+**Why not at the `review` gate (the earlier design).** Offering it after render
+made the derived tail run twice for every consolidation pass:
+
+```
+consolidate → notes → guard 2 apply_review → drafters update fragments
+  → guard 6 aggregate → guard 8 reconcile
+    → guard 9 synthesize   (dependencies + RACI re-dispatch via scope_delta)
+      → guard 10 render
+```
+
+Both judgment agents and the render re-ran against text the human already knew
+was about to change. At the draft-ready gate that tail runs once.
+
+The cost argument is the weaker half. The **quality** argument is that review
+kits go out to humans, and reviewer attention is scarcer than tokens: a
+reviewer who spends a comment pointing out that one procedure says "AP Aging
+Summary" and another "the AP aging report" has spent it on something a
+mechanical majority count would have caught for free. Consolidating before kits
+means the drift reviewers see is only the drift the system genuinely cannot
+resolve.
+
+This does **not** claim consolidation happens once. The review cycle (M8–M10)
+churns fragments after render by design, so a later pass may find new drift —
+the stage is rerunnable and dedupes to zero new notes when nothing changed. The
+claim is narrower: the consolidator's *own* churn should precede the tail rather
+than follow it.
+
+Reading the draft at the gate is free: `render.py --slugs <all procedure slugs>`
+renders the procedures with no front/back matter and **never writes the
+`.render.json` signal**, so previewing the verbs and nouns neither requires a
+derived view nor advances the state machine.
 
 Rerunnable at any time; it only ever appends notes.
 
@@ -269,6 +303,10 @@ one full read of the area (chunked, parallel) plus one drafter update per
 touched procedure. Roughly comparable to a fill pass on the procedures it
 touches. That is the trade for work currently done by hand.
 
+**Placement is part of the cost.** The stage's own price is the read plus the
+drafter updates; running it at the `review` gate instead of the draft-ready gate
+silently added a second `synthesize` + `render` on top. See Invocation.
+
 ## Settled decisions (were open questions)
 
 1. **Propose only — never writes fragments.** The earlier justification (an
@@ -302,6 +340,9 @@ touches. That is the trade for work currently done by hand.
   harmonizing note.
 - A category exceeding its per-bucket cap reports what was dropped.
 - Rerunning immediately produces zero new notes (dedupe).
+- Reached via the draft-ready gate, `consolidate` runs with `.render.json`
+  absent and the `scope_delta` baselines untouched — proof the tail has not run
+  yet.
 - Accepting the notes → drafters run → the reported dispatch count matches what
   actually ran (per slug, not per finding).
 
