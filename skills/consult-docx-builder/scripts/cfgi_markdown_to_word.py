@@ -536,7 +536,12 @@ def _column_widths(tb: TableBlock, n: int, usable) -> List[int]:
     """Content-proportional column widths (EMU), min 0.6\" per column.
 
     Weight per column = max per-cell score, where a cell scores
-    min(len(text), 60) so one huge cell can't take the whole page."""
+    min(len(text), 60) so one huge cell can't take the whole page.
+
+    A wide table (the RACI matrix runs one column per role) can have more
+    columns than 0.6" each will fit across the usable width. The floor then
+    yields to an even share, so the widths always sum to `usable` and stay
+    positive — Word rejects a negative column width outright."""
 
     def score(txt: str) -> int:
         return min(len(strip_links(clean(txt))), 60)
@@ -546,7 +551,7 @@ def _column_widths(tb: TableBlock, n: int, usable) -> List[int]:
         col = ([tb.header[j]] if tb.header and j < len(tb.header) else [])
         col += [r[j] for r in tb.rows if j < len(r)]
         weights.append(float(max([score(c) for c in col] + [4])))
-    min_w = int(Inches(0.6))
+    min_w = min(int(Inches(0.6)), usable // n)
     total = sum(weights)
     widths = [max(min_w, int(usable * w / total)) for w in weights]
     # Rescale the above-minimum columns so the table fills the usable width.
@@ -556,7 +561,15 @@ def _column_widths(tb: TableBlock, n: int, usable) -> List[int]:
         fsum = sum(widths[j] for j in flex)
         for j in flex:
             widths[j] = max(min_w, int(spare * widths[j] / fsum))
-    widths[widths.index(max(widths))] += usable - sum(widths)  # rounding remainder
+    # Absorb the rounding remainder without driving any column below the floor.
+    remainder = usable - sum(widths)
+    order = sorted(range(n), key=lambda j: widths[j], reverse=True)
+    for j in order if remainder < 0 else order[:1]:
+        if remainder == 0:
+            break
+        take = max(remainder, min_w - widths[j]) if remainder < 0 else remainder
+        widths[j] += take
+        remainder -= take
     return widths
 
 

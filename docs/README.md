@@ -1,6 +1,6 @@
 # CONSULT MVP — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M11) references the
+Shared architecture for the MVP rebuild. Every ticket (M0–M16) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
 
@@ -457,7 +457,19 @@ M2·doc_model.py (shared spine)      ┴─▶ M0 (taxonomy + registry + confirm
 M2·import-splitter = legacy single-file .md → folder (optional, last)
 M8 (review loop: Word tracked-changes + comments → drafter) — after M4
 M6 (taxonomy/registry REASSESSMENT on new sources) — DEFERRED
+M9/M10 (per-owner review kits + deterministic tracked-changes apply) — BUILT
+M11 (dependency-ordered drafting waves + upstream context) — BUILT, off unless hinted
 ```
+
+### Designed, not yet built (in build order)
+
+| Ticket | What | Why it's in this order |
+|---|---|---|
+| M12 | **Consolidator** — whole-area consistency pass, notes only | the real answer to cross-procedure drift; open questions now settled (propose-only on provenance grounds, mechanical `naming` majority, per-bucket cap). Build **last** — it should run against text already in its final shape |
+| M13 | Engagement-level `_client/` config resolution | small; unblocks sharing client context across areas (and M14's profile) |
+| M14 | Document profile — which sections/callouts/derived views exist, changeable mid-engagement | depends on M13 for where the profile lives |
+| ~~M15~~ | ~~Verbosity measured, not capped~~ | **RETIRED into M16** — measurement proved low-signal; its field caps and the no-length-checks-in-reconcile decision are carried there |
+| M16 | **Section model — one home per fact** (7 sections, tag-on-change, callout `note`/`detail`, step `Condition:`) | a repetition fix, not a length fix; four independently shippable moves, cheapest first — M14 supplies the migration guard |
 
 **Two "new input" folders, routed by folder (deterministic):** `_sources/new/`
 (raw docs) → `consult-taxonomy` (it reads them to tag `touches` + detect scope

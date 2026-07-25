@@ -503,3 +503,41 @@ def test_folder_without_manifest_rejected(tmp_path):
     d.mkdir()
     with pytest.raises(SystemExit, match="no manifest.json"):
         render.main([str(d)])
+
+
+@pytest.mark.parametrize("n", [2, 5, 11, 12, 17, 30])
+def test_column_widths_stay_positive_and_fill_usable(n):
+    """Wide tables (RACI runs one column per role) must not yield negative widths.
+
+    With more columns than the 0.6" floor fits across the page, the floor has to
+    yield to an even share: python-docx rejects a negative w:gridCol outright.
+    """
+    from docx.shared import Inches
+
+    usable = int(Inches(6.5))
+    tb = cfgi.TableBlock(
+        header=[f"Role {i}" for i in range(n)],
+        rows=[["R"] * n, ["A"] * n],
+    )
+    widths = cfgi._column_widths(tb, n, usable)
+
+    assert len(widths) == n
+    assert all(w > 0 for w in widths), f"non-positive width for n={n}: {widths}"
+    assert sum(widths) == usable
+
+
+def test_wide_raci_table_renders(tmp_path):
+    """A 17-column RACI matrix converts without a width error."""
+    md = tmp_path / "wide.md"
+    roles = [f"Role {i}" for i in range(16)]
+    header = "| Activity | " + " | ".join(roles) + " |"
+    sep = "|" + "---|" * 17
+    row = "| Weekly Payment Run | " + " | ".join(["R"] * 16) + " |"
+    md.write_text(f"# T\n\n## RACI Matrix\n\n{header}\n{sep}\n{row}\n", encoding="utf-8")
+
+    out = tmp_path / "wide.docx"
+    cfgi.main([str(md), "-o", str(out)])
+
+    doc = Document(str(out))
+    assert doc.tables, "no table rendered"
+    assert all(c.width > 0 for c in doc.tables[0].columns)
