@@ -2,7 +2,12 @@
 
 The first CONSULT implementation ran from initial spec through four build slices
 before being superseded by the folder-native architecture now on `main`. It is
-preserved on the **`v0-taxonomy-engine`** branch (head `a119d22`).
+preserved in this repository's history at commit **`a119d22`**, an ancestor of
+`main` — run `git checkout a119d22` to read the v0 tree.
+
+> If you arrived here grepping for the **`v0-taxonomy-engine`** branch: it was
+> removed during a branch cleanup. Nothing was lost — the branch only ever
+> pointed at `a119d22`, which `main` still reaches.
 
 This document records what v0 got right, what it got wrong, and what the second
 attempt must not lose. It is written for whoever asks, six months from now, "why
