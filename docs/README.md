@@ -1,6 +1,6 @@
 # CONSULT MVP — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M17) references the
+Shared architecture for the MVP rebuild. Every ticket (M0–M21) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
 
@@ -456,7 +456,7 @@ M2·doc_model.py (shared spine)      ┴─▶ M0 (taxonomy + registry + confirm
                                         M4 (docx builder) ◀──────────┘
 M2·import-splitter = legacy single-file .md → folder (optional, last)
 M8 (review loop: Word tracked-changes + comments → drafter) — after M4
-M6 (taxonomy/registry REASSESSMENT on new sources) — DEFERRED
+M6 (taxonomy/registry REASSESSMENT on new sources) — DESIGNED, now required
 M9/M10 (per-owner review kits + deterministic tracked-changes apply) — BUILT
 M11 (dependency-ordered drafting waves + upstream context) — BUILT, off unless hinted
 ```
@@ -471,6 +471,10 @@ M11 (dependency-ordered drafting waves + upstream context) — BUILT, off unless
 | ~~M15~~ | ~~Verbosity measured, not capped~~ | **RETIRED into M16** — measurement proved low-signal; its field caps and the no-length-checks-in-reconcile decision are carried there |
 | M16 | **Section model — one home per fact** (7 sections, tag-on-change, callout `note`/`detail`, step `Condition:`) | a repetition fix, not a length fix; four independently shippable moves, cheapest first — M14 supplies the migration guard |
 | M17 | **Stage gates** — draft-ready boundary (guard 8.5) + sticky `hold:` list | the ladder never stops between `fill` and `review`, so the "am I happy with the verbs and nouns?" decision lands after the spend. Gate ships alone; holds need M13 |
+| M18 | **Advisor honesty** — the resolvable-action invariant, `unresolvable` gate, guard 2 partition, guard 8/9 order | three reproduced livelocks come from `decide()` returning an action that cannot change the state that selected it; fixes the class, not the instances |
+| M19 | Fragment integrity in reconcile — empty/heading-only fragment is a blocking error | the only audit finding that reaches the deliverable silently; an interrupted drafter currently reads as complete |
+| M20 | Canonical rename propagation — registry `name` change → notes → drafters | M12 cannot own it: its majority rule favours the old name and its alias rule proposes no dispatch |
+| M21 | Render signal — `--mode final` stops writing `.render.json` | producing the client deliverable currently re-opens the review gate and discards an `accept` |
 
 **Two "new input" folders, routed by folder (deterministic):** `_sources/new/`
 (raw docs) → `consult-taxonomy` (it reads them to tag `touches` + detect scope
@@ -485,7 +489,9 @@ guesses content — the folder decides.
   unmatched-mention WARNINGs drive a human loop — add the entry/alias to
   `_reference/`, re-run aggregate — so Systems/Roles are complete before sign-off.
   M6 only automates the *incremental* reassessment when new sources arrive later.
-- **M5** fills the remaining judgment. **M6** is deferred.
+- **M5** fills the remaining judgment. **M6** is no longer deferred: without it a
+  new source that only enriches already-drafted procedures never converges
+  (`docs/audit-decide-exhaustiveness.md`, F7).
 
 ## Credibility guardrail (carried over from the original system)
 

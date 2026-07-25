@@ -77,9 +77,22 @@ name-check result is one line of output away from being explained.
 - `conventions/`: a drafter sees parent files plus its area's, with same-name
   area files shadowing.
 
+## Noted, not solved here — cross-area orchestration
+
+This ticket shares client *config* across areas; it does not share
+*orchestration*. `orchestrate.py next` takes a single required `--area`, so a
+six-area engagement means six invocations with no combined view of what is
+outstanding (audit F11).
+
+Left out deliberately. The per-area advisor is a pure function of one folder, and
+that is what makes it testable; a cross-area view is a **reporting** layer over N
+independent calls, not a change to the decision logic. Worth building once two
+areas actually run in parallel and the pain is real rather than anticipated.
+
 ## Out of scope
 
 - Sharing `_reference/` (deliberate — see above).
+- A cross-area advisor or combined status command (see above).
 - A config schema/validator (these are small hand-written files; fail loudly on
   malformed YAML and stop).
 - Repo-root config above `components/` (one level of sharing is enough).
