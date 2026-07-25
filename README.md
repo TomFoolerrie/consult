@@ -143,7 +143,8 @@ the authoritative architecture, contracts, and build order.
 
 This is CONSULT's second architecture. The first — a taxonomy-driven diagnostic
 engine built on a shared `state.json` / `register.json` state machine — is
-preserved on the **`v0-taxonomy-engine`** branch. It worked, but its shared
+preserved in this repository's history at commit **`a119d22`**, an ancestor of
+`main` (`git checkout a119d22` to read the v0 tree). It worked, but its shared
 mutable state cost an entire hardening slice, and its central ID minter forced
 serialization into every parallel fan-out.
 
