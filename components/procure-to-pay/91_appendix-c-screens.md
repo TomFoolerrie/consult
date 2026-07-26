@@ -48,7 +48,7 @@ _Screenshot placeholders aggregated from the `SCREENSHOT PLACEHOLDER` callouts. 
 | SC-23 ([[#non-po-invoice-entry-and-approval]]) | The NetSuite Enter Bills screen showing a non-PO bill with manual GL account, department, and Class coding — validates the manual coding fields and the absence of a PO reference. | Pending user input |
 | SC-24 ([[#non-po-invoice-entry-and-approval]]) | A non-PO bill in NetSuite showing the completed approval history — validates that approvals are recorded in the system rather than by email. | Pending user input |
 | SC-25 ([[#vendor-statement-reconciliation]]) | A completed reconciliation worksheet for one top vendor from a recent quarter — validates that the reconciliation is performed and captures the worksheet's actual format and content. | Pending user input |
-| SC-26 ([[#vendor-statement-reconciliation]]) | The designated reconciliation folder on the Finance Shared Drive showing retained worksheets by period — validates that the evidence required by §9.2 of the prior SOP exists and is current. | Pending user input |
+| SC-26 ([[#vendor-statement-reconciliation]]) | The designated reconciliation folder on the Finance Shared Drive showing retained worksheets by period — documents the three months of the last twelve for which completed worksheets exist (§9.2 of the prior SOP, SRC-006). | Pending user input |
 
 #### Payments
 

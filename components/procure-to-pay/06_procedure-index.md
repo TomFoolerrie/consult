@@ -34,12 +34,12 @@ _In-scope procedures, grouped by sub-process. Numbers are rendered late from the
 | [[#invoice-intake-and-capture]] | Invoice Intake and Capture | Daily (mailbox triaged each business day; paper mail scanned as received) | Accounts Payable Clerk (mailbox triage, scanning, first-pass validation); Senior Accounts Payable Specialist (manual validation keying) |
 | [[#po-invoice-entry-and-three-way-match]] | PO Invoice Entry and Three-Way Match | Daily, as pending bills arrive; a clean match takes roughly ninety seconds per bill (SRC-001) | Senior Accounts Payable Specialist |
 | [[#non-po-invoice-entry-and-approval]] | Non-PO Invoice Entry and Approval | Continuous — worked as bills arrive; roughly a quarter of total invoice volume is non-PO (SRC-001; SRC-005) | Accounts Payable Clerk (entry and coding) (SRC-001) |
-| [[#vendor-statement-reconciliation]] | Vendor Statement Reconciliation | Quarterly for top vendors in stated practice (SRC-001; SRC-003); monthly for all suppliers above $50,000 annual spend per §9.1 of the prior SOP (SRC-006) — contested (GAP-01 in E) | Senior Accounts Payable Specialist (SRC-001; SRC-005) |
+| [[#vendor-statement-reconciliation]] | Vendor Statement Reconciliation | Intermittent in actual practice — performed when statement volume is low; completed worksheets exist for only three of the last twelve months (Accounts Payable Manager, gap-workbook response). Stated practice is quarterly for top vendors (SRC-001; SRC-003); the prior SOP requires monthly for all suppliers above $50,000 annual spend (§9.1 of the prior SOP, SRC-006) — intended standard contested (GAP-01 in E) | Senior Accounts Payable Specialist (SRC-001; SRC-005) |
 
 ### Payments
 
 | Ref | Procedure | Frequency | Primary Owner |
 |---|---|---|---|
-| [[#weekly-payment-run]] | Weekly Payment Run | Weekly; the day-by-day calendar is contested across the sources — see GAP-01 in E | Accounts Payable Manager (SRC-001; §7.2 of the prior SOP, SRC-006) |
+| [[#weekly-payment-run]] | Weekly Payment Run | Weekly — proposal built Wednesday afternoon, reviewed and released Thursday (SRC-001; calendar confirmed with the AP team during gap review) | Accounts Payable Manager (SRC-001; §7.2 of the prior SOP, SRC-006) |
 | [[#wire-and-manual-payment]] | Wire and Manual Payment | Wires — approximately eight to ten per month (SRC-001, SRC-005). Manual checks — TBD; no occurrence was described during fieldwork (SRC-005). | Treasury Analyst (wire entry in Chase Connect) (SRC-001, SRC-005). Manual check — TBD; no preparer was identified (SRC-005; see GAP-03). |
 | [[#positive-pay-exception-handling]] | Positive Pay Exception Handling | As exceptions arise; exception items post the next business morning after the check run — in practice by 10 AM Friday following the Thursday run (SRC-001, SRC-003) | Accounts Payable Manager — reviews and dispositions (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006) |
