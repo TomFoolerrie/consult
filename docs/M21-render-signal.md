@@ -1,7 +1,8 @@
 # M21 — Render signal correctness (final mode is an export, not a state)
 
-> **Status: DESIGNED.** Smallest ticket in the set; one-line class of fix.
-> Evidence: `docs/audit-decide-exhaustiveness.md` (F10).
+> **Status: BUILT.** No deviation from this design: `render_folder`'s M7
+> signal-write guard (`scripts/render.py`) now also requires `mode ==
+> "working"`, the same gate shape as the pre-existing `--slugs` skip.
 
 ## Goal
 

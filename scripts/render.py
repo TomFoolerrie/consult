@@ -40,7 +40,10 @@ Modes (M9):
                             render as the embedded image with an italic
                             caption below (manual drop-in of a PNG at that
                             path is a first-class alternative to the ingest
-                            script).
+                            script). Never writes the .render.json signal (M21):
+                            final mode is a terminal export produced FROM an
+                            accepted state, not a transition into a new one —
+                            same reasoning as --slugs below.
   --slugs a,b               subset render: only those procedure sections (no
                             cover/front/back matter) — the per-owner kit docs.
                             Display numbers + callout display IDs still come
@@ -468,9 +471,12 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
         stats["doc_id"] = doc_id
         stats["map"] = str(map_path)
 
-    # M7 signal file (full working/final render only — kit subset docs and
-    # programmatic calls must not flip the advisor's review state).
-    if emit_signal and not subset:
+    # M7 signal file (full WORKING render only — M21: final mode is a
+    # terminal export produced FROM an accepted state, not a transition into
+    # a new one, so it must never touch the review signal — same reasoning
+    # as the --slugs kit-subset skip below. Programmatic calls that pass
+    # emit_signal=False are unaffected either way.)
+    if emit_signal and not subset and mode == "working":
         import orchestrate
         orchestrate.emit_render(str(folder), str(out), awaiting_review=True)
     return stats
