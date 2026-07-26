@@ -2,4 +2,4 @@
 
 <!-- derived: dependencies; writer: agent -->
 
-> _Pending generation._
+> _Pending synthesis (M5)._
