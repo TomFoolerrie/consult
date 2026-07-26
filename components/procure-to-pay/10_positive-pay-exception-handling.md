@@ -1,79 +1,106 @@
 ## Positive Pay Exception Handling
 
-<!-- unfilled -->
-
 ### A. Process Overview
 
-TBD — What this procedure accomplishes, when it occurs, who performs it, what
-it excludes, and how it connects to upstream / downstream activities. (This
-section is what the dependencies agent reads.)
+This procedure covers the review and disposition of positive pay exception items — checks presented to the bank that do not match the positive pay issue file transmitted from NetSuite at check print under [[weekly-payment-run]]. The Accounts Payable Manager reviews each exception in Chase Connect the business morning after a check run and decides pay or return before the bank's disposition deadline; any item with no decision by the deadline is returned by default, a configuration the Company set deliberately (SRC-001, SRC-003). The procedure runs whenever the bank flags an exception, in practice tied to the weekly Thursday check run. Transmission of the issue file itself is part of [[weekly-payment-run]] and is not repeated here.
 
 ### B. Quick Reference
 
-- **Trigger:** TBD
-- **Frequency:** TBD
-- **Preparer:** TBD
-- **Reviewer:** TBD
-- **Primary systems / tools:** TBD
-- **Key outputs:** TBD
+- **Trigger:** Positive pay exception item(s) presented in Chase Connect following a check issue date (SRC-001, SRC-003)
+- **Frequency:** As exceptions arise; exception items post the next business morning after the check run — in practice by 10 AM Friday following the Thursday run (SRC-001, SRC-003)
+- **Preparer:** Accounts Payable Manager — reviews and dispositions (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006)
+- **Reviewer:** None identified — disposition is a single-person decision; no secondary review or backup was described (SRC-001, SRC-003)
+- **Primary systems / tools:** Chase Connect (exception presentation and disposition); NetSuite (check issue records)
+- **Key outputs:** Pay / return decision on each exception item recorded in Chase Connect; default return of any undecided item
 
 ### C. Pre-Requisites
 
-- TBD — what must be true before the procedure begins.
+- Checks have been printed and the positive pay issue file transmitted to Chase from NetSuite at check print, on each date checks are issued, under [[weekly-payment-run]] (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006).
+- The Accounts Payable Manager holds Chase Connect access to the positive pay exception queue (SRC-001).
 
 ### D. Inputs
 
-- **Input 1:** TBD — source / owner.
+- **Positive pay exception items in Chase Connect:** presented checks the bank could not match to the issue file — source: the depository institution (SRC-001, SRC-003).
+- **Positive pay issue file / check issue records in NetSuite:** the record of what the Company actually issued, transmitted at check print by [[weekly-payment-run]] (SRC-003).
 
 ### E. Step-by-Step Procedure
 
-#### Step 1: TBD
+#### Step 1: Receive and review exception items
 
-TBD — Describe the step in neutral current-state procedural language. Add the
-bolded inline tags below only where the detail helps execution, review, or
-auditability — not mechanically on every step.
+The Accounts Payable Manager reviews exception items in Chase Connect. Exceptions post the next business morning after checks are issued; following the weekly Thursday check run they are available by 10 AM Friday (SRC-001, SRC-003).
 
-- **System / Tool:** TBD
-- **Navigation Path:** TBD
-- **Fields / Parameters:** TBD
-- **Expected Result:** TBD
-- **Evidence Required:** TBD
+- **System / Tool:** Chase Connect
+- **Expected Result:** All exception items for the cycle identified before the disposition deadline
 
-<!-- Inline callouts live at the step they attach to (E is their home): -->
+> **SCREENSHOT PLACEHOLDER — SC-01:** The Chase Connect positive pay exception queue showing a pending exception item with its pay/return options and the disposition deadline — validates where exceptions present and how the decision is recorded.
 
-> **VALIDATION REQUIRED — GAP-01:** TBD — a fact, owner, timing, path, or decision to confirm.
-> - **Nature:** unknown | conflict | unsupported-assumption
-> - **Owner to confirm:** TBD
+#### Step 2: Investigate each exception item
 
-> **SCREENSHOT PLACEHOLDER — SC-01:** TBD — what to capture and what it must validate.
+The Accounts Payable Manager determines whether each presented item is a legitimate Company check by reference to the check issue records in NetSuite. The specific investigation criteria applied (e.g. payee, amount, check number comparison) and the evidence retained of the decision were not described by any source — `TBD — confirm with process owner` [[GAP-01 — DISPOSITION CRITERIA AND EVIDENCE]].
+
+- **System / Tool:** Chase Connect; NetSuite
+- **Evidence Required:** TBD — see GAP-01
+
+> **VALIDATION REQUIRED — GAP-01:** How exception items are investigated and what evidence of the disposition decision is retained. Both interview sources establish who dispositions and by when, but neither describes the comparison performed, the criteria for pay versus return, or whether any record beyond the Chase Connect decision itself is kept (SRC-001, SRC-003). Confirm the investigation steps and the evidence retained.
+> - **Nature:** unknown
+> - **Owner to confirm:** Accounts Payable Manager
+
+#### Step 3: Disposition pay or return by the bank deadline
+
+The Accounts Payable Manager records a pay or return decision on each item in Chase Connect not later than the deadline established by the depository institution — 1 PM on the day the exceptions post, in practice 1 PM Friday for the weekly cycle (SRC-001, SRC-005; §7.6 of the prior SOP, SRC-006) (CTRL-001).
+
+- **System / Tool:** Chase Connect
+- **Fields / Parameters:** Pay or return decision per exception item
+- **Expected Result:** Every exception item carries a recorded decision before the deadline
+
+#### Step 4: Default handling of undecided items
+
+Any exception item with no decision recorded by the deadline is returned by the bank. This default was set deliberately (SRC-003) (CTRL-002). It has operated once, when the deadline was missed (SRC-001). What follow-up occurs after a default return — for example, reissue of a legitimate check returned in error — was not described by any source [[GAP-02 — POST-RETURN FOLLOW-UP AND BACKUP]].
+
+> **VALIDATION REQUIRED — GAP-02:** What happens after an item is returned by default, and who dispositions exceptions when the Accounts Payable Manager is unavailable. The Accounts Payable Manager is the only person identified as reviewing exceptions, the decision window is roughly three hours (10 AM to 1 PM), the deadline has been missed once, and no source described a backup dispositioner or a correction/reissue path after a default return (SRC-001, SRC-003, SRC-005).
+> - **Nature:** unknown
+> - **Owner to confirm:** Accounts Payable Manager
 
 ### F. Key Controls
 
-<!-- CONTROL callouts are the source for the Controls view — no table. -->
+> **CONTROL — CTRL-001:** Positive pay exception review: the bank flags any presented check that does not match the issue file, and the Accounts Payable Manager dispositions each flagged item (pay or return) in Chase Connect before the deadline established by the depository institution (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006).
+> - **Type:** Detective
+> - **Frequency:** Each exception cycle (in practice weekly, following the Thursday check run)
+> - **Owner:** Accounts Payable Manager
 
-> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
-> - **Type:** Preventive | Detective | Corrective
-> - **Frequency:** TBD
-> - **Owner:** TBD
+> **CONTROL — CTRL-002:** Default-return configuration: an exception item receiving no decision by the deadline is returned, not paid — a deliberate fail-safe so that an unattended fraudulent item cannot clear (SRC-001, SRC-003).
+> - **Type:** Preventive
+> - **Frequency:** Continuous (bank configuration)
+> - **Owner:** Corporate Controller
+
+> **CONTROL — CTRL-003:** ACH debit block with filter list on the operating account: only two originators — the payroll processor and the health plan — are authorized to debit the account; all other presented debits are rejected automatically (SRC-003, SRC-005). This standing bank-side companion control generates no exception queue; unauthorized debits simply bounce.
+> - **Type:** Preventive
+> - **Frequency:** Continuous (bank configuration)
+> - **Owner:** Corporate Controller
 
 ### G. Outputs
 
-- **Output 1:** TBD
-- **Evidence retained:** TBD
+- **Dispositioned exception items:** pay or return decision recorded in Chase Connect for each flagged check (SRC-001).
+- **Returned items:** checks returned by decision or by the default-return configuration (SRC-001, SRC-003).
+- **Evidence retained:** TBD — the disposition record exists in Chase Connect, but what the Company retains as evidence is unconfirmed (see GAP-01 at Step 2 in E).
 
 ### H. Known Issues & Improvement Opportunities
 
-<!-- PAIN POINT + IMPROVEMENT callouts here ARE the structured source for
-     Appendix A (assembled mechanically) — fill every field. -->
+> **PAIN POINT — PP-001:** Exception disposition is a single-person dependency with a hard, short window: only the Accounts Payable Manager reviews exceptions, decisions are due within roughly three hours of the items posting (10 AM to 1 PM Friday), no backup dispositioner was identified, and the deadline has been missed once — triggering a default return (SRC-001, SRC-003, SRC-005).
+> - **Impact:** A missed window returns every undecided item, including legitimate Company checks — the fail-safe protects against fraud but converts an absence or a busy Friday morning into returned vendor payments.
+> - **Severity:** Medium
 
-> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
-> - **Impact:** TBD
-> - **Severity:** High | Medium | Low
+> **PAIN POINT — PP-002:** The Company still issues roughly thirty checks per week — described by the Accounts Payable Manager as "we still cut checks, sadly" — sustaining the positive pay exception workload and the check-fraud exposure it guards against (SRC-001, SRC-005).
+> - **Impact:** Ongoing weekly exception-handling effort and residual check-fraud risk that would shrink or disappear if check volume migrated to electronic payment.
+> - **Severity:** Low
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — the proposed improvement (this IS the recommendation).
+> **IMPROVEMENT OPPORTUNITY — IO-001:** Designate and entitle a backup dispositioner in Chase Connect (with a documented reissue path for items returned by default), so the pay/return decision does not depend on one individual's availability inside a three-hour window.
 > - **Addresses:** PP-001
 
+> **IMPROVEMENT OPPORTUNITY — IO-002:** Migrate remaining check-paid suppliers to ACH to reduce weekly check volume and, with it, the positive pay exception workload and check-fraud exposure.
+> - **Addresses:** PP-001, PP-002
+
 ```consult-meta
-systems: []
-roles:   []
+systems: [chase-connect, netsuite]
+roles:   [ap-manager, corporate-controller, supplier]
 ```
