@@ -47,6 +47,20 @@ file is the deliverable.
     subsection → step) + anchor text, so you know exactly where it applies.
   You are never handed two triggers at once; act on the one in your dispatch.
 
+**Notes items carry a `kind:` — route on it.** The notes file is a bus with five
+producers, so not every item is a reviewer instruction:
+- `kind: source`, with `src: SRC-<id>` — a **new source** for your procedure,
+  arriving through the notes path rather than a `sources` list. Resolve the id in
+  `{area}/_reference/sources.yaml`, **read that source file**, and work its facts
+  in exactly as you would on a first draft (same evidence discipline, same GAP on
+  conflict). The item's `note:` text is the "what's new" summary, not the evidence.
+- `kind: retirement` — a *different* procedure is being retired. **Remove your
+  references to the named retired procedure**: drop its `[[slug]]` token and
+  rewrite the prose that leaned on it (describe the check inline where your reader
+  still needs it). A left-behind token is a blocking reconcile error.
+- `kind: review` | `rename` | `consolidation` — ordinary instructions; do what the
+  item says.
+
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
    not change the A–H headings.
@@ -229,6 +243,12 @@ the conflict; never silently choose.
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
+- **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
+  PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
+  the area on `(see|per|step|section) N.N` anywhere in a fragment — that check
+  exists to kill baked internal display numbers, and it cannot tell an external
+  section number from one of ours. Write **`§9.4 of the prior SOP`** or **`the
+  prior SOP, §9.4`**: same meaning, no collision.
 
 ## Before you finish
 Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available

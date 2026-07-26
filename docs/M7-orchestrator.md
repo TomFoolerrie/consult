@@ -2,6 +2,28 @@
 
 **Depends on:** M0, M3, M4, M5 (it wraps them). **Blocks:** none.
 
+> **Revised by M18, M17 and M6 — the ladder below is the current one.** This
+> ticket shipped a 12-row precedence table; three later tickets changed it, and
+> the rows are renumbered rather than replaced so the original design is still
+> legible:
+>
+> - **M18 (advisor honesty)** added guard **0** (`error` — a nonexistent area
+>   folder used to read as `done`), split guard 2 into applicable-vs-orphaned
+>   notes (**2b** `review_triage` now also catches an orphan, not just the
+>   `_unassigned` bucket), added the **`unresolvable`** resting gate at **5b** and
+>   inside guard **8**, changed `.aggregate.json`'s `proc_hashes` to
+>   `{slug: {file: sha}}`, and gave `.reconcile.json` an optional `failing_files`.
+> - **M17 (stage gates)** inserted guard **8.5** `draft_ready` and its
+>   `.draft_ready.json` signal, written only by the new `accept-draft`
+>   subcommand. (Sticky holds, this ticket's item 3, are still unbuilt.)
+> - **M6 (reassessment)** narrowed guard 5 to *unassessed* sources and added
+>   **5a** `unresolvable` for the stranded remainder.
+> - Guard **1.5** (`ingest_returns`) arrived with M9/M10 and was never in this
+>   table.
+>
+> `scripts/orchestrate.py`'s module docstring is the authority; the table below is
+> kept in step with it.
+
 ## Goal
 
 A single skill the user invokes to advance an area end to end, so they never run
@@ -40,19 +62,34 @@ bottom, **first match wins.** This is what stops the advisor from re-running
 
 | # | Guard (first match wins) | Next action |
 |---|---|---|
+| 0 | the area folder does not exist | `error` — **not a gate**; `next` exits **2** so the driver stops. A typo'd `--area` used to read as `done` (audit F3) |
 | 1 | `_reference/.proposed/` exists | `confirm` (HUMAN GATE) — highest, so a pending proposal is never re-scoped |
-| 2 | `_review/*.notes.yaml` present, **excluding** `_unassigned.notes.yaml` | `apply_review` — one `consult-drafter` (update) per slug, **skip taxonomy** (M8); if `_unassigned.notes.yaml` also exists, its path rides along in the details so the human is told about it too |
-| 2b | only `_review/_unassigned.notes.yaml` present (no per-slug notes) | `review_triage` (HUMAN GATE) — `review_extract.py` couldn't attribute these items to a procedure; a human moves each into the right `{slug}.notes.yaml` or archives the file |
+| 1.5 | `_review/returned/` holds un-ingested kit returns | `ingest_returns` (M9/M10) — the deterministic chain first, so drafters only see what needs judgment |
+| 2 | a `_review/<slug>.notes.yaml` whose basename names a **live manifest procedure slug** (excluding `_unassigned.notes.yaml`) | `apply_review` — one `consult-drafter` (update) per slug, **skip taxonomy** (M8). Coexisting orphans ride along in `details.orphan_notes`; `_unassigned.notes.yaml` rides along too, so the human is told about both. With **no manifest at all** this guard steps aside for guard 3 — nothing is applicable to an unscoped area (M18/F1) |
+| 2b | notes naming no live slug, or only `_review/_unassigned.notes.yaml` | `review_triage` (HUMAN GATE) — a drafter has no procedure to update and a note archives only on a successful dispatch, so no stage can clear it; the two resolutions (restore the procedure / archive the note) are named in `details.resolutions` |
 | 3 | no `manifest.json` **and** `_sources/new/` non-empty | `taxonomy` (initial) |
-| 4 | `manifest.json` exists **and** any procedure still carries the `unfilled` sentinel | `fill` (fan out one drafter per unfilled procedure) |
-| 5 | `manifest.json` exists **and** `_sources/new/` non-empty (no unfilled, no `.proposed/`) | `taxonomy` (incremental) |
-| 6 | any procedure hash changed vs `.hashes.json` | `aggregate` |
+| 4 | `manifest.json` exists **and** any procedure still carries the `unfilled` sentinel | `fill` (fan out one drafter per unfilled procedure; M11 waves via `details.unfilled`/`deferred`) |
+| 5 | `manifest.json` exists **and** `_sources/new/` holds files that are **UNASSESSED** — unregistered in `_reference/sources.yaml`, or registered at a different `hash` | `taxonomy` (incremental). M6 narrowed this from "non-empty": a source registered at its current bytes has already been read and proposed against |
+| 5a | every file in `_sources/new/` is assessed, and nothing can consume them (guard 2 ruled out a pending note, guard 4 an `unfilled` skeleton) | `unresolvable` (HUMAN GATE) — naming the stranded `SRC-` ids. Re-dispatching taxonomy would propose nothing new and spend a dispatch per lap (audit F7 / M6) |
+| 5b | a manifest procedure whose fragment file is absent | `unresolvable` (HUMAN GATE) — no stage writes a fragment from nothing, and guard 6 used to fire forever with the wrong cause (audit F4) |
+| 6 | procedure or registry content changed vs `.aggregate.json` | `aggregate` |
 | 7 | aggregate emitted unmatched-mention WARNINGs | `registry_topup` (HUMAN: add entry/alias, re-run) |
-| 8 | derived views built but `reconcile` not yet clean this pass | `reconcile` (area-wide hard gate) |
-| 9 | procedures changed but judgment views stale | `synthesize` |
+| 8 | derived views not verified clean at the current basis | `reconcile` (area-wide hard gate) — **unless** `.reconcile.json` recorded `failing_files` at this exact basis, in which case the failures are partitioned by owner (M18/F8): drafter-owned fragments → `unresolvable`; agent-owned views the change signal already marks stale → `synthesize` first, then reconcile re-verifies; agent-owned views with **nothing** stale → `unresolvable`; anything else (manifest, a python-derived view, `_reference/sources.yaml`) → plain `reconcile` |
+| 8.5 | a spend is outstanding (`synthesize` or `render`) and this draft is not accepted | `draft_ready` (HUMAN GATE, M17) — the last free stop; cleared only by `accept-draft` |
+| 9 | procedures changed but judgment views stale, or a pending placeholder remains | `synthesize` |
 | 10 | all views current and reconciled, no fresh `.docx` | `render` |
 | 11 | rendered; awaiting human review | `review` (HUMAN GATE) |
 | 12 | nothing outstanding | `done` |
+
+**The resolvable-action invariant (M18).** An action is returnable only if running
+it can change the state that selected it. `unresolvable` is the result for the
+states where nothing satisfies that: `human_gate: true`, exit **0** — a *resting*
+gate like `review`, not an error, because the folder is consistent and the ladder
+is merely out of moves. It carries three named fields — `details.state` (what was
+detected), `details.why_no_stage` (why no stage clears it), `details.human_action`
+(the specific fix) — plus the evidence (`stranded_ids`/`stranded_sources`,
+`missing_procedures`, `failing_files`, `dangling_refs`). `error` is the one
+non-gate: there is nothing to rest on, so `next` exits nonzero.
 
 **Why the order matters:** after scaffold, `_sources/new/` is still full (sources
 move only after fill) — but row 4 (`fill`) precedes row 5 (`taxonomy
@@ -75,10 +112,11 @@ are **git-ignored, at the area root**, and are the M7 orchestration contract:
 
 | File | Written by | Shape | Guards it drives |
 |---|---|---|---|
-| `.aggregate.json` | `aggregate.py` | `{proc_hashes:{slug:sha}, registry_hash:sha, warnings:[…]}` | 6 (stale if proc/registry hash differs), 7 (topup if `warnings`) |
+| `.aggregate.json` | `aggregate.py` | `{proc_hashes:{slug:{file:sha}}, registry_hash:sha, warnings:[…]}` — per-**file** inside each slug (M18/F5), so a duplicate slug cannot drop one file's hash out of the change signal. A pre-existing signal in the old `{slug:sha}` shape simply compares unequal, and one harmless aggregate pass rewrites it | 6 (stale if proc/registry hash differs), 7 (topup if `warnings`) |
 | `.hashes.json` | `scope_delta.py commit` (the orchestrator runs it per kind, after each M5 agent succeeds — the sole writer) | `{derived_kind:{slug:sha}}` — per-kind procedure-hash baseline as of that kind's last successful write (the "M5 change signal") | 9 (synthesize if current proc hashes differ from a kind's baseline) |
-| `.reconcile.json` | `reconcile.py` | `{basis:sha, clean:bool}` | 8 (reconcile if basis stale or not clean) |
-| `.render.json` | renderer (M4) | `{basis:sha, docx:path, awaiting_review:bool}` | 10 (render if basis stale), 11 (review if awaiting) |
+| `.reconcile.json` | `reconcile.py` | `{basis:sha, clean:bool}`, plus **optional** `failing_files:[rel,…]` (M18/F8) — the area-relative files the run's errors named. The key is OMITTED when the caller does not track it, and guard 8 then behaves exactly as it did pre-M18 | 8 (reconcile if basis stale or not clean; the owner partition above when `failing_files` is recorded at the current basis) |
+| `.draft_ready.json` | `orchestrate.py accept-draft` **only** (M17) | `{draft_basis:sha, accepted:true}` — `draft_basis` is `sha256(json.dumps([proc_hashes, registry_hash], sort_keys=True))`: the **two databases only**, deliberately not `basis`. `synthesize` rewriting the derived views must not re-open a gate the human just cleared; any fragment or registry edit must | 8.5 (draft_ready unless the recorded value equals the current one) |
+| `.render.json` | the **working-mode** renderer (M4); `awaiting_review` cleared by `orchestrate.py accept` | `{basis:sha, docx:path, awaiting_review:bool}`. `--mode final` and `--slugs` renders are exports and never write it (M21), so the signal is unambiguously about the working document | 10 (render if basis stale), 11 (review if awaiting) |
 
 `basis` = combined hash of all procedure files + all derived files + the
 manifest — the unit reconcile and render gate on. A **missing** state file means
@@ -94,13 +132,19 @@ top-up loop clears the warning (or re-flags a still-missing one). Without the
 registry hash the gate would never re-evaluate.
 
 **`review` is the resting gate; `done` needs explicit human acceptance.** The
-renderer stamps `awaiting_review:true`; the advisor returns `review` until either
-new `_review/*.notes.yaml` appear (→ row 2, the revision loop) or the human
-accepts. Advisor is read-only and cannot know "accepted", so acceptance is a
-**human signal to the driver skill**, not a state the advisor computes: on the
-user's explicit accept, the driver reports `done` (and may clear
-`awaiting_review`). Absent that, `done` (row 12) is only reached when the render
-basis is current and `awaiting_review` is already false.
+working-mode renderer stamps `awaiting_review:true`; the advisor returns `review`
+until either new `_review/*.notes.yaml` appear (→ row 2, the revision loop) or the
+human accepts. `decide()` is read-only and cannot know "accepted", so acceptance
+is a **human signal**, not a state the advisor computes — but it is recorded by a
+named verb rather than left to the driver's memory: `orchestrate.py accept` is the
+SOLE writer that clears the flag (the renderer always sets it true), and the
+driver runs it only on the user's explicit acceptance. Absent that, `done` (row
+12) is only reached when the render basis is current and `awaiting_review` is
+already false. Guard 8.5's `accept-draft` is the same shape one gate earlier: sole
+writer of `.draft_ready.json`, and a no-op **with a stated reason** when the area
+is not actually at its gate (it asks `decide()` rather than re-deriving the
+conditions, so the flag can never be written for a state the gate does not
+describe).
 
 **`reconcile` is in the loop (row 8), not opportunistic.** After `aggregate`
 (and `synthesize`), the orchestrator runs `python3 scripts/reconcile.py <area>`
@@ -120,9 +164,11 @@ compact status (files written, warnings, done) — the orchestrator never ingest
 the drafts or sources itself. It:
 - **Moves sources** `_sources/new/` → `processed/` (and flips `sources.yaml`
   state) only after the fill that consumed them succeeds.
-- **Stops and hands back to the human** at `confirm`, `registry_topup`,
-  `review_triage`, and `review`, with a clear message of what to do; it never
-  auto-crosses a gate.
+- **Stops and hands back to the human** at every result carrying
+  `human_gate: true` — `confirm`, `review_triage`, `registry_topup`,
+  `draft_ready` (M17), `unresolvable` (M18) and `review` — with a clear message of
+  what to do; it never auto-crosses a gate. It also stops, without checkpointing,
+  on `error` (M18), which is not a gate.
 - Re-running is always safe — `orchestrate.py` re-derives the next step from
   state, so the user can invoke the skill repeatedly ("continue fixed-assets").
 
@@ -173,7 +219,8 @@ the drafts or sources itself. It:
 ## Out of scope
 
 Automated reassessment of the procedure set / registry on new sources (M6) — the
-orchestrator will *route* to it once built, but M6 itself is deferred.
+orchestrator will *route* to it once built, but M6 itself is deferred. *(M6 has
+since been BUILT; guards 5 and 5a above are its ladder half.)*
 
 ## Design note
 

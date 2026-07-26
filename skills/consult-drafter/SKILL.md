@@ -152,14 +152,39 @@ A body gap reference in a step's prose is `[[GAP-01 — SHORT LABEL]]` (never a 
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title. Systems/roles are **plain canonical text**, not tokens.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
+- **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
+  PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
+  the area on `(see|per|step|section) N.N` in a fragment — it is hunting baked
+  internal display numbers, and it cannot tell yours from ours. Write **`§9.4 of
+  the prior SOP`** or **`the prior SOP, §9.4`** instead: same meaning, no
+  collision. (Internal cross-references are `[[slug]]` and never a number, so this
+  rule costs you nothing you needed.)
 
 ## Updates — leave no iteration artifacts
 
 Update passes arrive with ONE trigger: new source(s), or `review_notes`
 (`_review/{slug}.notes.yaml`). In a notes file, tracked changes are
 high-authority SME input — apply them; comments are instructions/questions —
-answer in the body or raise a GAP if unresolved. Either way, revise your prior
-draft so it reads as a single finished product with no breadcrumbs:
+answer in the body or raise a GAP if unresolved.
+
+**Every notes item carries a `kind:`, and one kind is not an instruction.** Route
+on it before you read the `note:` text:
+
+- `kind: source` (with `src: SRC-<id>`) — a **new source** for your procedure.
+  Look the id up in `_reference/sources.yaml`, **read that source file yourself**,
+  and work its facts into the body under the same evidence discipline as a first
+  draft. The `note:` text is only the "what's new" summary; the source is the
+  evidence. The dispatch deliberately hands you no source list here — the id is
+  the handle.
+- `kind: review` | `rename` | `consolidation` — ordinary instructions; do what the
+  item says.
+- `kind: retirement` — another procedure is being retired. **Remove your
+  references to the named retired procedure** (its `[[slug]]` token and any prose
+  that depends on it); describe what it did inline where your reader still needs
+  it. Leaving the token is a blocking reconcile error.
+
+Either way, revise your prior draft so it reads as a single finished product with
+no breadcrumbs:
 
 - When a source **answers a prior GAP**, work the fact into the body and **delete
   the GAP entirely** — no "resolved"/"answered" markers.
