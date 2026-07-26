@@ -1,0 +1,11 @@
+# _review/vendor-statement-reconciliation.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "vendor-statement-reconciliation"
+items:
+  - kind: "review"
+    type: "comment"
+    location: "gap workbook row (GAP-40)"
+    anchor: "Whether completed reconciliation worksheets actually exist on the Finance Shared Drive is unverified (SRC-005). The Procurement Lead has never been shown a reconciled statement (SRC-002), and the Corporate Controller concedes the reconciliation may not have been performed in some quarters (SRC-003). Obtain the designated folder location and the worksheets for the most recent two quarters."
+    note: "GAP-03 answered: Honest answer: completed worksheets exist for only 3 of the last 12 months on the shared drive. The reconciliation happens when statement volume is low; it is not a reliable monthly control."
+    source: "gaps_marisol-vance.xlsx"

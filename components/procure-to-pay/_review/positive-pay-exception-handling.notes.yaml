@@ -1,0 +1,11 @@
+# _review/positive-pay-exception-handling.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "positive-pay-exception-handling"
+items:
+  - kind: "review"
+    type: "comment"
+    location: "gap workbook row (GAP-49)"
+    anchor: "How exception items are investigated and what evidence of the disposition decision is retained. Both interview sources establish who dispositions and by when, but neither describes the comparison performed, the criteria for pay versus return, or whether any record beyond the Chase Connect decision itself is kept (SRC-001, SRC-003). Confirm the investigation steps and the evidence retained."
+    note: "GAP-01 answered: Exceptions are worked from the Chase Connect exception queue the same morning they present. Disposition (pay/return) is recorded only in Chase Connect's decision log; no NetSuite record or email trail is kept. I acknowledge that is thin evidence - flag it as an improvement."
+    source: "gaps_marisol-vance.xlsx"
