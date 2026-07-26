@@ -36,14 +36,10 @@ The Accounts Payable Manager reviews exception items in Chase Connect. Exception
 
 #### Step 2: Investigate each exception item
 
-The Accounts Payable Manager determines whether each presented item is a legitimate Company check by reference to the check issue records in NetSuite. The specific investigation criteria applied (e.g. payee, amount, check number comparison) and the evidence retained of the decision were not described by any source — `TBD — confirm with process owner` [[GAP-01 — DISPOSITION CRITERIA AND EVIDENCE]].
+The Accounts Payable Manager works each item directly from the Chase Connect exception queue the same morning it presents, determining whether the presented check is a legitimate Company check by reference to the check issue records in NetSuite (SRC-001, SRC-003; process owner confirmation via the gap workbook).
 
 - **System / Tool:** Chase Connect; NetSuite
-- **Evidence Required:** TBD — see GAP-01
-
-> **VALIDATION REQUIRED — GAP-01:** How exception items are investigated and what evidence of the disposition decision is retained. Both interview sources establish who dispositions and by when, but neither describes the comparison performed, the criteria for pay versus return, or whether any record beyond the Chase Connect decision itself is kept (SRC-001, SRC-003). Confirm the investigation steps and the evidence retained.
-> - **Nature:** unknown
-> - **Owner to confirm:** Accounts Payable Manager
+- **Evidence Required:** Chase Connect decision log entry (the sole record of the disposition — see PP-003 in H)
 
 #### Step 3: Disposition pay or return by the bank deadline
 
@@ -82,7 +78,7 @@ Any exception item with no decision recorded by the deadline is returned by the 
 
 - **Dispositioned exception items:** pay or return decision recorded in Chase Connect for each flagged check (SRC-001).
 - **Returned items:** checks returned by decision or by the default-return configuration (SRC-001, SRC-003).
-- **Evidence retained:** TBD — the disposition record exists in Chase Connect, but what the Company retains as evidence is unconfirmed (see GAP-01 at Step 2 in E).
+- **Evidence retained:** The pay/return decision is recorded only in Chase Connect's decision log; no NetSuite record or email trail of the disposition is kept (process owner confirmation via the gap workbook).
 
 ### H. Known Issues & Improvement Opportunities
 
@@ -94,11 +90,18 @@ Any exception item with no decision recorded by the deadline is returned by the 
 > - **Impact:** Ongoing weekly exception-handling effort and residual check-fraud risk that would shrink or disappear if check volume migrated to electronic payment.
 > - **Severity:** Low
 
+> **PAIN POINT — PP-003:** Evidence of each exception disposition exists only in Chase Connect's decision log — no NetSuite record or email trail is retained, a thinness the process owner acknowledged (process owner confirmation via the gap workbook).
+> - **Impact:** The Company's audit trail for pay/return decisions depends entirely on a bank-side system; there is no Company-retained record supporting or explaining a disposition.
+> - **Severity:** Low
+
 > **IMPROVEMENT OPPORTUNITY — IO-001:** Designate and entitle a backup dispositioner in Chase Connect (with a documented reissue path for items returned by default), so the pay/return decision does not depend on one individual's availability inside a three-hour window.
 > - **Addresses:** PP-001
 
 > **IMPROVEMENT OPPORTUNITY — IO-002:** Migrate remaining check-paid suppliers to ACH to reduce weekly check volume and, with it, the positive pay exception workload and check-fraud exposure.
 > - **Addresses:** PP-001, PP-002
+
+> **IMPROVEMENT OPPORTUNITY — IO-003:** Retain Company-side evidence of each exception disposition — e.g. a periodic export of the Chase Connect decision log, or a brief note on the NetSuite payment record for any returned item — so the disposition trail does not live solely in the bank's system.
+> - **Addresses:** PP-003
 
 ```consult-meta
 systems: [chase-connect, netsuite]
