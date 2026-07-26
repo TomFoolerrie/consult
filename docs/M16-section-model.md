@@ -258,6 +258,14 @@ before it is spent.
 M14's `profile.yaml` `sections:` list becomes the seven-section set; the
 mandatory subset changes from A/B/E to **A/B/D** (scope, card, procedure).
 
+M14's `body_omit:` re-letters with them: controls and known-issues become **F** and
+**G** in this model (from F and H), so an engagement omitting both from the
+procedure body writes `body_omit: [F, G]` after this ticket lands rather than
+`[F, H]` before it. The two features are orthogonal — `body_omit` decides whether
+a section renders in the body, move 3 decides how much of a *callout* renders
+inline — but both are "one home per fact" and should not be confused: move 3 is
+for callouts inline in `D`, `body_omit` is for whole sections.
+
 ## Cost
 
 The four moves have very different prices, and they are independently
