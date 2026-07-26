@@ -215,6 +215,9 @@ def test_retirement_in_agent_view_synthesizes_then_reconciles_clean(tmp_path):
 
     assert orchestrate.decide(area)["action"] == "reconcile"
     assert reconcile.reconcile(area) == 0
+    # M17 guard 8.5: the draft-ready gate holds back the first spend of the pass
+    # (here `render`) until the draft is accepted — tests/test_stage_gates.py.
+    orchestrate.accept_draft(area)
     assert orchestrate.decide(area)["action"] == "render"
 
 
@@ -377,6 +380,7 @@ def test_one_kind_raising_does_not_erase_another(tmp_path, monkeypatch,
         return ["alpha"]
 
     monkeypatch.setattr(scope_delta, "changed_procedure_slugs", fake)
+    orchestrate.accept_draft(area)   # M17 guard 8.5 precedes guard 9
     d = orchestrate.decide(area)
     assert d["action"] == "synthesize"
     assert d["details"]["stale_kinds"] == expected
@@ -394,6 +398,7 @@ def test_both_kinds_raising_falls_back_to_pending_only(tmp_path, monkeypatch):
         raise RuntimeError("dead")
 
     monkeypatch.setattr(scope_delta, "changed_procedure_slugs", boom)
+    orchestrate.accept_draft(area)   # M17 guard 8.5 precedes the first spend
     assert orchestrate.decide(area)["action"] == "render"
 
 

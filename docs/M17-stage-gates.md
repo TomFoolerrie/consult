@@ -1,7 +1,46 @@
 # M17 — Stage gates (draft-ready boundary + sticky holds)
 
-> **Status: DESIGNED.** The gate has no dependencies and can ship alone. Sticky
-> holds depend on M13 (`_client/` resolution).
+> **Status: BUILT — build order item 1 only** (`scripts/orchestrate.py`; tests in
+> `tests/test_stage_gates.py`): guard 8.5, the `accept-draft` subcommand, and the
+> `AREA_GITIGNORE` entry. Item 2 (`consolidate` visibility) still waits on M12 —
+> the gate carries the slot with `consolidated_at_basis: null` so its shape is
+> stable, and `checkpoint --stage consolidate` is NOT yet a validated name. Item 3
+> (sticky holds) still waits on M13 (`_client/` resolution). Deltas from this
+> design:
+>
+> - **The gate fires only when a spend is actually outstanding** — `synthesize`
+>   (stale kinds or a pending placeholder) or `render` (no `.docx` at the current
+>   basis). A gate is a stop before a cost, so with nothing left to spend there is
+>   nothing to stop: an unconditional gate at 8.5 would preempt the `review` gate
+>   (asking the human to accept a draft whose document they have just read), make
+>   `done` unreachable, and demand a fresh accept from every area drafted before
+>   M17. `render` is still fully covered, per the cost topology — it starts a human
+>   cycle, so the gate stands in front of it too.
+> - **`details` shape**: `draft_basis`, `question`, `would_spend`, and `answers` —
+>   a LIST of `{name, command, cost, note}` for `read` / `consolidate` / `accept`,
+>   always all three (the ticket's "assumption to confirm", confirmed). `read`
+>   carries the real `--slugs` list; `consolidate` carries `command: null` +
+>   `consolidated_at_basis: null` until M12; `accept` carries the exact
+>   `accept-draft --area <area>` command.
+> - **`accept_draft()` asks `decide()`** whether the area is at the gate instead
+>   of re-deriving the six conditions, so the flag cannot be written for a state
+>   the gate does not describe (unfilled work, a dirty reconcile, an already-open
+>   ladder). `decide()` is read-only, so asking is free. No-op results carry
+>   `next_action` beside the reason.
+> - **`draft_basis` is `sha256(json.dumps([proc_hashes, registry_hash],
+>   sort_keys=True))`** — canonical over M18's nested `{slug: {file: sha}}` shape,
+>   so the key cannot drift with dict ordering.
+> - **Eight existing tests pinned the pre-gate ladder** (`reconcile`-clean →
+>   `synthesize`/`render`) and each gained one `accept_draft()` step:
+>   `tests/test_orchestrate.py` (2), `tests/test_advisor_honesty.py` (4),
+>   `tests/test_decide_states.py` (1), `tests/test_render_signal.py` (the shared
+>   `_walk_to_render_guard` helper). The ladder change is the ticket; the pins were
+>   correct before it.
+> - **Not done here: the orchestrator's prompt.** "What the orchestrator's prompt
+>   must gain" (cost column, the three answers, the dispatch-count line) is
+>   untouched — `skills/consult-orchestrate/SKILL.md` was outside this pass's file
+>   ownership. Until it lands, a driver following the skill has no `draft_ready`
+>   handler and will stop at the gate without knowing `accept-draft` exists.
 
 ## Goal
 

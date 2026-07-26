@@ -125,6 +125,9 @@ def _walk_to_render_guard(area):
     orchestrate.emit_reconcile(area, clean=True)
     scope_delta.commit(area, "dependencies")
     scope_delta.commit(area, "raci")
+    # M17 guard 8.5: `render` is a spend (it starts a human cycle), so the
+    # draft-ready gate stands in front of it until the draft is accepted.
+    orchestrate.accept_draft(area)
 
 
 def test_working_accept_final_reports_done_not_review(tmp_path):

@@ -291,11 +291,16 @@ def test_reconcile_not_clean_fires_reconcile(tmp_path):
 
 
 def test_full_walk_to_done(tmp_path):
-    """Round-trip: aggregate -> reconcile -> synthesize (first-run delta) -> render -> review -> done, each emit moving decide() forward."""
+    """Round-trip: aggregate -> reconcile -> draft_ready -> synthesize (first-run delta) -> render -> review -> done, each emit moving decide() forward."""
     area = make_area(tmp_path, [{"slug": "a", "filled": True}])
     orchestrate.emit_aggregate(area, warnings=[])
     assert orchestrate.decide(area)["action"] == "reconcile"
     orchestrate.emit_reconcile(area, clean=True)
+
+    # guard 8.5 (M17): the draft-ready gate stands between reconcile and the
+    # first spend — the human accepts the verbs and the nouns once per pass.
+    assert orchestrate.decide(area)["action"] == "draft_ready"
+    orchestrate.accept_draft(area)
 
     # guard 9: no scope_delta baselines yet => both kinds stale => synthesize
     d = orchestrate.decide(area)
@@ -335,6 +340,7 @@ def test_synthesize_on_pending_placeholder(tmp_path):
     orchestrate.emit_reconcile(area, clean=True)
     scope_delta.commit(area, "dependencies")
     scope_delta.commit(area, "raci")
+    orchestrate.accept_draft(area)      # M17 guard 8.5 precedes the first spend
     d = orchestrate.decide(area)
     assert d["action"] == "synthesize"
     assert d["details"]["pending"] == ["82_dependencies.md"]

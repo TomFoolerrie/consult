@@ -5,8 +5,10 @@ Given an engagement *area* folder, derive the SINGLE next action from folder
 state and print it (``next --area <area> --json``). The advisor (``next`` /
 ``decide``) **never mutates**: it is a pure function of on-disk state, so
 re-running it is always safe and idempotent (M7 "Design note"). The only
-mutating pieces hosted here are the centralized signal-file writers (emit_*)
-and the ``checkpoint`` subcommand — a git commit of the area folder the driver
+mutating pieces hosted here are the centralized signal-file writers (emit_*),
+the two human-acceptance verbs (``accept`` → ``.render.json``, ``accept-draft``
+→ ``.draft_ready.json``: each the SOLE writer of its flag) and the ``checkpoint``
+subcommand — a git commit of the area folder the driver
 runs after each successful mutating stage, so engagement state is durable
 without any agent remembering to commit. All state changes happen in the stage
 scripts (scaffold/aggregate/reconcile/render) and the subagents' writes; the
@@ -24,6 +26,7 @@ Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
   6  aggregate        procedure/registry hash changed vs aggregate state
   7  registry_topup   aggregate emitted unmatched-mention warnings (HUMAN GATE)
   8  reconcile        derived views not clean/current this pass
+8.5  draft_ready      a spend is due and the draft is not accepted (HUMAN GATE)
   9  synthesize       procedures changed vs synthesis basis / pending placeholders
  10  render           all views current+reconciled, no fresh .docx
  11  review           rendered, awaiting human review           (HUMAN GATE)
@@ -80,6 +83,11 @@ the named stage script WRITES each. This is the M7 orchestration contract:
       passed, and (M18/F8) the area-relative files its errors named. The
       `failing_files` key is OPTIONAL: absent means "not recorded" and guard 8
       then behaves exactly as it did before M18.
+  .draft_ready.json  written ONLY by `accept-draft` (M17):
+      {"draft_basis": sha, "accepted": true}
+      The human's answer to "am I happy with the verbs and the nouns" at guard
+      8.5, keyed to the TWO DATABASES ONLY (procedures + registry), never to
+      basis_hash — see AreaState.draft_basis().
   .render.json     written by the renderer (M4):
       {"basis": sha, "docx": path, "awaiting_review": bool}
 
@@ -365,6 +373,26 @@ class AreaState:
         if self.has_manifest:
             parts.append(_file_sha(self.manifest_path).encode())
         return _sha(b"|".join(parts))
+
+    def draft_basis(self, proc_hashes=None, registry_hash=None) -> str:
+        """The M17 draft basis: a hash of the TWO DATABASES the draft-ready gate
+        asks about — the procedures (`proc_hashes`) and the registry
+        (`registry_hash`). Nothing else.
+
+        Deliberately NOT basis_hash(): that one includes the DERIVED files, so
+        `synthesize` rewriting 82/84 would move it and re-open a gate the human
+        had just accepted — two accepts for one decision (M17 "Clearing it").
+        The gate's question is "am I happy with the verbs and the nouns", so its
+        key is exactly the verbs and the nouns: any fragment or registry edit
+        re-opens it, derived-view regeneration and renders do not.
+
+        Canonical over the nested {slug: {file: sha}} shape (M18/F5) via
+        json.dumps(sort_keys=True) rather than string concatenation, so the key
+        cannot drift with dict ordering. Callers that already computed the two
+        inputs may pass them in; the default re-reads them."""
+        parts = [self.proc_hashes() if proc_hashes is None else proc_hashes,
+                 self.registry_hash() if registry_hash is None else registry_hash]
+        return _sha(json.dumps(parts, sort_keys=True).encode())
 
     def pending_placeholders(self):
         """Agent-owned derived files still carrying the M3 pending placeholder."""
@@ -696,6 +724,67 @@ def decide(folder: str) -> dict:
         return result("reconcile",
                       "derived views changed or not yet reconciled clean this pass")
 
+    # Read once, for guard 8.5 (is a spend outstanding?) and guards 10/11.
+    ren = _load_json(os.path.join(folder, ".render.json")) or {}
+
+    # 8.5 — draft_ready (M17): the last FREE stop. The area is fully drafted and
+    #       verified (everything above is either free Python or already spent),
+    #       and the two moves below it are the expensive ones: `synthesize`
+    #       dispatches two judgment agents, `render` starts a human review cycle.
+    #       So the gate asks the one question worth asking here — "am I happy
+    #       with the verbs and the nouns?" — before either is paid for.
+    #
+    #       It fires ONLY when one of those moves is actually outstanding. A gate
+    #       is a stop before a cost; with nothing left to spend there is nothing
+    #       to stop, and firing anyway would preempt the `review` gate (asking
+    #       the human to accept a draft whose document they have already read)
+    #       and make `done` unreachable. Cheap to re-derive, so it is read here
+    #       rather than remembered.
+    #
+    #       Keyed to draft_basis() — procedures + registry, NOT basis_hash — so
+    #       one accept covers the whole pass: `synthesize` rewriting the derived
+    #       views cannot re-open it, while any fragment or registry edit does.
+    if pending or stale_kinds or ren.get("basis") != basis:
+        draft_basis = st.draft_basis(cur_proc, cur_reg)
+        dr = _load_json(os.path.join(folder, ".draft_ready.json")) or {}
+        if not (dr.get("accepted") is True
+                and dr.get("draft_basis") == draft_basis):
+            slugs = ",".join(sorted(st.procedure_slugs))
+            return result(
+                "draft_ready",
+                "drafted and verified, and this draft has not been accepted — "
+                "everything past here spends agents (synthesize) or people "
+                "(render -> kits -> review)",
+                gate=True,
+                draft_basis=draft_basis,
+                question="am I happy with the verbs and the nouns before "
+                         "anything else is paid for?",
+                answers=[
+                    {"name": "read",
+                     "command": "scripts/render.py %s -o <out.docx> --slugs %s"
+                                % (folder, slugs),
+                     "cost": "free",
+                     "note": "procedures only (no front/back matter); never "
+                             "writes .render.json, so it does not advance the "
+                             "state machine"},
+                    {"name": "consolidate",
+                     "command": None,
+                     "cost": "1 agent",
+                     "consolidated_at_basis": None,
+                     "note": "the M12 consolidator is not built yet — this slot "
+                             "is the gate's stable shape; consolidated_at_basis "
+                             "starts recording passes when M12 lands"},
+                    {"name": "accept",
+                     "command": "scripts/orchestrate.py accept-draft --area %s"
+                                % folder,
+                     "cost": "free",
+                     "note": "records this draft_basis in .draft_ready.json and "
+                             "lets the ladder through to synthesize"},
+                ],
+                would_spend=("synthesize" if (pending or stale_kinds)
+                             else "render"),
+            )
+
     # 9 — synthesize: judgment views stale vs the changed procedures.
     # The "what changed per agent kind" signal is owned by scope_delta (its
     # per-kind .hashes.json baseline) — reuse it rather than re-reading a flat
@@ -706,7 +795,6 @@ def decide(folder: str) -> dict:
                       pending=pending, stale_kinds=stale_kinds)
 
     # 10 — render: everything current + reconciled, no fresh docx
-    ren = _load_json(os.path.join(folder, ".render.json")) or {}
     if ren.get("basis") != basis:
         return result("render", "views current and reconciled; no fresh .docx")
 
@@ -798,6 +886,32 @@ def accept_review(folder: str) -> dict:
     return {"accepted": True, "docx": ren.get("docx")}
 
 
+def accept_draft(folder: str) -> dict:
+    """Record the human's acceptance of the drafted verbs+nouns — the ONLY
+    writer of `.draft_ready.json`, and the only thing that opens guard 8.5.
+
+    Same shape as accept_review(): a no-op WITH A REASON when there is nothing
+    to accept. "Nothing to accept" is asked of `decide()` itself rather than
+    re-derived here, so the flag can never be written for a state the gate does
+    not describe (an area with unfilled work, an unreconciled area, an area
+    already accepted at this draft basis). decide() is read-only, so asking is
+    free and cannot mutate anything.
+
+    The recorded key is the draft basis — procedures + registry only — so one
+    accept covers a whole pass (M17 "Clearing it")."""
+    d = decide(folder)
+    if d.get("action") != "draft_ready":
+        return {"accepted": False,
+                "reason": "area is not at the draft-ready gate — `next` says "
+                          "%s: %s" % (d.get("action"), d.get("reason")),
+                "next_action": d.get("action")}
+    draft_basis = (d.get("details") or {}).get("draft_basis")
+    _write_json(os.path.join(folder, ".draft_ready.json"),
+                {"draft_basis": draft_basis, "accepted": True})
+    return {"accepted": True, "draft_basis": draft_basis,
+            "next_action": decide(folder).get("action")}
+
+
 # Seeded into an area on first checkpoint if no .gitignore exists: keeps the
 # advisor's signal files and regenerable kit output out of the host repo, per
 # the documented state-file contract. Everything else (fragments, registry,
@@ -805,6 +919,7 @@ def accept_review(folder: str) -> dict:
 AREA_GITIGNORE = """\
 # consult advisor signal files (derived; regenerated by the stage scripts)
 .aggregate.json
+.draft_ready.json
 .hashes.json
 .reconcile.json
 .render.json
@@ -889,10 +1004,20 @@ def main(argv=None):
              "(clears awaiting_review so the advisor can reach `done`)")
     p_acc.add_argument("--area", required=True,
                        help="area folder path or bare area name under components/")
+    p_dra = sub.add_parser(
+        "accept-draft",
+        help="record the user's acceptance of the drafted procedures + registry "
+             "(opens the draft-ready gate so the ladder can reach synthesize)")
+    p_dra.add_argument("--area", required=True,
+                       help="area folder path or bare area name under components/")
     args = parser.parse_args(argv)
 
     if args.cmd == "accept":
         print(json.dumps(accept_review(resolve_area(args.area)), indent=2))
+        return 0
+
+    if args.cmd == "accept-draft":
+        print(json.dumps(accept_draft(resolve_area(args.area)), indent=2))
         return 0
 
     if args.cmd == "next":

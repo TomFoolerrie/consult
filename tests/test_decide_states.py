@@ -322,8 +322,10 @@ def test_retirement_agent_view_clears_after_synthesize(tmp_path):
     scope_delta.commit(folder, "raci")
 
     # basis moved: the verifier runs next, and a clean pass reaches render
+    # (through M17's draft-ready gate — the pass's first spend needs an accept)
     assert orchestrate.decide(folder)["action"] == "reconcile"
     orchestrate.emit_reconcile(folder, clean=True, failing_files=[])
+    orchestrate.accept_draft(folder)
     assert orchestrate.decide(folder)["action"] == "render"
 
 
