@@ -199,3 +199,54 @@ change the state that selected it.* When nothing satisfies that, the correct
 result is a **gate naming what the human must do** — never a stage that will be
 re-selected unchanged on the next call. `review_triage` is already this shape and
 is the model to follow.
+
+---
+
+# Part 3 — invariant enforcement
+
+A second sweep (five lenses over the ticket set and code, high-severity claims
+adversarially verified) asked a different question: which of the invariants the
+docs state are actually enforced by code? Method as before — every claim below
+was checked against the named files, not inferred.
+
+**Result: the constitution is prose.** The core invariants are stated in
+`docs/README.md` and restated in tickets, and almost none has a mechanical check:
+
+- **F12 — One writer per file (docs/README.md:242): unenforced.** Every subagent
+  carries an unscoped `Write` tool (`agents/consult-drafter.md`,
+  `consult-raci.md`, `consult-dependencies.md`), and reconcile checks only that a
+  derived file contains a `<!-- derived:` marker — the marker's kind and writer
+  are never compared against the manifest's `derived_kind`/`writer`. A drafter
+  overwriting a sibling's fragment or a Python-owned view passes every gate.
+- **F13 — Evidence traceability: decorative.** `grep -r 'SRC-' scripts/` matches
+  nothing. No script parses, validates, or joins an SRC- citation; a fragment
+  citing a nonexistent `SRC-99`, or citing nothing at all, passes reconcile and
+  renders. The system's headline claim rests entirely on drafter-prompt prose.
+- **F14 — `touches` slugs unvalidated → a new livelock.** No code checks
+  `sources.yaml` `touches` entries against manifest slugs. `mark_processed`
+  retires a source only when `touches ⊆ filled` (`scripts/sources.py:86-90`), so
+  one typo'd slug makes a source permanently unretirable; guard 5 then re-fires
+  `taxonomy` forever — the same shape M18 forbids, selected by a state M18 does
+  not enumerate. Survives M6 as specced.
+- **F15 — The heading contract ("the one rule", docs/README.md:139-142):
+  unchecked.** A fragment beginning `# Title` sails through parse, assemble, and
+  every gate.
+- **F16 — Baked display numbers: unchecked.** Nothing detects `see 2.1` written
+  in prose instead of `[[slug]]` — the exact defect the r1→r2 revision existed
+  to eliminate, silently stale on the first reorder.
+- **F17 — Callout IDs quoted in agent-view prose: unchecked.** Reconcile
+  validates IDs in derived-table rows only; an ID quoted in `82`/`84` prose is
+  not display-transformed at render and disagrees with the document's numbering.
+- **F18 — Credibility guardrail (registry descriptions "never invented"):
+  prompt-only, and currently uncheckable** — registry entries have no citation
+  field for a validator to read. Recorded as a schema gap, not an M22 check.
+
+Also verified in this sweep, recorded for later work (not invariant
+enforcement): review rounds have no bookkeeping (kit index destroyed on each
+render, git-ignored, no sent/returned state); per-person kits do not compose
+across areas; M17's gate as first specced re-keyed on `basis_hash` and demanded
+two accepts per pass (fixed in the ticket); `mark-processed` counting was
+kind-blind across the five notes producers (fixed by M6's bus contract); no
+structural run-to-run diff exists anywhere, and uuid4 `.maps/` names plus
+display-ID cascades guarantee raw git diff between build branches is
+noise-dominated.

@@ -73,16 +73,25 @@ Returns `human_gate: true` with three answers in `details`:
 
 ### Clearing it — mirror `accept_review`
 
-`.draft_ready.json` holds `{"basis": <basis_hash>, "accepted": true}`. The gate
-opens unless the recorded basis equals the current one, and a new
-`accept-draft` subcommand is its only writer — exactly the shape of
-`accept_review()` (`scripts/orchestrate.py:460`) and its `accept` CLI wiring:
+`.draft_ready.json` holds `{"draft_basis": <sha over proc_hashes + registry_hash>,
+"accepted": true}`. The gate opens unless the recorded value equals the current
+one, and a new `accept-draft` subcommand is its only writer — exactly the shape
+of `accept_review()` (`scripts/orchestrate.py:460`) and its `accept` CLI wiring:
 sole writer of the flag, no-op with a stated reason when there is nothing to
 accept.
 
-Keyed on the **basis hash, not a boolean**, so any fragment or registry change
-re-opens the gate. New text deserves a fresh look, and this is the same
-reasoning `.render.json` already uses.
+Keyed on a **hash of the two databases — `proc_hashes` + `registry_hash` — not a
+boolean, and NOT the full `basis_hash`**. The distinction is load-bearing, and
+the first revision of this ticket got it wrong: `basis_hash()` includes the
+derived files, so `synthesize` rewriting `82`/`84` would re-open a gate the
+human had just accepted, and every pass would demand two accepts for one
+decision. The gate's question is "am I happy with the verbs and the nouns"; its
+key must be exactly the verbs and the nouns. Any fragment or registry change
+re-opens it; derived-view regeneration and renders do not.
+
+`.draft_ready.json` joins the ignored signal-file family: it is added to the
+`AREA_GITIGNORE` seed next to `.render.json` (advisor state, not engagement
+content).
 
 ### `consolidate` becomes visible to the advisor
 
@@ -153,7 +162,10 @@ costs* something the orchestrator has to reason about, so `SKILL.md` needs:
 - A freshly filled area returns the `draft_ready` gate, not `synthesize`, with
   `.render.json` absent.
 - `accept-draft` → next call returns `synthesize`.
-- Touch one fragment after accepting → the gate re-opens (basis changed).
+- `synthesize` rewrites `82`/`84` → the gate does **not** re-open. One accept
+  per pass.
+- Touch one fragment after accepting → the gate re-opens (draft basis changed).
+- Edit `_reference/*.yaml` after accepting → the gate re-opens.
 - `accept-draft` on an area with unfilled work is a no-op with a reason.
 - `hold: [synthesize]` → `synthesize` returns with `human_gate: true` and
   `held_by`; the action name is unchanged.

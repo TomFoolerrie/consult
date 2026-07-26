@@ -64,7 +64,9 @@ this is a mechanical list, not a judgment.
 
 A rename produces one `_review/{slug}.notes.yaml` entry per affected procedure —
 "canonical name for `systems/netsuite` changed to *Oracle NetSuite ERP*; this
-procedure still uses *NetSuite*" — and guard 2 dispatches update drafters. Same
+procedure still uses *NetSuite*" — stamped `kind: rename` per M6's notes bus
+contract (freely deletable, never counted toward source retirement), and guard 2
+dispatches update drafters. Same
 route M6 uses for new sources, and the same reason: a drafter owns its fragment's
 prose, and a mechanical find-and-replace would edit sentences it cannot read.
 

@@ -63,6 +63,55 @@ needing new machinery.
    succeeded in a fill batch." It must also accept slugs that succeeded in an
    *update* batch, or the source never retires and the loop survives the fix.
 
+### Notes carry a `kind` (the bus contract)
+
+This ticket turns `_review/{slug}.notes.yaml` from a single-producer queue into
+a bus: after the outstanding set lands it has **five producers** — M8 review
+extraction, this ticket's source notes and retirement notes, M12 consolidation
+findings, M20 rename notes — and one consumer, guard 2. Undifferentiated items
+break two things that each producer's ticket assumes:
+
+- **Retirement accounting goes kind-blind.** If `mark-processed` counts every
+  successful update slug, a *reviewer comment* on a procedure retires a source
+  no drafter ever read — silent loss of client material, the worst failure
+  class in a provenance system.
+- **The veto stops being safe.** M12 and M20 advertise "delete any note you
+  disagree with" as the human control point. Deleting a *source* note strands
+  its source: it can never retire, and guard 5 re-fires forever.
+
+The contract, three rules:
+
+1. **Every item carries `kind:`** — `review | source | retirement | rename |
+   consolidation` — stamped by its producer. Source-kind items also carry
+   `src: SRC-<id>`. An item with no `kind` fails loud at load; there is no
+   default.
+2. **`notes_util` preserves these fields.** Today `_emit` silently strips any
+   field outside its fixed key tuple on merge, which would delete `kind` and
+   `src` the first time a second producer appends to the same file. The tuple
+   is extended, and an unknown field becomes a loud error rather than a silent
+   drop.
+3. **Retirement counts only source-kind consumption.** `mark-processed` credits
+   a slug toward a source's `touches` only when the consumed note was
+   `kind: source` with a matching `src:`. Review, rename, and consolidation
+   updates never move a source.
+
+Veto semantics follow from the kinds: review, consolidation, and rename notes
+may be deleted freely — that is their design. The sanctioned veto for a
+*source* note is upstream, at the confirm gate, by editing the proposal's
+`touches`. If a human deletes the note instead, the source sits unretirable in
+`new/` — and the advisor must surface that state, naming the `SRC-` id (M18's
+`unresolvable` shape), never re-loop taxonomy over it.
+
+### Additional acceptance (bus contract)
+
+- A reviewer-comment update on a procedure a source touches does **not** move
+  that source to `processed/`.
+- Deleting a source-kind note yields a gate naming the stranded `SRC-` id, not
+  a `taxonomy` re-fire.
+- Two producers appending to one slug's notes file lose no fields; `kind:` and
+  `src:` survive the merge.
+- A note item without `kind:` fails loud at load.
+
 ### Procedure-set diff (unchanged from the original sketch)
 
 Diff proposed slugs against existing manifest procedures: **new** → fragment +

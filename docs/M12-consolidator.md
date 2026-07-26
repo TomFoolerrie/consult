@@ -207,7 +207,9 @@ whole class of finding. When a cap truncates, the report says what was dropped
 ### Output
 
 Notes via `notes_util.append_items` (merge-append + dedupe, so a rerun is
-idempotent), shaped like the existing tracked-change/comment notes so drafters
+idempotent), stamped `kind: consolidation` per M6's notes bus contract (so they
+never count toward source retirement and remain freely deletable), and
+shaped like the existing tracked-change/comment notes so drafters
 need no new instructions:
 
 ```yaml
