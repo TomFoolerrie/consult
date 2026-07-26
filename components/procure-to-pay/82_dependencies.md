@@ -2,4 +2,22 @@
 
 <!-- derived: dependencies; writer: agent -->
 
-> _Pending synthesis (M5)._
+The table below reads each procedure's upstream (what must happen or be available before it runs) and downstream (what depends on its output) connections from the process overviews. External dependencies — other teams, systems, or calendars outside this document's procedures — appear as plain text.
+
+| Procedure | Upstream (depends on) | Downstream (feeds) |
+|---|---|---|
+| [[new-vendor-onboarding]] | Requester need for a supplier not yet on file; Supplier self-registration via the SIM portal | [[requisition-and-approval]], [[vendor-banking-change]], [[vendor-master-data-maintenance]] |
+| [[vendor-banking-change]] | Supplier banking-change request (email to Accounts Payable); initial banking details captured in [[new-vendor-onboarding]] | [[weekly-payment-run]], [[wire-and-manual-payment]] (disburse to the details this procedure makes active) |
+| [[vendor-master-data-maintenance]] | [[new-vendor-onboarding]]; nightly Coupa-to-NetSuite supplier sync (fallout to correct) | [[po-invoice-entry-and-three-way-match]], [[weekly-payment-run]] and all other disbursements; semi-annual review reported to the Corporate Controller |
+| [[requisition-and-approval]] | Active supplier record from [[new-vendor-onboarding]]; Coupa tiered approval chains | [[po-issuance-and-change-orders]] |
+| [[po-issuance-and-change-orders]] | Fully approved requisition from [[requisition-and-approval]] | [[goods-receipt]], [[po-invoice-entry-and-three-way-match]]; Supplier receipt of the purchase order (cXML / PDF email); PO terms direct supplier invoices to the AP Inbox for [[invoice-intake-and-capture]] |
+| [[confirming-po]] | Off-process purchases bypassing [[requisition-and-approval]]; no-PO invoice returned by Accounts Payable; deliveries unmatched to a PO from [[goods-receipt]]; Plant Manager written justification | [[po-invoice-entry-and-three-way-match]] (via Coupa-to-NetSuite PO sync) |
+| [[goods-receipt]] | Open purchase orders from [[po-issuance-and-change-orders]]; inbound carrier deliveries | [[po-invoice-entry-and-three-way-match]] (item receipt for the match); [[return-to-vendor]]; [[confirming-po]] (deliveries with no PO); month-end received-not-invoiced accrual (Record to Report, outside this process) |
+| [[return-to-vendor]] | Goods recorded through [[goods-receipt]]; supplier return authorization obtained by the Buyer | Expected vendor credit memo offsetting the supplier account processed under [[po-invoice-entry-and-three-way-match]] |
+| [[invoice-intake-and-capture]] | Supplier invoices arriving in the AP Inbox or PO-box paper mail (directed there by [[po-issuance-and-change-orders]] PO terms); Ephesoft extraction | [[po-invoice-entry-and-three-way-match]], [[non-po-invoice-entry-and-approval]] (pending bills in NetSuite) |
+| [[po-invoice-entry-and-three-way-match]] | Pending bill from [[invoice-intake-and-capture]]; approved purchase order from [[po-issuance-and-change-orders]]; item receipt from [[goods-receipt]] | [[weekly-payment-run]] (bills eligible for payment); [[vendor-statement-reconciliation]] |
+| [[non-po-invoice-entry-and-approval]] | Captured bills from [[invoice-intake-and-capture]]; approver action in NetSuite queues | [[weekly-payment-run]]; [[vendor-statement-reconciliation]] |
+| [[weekly-payment-run]] | Bills released through [[po-invoice-entry-and-three-way-match]] and approved through [[non-po-invoice-entry-and-approval]]; active remit-to details from [[vendor-banking-change]]; Corporate Controller approval of the proposal | [[positive-pay-exception-handling]] (positive pay issue file at check print); ACH / check disbursement through Chase Connect; [[vendor-statement-reconciliation]] |
+| [[wire-and-manual-payment]] | Signed Wire Transfer Request Form; Corporate Controller written authorization for manual checks; remit-to details maintained through [[vendor-banking-change]] | [[positive-pay-exception-handling]] (any check issued); monthly bank reconciliation by the Assistant Controller (outside this process); [[vendor-statement-reconciliation]] |
+| [[positive-pay-exception-handling]] | Positive pay issue file and check run from [[weekly-payment-run]]; checks issued under [[wire-and-manual-payment]]; bank exception flags in Chase Connect | Pay / return disposition to the bank before the deadline (default return if undecided) |
+| [[vendor-statement-reconciliation]] | Supplier statements of account; bills from [[po-invoice-entry-and-three-way-match]] and [[non-po-invoice-entry-and-approval]]; payments from [[weekly-payment-run]] and [[wire-and-manual-payment]]; quarter-end close calendar | Completed reconciliation worksheet retained on the Finance Shared Drive |
