@@ -183,3 +183,13 @@ roles:
   people: []
   reports_to: ''
   confidence: high
+- slug: carrier
+  name: Carrier
+  aliases:
+  - carrier
+  - freight carrier
+  - the carrier
+  - carrier driver
+  people: []
+  reports_to: ''
+  confidence: high

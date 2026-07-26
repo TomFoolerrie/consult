@@ -119,3 +119,16 @@ systems:
     Clerk works the audit queue, the Treasury Analyst owns the corporate card side).'
   limitations: ''
   confidence: high
+- slug: excel
+  name: Microsoft Excel
+  aliases:
+  - Excel
+  - excel
+  - Excel export
+  - spreadsheet
+  description: 'Working medium for the payment-proposal review: the AP Manager exports
+    the NetSuite payment proposal to Excel for the Corporate Controller''s review and
+    approval. Not a system of record; the approved export''s retention location is an
+    open gap (see weekly-payment-run).'
+  limitations: ''
+  confidence: high
