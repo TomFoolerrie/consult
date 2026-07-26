@@ -1,6 +1,20 @@
 # M13 — Engagement-level config (parent folder resolution)
 
-> **Status: DESIGNED.** Small, self-contained; pays off at the second area.
+> **Status: BUILT.** Deltas from this design: the helper lives at
+> `scripts/client_config.py` and returns a `dict` subclass (`ClientConfig`) so
+> `load(area)` is usable anywhere a dict is while still carrying provenance
+> (`.layers` key→layer, `.conventions` / `.convention_layers`, `.layer_label()`,
+> `.report_line()`); a layer's `_client/` is read as *all* its `*.yaml`/`*.yml`
+> merged into one top-level key namespace, and two files in the SAME layer
+> claiming one key is fatal rather than an arbitrary winner; `conventions/`
+> merges every file type by name, not just `.md`; malformed YAML — including a
+> non-mapping top level — raises `ClientConfigError` naming the file, which
+> **changes** the old `people.py` behavior of silently treating an unparseable
+> `_client/org-chart.yaml` as absent (`_reference/roles.yaml` still degrades
+> quietly — it is agent-proposed, not ground truth); reporting is one line from
+> `reconcile` (`client config: …`) plus `People.client_layer` for callers that
+> print their own status; `scaffold.py` needed no change (it reads `_reference/`
+> only, never `_client/`).
 
 ## Goal
 

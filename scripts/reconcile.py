@@ -102,6 +102,8 @@ except ImportError:  # pragma: no cover - orchestrate is always present
 # Callout grammar primitives are shared with aggregate.py via callouts.py so the
 # LABEL→prefix map + ID/gap grammar never drift. reconcile keeps its own loose
 # CALLOUT_RE (it must still detect a callout with a MALFORMED id to flag it).
+import client_config  # noqa: E402
+
 from callouts import (  # noqa: E402
     LABEL_PREFIX, PREFIXES, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
     BODY_GAP_RE, BARE_GAP_RE, XREF_RE, blank_fences as strip_fences,
@@ -225,17 +227,13 @@ def load_people_names(folder: Path) -> list[str]:
                     if isinstance(p, str):
                         names.append(p.strip())
 
-    cfile = folder / "_client" / "org-chart.yaml"
-    if cfile.is_file():
-        try:
-            data = yaml.safe_load(cfile.read_text(encoding="utf-8")) or {}
-        except yaml.YAMLError:
-            data = {}
-        for entry in data.get("people") or []:
-            if isinstance(entry, dict) and isinstance(entry.get("name"), str):
-                names.append(entry["name"].strip())
-            elif isinstance(entry, str):
-                names.append(entry.strip())
+    # M13: the org chart resolves through the client-config layers — the area's
+    # own `_client/` shadows the engagement-wide `components/_client/`.
+    for entry in client_config.load(folder).get("people") or []:
+        if isinstance(entry, dict) and isinstance(entry.get("name"), str):
+            names.append(entry["name"].strip())
+        elif isinstance(entry, str):
+            names.append(entry.strip())
 
     seen: set[str] = set()
     out: list[str] = []
@@ -698,6 +696,10 @@ def reconcile(folder: str) -> int:
     except doc_model.ManifestError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
+
+    # M13: say which client-config layer answered, so a surprising name-check
+    # result is one line of output away from being explained.
+    print(client_config.report_line(folder))
 
     # 1. manifest v1 schema (incl. duplicate order/slug/file)
     for e in doc_model.validate_manifest(manifest):
