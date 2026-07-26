@@ -1,7 +1,24 @@
 # M19 — Fragment integrity in reconcile
 
-> **Status: DESIGNED.** Small, no dependencies.
+> **Status: BUILT** — substance check only (`scripts/reconcile.py`
+> `check_fragment_substance`). Deltas from this design:
+> - **The `<!-- unfilled -->` sentinel is an exemption.** A fragment carrying it
+>   is a scaffolded skeleton that declares itself unfinished and is routed to
+>   `fill` by the advisor (guard 4), so it is skipped. The defect class M19
+>   targets is SILENT emptiness — the drafter that removed the sentinel and wrote
+>   nothing. A zero-byte file cannot carry a sentinel, so the F2 case is
+>   unaffected. The same exemption is applied to M22's zero-citation check for
+>   consistency.
+> - "No content beyond its heading(s)" is implemented as: fence bodies (incl.
+>   `consult-meta` end matter), blank lines, HTML comments and horizontal rules
+>   are not substance. No length threshold anywhere.
+> - **The `proc_hashes()` slug-collision fix (F5) is NOT in this pass** — it
+>   lives in `scripts/orchestrate.py`, which this pass did not own; reassigned to
+>   the agent that takes M18/orchestrate. The reconcile half of F5 (duplicate
+>   slug = ERROR) was already correct and is untouched.
+>
 > Evidence: `docs/audit-decide-exhaustiveness.md` (F2, F5).
+> Tests: `tests/test_fragment_integrity.py` (10).
 
 ## Goal
 

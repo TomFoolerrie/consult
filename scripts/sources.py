@@ -19,16 +19,29 @@ out of the read-only advisor (orchestrate.py) and out of M0's scaffold:
 
 Never called by hand and never by a subagent — the orchestrator owns moves so a
 source is moved only once its fill has actually succeeded.
+
+This module also OWNS `_reference/sources.yaml` as a contract (M22 check 2): the
+`touches` ⊆ manifest-procedure-slugs validator and the SRC- id registry read live
+here, and `reconcile.py` imports them, so the load-time gate and the QC gate
+report the identical defect. F14: one typo'd `touches` slug makes a source
+permanently unretirable (`touches` never becomes a subset of the filled slugs),
+so guard 5 re-fires `taxonomy` forever — it is named here the first time any
+stage reads the file.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import sys
 
 import yaml
+
+
+class SourcesError(Exception):
+    """A fail-loud defect in _reference/sources.yaml (never a warning)."""
 
 
 def resolve_area(area: str) -> str:
@@ -48,7 +61,101 @@ def _load_sources(folder: str) -> dict:
         data = yaml.safe_load(fh) or {}
     if "sources" not in data or data["sources"] is None:
         data["sources"] = []
+    errs = touches_errors(folder, data)
+    if errs:
+        raise SourcesError("; ".join(errs))
     return data
+
+
+# --------------------------------------------------------------------------- #
+# sources.yaml as a contract (M22 check 2)
+# --------------------------------------------------------------------------- #
+
+def registered_ids(folder: str) -> set[str]:
+    """The SRC- ids registered in _reference/sources.yaml.
+
+    Empty set when the file is absent, unreadable, or registers nothing — the
+    callers (reconcile's citation check) treat "no registry" as "nothing to
+    validate against" and say so, rather than failing every citation."""
+    path = _sources_yaml_path(folder)
+    if not os.path.isfile(path):
+        return set()
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except yaml.YAMLError:
+        return set()
+    out = set()
+    for entry in (data.get("sources") or []) if isinstance(data, dict) else []:
+        if isinstance(entry, dict) and isinstance(entry.get("id"), str):
+            out.add(entry["id"].strip())
+    return out
+
+
+def manifest_procedure_slugs(folder: str) -> set[str] | None:
+    """Procedure slugs from manifest.json, or None when there is no readable
+    manifest.
+
+    None is the documented BOUNDARY for the `touches` check: during initial
+    scoping `consult-taxonomy` writes sources.yaml (with its `touches` tags)
+    BEFORE scaffold writes manifest.json, so for that window there is no
+    authority to validate against and the check must no-op rather than reject
+    every tag. An unreadable manifest is reported by reconcile/doc_model, not
+    twice here."""
+    path = os.path.join(folder, "manifest.json")
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as fh:
+            manifest = json.load(fh)
+    except (json.JSONDecodeError, OSError):
+        return None
+    if not isinstance(manifest, dict):
+        return None
+    return {c.get("slug") for c in manifest.get("components") or []
+            if isinstance(c, dict) and c.get("role") == "procedure"
+            and isinstance(c.get("slug"), str)}
+
+
+def touches_errors(folder: str, data: dict | None = None) -> list[str]:
+    """`touches` ⊆ manifest procedure slugs — the single implementation.
+
+    Returns [] when sources.yaml is absent/unreadable or when no manifest exists
+    yet (see manifest_procedure_slugs). Called at load time (fail loud at the
+    source) and by reconcile (fail loud at the gate)."""
+    slugs = manifest_procedure_slugs(folder)
+    if slugs is None:
+        return []
+    if data is None:
+        path = _sources_yaml_path(folder)
+        if not os.path.isfile(path):
+            return []
+        try:
+            with open(path, encoding="utf-8") as fh:
+                data = yaml.safe_load(fh) or {}
+        except yaml.YAMLError:
+            return []
+    if not isinstance(data, dict):
+        return []
+
+    rel = "_reference/sources.yaml"      # message path: stable, not os-specific
+    errs: list[str] = []
+    for entry in data.get("sources") or []:
+        if not isinstance(entry, dict):
+            continue
+        sid = entry.get("id", "?")
+        touches = entry.get("touches") or []
+        if isinstance(touches, str):
+            errs.append(f"{rel}: {sid} `touches` must be a list of procedure "
+                        f"slugs, got a string")
+            continue
+        for slug in touches:
+            if slug not in slugs:
+                errs.append(
+                    f"{rel}: {sid} touches {slug!r} which is not a manifest "
+                    f"procedure slug (unretirable source — F14)"
+                )
+    return errs
 
 
 def _dump_sources(folder: str, data: dict) -> None:
@@ -75,7 +182,12 @@ def _source_relpath(entry: dict, folder: str, subdir: str) -> str:
 # --------------------------------------------------------------------------- #
 
 def mark_processed(folder: str, filled: set) -> int:
-    data = _load_sources(folder)
+    try:
+        data = _load_sources(folder)
+    except SourcesError as exc:
+        # Fail loud at the source: nothing moves, nothing is flipped, exit 1.
+        print("ERROR: %s" % exc, file=sys.stderr)
+        return 1
     processed_dir = os.path.join(folder, "_sources", "processed")
     os.makedirs(processed_dir, exist_ok=True)
 

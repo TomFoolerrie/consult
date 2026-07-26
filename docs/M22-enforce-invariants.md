@@ -1,8 +1,34 @@
 # M22 — Enforce the constitution
 
-> **Status: DESIGNED.** No dependencies; build early — every later ticket's
-> drafter passes get policed by it.
+> **Status: BUILT.** All six checks in `scripts/reconcile.py`; the `touches`
+> validator + SRC- registry read live in `scripts/sources.py` (it owns
+> `sources.yaml`) and reconcile imports them, so the load-time gate and the QC
+> gate report the identical defect. Deltas from this design:
+> - **Two documented boundaries.** (a) `touches` membership no-ops until a
+>   readable `manifest.json` exists — taxonomy writes `sources.yaml` before
+>   scaffold writes the manifest, and a check with no authority to check against
+>   must not reject every tag. (b) The citation checks no-op when
+>   `sources.yaml` registers no ids (absent/empty/unreadable); the skip is loud
+>   (WARNING) whenever a fragment does cite ids, so the hole is never silent.
+> - **Zero-citation exempts an `<!-- unfilled -->` skeleton** (M19's exemption,
+>   same reasoning: it cites nothing by construction and is routed to `fill`).
+> - Ids are compared literally — `SRC-1` does not satisfy a registry holding
+>   `SRC-001`. Check 5 is case-insensitive (`Section 3.2` is the same defect).
+> - Check 3 also errors on a marker that is present but not in the
+>   `kind; writer` grammar; marker whitespace/case is not a defect.
+> - Check 4 covers procedure fragments (the ticket's "any fragment line"), not
+>   static/derived files.
+> - **Census (`build/p2p-run-1`, 15 procedures) — 4 errors, all check 5**: GAP
+>   callout prose citing the CLIENT's prior SOP by its section number ("the 2023
+>   SOP (section 9.4)", "section 9.5 of the prior SOP", "(section 9.1)",
+>   "(section 7.5)"). External-document references, not baked internal display
+>   numbers — accepted false positives per this ticket's fail-loud-wins note; the
+>   census fix is 4 reworded sentences on the build branch. Checks 1/2/3/4/6 and
+>   M19 found **zero** violations there: every procedure cites 2–5 registered
+>   `SRC-` ids, all 51 `touches` tags resolve, all 8 markers match.
+>
 > Evidence: `docs/audit-decide-exhaustiveness.md` Part 3 (F12–F18).
+> Tests: `tests/test_invariants.py` (27).
 
 ## Goal
 

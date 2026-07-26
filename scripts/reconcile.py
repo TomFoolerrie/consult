@@ -23,11 +23,35 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
     - a known individual's FULL NAME in procedure/derived prose (names come
       from roles.yaml `people:` lists + `_client/org-chart.yaml`; procedures
       refer to people by ROLE, never by name)
+    - M19 — a procedure fragment with no substance: zero-byte, or nothing
+      beyond its heading(s). NOT a length check (M15's retirement stands).
+    - M22.1 — an `SRC-<n>` citation with no entry in `_reference/sources.yaml`,
+      and a procedure fragment citing no `SRC-` id at all
+    - M22.2 — a `sources.yaml` `touches` slug that is not a manifest procedure
+      slug (same check, same message, as `sources.py` load time)
+    - M22.3 — a derived file whose `<!-- derived: KIND; writer: W -->` marker
+      disagrees with the manifest's `derived_kind`/`writer` (or is unparseable)
+    - M22.4 — an H1 (`# `) line in a procedure fragment (the heading contract)
+    - M22.5 — a baked display number (`see|per|step|section 1.2`) in fragment or
+      agent-derived prose; the sanctioned cross-reference form is `[[slug]]`
+    - M22.6 — a callout ID quoted in agent-owned derived prose (82/84) outside a
+      derived-table row (render display-transforms IDs only inside procedures)
 
   WARNING (exit stays 0):
     - a `consult-meta` systems:/roles: slug absent from `_reference/*.yaml`
     - a standalone first/last name of a known individual in procedure/derived
       prose (possible leak — could be a coincidence, so the human judges)
+    - fragments cite `SRC-` ids but `_reference/sources.yaml` holds none (the
+      citation checks are skipped — see the documented boundaries below)
+
+Documented boundaries (deliberate, see docs/M19 + docs/M22):
+    - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
+      the M19 substance check and from the M22 zero-citation check: it declares
+      itself unfinished and the advisor routes it to `fill`. M19 targets SILENT
+      emptiness.
+    - `touches` membership and the SRC- citation checks need a manifest /
+      a populated sources.yaml respectively; during initial scoping either may
+      not exist yet, so each check no-ops until its authority is on disk.
 
 Usage:
     python3 scripts/reconcile.py <area-folder>
@@ -54,6 +78,22 @@ try:
 except ImportError:
     yaml = None
 
+# `sources.py` owns _reference/sources.yaml: the `touches` ⊆ manifest-slugs
+# validator (M22 check 2) lives there so the load-time gate and this gate can
+# never drift, and the SRC- id registry read has one implementation.
+try:
+    import sources as sources_mod
+except ImportError:  # pyyaml absent → sources.py unimportable; check no-ops
+    sources_mod = None
+
+# The `unfilled` sentinel grammar is the advisor's fill predicate (guard 4);
+# borrowed rather than restated so the M19/M22 exemption cannot drift from it.
+try:
+    from orchestrate import UNFILLED_RE
+except ImportError:  # pragma: no cover - orchestrate is always present
+    UNFILLED_RE = re.compile(r"(<!--\s*unfilled\s*-->)|(status\s*:\s*unfilled)",
+                             re.I)
+
 
 # --------------------------------------------------------------------------- #
 # Callout grammar
@@ -76,6 +116,27 @@ CALLOUT_RE = re.compile(
 )
 
 DERIVED_MARKER_RE = re.compile(r"<!--\s*derived:", re.IGNORECASE)
+
+# The ownership marker in full: `<!-- derived: KIND; writer: W -->` (M22 check 3
+# compares both fields against the manifest entry).
+DERIVED_MARKER_FULL_RE = re.compile(
+    r"<!--\s*derived:\s*(?P<kind>[^;>]+?)\s*;\s*writer:\s*(?P<writer>[^\s>]+?)\s*-->",
+    re.IGNORECASE,
+)
+
+# An `SRC-` citation as the drafter writes it (docs/README.md sources lifecycle).
+# Compared LITERALLY against the ids in _reference/sources.yaml, so `SRC-1` does
+# not satisfy a registry holding `SRC-001`.
+SRC_RE = re.compile(r"\bSRC-\d+\b")
+
+# An H1 line — "the one rule" (docs/README.md heading contract). Up to three
+# leading spaces still opens an ATX heading.
+H1_RE = re.compile(r"^ {0,3}#[ \t]")
+
+# A baked display number: the ticket's deliberately NARROW contextual pattern.
+# Case-insensitive ("Section 3.2" is the same defect). A false positive costs one
+# rewritten sentence; a false negative goes stale on the first reorder.
+BAKED_NUMBER_RE = re.compile(r"\b(?:see|per|step|section)\s+\d+\.\d+", re.IGNORECASE)
 
 # Fenced code blocks (``` or ~~~) are blanked via callouts.blank_fences
 # (imported above as strip_fences), preserving line count/numbers.
@@ -240,6 +301,243 @@ def check_named_individuals(folder: Path, manifest: dict,
                         f"({owner}) — use the role instead"
                     )
                     break  # one warning per token per line
+
+
+# --------------------------------------------------------------------------- #
+# Component iteration helper
+# --------------------------------------------------------------------------- #
+
+def _components(manifest: dict, role: str | None = None,
+                writer: str | None = None) -> list[dict]:
+    """Manifest components, optionally filtered by `role` and (for derived
+    files) by `writer`."""
+    out = []
+    for comp in manifest.get("components", []):
+        if role is not None and comp.get("role") != role:
+            continue
+        if writer is not None and comp.get("writer") != writer:
+            continue
+        out.append(comp)
+    return out
+
+
+def _read(folder: Path, comp: dict) -> str | None:
+    """A component's raw text, or None when the file is not on disk (missing
+    files are reported once by the manifest/derived checks, not here)."""
+    fpath = folder / comp.get("file", "")
+    if not fpath.is_file():
+        return None
+    return fpath.read_text(encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- #
+# M19 — fragment substance (docs/M19-fragment-integrity.md)
+# --------------------------------------------------------------------------- #
+
+def has_substance(text: str) -> bool:
+    """True when a fragment carries content beyond its heading(s).
+
+    Fence bodies (including `consult-meta`) are blanked first: a fragment whose
+    only non-heading content is its end-matter slug block has not been written.
+    Blank lines, HTML comments and horizontal rules are likewise not substance.
+    There is deliberately NO length or verbosity threshold — this answers "did
+    the writer finish", not "is this long enough" (M15's retirement stands)."""
+    for line in strip_fences(text).splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            continue
+        if s.startswith("<!--") and s.endswith("-->"):
+            continue
+        if set(s) <= set("-*_=+ "):          # rules / empty bullets
+            continue
+        return True
+    return False
+
+
+def check_fragment_substance(folder: Path, manifest: dict,
+                             errors: list[str]) -> None:
+    """A zero-byte or heading-only procedure fragment is a blocking error (F2).
+
+    EXEMPTION: a fragment still carrying the `<!-- unfilled -->` sentinel is a
+    scaffolded skeleton that declares itself unfinished and is routed to `fill`
+    by the advisor (guard 4). M19 exists for SILENT emptiness — the interrupted
+    drafter that removed the sentinel and wrote nothing."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None:
+            continue
+        file, slug = comp.get("file", ""), comp.get("slug")
+        if not raw.strip():
+            errors.append(
+                f"{file}: EMPTY FRAGMENT — zero-byte procedure file; an "
+                f"interrupted drafter leaves no `unfilled` sentinel, so re-run "
+                f"fill for {slug!r}"
+            )
+        elif UNFILLED_RE.search(raw):
+            continue                      # declared-unfinished skeleton: exempt
+        elif not has_substance(raw):
+            errors.append(
+                f"{file}: HEADING-ONLY FRAGMENT — no content beyond the "
+                f"heading(s); re-run fill for {slug!r}"
+            )
+
+
+# --------------------------------------------------------------------------- #
+# M22 — the constitution (docs/M22-enforce-invariants.md)
+# --------------------------------------------------------------------------- #
+
+def check_src_citations(folder: Path, manifest: dict, errors: list[str],
+                        warnings: list[str]) -> None:
+    """M22 check 1 — every cited `SRC-<n>` is registered, and a procedure cites
+    at least one.
+
+    BOUNDARY: skipped when `_reference/sources.yaml` registers no ids (absent,
+    unreadable, or empty — the initial-scoping window). The skip is loud: a
+    fragment citing ids with no registry to check them against warns."""
+    ids = sources_mod.registered_ids(str(folder)) if sources_mod else set()
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None:
+            continue
+        file = comp.get("file", "")
+        cited: list[tuple[str, int]] = []
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            for m in SRC_RE.finditer(line):
+                cited.append((m.group(0), n))
+        if not ids:
+            if cited:
+                warnings.append(
+                    f"{file}: cites {cited[0][0]} but _reference/sources.yaml "
+                    f"registers no SRC- ids — citation check skipped"
+                )
+            continue
+        for cid, n in cited:
+            if cid not in ids:
+                errors.append(
+                    f"{file}:{n}: UNREGISTERED CITATION {cid} — no such id in "
+                    f"_reference/sources.yaml"
+                )
+        if not cited and not UNFILLED_RE.search(raw):
+            errors.append(
+                f"{file}: NO SOURCE CITATION — procedure cites no SRC- id "
+                f"(the drafter contract mandates Source Materials)"
+            )
+
+
+def check_touches(folder: Path, errors: list[str]) -> None:
+    """M22 check 2 — `sources.yaml` `touches` ⊆ manifest procedure slugs.
+
+    The validator itself lives in `sources.py` (it owns the file) so this gate
+    and the load-time gate report the identical defect. BOUNDARY: no-ops until
+    a readable manifest.json exists — during initial scoping `sources.yaml` is
+    written by taxonomy BEFORE scaffold writes the manifest, and a check with no
+    authority to check against must not fail an area."""
+    if sources_mod is None:
+        return
+    for e in sources_mod.touches_errors(str(folder)):
+        errors.append(e)
+
+
+def check_derived_markers(folder: Path, manifest: dict,
+                          errors: list[str]) -> None:
+    """Marker presence (r3) + M22 check 3: the marker's kind and writer must
+    match the manifest entry. This is the DETECTION layer for one-writer-per-
+    file — a drafter that overwrote a sibling's derived view is named here."""
+    for comp in _components(manifest, role="derived"):
+        file = comp.get("file", "")
+        raw = _read(folder, comp)
+        if raw is None:
+            errors.append(
+                f"manifest.json: derived file {file!r} declared but missing on disk"
+            )
+            continue
+        if not DERIVED_MARKER_RE.search(raw):
+            errors.append(
+                f"{file}: derived file missing its `<!-- derived: KIND; writer: W -->` marker"
+            )
+            continue
+        m = DERIVED_MARKER_FULL_RE.search(raw)
+        if not m:
+            errors.append(
+                f"{file}: UNPARSEABLE OWNERSHIP MARKER — expected "
+                f"`<!-- derived: KIND; writer: W -->`"
+            )
+            continue
+        kind, writer = m.group("kind").strip(), m.group("writer").strip()
+        want_kind = str(comp.get("derived_kind") or "").strip()
+        want_writer = str(comp.get("writer") or "").strip()
+        if kind.lower() != want_kind.lower():
+            errors.append(
+                f"{file}: OWNERSHIP MARKER MISMATCH — marker kind {kind!r} but "
+                f"manifest derived_kind {want_kind!r}"
+            )
+        if writer.lower() != want_writer.lower():
+            errors.append(
+                f"{file}: OWNERSHIP MARKER MISMATCH — marker writer {writer!r} "
+                f"but manifest writer {want_writer!r}"
+            )
+
+
+def check_heading_contract(folder: Path, manifest: dict,
+                           errors: list[str]) -> None:
+    """M22 check 4 — an H1 in a procedure fragment. The assembled document's
+    single `#` is the manifest title; component files carry none."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None:
+            continue
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            if H1_RE.match(line):
+                errors.append(
+                    f"{comp.get('file')}:{n}: H1 IN FRAGMENT — every section is "
+                    f"`##`; the one `#` is the assembled title (manifest)"
+                )
+
+
+def _fragment_and_agent_derived(manifest: dict) -> list[dict]:
+    """Procedure fragments + agent-owned derived files: the prose a drafter or
+    synthesis agent writes, and the only prose these two checks police."""
+    return (_components(manifest, role="procedure")
+            + _components(manifest, role="derived", writer="agent"))
+
+
+def check_baked_numbers(folder: Path, manifest: dict,
+                        errors: list[str]) -> None:
+    """M22 check 5 — a baked display number in fragment or agent-derived prose.
+    The sanctioned cross-reference is `[[slug]]`, resolved at render."""
+    for comp in _fragment_and_agent_derived(manifest):
+        raw = _read(folder, comp)
+        if raw is None:
+            continue
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            for m in BAKED_NUMBER_RE.finditer(line):
+                errors.append(
+                    f"{comp.get('file')}:{n}: BAKED DISPLAY NUMBER "
+                    f"{m.group(0)!r} — cross-reference with [[slug]] (display "
+                    f"numbers are derived at render time)"
+                )
+
+
+def check_quoted_callout_ids(folder: Path, manifest: dict,
+                             errors: list[str]) -> None:
+    """M22 check 6 — a callout ID quoted in agent-owned derived prose (82/84)
+    outside a derived-table row. render.py rewrites IDs to their display form
+    only inside procedure sections, so a quoted local id silently disagrees with
+    the document's numbering. Table rows are the sanctioned carrier (they are
+    validated as (slug, id) pairs by check_derived_tables)."""
+    for comp in _components(manifest, role="derived", writer="agent"):
+        raw = _read(folder, comp)
+        if raw is None:
+            continue
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            if line.lstrip().startswith("|"):
+                continue
+            for m in ID_INLINE_RE.finditer(line):
+                errors.append(
+                    f"{comp.get('file')}:{n}: CALLOUT ID {m.group(0)} in "
+                    f"agent-owned prose — reference [[slug]] and describe the "
+                    f"item in words (ids are rewritten only in procedures)"
+                )
 
 
 # --------------------------------------------------------------------------- #
@@ -439,21 +737,8 @@ def reconcile(folder: str) -> int:
                         f"{file}:{n}: DANGLING [[{slug}]] — no such procedure"
                     )
 
-    # 4. derived marker presence
-    for comp in manifest.get("components", []):
-        if comp.get("role") != "derived":
-            continue
-        file = comp.get("file", "")
-        fpath = folder / file
-        if not fpath.is_file():
-            errors.append(
-                f"manifest.json: derived file {file!r} declared but missing on disk"
-            )
-            continue
-        if not DERIVED_MARKER_RE.search(fpath.read_text(encoding="utf-8")):
-            errors.append(
-                f"{file}: derived file missing its `<!-- derived: KIND; writer: W -->` marker"
-            )
+    # 4. derived marker presence + ownership match (M22 check 3)
+    check_derived_markers(folder, manifest, errors)
 
     # 5. consult-meta slug check vs registry (WARNING)
     systems, roles = load_registry_slugs(folder)
@@ -478,6 +763,17 @@ def reconcile(folder: str) -> int:
 
     # 7. named-individual check (roles.yaml people + _client/org-chart.yaml)
     check_named_individuals(folder, manifest, errors, warnings)
+
+    # 8. M19 — fragment substance (zero-byte / heading-only)
+    check_fragment_substance(folder, manifest, errors)
+
+    # 9-13. M22 — the constitution: citations, touches, heading contract,
+    # baked display numbers, quoted callout IDs. (Ownership markers = 4.)
+    check_src_citations(folder, manifest, errors, warnings)
+    check_touches(folder, errors)
+    check_heading_contract(folder, manifest, errors)
+    check_baked_numbers(folder, manifest, errors)
+    check_quoted_callout_ids(folder, manifest, errors)
 
     # report
     if errors:
