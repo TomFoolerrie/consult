@@ -15,10 +15,12 @@ driver skill (skills/consult-orchestrate/SKILL.md) performs them.
 Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
 
   1  confirm          _reference/.proposed/ exists           (HUMAN GATE)
-  2  apply_review     _review/*.notes.yaml present
+  2  apply_review     _review/<live-slug>.notes.yaml present
+ 2b  review_triage    notes naming no live slug / _unassigned  (HUMAN GATE)
   3  taxonomy         no manifest.json AND _sources/new/*     (mode=initial)
   4  fill             manifest AND any procedure `unfilled`
   5  taxonomy         manifest AND _sources/new/*             (mode=incremental)
+ 5b  unresolvable     manifest slug whose fragment is absent   (HUMAN GATE)
   6  aggregate        procedure/registry hash changed vs aggregate state
   7  registry_topup   aggregate emitted unmatched-mention warnings (HUMAN GATE)
   8  reconcile        derived views not clean/current this pass
@@ -31,13 +33,41 @@ The overlap between guards is real (e.g. after scaffold `_sources/new/` is still
 full because sources move only after fill) — precedence is what makes the walk
 deterministic and non-looping. See M7 "Why the order matters".
 
+THE RESOLVABLE-ACTION INVARIANT (M18) — an action is returnable only if running
+it can change the state that selected it. Two non-stage results exist for the
+states where nothing satisfies that:
+
+  * ``unresolvable`` (``human_gate: true``) — a RESTING GATE like ``review``, not
+    an error: the folder is consistent, the ladder is out of moves. It carries
+    ``details.state`` (what was detected), ``details.why_no_stage`` (why no stage
+    clears it) and ``details.human_action`` (the specific fix). Reached by an
+    orphaned manifest slug (5b), and by reconcile failures that no producer can
+    regenerate (8).
+  * ``error`` (not a gate; ``next`` exits 2) — the area folder does not exist.
+    A typo'd ``--area`` used to read as ``done`` (audit F3); it can no longer.
+
+The M18 partitions, all of them pure reads:
+
+  guard 2  a note is applicable only when its basename names a LIVE manifest
+           procedure slug; orphans are ``review_triage``. With NO manifest at
+           all guard 2 steps aside for guard 3 — nothing can be applied to an
+           unscoped area (audit F1).
+  guard 8  when reconcile's recorded failures (``.reconcile.json``
+           ``failing_files``) are confined to agent-owned derived views the
+           change signal already marks stale, ``synthesize`` takes precedence:
+           the producer runs, then reconcile re-verifies. Failures touching
+           drafter-owned fragments are ``unresolvable`` (audit F8).
+
 STATE FILES (all git-ignored, at the area root) — the advisor only READS these;
 the named stage script WRITES each. This is the M7 orchestration contract:
 
   .aggregate.json  written by aggregate.py:
-      {"proc_hashes": {slug: sha}, "registry_hash": sha, "warnings": [ ... ]}
+      {"proc_hashes": {slug: {file: sha}}, "registry_hash": sha,
+       "warnings": [ ... ]}
       Records the procedure + registry state aggregate last consumed, plus the
       unmatched-mention WARNINGs it emitted (the registry top-up worklist).
+      `proc_hashes` is per FILE inside each slug (M18/F5) so a duplicate slug
+      cannot drop a file's hash out of the change signal.
   .hashes.json     written by scope_delta.commit (the driver runs it after each
       M5 agent succeeds — see the orchestrate skill's `synthesize` handler):
       {derived_kind: {slug: sha}}  — a per-kind baseline of the procedure hashes
@@ -45,8 +75,11 @@ the named stage script WRITES each. This is the M7 orchestration contract:
       folder model): scope_delta.changed_procedure_slugs compares current hashes
       against a kind's baseline to re-derive only changed procedures.
   .reconcile.json  written by reconcile.py:
-      {"basis": sha, "clean": bool}  — the combined hash of procedures+derived+
-      manifest at the last reconcile, and whether it passed.
+      {"basis": sha, "clean": bool, "failing_files": [rel, ...]}  — the combined
+      hash of procedures+derived+manifest at the last reconcile, whether it
+      passed, and (M18/F8) the area-relative files its errors named. The
+      `failing_files` key is OPTIONAL: absent means "not recorded" and guard 8
+      then behaves exactly as it did before M18.
   .render.json     written by the renderer (M4):
       {"basis": sha, "docx": path, "awaiting_review": bool}
 
@@ -75,6 +108,17 @@ except Exception:  # pragma: no cover - fallback only until M2 ships doc_model
     def load_manifest(folder: str) -> dict:
         with open(os.path.join(folder, "manifest.json"), encoding="utf-8") as fh:
             return json.load(fh)
+
+# The `[[slug]]` grammar is owned by callouts.py (shared with aggregate + render).
+# Borrowed, never restated, so the M18 diagnosis of a dangling reference cannot
+# drift from the reconcile gate that reports it.
+try:
+    from callouts import XREF_RE, blank_fences as _blank_fences  # type: ignore
+except Exception:  # pragma: no cover - callouts is always present
+    XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
+
+    def _blank_fences(text: str) -> str:
+        return text
 
 
 # --------------------------------------------------------------------------- #
@@ -117,7 +161,13 @@ def _dir_has_files(path: str) -> bool:
 
 def resolve_area(area: str) -> str:
     """Accept either a path to the area folder or a bare area name resolved
-    under components/. Returns an absolute-ish folder path."""
+    under components/. Returns an absolute-ish folder path.
+
+    NOTE (M18/F3): the returned path is NOT guaranteed to exist — a bare name
+    with no folder still resolves to the components/ candidate so `checkpoint`
+    and the "not scoped yet" messages can talk about where the area WOULD live.
+    Existence is `decide()`'s business: it returns the `error` result for a
+    folder that is not there, so a typo can never read as `done`."""
     if os.path.isdir(area):
         return area.rstrip("/")
     candidate = os.path.join("components", area)
@@ -151,6 +201,10 @@ class AreaState:
         self.upstream = {}     # slug -> [upstream slugs] (M11 ordering hints)
         self.agent_derived = []  # abspaths of writer==agent derived files
         self.derived_files = []  # all derived abspaths
+        # M18: who owns each manifest file, keyed by the area-relative path
+        # reconcile names in its error messages ("procedure" | "agent-derived" |
+        # "python-derived"). The guard-8 partition reads nothing else.
+        self.owner_of = {}
         if self.manifest:
             for c in self.manifest.get("components", []):
                 path = os.path.join(folder, c["file"])
@@ -158,12 +212,33 @@ class AreaState:
                 if role == "procedure":
                     slug = c.get("slug", c["file"])
                     self.procedures.append((slug, path))
+                    self.owner_of[c["file"]] = "procedure"
                     if c.get("upstream"):
                         self.upstream[slug] = list(c["upstream"])
                 elif role == "derived":
                     self.derived_files.append(path)
                     if c.get("writer") == "agent":
                         self.agent_derived.append(path)
+                        self.owner_of[c["file"]] = "agent-derived"
+                    else:
+                        self.owner_of[c["file"]] = "python-derived"
+
+    @property
+    def procedure_slugs(self):
+        """The live procedure slugs — the manifest is the only authority on
+        which procedures exist (M18 guard-2 partition + xref diagnosis)."""
+        return {slug for slug, _p in self.procedures}
+
+    def owner(self, rel: str) -> str:
+        """Who writes the area-relative file `rel`: "procedure",
+        "agent-derived", "python-derived", "manifest" or "other" (a path outside
+        the manifest, e.g. `_reference/sources.yaml`)."""
+        rel = rel.replace(os.sep, "/")
+        if rel.startswith("./"):
+            rel = rel[2:]
+        if rel == "manifest.json":
+            return "manifest"
+        return self.owner_of.get(rel, "other")
 
     # ---- guard signals ----------------------------------------------------
 
@@ -174,14 +249,35 @@ class AreaState:
         pat = os.path.join(self.folder, "_review", "returned", "*")
         return sorted(p for p in glob.glob(pat) if os.path.isfile(p))
 
+    NOTES_SUFFIX = ".notes.yaml"
+
+    def note_slug(self, path: str) -> str:
+        """The procedure slug a notes file is anchored to: notes are written as
+        `_review/{slug}.notes.yaml` by every producer on the M6 notes bus."""
+        return os.path.basename(path)[: -len(self.NOTES_SUFFIX)]
+
     def review_notes(self):
-        """Un-archived procedure-anchored review notes (M8). Excludes
-        _review/processed/ and the _unassigned bucket (items review_extract
-        could not attribute to a procedure — those need a human, not a
-        drafter dispatch; surfaced separately via unassigned_notes())."""
-        pat = os.path.join(self.folder, "_review", "*.notes.yaml")
-        return sorted(p for p in glob.glob(pat)
-                      if os.path.basename(p) != "_unassigned.notes.yaml")
+        """Un-archived procedure-anchored review notes (M8), partitioned into
+        ``(applicable, orphaned)`` — M18/F1.
+
+        Excludes _review/processed/ and the _unassigned bucket (items
+        review_extract could not attribute to a procedure — those need a human,
+        not a drafter dispatch; surfaced separately via unassigned_notes()).
+
+        A note is APPLICABLE only when its basename names a live manifest
+        procedure slug: `apply_review` dispatches an update drafter for that
+        procedure and the note is archived only after the drafter succeeds, so a
+        note for a procedure that does not exist can never clear by machine.
+        Orphans route to the `review_triage` gate instead. With no manifest at
+        all every note is orphaned — nothing is applicable to an unscoped area.
+        """
+        pat = os.path.join(self.folder, "_review", "*" + self.NOTES_SUFFIX)
+        found = sorted(p for p in glob.glob(pat)
+                       if os.path.basename(p) != "_unassigned" + self.NOTES_SUFFIX)
+        live = self.procedure_slugs
+        applicable = [p for p in found if self.note_slug(p) in live]
+        orphaned = [p for p in found if self.note_slug(p) not in live]
+        return applicable, orphaned
 
     def unassigned_notes(self):
         """Path to _review/_unassigned.notes.yaml if present, else None."""
@@ -196,7 +292,56 @@ class AreaState:
         return out
 
     def proc_hashes(self):
-        return {slug: _file_sha(p) for slug, p in self.procedures if os.path.isfile(p)}
+        """{slug: {file: sha}} — the aggregate change signal (guard 6).
+
+        Hashed per FILE inside each slug (M18/F5). The old comprehension was
+        keyed by slug alone, so two manifest entries sharing a slug silently
+        dropped one file's hash and guard 6 could not see edits to the shadowed
+        file; the inner map mirrors basis_hash()'s per-file accumulation, so no
+        file can vanish. Slug stays the OUTER key because it is the identity
+        every other component uses. A pre-existing .aggregate.json in the old
+        {slug: sha} shape simply compares unequal — one harmless aggregate pass
+        rewrites it (aggregate is deterministic and idempotent)."""
+        out = {}
+        for slug, p in self.procedures:
+            if os.path.isfile(p):
+                rel = os.path.relpath(p, self.folder).replace(os.sep, "/")
+                out.setdefault(slug, {})[rel] = _file_sha(p)
+        return out
+
+    def missing_procedure_files(self):
+        """[(slug, relpath), ...] for manifest procedures with no file on disk.
+
+        Both unfilled_slugs() and proc_hashes() skip a missing file, so without
+        this the area reports `aggregate` / "content changed" forever while
+        aggregate.py exits 1 on the real cause (M18/F4)."""
+        out = []
+        for slug, p in self.procedures:
+            if not os.path.isfile(p):
+                out.append((slug, os.path.relpath(p, self.folder).replace(os.sep, "/")))
+        return sorted(out)
+
+    def dangling_xrefs(self, rel_files):
+        """{relfile: [slug, ...]} — `[[slug]]` references in the named files
+        that no live manifest procedure defines.
+
+        DIAGNOSIS ONLY: reconcile owns the gate and has already reported these;
+        decide() re-reads them so an `unresolvable` result can name the
+        reference, not just the file."""
+        live = self.procedure_slugs
+        out = {}
+        for rel in rel_files:
+            path = os.path.join(self.folder, rel)
+            if not os.path.isfile(path):
+                continue
+            missing = []
+            for m in XREF_RE.finditer(_blank_fences(_read_text(path))):
+                slug = m.group(1)
+                if slug not in live and slug not in missing:
+                    missing.append(slug)
+            if missing:
+                out[rel] = missing
+        return out
 
     def registry_hash(self):
         ref = os.path.join(self.folder, "_reference")
@@ -234,15 +379,64 @@ class AreaState:
 # Decision (the M7 precedence table)
 # --------------------------------------------------------------------------- #
 
-def decide(folder: str) -> dict:
-    st = AreaState(folder)
+def _synthesis_signal(folder: str, st: "AreaState"):
+    """(pending, stale_kinds) — the guard-9 inputs, read once for guards 8+9.
 
+    `pending` is the agent-owned derived files still carrying M3's placeholder.
+    `stale_kinds` comes from scope_delta's per-kind .hashes.json baseline (the
+    single change-signal authority — no second flat basis here).
+
+    Staleness is accumulated PER KIND (M18/F6): a kind whose delta computation
+    raises is skipped, never allowed to discard a kind already found stale. An
+    unimportable scope_delta degrades to "synthesize only if pending".
+    """
+    pending = st.pending_placeholders()
+    stale_kinds = []
+    if st.has_manifest:
+        try:
+            import scope_delta
+        except Exception:  # pragma: no cover - scope_delta ships beside us
+            scope_delta = None
+        if scope_delta is not None:
+            for kind in ("dependencies", "raci"):
+                try:
+                    if scope_delta.changed_procedure_slugs(folder, kind):
+                        stale_kinds.append(kind)
+                except Exception:
+                    continue  # one kind's failure must not erase another's
+    return pending, stale_kinds
+
+
+def decide(folder: str) -> dict:
     def result(action, reason, gate=False, **details):
         d = {"area": folder, "action": action, "reason": reason,
              "human_gate": gate}
         if details:
             d["details"] = details
         return d
+
+    def unresolvable(state, why_no_stage, human_action, **details):
+        """The M18 terminal gate: a resting result (like `review`), NOT an error
+        — the folder is consistent, the ladder is out of moves. Carries what was
+        detected, why no stage can clear it, and the fix that would."""
+        return result("unresolvable", state, gate=True, state=state,
+                      why_no_stage=why_no_stage, human_action=human_action,
+                      **details)
+
+    # 0 — the area must exist. resolve_area() happily returns components/<name>
+    #     for a name that was never scoped, and "no manifest and no sources"
+    #     used to report `done` — the most reassuring possible answer for an
+    #     area that is not there (audit F3). An error, never a gate: `next`
+    #     exits nonzero so the driver stops instead of resting.
+    if not os.path.isdir(folder):
+        return result(
+            "error",
+            "area folder does not exist: %s — check the --area name (a bare "
+            "name resolves under components/)" % folder,
+            missing_folder=folder,
+        )
+
+    st = AreaState(folder)
 
     # 1 — pending proposal outranks everything (never re-scope an edited proposal)
     if _dir_has_files(st.proposed_dir):
@@ -265,36 +459,85 @@ def decide(folder: str) -> dict:
             files=[os.path.relpath(p, folder) for p in returned],
         )
 
-    # 2 — review notes route straight to the drafter (skip taxonomy)
-    notes = st.review_notes()
+    # 2 — review notes route straight to the drafter (skip taxonomy).
+    #     M18/F1: only notes naming a LIVE manifest slug are applicable, and the
+    #     whole guard steps aside when there is no manifest at all.
+    notes, orphans = st.review_notes()
     unassigned = st.unassigned_notes()
-    if notes:
-        details = {"notes": [os.path.relpath(n, folder) for n in notes]}
-        if unassigned:
-            details["unassigned"] = os.path.relpath(unassigned, folder)
-        return result(
-            "apply_review",
-            "review notes present — dispatch consult-drafter (update) per slug",
-            **details,
-        )
-    if unassigned:
-        # Only unattributed items remain — a human must triage them (move each
-        # item into the right {slug}.notes.yaml, or archive the file).
+    def rel(p):
+        return os.path.relpath(p, folder)
+
+    def orphan_triage(paths, why):
+        """The gate for reviewer material no drafter can consume. Names the
+        orphaned slug(s) and the two legitimate resolutions — restore the
+        procedure, or archive the note."""
+        slugs = sorted({st.note_slug(p) for p in paths})
         return result(
             "review_triage",
-            "_review/_unassigned.notes.yaml holds items review_extract could "
-            "not attribute to a procedure — triage by hand",
+            "%d review note(s) name no live procedure slug (%s) — %s"
+            % (len(paths), ", ".join(slugs), why),
             gate=True,
-            unassigned=os.path.relpath(unassigned, folder),
+            orphan_notes=[rel(p) for p in paths],
+            orphan_slugs=slugs,
+            resolutions=[
+                "restore the procedure: re-scope it (or git-restore the "
+                "manifest entry + fragment), then `next` dispatches the drafter",
+                "archive the note: move it to _review/processed/ (its procedure "
+                "is gone, the note is history)",
+            ],
         )
 
-    # 3 — initial scope: no manifest yet, raw sources waiting
+    if st.has_manifest:
+        if notes:
+            details = {"notes": [rel(n) for n in notes]}
+            if orphans:
+                details["orphan_notes"] = [rel(n) for n in orphans]
+            if unassigned:
+                details["unassigned"] = rel(unassigned)
+            return result(
+                "apply_review",
+                "review notes present — dispatch consult-drafter (update) per slug",
+                **details,
+            )
+        if orphans:
+            return orphan_triage(
+                orphans,
+                "the drafter has no procedure to update and notes archive only "
+                "on a successful dispatch, so no stage can clear them")
+        if unassigned:
+            # Only unattributed items remain — a human must triage them (move each
+            # item into the right {slug}.notes.yaml, or archive the file).
+            return result(
+                "review_triage",
+                "_review/_unassigned.notes.yaml holds items review_extract could "
+                "not attribute to a procedure — triage by hand",
+                gate=True,
+                unassigned=rel(unassigned),
+            )
+
+    # 3 — initial scope: no manifest yet, raw sources waiting.
+    #     Guard 2 does NOT outrank this: nothing can be applied to an unscoped
+    #     area, so one stray notes file must not divert a brand-new area from
+    #     being scoped at all (audit F1, the worst instance).
     if not st.has_manifest and _dir_has_files(st.sources_new):
         return result("taxonomy",
                       "no manifest and _sources/new/ non-empty",
                       mode="initial")
 
     if not st.has_manifest:
+        if orphans:  # with no manifest EVERY note is orphaned, by construction
+            return orphan_triage(
+                orphans,
+                "the area has no manifest and nothing left to scope, so no "
+                "stage can consume them")
+        if unassigned:
+            return result(
+                "review_triage",
+                "_review/_unassigned.notes.yaml holds items in an unscoped area "
+                "— triage by hand (there is no procedure to attribute them to)",
+                gate=True,
+                unassigned=rel(unassigned),
+            )
         return result("done", "no manifest and no sources to scope")
 
     # 4 — fill: skeletons still stamped `unfilled` (precedes incremental taxonomy
@@ -346,6 +589,28 @@ def decide(folder: str) -> dict:
     if not st.procedures:
         return result("done", "no procedures in manifest")
 
+    # 5b — a manifest slug whose fragment file is absent (audit F4). Both
+    #      unfilled_slugs() and proc_hashes() skip it, so guard 6 used to fire
+    #      forever with the wrong cause ("content changed"), while aggregate.py
+    #      exited 1 on the real one. No advisor stage writes a fragment from
+    #      nothing — scaffold is reachable only through the confirm flow — so
+    #      this is a gate, named precisely.
+    missing = st.missing_procedure_files()
+    if missing:
+        return unresolvable(
+            "manifest procedure(s) %s declare fragment file(s) %s that are not "
+            "on disk" % (", ".join(repr(s) for s, _f in missing),
+                         ", ".join(f for _s, f in missing)),
+            "no stage in the ladder writes a fragment from nothing: `fill` "
+            "dispatches on the `unfilled` sentinel inside an existing file, and "
+            "`aggregate` exits 1 without writing its signal, so the ladder would "
+            "otherwise report `aggregate` forever",
+            "restore the fragment (git restore / move it back), or re-run "
+            "scripts/scaffold.py to recreate the skeleton so `fill` can redraft "
+            "it, or drop the component from manifest.json",
+            missing_procedures=[{"slug": s, "file": f} for s, f in missing],
+        )
+
     cur_proc = st.proc_hashes()
     cur_reg = st.registry_hash()
 
@@ -365,10 +630,69 @@ def decide(folder: str) -> dict:
                       gate=True,
                       warnings=warnings)
 
+    # The guard-9 inputs, needed by guard 8's partition as well: whether the
+    # producer of the agent-owned views has work queued decides whether the
+    # verifier or the producer goes first.
+    pending, stale_kinds = _synthesis_signal(folder, st)
+
     # 8 — reconcile: derived views not verified against current basis this pass
     basis = st.basis_hash()
     rec = _load_json(os.path.join(folder, ".reconcile.json")) or {}
     if rec.get("basis") != basis or not rec.get("clean"):
+        # M18/F8 — the verifier must not precede its producer. Only failures
+        # recorded at the CURRENT basis are trusted: with a stale basis the area
+        # has moved and re-running reconcile really can change the answer.
+        recorded = None
+        if rec.get("basis") == basis and not rec.get("clean"):
+            recorded = rec.get("failing_files")  # None => older signal, not recorded
+        if recorded:
+            frags = [f for f in recorded if st.owner(f) == "procedure"]
+            agent = [f for f in recorded if st.owner(f) == "agent-derived"]
+            other = [f for f in recorded if st.owner(f) not in
+                     ("procedure", "agent-derived")]
+            if frags:
+                # Drafter-owned prose. reconcile verifies, it cannot regenerate;
+                # no notes exist for these slugs and nothing writes them (M6).
+                return unresolvable(
+                    "reconcile failed at the current basis on drafter-owned "
+                    "procedure fragment(s): %s" % ", ".join(sorted(frags)),
+                    "reconcile has already verified this exact basis and "
+                    "failed, so re-running it reproduces the same errors; no "
+                    "stage regenerates a procedure fragment (`fill` needs the "
+                    "`unfilled` sentinel, `apply_review` needs a note, and "
+                    "nothing writes notes for these slugs)",
+                    "fix the named fragment(s) by hand — or re-scope so the "
+                    "referenced procedures exist again — then re-run "
+                    "scripts/reconcile.py; run it directly for the full error "
+                    "list (this gate names the files, not every check)",
+                    failing_files=sorted(recorded),
+                    dangling_refs=st.dangling_xrefs(sorted(recorded)),
+                )
+            if agent and not other:
+                if pending or stale_kinds:
+                    # The producer is ready and was unreachable: run it first,
+                    # then reconcile re-verifies at the new basis.
+                    return result(
+                        "synthesize",
+                        "reconcile's failures are confined to agent-owned "
+                        "derived views the change signal already marks stale — "
+                        "regenerate them, then reconcile re-verifies",
+                        pending=pending, stale_kinds=stale_kinds,
+                        failing_files=sorted(agent))
+                return unresolvable(
+                    "reconcile failed at the current basis on agent-owned "
+                    "derived view(s) %s, and the change signal marks nothing "
+                    "stale" % ", ".join(sorted(agent)),
+                    "`synthesize` would dispatch with an empty work order "
+                    "(scope_delta reports no changed procedures for either "
+                    "kind and no file carries a pending placeholder), so it "
+                    "cannot rewrite these views",
+                    "fix the view by hand, or force a re-derive by removing the "
+                    "kind's baseline from .hashes.json, then re-run "
+                    "scripts/reconcile.py",
+                    failing_files=sorted(recorded),
+                    dangling_refs=st.dangling_xrefs(sorted(recorded)),
+                )
         return result("reconcile",
                       "derived views changed or not yet reconciled clean this pass")
 
@@ -376,17 +700,6 @@ def decide(folder: str) -> dict:
     # The "what changed per agent kind" signal is owned by scope_delta (its
     # per-kind .hashes.json baseline) — reuse it rather than re-reading a flat
     # basis, so there is one change-signal authority and no filename-shape clash.
-    pending = st.pending_placeholders()
-    stale_kinds = []
-    if st.has_manifest:
-        try:
-            import scope_delta
-            for kind in ("dependencies", "raci"):
-                if scope_delta.changed_procedure_slugs(folder, kind):
-                    stale_kinds.append(kind)
-        except Exception:
-            # If the delta engine can't run, fall back to "synthesize if pending".
-            stale_kinds = []
     if pending or stale_kinds:
         return result("synthesize",
                       "judgment views stale vs changed procedures",
@@ -431,13 +744,27 @@ def emit_aggregate(folder: str, warnings) -> None:
     })
 
 
-def emit_reconcile(folder: str, clean: bool) -> None:
-    """Written by reconcile.py after an area-wide check → guard 8."""
+def emit_reconcile(folder: str, clean: bool, failing_files=None) -> None:
+    """Written by reconcile.py after an area-wide check → guard 8.
+
+    `failing_files` (M18/F8) records WHICH area-relative files the run's errors
+    named, so guard 8 can tell a failure a producer would fix (agent-owned
+    derived views the change signal marks stale → `synthesize` first) from one no
+    stage can fix (a drafter-owned fragment → `unresolvable`). Ordering, not
+    logic, was the F8 deadlock; this is the only new input it needs.
+
+    Backward compatible in both directions: passing None (the pre-M18 signature,
+    or a caller that does not track it) omits the key entirely, and guard 8 then
+    behaves exactly as before — it returns `reconcile`. Reading an older signal
+    that lacks the key does the same."""
     st = AreaState(folder)
-    _write_json(os.path.join(folder, ".reconcile.json"), {
+    sig = {
         "basis": st.basis_hash(),
         "clean": bool(clean),
-    })
+    }
+    if failing_files is not None:
+        sig["failing_files"] = sorted({str(f) for f in failing_files})
+    _write_json(os.path.join(folder, ".reconcile.json"), sig)
 
 
 def emit_render(folder: str, docx: str, awaiting_review: bool = True) -> None:
@@ -572,7 +899,11 @@ def main(argv=None):
         folder = resolve_area(args.area)
         decision = decide(folder)
         print(json.dumps(decision, indent=2, sort_keys=False))
-        return 0
+        # M18/F3: the `error` result (a nonexistent area) exits nonzero so a
+        # typo'd --area stops the driver instead of reading as progress. Every
+        # real action — including the `unresolvable` gate, which is a resting
+        # state, not a failure — exits 0.
+        return 2 if decision.get("action") == "error" else 0
     if args.cmd == "checkpoint":
         folder = resolve_area(args.area)
         outcome = checkpoint(folder, args.stage)

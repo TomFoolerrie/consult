@@ -1,7 +1,61 @@
 # M18 — Advisor honesty (the resolvable-action invariant)
 
-> **Status: DESIGNED.** No dependencies. Fixes three reproduced livelocks.
-> Evidence: `docs/audit-decide-exhaustiveness.md` (F1, F3, F4, F6, F8).
+> **Status: BUILT** (`scripts/orchestrate.py`; one call-site line in
+> `scripts/reconcile.py`). Deltas from this design:
+>
+> - **`unresolvable` carries three named fields**, not prose: `details.state`,
+>   `details.why_no_stage`, `details.human_action` (plus the evidence — files,
+>   slugs, `dangling_refs`). `reason` repeats `state` so plain `next` output is
+>   readable. `human_gate: true`, exit 0 — a resting gate, like `review`.
+> - **Guard 2's partition keeps dispatching while any note is applicable.** A
+>   live-slug note still returns `apply_review`; a coexisting orphan rides along
+>   in `details.orphan_notes` and gates only once the applicable ones are
+>   archived. `review_notes()` returns `(applicable, orphaned)`; the driver's
+>   `details.notes` contract is unchanged. One case the design left open: an
+>   **unscoped** area with notes and *nothing to scope* returns `review_triage`,
+>   not `done` — reporting `done` with reviewer material on disk is the same lie
+>   in a smaller room.
+> - **F3 shape: `decide()` returns a new `action: "error"`** (guard 0, before any
+>   state is read) and `next` exits **2**. It is deliberately NOT a gate: a gate
+>   rests, and there is nothing here to rest on. `resolve_area()` is unchanged —
+>   it still returns the `components/<name>` candidate for a name that was never
+>   scaffolded, because `checkpoint` and the "not scoped yet" messages need to
+>   name where the area *would* live. Existence became `decide()`'s question.
+> - **F8's signal is files only.** `emit_reconcile(folder, clean,
+>   failing_files=None)`; the key is omitted when None, so an older signal (or a
+>   caller that does not track it) leaves guard 8 behaving exactly as before.
+>   reconcile's single emit call site derives the list from its own error strings
+>   (all are prefixed `<file>:` or `<file>:<line>:`); the messages stay in
+>   reconcile. `decide()` re-derives the *references* itself for the gate message
+>   via `callouts.XREF_RE`, so no grammar is restated.
+> - **Guard 8 trusts only failures recorded at the CURRENT basis.** With a stale
+>   basis the area has moved and re-running the verifier really can change the
+>   answer, so it stays `reconcile`.
+> - **A third F8 branch was needed.** Failures confined to agent-owned views but
+>   with the change signal marking *nothing* stale would make `synthesize`
+>   dispatch an empty work order — also a livelock, so also `unresolvable`.
+>   Failures naming anything outside the drafter/agent split (`manifest.json`, a
+>   python-owned view, `_reference/sources.yaml`) keep routing to `reconcile`:
+>   those causes are fixable outside the basis (a registry edit re-stales
+>   `aggregate`), so gating them would be its own lie.
+> - **F4's gate sits after `fill`/`taxonomy`**, not before: real drafting work
+>   still goes first, and the gate is what remains once it is done.
+> - **F5 keeps the slug as the OUTER key** — `proc_hashes()` is now
+>   `{slug: {file: sha}}`. Per-file inside the slug removes the collision (the
+>   inner map mirrors `basis_hash()`'s per-file accumulation) while the slug stays
+>   the identity every other component and test reads. A pre-existing
+>   `.aggregate.json` in the old `{slug: sha}` shape compares unequal → exactly
+>   one harmless `aggregate` pass rewrites it (tested).
+> - **F6 was extracted, not patched:** `_synthesis_signal()` computes
+>   `(pending, stale_kinds)` per kind once, and guards 8 and 9 share it.
+> - **Not done here (out of ownership):** the driver skill
+>   (`skills/consult-orchestrate/SKILL.md`) has no handler entry for
+>   `unresolvable` / `error` yet, and `docs/M7-orchestrator.md` still shows the
+>   pre-M18 precedence table and signal shapes.
+>
+> Evidence: `docs/audit-decide-exhaustiveness.md` (F1, F3, F4, F5, F6, F8).
+> Tests: `tests/test_decide_states.py` (51 — the audit's state corpus A–O),
+> `tests/test_advisor_honesty.py` (26 — one per acceptance bullet).
 
 ## Goal
 

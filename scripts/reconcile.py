@@ -789,8 +789,14 @@ def reconcile(folder: str) -> int:
 
     # M7 signal file: record the current basis + clean flag so the advisor's
     # reconcile guard is satisfied only when the area verified clean this pass.
+    # M18/F8: also record WHICH files the errors name (every message above is
+    # prefixed `<file>:` or `<file>:<line>:`), so guard 8 can route failures
+    # confined to agent-owned derived views to their producer (`synthesize`)
+    # and gate the ones no stage can fix. Files only — the messages stay here.
     import orchestrate
-    orchestrate.emit_reconcile(str(folder), not errors)
+    orchestrate.emit_reconcile(
+        str(folder), not errors,
+        failing_files=sorted({e.split(":", 1)[0].strip() for e in errors}))
 
     return 1 if errors else 0
 
