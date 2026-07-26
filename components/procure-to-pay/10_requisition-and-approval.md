@@ -1,81 +1,171 @@
 ## Requisition and Approval
 
-<!-- unfilled -->
-
 <!-- scope note: covers variants — Catalog / punchout requisition; Non-catalog free-text requisition; Services requisition (statement of work required). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
 ### A. Process Overview
 
-TBD — What this procedure accomplishes, when it occurs, who performs it, what
-it excludes, and how it connects to upstream / downstream activities. (This
-section is what the dependencies agent reads.)
+Requisition and Approval is the entry point for all purchase-order-backed
+spend: a Requester raises a requisition in Coupa, and the requisition routes
+through Coupa's tiered approval chains until it is fully approved (SRC-002).
+The procedure runs ad hoc, whenever goods or services are needed from a
+supplier that is already active in Coupa and NetSuite; a supplier not yet on
+file must first complete [[new-vendor-onboarding]]. Three request paths are
+covered as variants of one flow: catalog / punchout requisitions, non-catalog
+free-text requisitions, and services requisitions, which require a statement of
+work (SRC-002). Purchases made outside this procedure — vendor call-outs
+invoiced without a purchase order — are regularized after the fact under
+[[confirming-po]], and non-PO invoice spend follows a separate approval ladder
+under [[non-po-invoice-entry-and-approval]]. Downstream, the fully approved
+requisition triggers [[po-issuance-and-change-orders]], where Coupa generates
+and transmits the purchase order.
 
 ### B. Quick Reference
 
-- **Trigger:** TBD
-- **Frequency:** TBD
-- **Preparer:** TBD
-- **Reviewer:** TBD
-- **Primary systems / tools:** TBD
-- **Key outputs:** TBD
+- **Trigger:** A Requester needs goods or services from a supplier that is active in Coupa (SRC-002).
+- **Frequency:** Ad hoc — continuous, on demand.
+- **Preparer:** Requester.
+- **Reviewer:** Cost Center Owner (every requisition); Functional Vice President and Chief Financial Officer added by dollar threshold (SRC-002).
+- **Primary systems / tools:** Coupa.
+- **Key outputs:** Fully approved requisition in Coupa, ready for purchase order generation.
 
 ### C. Pre-Requisites
 
-- TBD — what must be true before the procedure begins.
+- The supplier exists and is active in Coupa and NetSuite; a supplier not on file must first complete [[new-vendor-onboarding]] (SRC-002).
+- The Requester has access to Coupa to raise the requisition.
+- For a services requisition: a statement of work is prepared and available to attach (SRC-002).
+- For a capital requisition: an approved AFE (Authorization for Expenditure) number has been issued (SRC-002).
 
 ### D. Inputs
 
-- **Input 1:** TBD — source / owner.
+- **Requirement details:** description, quantity, and supplier for the goods or services needed — from the Requester.
+- **Hosted catalog / punchout content:** supplier-maintained catalog items and pricing, used on the catalog path (SRC-002).
+- **Statement of work:** services requisitions only; attached by the Requester (SRC-002).
+- **Approved AFE number:** capital requisitions only (SRC-002). AFE issuance itself sits outside this procedure and was not described in the sources.
 
 ### E. Step-by-Step Procedure
 
-#### Step 1: TBD
+#### Step 1: Initiate the requisition and select the request path
 
-TBD — Describe the step in neutral current-state procedural language. Add the
-bolded inline tags below only where the detail helps execution, review, or
-auditability — not mechanically on every step.
+The Requester — for example a plant maintenance planner, an engineer, or a
+marketing staff member — opens Coupa and raises the requisition through one of
+three paths (SRC-002):
 
-- **System / Tool:** TBD
-- **Navigation Path:** TBD
-- **Fields / Parameters:** TBD
-- **Expected Result:** TBD
-- **Evidence Required:** TBD
+- **Catalog / punchout:** hosted catalogs and punchout sites are available for
+  MRO items through the industrial distributor, and for IT purchases. The
+  Requester shops the hosted catalog, or punches out to the Supplier's own
+  site and returns to Coupa with a cart, which becomes the requisition.
+- **Non-catalog:** a free-text request — the Requester types a description of
+  what is needed and selects the Supplier.
+- **Services:** a separate services request form, used because a statement of
+  work must be attached.
 
-<!-- Inline callouts live at the step they attach to (E is their home): -->
+- **System / Tool:** Coupa
+- **Expected Result:** A draft requisition with lines populated from the returned cart, the free-text description, or the services request form.
 
-> **VALIDATION REQUIRED — GAP-01:** TBD — a fact, owner, timing, path, or decision to confirm.
-> - **Nature:** unknown | conflict | unsupported-assumption
-> - **Owner to confirm:** TBD
+> **SCREENSHOT PLACEHOLDER — SC-01:** The Coupa requisition entry screen showing the three request paths (hosted catalog / punchout, non-catalog free text, services request form); validates that all three intake paths exist as described.
 
-> **SCREENSHOT PLACEHOLDER — SC-01:** TBD — what to capture and what it must validate.
+#### Step 2: Complete variant-specific requirements
+
+For a services requisition, the Requester attaches the statement of work — the
+services form exists specifically because this attachment is required
+(SRC-002). For any capital purchase, regardless of path, the Requester enters
+the approved AFE number in the dedicated Coupa custom field; a capital
+requisition will not route for approval at all until the field is populated —
+the AFE gate described at CTRL-002 in F (SRC-002). How the gate is
+administered is unconfirmed [[GAP-01 — AFE GATE ADMINISTRATION]].
+
+- **System / Tool:** Coupa
+- **Fields / Parameters:** AFE number (custom field, capital requisitions); statement of work attachment (services requisitions).
+- **Expected Result:** A requisition that is complete enough for Coupa to route it for approval.
+
+> **VALIDATION REQUIRED — GAP-01:** Whether the Coupa AFE custom field validates the entered number against approved AFEs or only requires that the field be populated, and which role administers the gate, were not established (SRC-002).
+> - **Nature:** unknown
+> - **Owner to confirm:** Procurement Lead
+
+> **SCREENSHOT PLACEHOLDER — SC-02:** A capital requisition in Coupa showing the AFE custom field populated; validates that the field exists and blocks routing when empty.
+
+#### Step 3: Submit the requisition for approval routing
+
+On submission, Coupa builds the approval chain — the tiered requisition
+approval control described at CTRL-001 in F. The Cost Center Owner approves
+every requisition. Below $2,000, the Cost Center Owner is the only approver;
+from $2,000 to $25,000 the chain adds the Functional Vice President; above
+$25,000 it extends to the Chief Financial Officer (SRC-002). The upper
+threshold is contested across the sources
+[[GAP-02 — CFO ROUTING THRESHOLD]]. This requisition ladder is distinct from
+the non-PO invoice approval ladder used in
+[[non-po-invoice-entry-and-approval]]; whether that divergence is deliberate
+is itself contested [[GAP-03 — REQUISITION VS NON-PO LADDER]].
+
+- **System / Tool:** Coupa
+- **Expected Result:** The requisition is routed to the approver chain matching its total value, with the Cost Center Owner first in every case.
+
+> **VALIDATION REQUIRED — GAP-02:** The dollar threshold at which a requisition routes to the Chief Financial Officer is contested: the Procurement Lead states $25,000 (SRC-002), the Corporate Controller implied $50,000 in passing, and the Accounts Payable Manager could not say (SRC-005). No one has verified the live approval chain configuration in Coupa — pull the Coupa approval chain export to confirm the full ladder.
+> - **Nature:** conflict
+> - **Owner to confirm:** Procurement Lead
+
+> **VALIDATION REQUIRED — GAP-03:** The Procurement Lead describes the requisition approval ladder as deliberately different from the non-PO invoice approval ladder; the Corporate Controller did not appear aware that the two ladders differ (SRC-002, SRC-005). Confirm whether the divergence is intended design and document one authoritative pair of ladders.
+> - **Nature:** conflict
+> - **Owner to confirm:** Corporate Controller
+
+> **SCREENSHOT PLACEHOLDER — SC-03:** The approval chain panel on a submitted high-value requisition in Coupa; validates the live approver sequence by threshold and supports resolution of GAP-02.
+
+#### Step 4: Approvers action the requisition
+
+Each approver in the chain reviews and approves the requisition within Coupa.
+Approvals frequently dwell in approver queues — the dominant share of the
+requisition-to-PO cycle time, detailed in H. Handling of a rejected or
+returned requisition — whether the Requester edits and resubmits, and whether
+a resubmission re-routes the full chain — was not described in the sources:
+TBD — confirm with process owner [[GAP-04 — REJECTED REQUISITION HANDLING]].
+
+- **System / Tool:** Coupa
+- **Expected Result:** All required approvals are recorded and the requisition reaches fully approved status.
+
+> **VALIDATION REQUIRED — GAP-04:** How a rejected or returned requisition is handled (edit and resubmit path, and whether resubmission re-routes the full approval chain) was not described by any source.
+> - **Nature:** unknown
+> - **Owner to confirm:** Procurement Lead
+
+#### Step 5: Hand off the fully approved requisition to purchase order issuance
+
+Once the final approver has actioned the requisition, it is fully approved in
+Coupa, and Coupa generates and transmits the purchase order. Purchase order
+generation, transmission, and subsequent change orders are documented under
+[[po-issuance-and-change-orders]] (SRC-002).
+
+- **Expected Result:** A fully approved requisition from which Coupa automatically cuts the purchase order.
 
 ### F. Key Controls
 
-<!-- CONTROL callouts are the source for the Controls view — no table. -->
+> **CONTROL — CTRL-001:** Tiered requisition approval chain in Coupa: every requisition requires Cost Center Owner approval, with the Functional Vice President added from $2,000 and the Chief Financial Officer above $25,000 (upper threshold contested — see GAP-02 in E) (SRC-002).
+> - **Type:** Preventive
+> - **Frequency:** Each requisition
+> - **Owner:** Cost Center Owner / Functional Vice President / Chief Financial Officer, by threshold
 
-> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
-> - **Type:** Preventive | Detective | Corrective
-> - **Frequency:** TBD
-> - **Owner:** TBD
+> **CONTROL — CTRL-002:** AFE gate on capital requisitions: Coupa will not route a capital requisition for approval unless an approved AFE number is present in the dedicated custom field (SRC-002).
+> - **Type:** Preventive
+> - **Frequency:** Each capital requisition
+> - **Owner:** System-enforced in Coupa; administering role TBD — confirm with process owner (see GAP-01 in E)
 
 ### G. Outputs
 
-- **Output 1:** TBD
-- **Evidence retained:** TBD
+- **Fully approved requisition (Coupa):** consumed by [[po-issuance-and-change-orders]], where Coupa generates and transmits the purchase order (SRC-002).
+- **Evidence retained:** the requisition record and its approval history in Coupa, where all approvals are executed (SRC-002); no separate archive location was described in the sources.
 
 ### H. Known Issues & Improvement Opportunities
 
-<!-- PAIN POINT + IMPROVEMENT callouts here ARE the structured source for
-     Appendix A (assembled mechanically) — fill every field. -->
+> **PAIN POINT — PP-001:** Requisition-to-PO cycle time runs at a median of 6.5 days, of which roughly five days is requisitions sitting in approver queues (SRC-002). The figure comes from the Procurement Lead's own spreadsheet rather than a system report and should be treated as indicative (SRC-005).
+> - **Impact:** Slow fulfillment of operational needs; approval queue dwell dominates the requisition-to-PO cycle.
+> - **Severity:** Medium
 
-> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
-> - **Impact:** TBD
-> - **Severity:** High | Medium | Low
+> **PAIN POINT — PP-002:** Punchout catalog pricing is stale — roughly half of it does not reflect negotiated contract pricing — so Requesters buy off-contract without knowing (SRC-002, SRC-005).
+> - **Impact:** Off-contract buying and loss of negotiated pricing on catalog-path spend.
+> - **Severity:** Medium
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — the proposed improvement (this IS the recommendation).
+> **IMPROVEMENT OPPORTUNITY — IO-001:** Auto-approve low-dollar catalog requisitions (below approximately $1,000) placed against a contracted price, removing an estimated one-third of requisition volume from the approval chain (SRC-002, SRC-005).
 > - **Addresses:** PP-001
 
 ```consult-meta
-systems: []
-roles:   []
+systems: [coupa, netsuite]
+roles:   [requester, cost-center-owner, functional-vp, cfo, procurement-lead, corporate-controller, ap-manager, supplier]
 ```
