@@ -1,0 +1,121 @@
+systems:
+- slug: coupa
+  name: Coupa
+  aliases:
+  - Coupa
+  - the Coupa side
+  - SIM
+  - Supplier Information Management
+  description: System of record for the supplier record from a sourcing standpoint.
+    Handles the New Supplier Request form, supplier self-registration through the
+    Supplier Information Management (SIM) portal, requisitions (hosted catalog, punchout,
+    non-catalog free text, services), approval chains, and PO issuance and transmission.
+  limitations: The nightly supplier sync to NetSuite is intermittently unreliable
+    — records can land with a blank payment term and are corrected by hand; no monitoring,
+    alerting or named owner for the sync could be identified. Punchout catalog pricing
+    is stale and does not always reflect negotiated contract pricing, so buying can
+    occur off-contract without the requester knowing. Approval chain configuration
+    was not verified against the system during fieldwork.
+  confidence: high
+- slug: netsuite
+  name: NetSuite
+  aliases:
+  - NetSuite
+  - NS
+  - the ERP
+  - the enterprise resource planning system
+  - the system
+  description: General ledger and system of record for the vendor master for payment
+    purposes. Holds item receipts, bills (PO and non-PO), invoice approval routing,
+    the Pay Bills payment run, check printing and positive pay issue file transmission,
+    and bank reconciliation. Receives POs and new supplier records from Coupa by nightly
+    sync, and captured invoices from Ephesoft as bills in a pending state.
+  limitations: 'Duplicate invoice prevention is enforced by a unique constraint on
+    supplier identifier plus supplier invoice number. The SOP''s three-business-day
+    automatic approval escalation is either not configured or not operating — non-PO
+    approvals are described as sitting in approver queues for up to two weeks with
+    no escalation. The live three-way match tolerance and the live non-PO approval
+    ladder could not be confirmed: no one interviewed had pulled the configuration,
+    and the values given differ between the SOP, AP and the Controller. Vendor record
+    edit access extends beyond the Vendor Maintenance role to the Assistant Controller
+    (emergency), the NetSuite administrator role held by IT, and a legacy implementation-partner
+    login that remains active and unremediated.'
+  confidence: high
+- slug: ephesoft
+  name: Ephesoft
+  aliases:
+  - Ephesoft
+  - the OCR thing
+  - the OCR
+  - the capture application
+  - document capture application
+  - the imaging system
+  description: Document capture / OCR application that every invoice image passes
+    through, whether emailed or scanned. Extracts header data (supplier name, invoice
+    number, invoice date, total, currency and PO reference) and pushes the result
+    into NetSuite as a bill in a pending state.
+  limitations: PO number extraction is unreliable when the vendor does not place the
+    PO reference in a standard position on the face of the invoice (e.g. inside a
+    paragraph of body text). Documents scoring below the extraction confidence threshold
+    route to a manual validation queue and are keyed by hand; the threshold value
+    is unconfirmed — stated as ninety percent in the SOP and as approximately seventy-five
+    percent by AP, with the configuration never pulled.
+  confidence: high
+- slug: chase-connect
+  name: Chase Connect
+  aliases:
+  - Chase Connect
+  - the portal
+  - the payments portal
+  - Chase
+  - the commercial banking portal
+  - the banking portal
+  - the institution's commercial banking portal
+  description: Commercial banking portal at the Company's depository institution.
+    Used for ACH (NACHA) file upload and release, wire initiation and dual approval,
+    positive pay issue file receipt and exception disposition, and the ACH debit block
+    filter list on the operating account. Upload and release are held under separate
+    user IDs with separate tokens.
+  limitations: ''
+  confidence: high
+- slug: ap-inbox
+  name: AP Inbox (ap-invoices@)
+  aliases:
+  - AP Inbox
+  - the AP Inbox
+  - ap-invoices@
+  - the shared mailbox
+  - shared Outlook mailbox
+  - the designated accounts payable electronic mailbox
+  description: Shared Outlook mailbox that receives roughly ninety percent or more
+    of supplier invoices. Vendors are directed to it by the purchase order terms and
+    conditions. Triaged daily by the part-time AP Clerk.
+  limitations: ''
+  confidence: high
+- slug: finance-shared-drive
+  name: Finance Shared Drive
+  aliases:
+  - the shared drive
+  - the finance shared drive
+  - Finance/Treasury/Forms
+  description: Network file share holding the Wire Transfer Request Form template
+    (under Finance/Treasury/Forms), the manual known-not-received accrual spreadsheet,
+    and — per the SOP — the vendor statement reconciliation worksheets.
+  limitations: Retention location for the weekly payment proposal Excel export was
+    not established; the Controller confirmed evidence of approval is retained but
+    not where. Existence of the statement reconciliation worksheets on the drive is
+    unverified.
+  confidence: medium
+- slug: concur
+  name: Concur
+  aliases:
+  - Concur
+  - the Concur audit queue
+  description: 'Travel and expense system. OUT OF THIS L1: the client explicitly files
+    it under a separate Travel & Expense function, not Procure to Pay. Reimbursement
+    is paid through the payroll ACH file from a different bank account, not the AP
+    payment run. Registered here only so that mentions in the sources normalize correctly
+    and are recognized as out of scope; the AP team operates it (the part-time AP
+    Clerk works the audit queue, the Treasury Analyst owns the corporate card side).'
+  limitations: ''
+  confidence: high
