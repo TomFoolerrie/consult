@@ -1,0 +1,22 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "b41e98221121",
+ "docx": "screenshots_renata-kowalczyk.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "wire-and-manual-payment",
+   "local": "SC-01",
+   "disp": "SC-29"
+  },
+  "scr_001": {
+   "slug": "wire-and-manual-payment",
+   "local": "SC-02",
+   "disp": "SC-30"
+  },
+  "scr_002": {
+   "slug": "wire-and-manual-payment",
+   "local": "SC-03",
+   "disp": "SC-31"
+  }
+ }
+}

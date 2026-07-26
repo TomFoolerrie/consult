@@ -1,0 +1,591 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "c526ef3b2fac",
+ "area": "procure-to-pay",
+ "docx": "3.2_return-to-vendor.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "4f5b70d18fb64972c83be2a1cdd3eaa09e8fc079",
+  "10_vendor-banking-change.md": "856819501c1c9a3bd00c1f366909a2ea2ba9fdc3",
+  "10_vendor-master-data-maintenance.md": "179e60a8c990e0673c071e31e1902a528f0d0082",
+  "10_requisition-and-approval.md": "8f393bc1f14a45739754527d7066a7fb5b1e2a8f",
+  "10_po-issuance-and-change-orders.md": "a715477ab46349c5ef3e81c488c7050f40982ceb",
+  "10_confirming-po.md": "3af8661b6c40d3bababc62bb28fe57777b8a74cc",
+  "10_goods-receipt.md": "b391918c4dc0b703865ee0d076ad6311f69ed960",
+  "10_return-to-vendor.md": "d7d911f757db738c3455d20adf25e702fb574556",
+  "10_invoice-intake-and-capture.md": "acf38e87058a4a95bbff2396523eca395abc056c",
+  "10_po-invoice-entry-and-three-way-match.md": "ba4105aaff874453c4ad733d81fd2ef51cf1549f",
+  "10_non-po-invoice-entry-and-approval.md": "5bb2d1ed0ad4385052d35a0ef2c47da4e77bd697",
+  "10_vendor-statement-reconciliation.md": "f486c9284db023705109cd84a39b406c0350cef6",
+  "10_weekly-payment-run.md": "72079731f9b64e1bf917c7a5184f3e49e41c57c5",
+  "10_wire-and-manual-payment.md": "78eba0213112c662f922d4641990c841d9665d38",
+  "10_positive-pay-exception-handling.md": "c3fdeb9ceefbb17827932eec49d084724d0508c4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    4,
+    4
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "844d0d57d5bddf2065d1ae553e71a655516afd7b"
+  },
+  "cw_00001": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    8,
+    8
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "516e2c543d697336e79c799c17d5240c4afcb5d5"
+  },
+  "cw_00002": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    9,
+    9
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7d6d4cada33b7bd56c5b0299e8da7eb9b8e15069"
+  },
+  "cw_00003": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    10,
+    10
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "324a870e8be2f81d635071bfc1280c4d4cf35f7d"
+  },
+  "cw_00004": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    11,
+    11
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "075c4bca2a8e6fcd0209bb4944ec0af00a274ed3"
+  },
+  "cw_00005": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    12,
+    12
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8aa08c9eaa333ca015b6b2f5fd639e6cd6261ae4"
+  },
+  "cw_00006": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    13,
+    13
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d86d4ca6d6a9391dd709f611150d6bf7475032a3"
+  },
+  "cw_00007": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    17,
+    17
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9deca1f07221c8eeb30c8c868f92bf739edb32dd"
+  },
+  "cw_00008": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    18,
+    18
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fbd60d51fb2d458f8dd6e33fcd7fdaf9648619f9"
+  },
+  "cw_00009": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    19,
+    19
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0d4eb9494c80d1fe75fbc974306ca077b27c8e27"
+  },
+  "cw_00010": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "73b32cd361879e206fc565694d7231a9b50ca632"
+  },
+  "cw_00011": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "39ef6436b87da30e10781a553fc48d8b2860cad8"
+  },
+  "cw_00012": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "17e531ea74525543e3b834d755d30ebece43b7ef"
+  },
+  "cw_00013": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1540c7f8f63680224c1dc94a36beb5666387b5a4"
+  },
+  "cw_00014": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    35,
+    35
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "04a66d9fd78c0700d1dde8e430cbde18c4a7d7e2"
+  },
+  "cw_00015": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a341db295f4f92424342968947fe9167a375147f"
+  },
+  "cw_00016": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    41,
+    41
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "be4d8784986d93eb467e144ab1a53936ec531b02"
+  },
+  "cw_00017": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    43,
+    43
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00018": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    44,
+    44
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "93cf645d8da93f53fbacb00db0d958b3a1774c81"
+  },
+  "cw_00019": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    45,
+    45
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "cac49129c948039b3096105817e6d519511d0de9"
+  },
+  "cw_00020": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7c0b71d6d6c4637b1a6aa6b60ddd7043f1444900"
+  },
+  "cw_00021": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00022": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7f0d29ea36b8f8d7ae407b0a2b4fbe4a7f9789b5"
+  },
+  "cw_00023": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    51,
+    51
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "74402aadc935da211c7ab3ccb1520aa3c56078fc"
+  },
+  "cw_00024": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    55,
+    55
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "ff03628a0a86210c8061b4f32866086c76828a5c"
+  },
+  "cw_00025": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    57,
+    57
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6ae748d1d62102953fcac65fd05345ba18dfedcc"
+  },
+  "cw_00026": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    61,
+    61
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1c037cb2bc528395a159293f14386befa32fd432"
+  },
+  "cw_00027": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    63,
+    65
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ea4b35258ad362790c9e9cfe58c292078a832f9d"
+  },
+  "cw_00028": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    63,
+    65
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00029": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    63,
+    65
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00030": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    69,
+    72
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3fd5f9b49acd5d68a861a93fdae2df9cfb5a02ff"
+  },
+  "cw_00031": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    69,
+    72
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00032": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    69,
+    72
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "c5e169ee53862d343321d4e37ca20f2a7db7dcec"
+  },
+  "cw_00033": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    69,
+    72
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "d08bb5ad6a7fe4a78967fc1fd830ce99ba68bd80"
+  },
+  "cw_00034": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    74,
+    77
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "24683ee8896ce736c553106590797d4b7e47a462"
+  },
+  "cw_00035": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    74,
+    77
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00036": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    74,
+    77
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "c5e169ee53862d343321d4e37ca20f2a7db7dcec"
+  },
+  "cw_00037": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    74,
+    77
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "45ef513baeb423d9687d1ff4655fed14efa6083e"
+  },
+  "cw_00038": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    81,
+    81
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d73e327177d123bb6acb3c798bfc366b57a7bca7"
+  },
+  "cw_00039": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    82,
+    82
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e0c6d91c09186a7d57d72415c42d91a3718f092a"
+  },
+  "cw_00040": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    83,
+    83
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7de4db4497d8da98fdc7ffc592928a14fbcb9cab"
+  },
+  "cw_00041": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    84,
+    84
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "069ed166ecfa419a96e9b6304eb450d761fb8550"
+  },
+  "cw_00042": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    88,
+    90
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3356fdc805c93e2bfed2e4b27da82f8a4082b6ba"
+  },
+  "cw_00043": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    88,
+    90
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "8af3da9388629d90367cac42aad32d51c3dfbfb2"
+  },
+  "cw_00044": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    88,
+    90
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00045": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    92,
+    93
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "e7395dac3437d95c421d6d0987ffd2fb4192ba85"
+  },
+  "cw_00046": {
+   "file": "10_return-to-vendor.md",
+   "slug": "return-to-vendor",
+   "l2": "receiving",
+   "lines": [
+    92,
+    93
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "aa735f31e062c2a15b493640f877c87234527a87"
+  }
+ }
+}

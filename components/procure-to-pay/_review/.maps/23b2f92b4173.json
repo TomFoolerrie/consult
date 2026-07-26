@@ -1,0 +1,891 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "23b2f92b4173",
+ "area": "procure-to-pay",
+ "docx": "4.2_po-invoice-entry-and-three-way-match.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "4f5b70d18fb64972c83be2a1cdd3eaa09e8fc079",
+  "10_vendor-banking-change.md": "856819501c1c9a3bd00c1f366909a2ea2ba9fdc3",
+  "10_vendor-master-data-maintenance.md": "179e60a8c990e0673c071e31e1902a528f0d0082",
+  "10_requisition-and-approval.md": "8f393bc1f14a45739754527d7066a7fb5b1e2a8f",
+  "10_po-issuance-and-change-orders.md": "a715477ab46349c5ef3e81c488c7050f40982ceb",
+  "10_confirming-po.md": "3af8661b6c40d3bababc62bb28fe57777b8a74cc",
+  "10_goods-receipt.md": "b391918c4dc0b703865ee0d076ad6311f69ed960",
+  "10_return-to-vendor.md": "d7d911f757db738c3455d20adf25e702fb574556",
+  "10_invoice-intake-and-capture.md": "acf38e87058a4a95bbff2396523eca395abc056c",
+  "10_po-invoice-entry-and-three-way-match.md": "ba4105aaff874453c4ad733d81fd2ef51cf1549f",
+  "10_non-po-invoice-entry-and-approval.md": "5bb2d1ed0ad4385052d35a0ef2c47da4e77bd697",
+  "10_vendor-statement-reconciliation.md": "f486c9284db023705109cd84a39b406c0350cef6",
+  "10_weekly-payment-run.md": "72079731f9b64e1bf917c7a5184f3e49e41c57c5",
+  "10_wire-and-manual-payment.md": "78eba0213112c662f922d4641990c841d9665d38",
+  "10_positive-pay-exception-handling.md": "c3fdeb9ceefbb17827932eec49d084724d0508c4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    4,
+    4
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "e4b6768da31c4cdb8e4eefb5a80c7c70d8bcd26b"
+  },
+  "cw_00001": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    8,
+    8
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e99f0ed71a1021f12de960be80fad33d61449bc9"
+  },
+  "cw_00002": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    9,
+    9
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ddcaacf6ad4e1e8b70e952f92d7a974435fb3ca7"
+  },
+  "cw_00003": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    10,
+    10
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "267b712ef91bb3feb9a08cae88bddffb60484ee9"
+  },
+  "cw_00004": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    11,
+    11
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b67df6da8ac66994b4b9552cbb5597b1637800c0"
+  },
+  "cw_00005": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    12,
+    12
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d22bc1e1de58ea1e5cc88088432500702f587003"
+  },
+  "cw_00006": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    13,
+    13
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "da078a675849eabdd36121b96d81b64ae9a0bff8"
+  },
+  "cw_00007": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    17,
+    17
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "90ea8b057364cf293ced87aeba8688a88bcdec50"
+  },
+  "cw_00008": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    18,
+    18
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e93be2161bff2ab97ac1c28eed48d4112a74b705"
+  },
+  "cw_00009": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    19,
+    19
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a287515dce0e1e299fd4fcace0245b9f77d3d397"
+  },
+  "cw_00010": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    20,
+    20
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8c769fa1f817006f36a60881f0c4064f3faec0e0"
+  },
+  "cw_00011": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ec4193ad509f6b2db7bdd3f24b51fbfe0c4b9ddf"
+  },
+  "cw_00012": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d7d4a9b512b5af66ab0549e5d9c23b8d77f7a649"
+  },
+  "cw_00013": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    26,
+    26
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "06b94403a537d440ed5d39e4defee71158b84b24"
+  },
+  "cw_00014": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    27,
+    27
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c55d2e8f722c74eaae4635964208e830d331dc58"
+  },
+  "cw_00015": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "5b4c1aed4fa3ec5ed7b4e5fb60c7b6fa12998ee3"
+  },
+  "cw_00016": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    35,
+    35
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00017": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    36,
+    36
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1c9659f2671ad7028848ce648c53ac10732f46af"
+  },
+  "cw_00018": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    37,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1bb483f639bf84e310003d16e95df0ea7d2d98fd"
+  },
+  "cw_00019": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    41,
+    41
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "beef215a909534c136b2097c6c5422c40f16a110"
+  },
+  "cw_00020": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    43,
+    43
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00021": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    44,
+    44
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fe31326ab0a7554d95d4e7bdd1d7cae7be2365d6"
+  },
+  "cw_00022": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    45,
+    45
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8708909ec07dfd9545668c8d50e7693cd7f82259"
+  },
+  "cw_00023": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f6fa95920373624d72abf29cbe12c7a0ebd80961"
+  },
+  "cw_00024": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00025": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00026": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    51,
+    51
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c0fd566c40c75da98a59f3c0511b08f9d7ad2748"
+  },
+  "cw_00027": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    55,
+    55
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "f9b59a2dfcaf321461d9eb3ad992bc0b5cc44a39"
+  },
+  "cw_00028": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    57,
+    57
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00029": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    58,
+    58
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "48e8ec893e40f2e480779c2be0c39561f4dbfdc9"
+  },
+  "cw_00030": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    59,
+    59
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f8320fad1da2d29d12a0c07d909c89c865648fa1"
+  },
+  "cw_00031": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    63,
+    63
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "653f2443dfbaf51234243d0c32faaac3b8ad3e43"
+  },
+  "cw_00032": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1e49618d4a819af823ece4c0c3a46ff72b8e1a6c"
+  },
+  "cw_00033": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00034": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    65,
+    67
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00035": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    71,
+    71
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "8e1cd145e4f3e8b7ab2ec6f76a63cbd4cdee9501"
+  },
+  "cw_00036": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    73,
+    73
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "69c43a5fbe0cc102dac220c01e2d3d8eec08fe74"
+  },
+  "cw_00037": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    74,
+    74
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a15d10a4dba080fb434aa9a81ff6b20800fa1d3d"
+  },
+  "cw_00038": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    75,
+    75
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b69d5e562a1f3e2089d95813b325c5efb8aa99cd"
+  },
+  "cw_00039": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    77,
+    77
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "85c2211bb46a1fbbde49ea23c198d28316039201"
+  },
+  "cw_00040": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    78,
+    78
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0e52392b13a52eb23edd6f0aeee3db3339ff30eb"
+  },
+  "cw_00041": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    79
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f27683b1a92ae6ac100fd092f443ff83a2f96ec0"
+  },
+  "cw_00042": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    81,
+    81
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0f2aacd3b1774650ff50539d47ac4ccaaee39186"
+  },
+  "cw_00043": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    85,
+    88
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7e16e5a0c3d7ed7d0df19e40dbed56d5870d432d"
+  },
+  "cw_00044": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    85,
+    88
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00045": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    85,
+    88
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "705ec78e0ad5f477f52892b0338a9c1a41b55312"
+  },
+  "cw_00046": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    85,
+    88
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "83f093e392963d50d971a10b03d8556d3a4e8f6f"
+  },
+  "cw_00047": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    90,
+    93
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "cab5daad9196305d05e71f81ab54f39a938c5eaa"
+  },
+  "cw_00048": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    90,
+    93
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00049": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    90,
+    93
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "051e9a3c64893050a364f7e98f7a000d406a06e7"
+  },
+  "cw_00050": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    90,
+    93
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "83f093e392963d50d971a10b03d8556d3a4e8f6f"
+  },
+  "cw_00051": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    95,
+    98
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93c9e3dd06428e9b86f4805d0bb69102bf3984b2"
+  },
+  "cw_00052": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    95,
+    98
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00053": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    95,
+    98
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7a25cb7f13bcfe84de07de1b07c5527853bbeaba"
+  },
+  "cw_00054": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    95,
+    98
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "cc87051d064d7ced5c11a459ac978c8fcad24521"
+  },
+  "cw_00055": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    102,
+    102
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2e2970dd357cb96a7e8f4597dd2faf59f6c5823e"
+  },
+  "cw_00056": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    103,
+    103
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "398049b3121ec07bf7f71d7eb7dc7f90027e1c96"
+  },
+  "cw_00057": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    104,
+    104
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6b96fc330edf0bc4ee3ad29bbf0aa903ad88cb51"
+  },
+  "cw_00058": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    105,
+    105
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "65b20f12d5ed92a82d8abba4f35bff3fdbef2beb"
+  },
+  "cw_00059": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    109,
+    111
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "67499b16c9ae175b2e7a8ddfbe8e6a758d30d47e"
+  },
+  "cw_00060": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    109,
+    111
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a033962a88a7212cee1c16d55a160e045b1ee149"
+  },
+  "cw_00061": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    109,
+    111
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00062": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    113,
+    115
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "15209292c6c3a6b368d0b0ab25953ef323300261"
+  },
+  "cw_00063": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    113,
+    115
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2ff19cf5d68e36ea1ea795cbffc6f11f9a3bd2c9"
+  },
+  "cw_00064": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    113,
+    115
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00065": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "1f9c197705fa054ba1f1aecee7043a4f1c5ed01a"
+  },
+  "cw_00066": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "6ec7ef51220fb0e69e53d13d71e98d953a293e24"
+  },
+  "cw_00067": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    117,
+    119
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00068": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c8875fbd46f181ddb151773e42baa60c8bad8439"
+  },
+  "cw_00069": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "63798cc77b99ea218bbd27c1499e518359614983"
+  },
+  "cw_00070": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    124,
+    125
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "753fa70b0719de1ab2356f108812d467306c3fe4"
+  },
+  "cw_00071": {
+   "file": "10_po-invoice-entry-and-three-way-match.md",
+   "slug": "po-invoice-entry-and-three-way-match",
+   "l2": "invoice-processing",
+   "lines": [
+    124,
+    125
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "b215b074bb894ef156afccdc62bc6749dc652f0d"
+  }
+ }
+}

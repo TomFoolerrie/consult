@@ -1,0 +1,17 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "24001339f7b2",
+ "docx": "screenshots_role-receiver.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "goods-receipt",
+   "local": "SC-01",
+   "disp": "SC-16"
+  },
+  "scr_001": {
+   "slug": "goods-receipt",
+   "local": "SC-02",
+   "disp": "SC-17"
+  }
+ }
+}

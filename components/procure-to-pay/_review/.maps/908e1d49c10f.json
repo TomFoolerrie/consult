@@ -1,0 +1,12 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "908e1d49c10f",
+ "docx": "screenshots_hal-ostrowski.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "return-to-vendor",
+   "local": "SC-01",
+   "disp": "SC-18"
+  }
+ }
+}

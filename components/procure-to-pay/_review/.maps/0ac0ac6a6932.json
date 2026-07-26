@@ -1,0 +1,17 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "0ac0ac6a6932",
+ "docx": "screenshots_unassigned.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "vendor-banking-change",
+   "local": "SC-01",
+   "disp": "SC-04"
+  },
+  "scr_001": {
+   "slug": "vendor-banking-change",
+   "local": "SC-02",
+   "disp": "SC-05"
+  }
+ }
+}

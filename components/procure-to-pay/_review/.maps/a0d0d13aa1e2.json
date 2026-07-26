@@ -1,0 +1,37 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "a0d0d13aa1e2",
+ "docx": "screenshots_priya-raghunathan.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "invoice-intake-and-capture",
+   "local": "SC-01",
+   "disp": "SC-19"
+  },
+  "scr_001": {
+   "slug": "invoice-intake-and-capture",
+   "local": "SC-02",
+   "disp": "SC-20"
+  },
+  "scr_002": {
+   "slug": "po-invoice-entry-and-three-way-match",
+   "local": "SC-01",
+   "disp": "SC-21"
+  },
+  "scr_003": {
+   "slug": "po-invoice-entry-and-three-way-match",
+   "local": "SC-02",
+   "disp": "SC-22"
+  },
+  "scr_004": {
+   "slug": "vendor-statement-reconciliation",
+   "local": "SC-01",
+   "disp": "SC-25"
+  },
+  "scr_005": {
+   "slug": "vendor-statement-reconciliation",
+   "local": "SC-02",
+   "disp": "SC-26"
+  }
+ }
+}

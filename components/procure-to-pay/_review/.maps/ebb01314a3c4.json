@@ -1,0 +1,37 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "ebb01314a3c4",
+ "docx": "screenshots_role-requester.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "requisition-and-approval",
+   "local": "SC-01",
+   "disp": "SC-08"
+  },
+  "scr_001": {
+   "slug": "requisition-and-approval",
+   "local": "SC-02",
+   "disp": "SC-09"
+  },
+  "scr_002": {
+   "slug": "requisition-and-approval",
+   "local": "SC-03",
+   "disp": "SC-10"
+  },
+  "scr_003": {
+   "slug": "po-issuance-and-change-orders",
+   "local": "SC-01",
+   "disp": "SC-11"
+  },
+  "scr_004": {
+   "slug": "po-issuance-and-change-orders",
+   "local": "SC-02",
+   "disp": "SC-12"
+  },
+  "scr_005": {
+   "slug": "po-issuance-and-change-orders",
+   "local": "SC-03",
+   "disp": "SC-13"
+  }
+ }
+}

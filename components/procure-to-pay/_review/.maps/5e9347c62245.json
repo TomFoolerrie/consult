@@ -1,0 +1,22 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "5e9347c62245",
+ "docx": "screenshots_marisol-vance.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "weekly-payment-run",
+   "local": "SC-01",
+   "disp": "SC-27"
+  },
+  "scr_001": {
+   "slug": "weekly-payment-run",
+   "local": "SC-02",
+   "disp": "SC-28"
+  },
+  "scr_002": {
+   "slug": "positive-pay-exception-handling",
+   "local": "SC-01",
+   "disp": "SC-32"
+  }
+ }
+}
