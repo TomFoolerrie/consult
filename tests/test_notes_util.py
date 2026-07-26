@@ -1,9 +1,14 @@
-"""Tests for scripts/notes_util.py — merge-append with fingerprint dedupe."""
+"""Tests for scripts/notes_util.py — merge-append with fingerprint dedupe.
+
+The M6 bus contract (kind/src validation) is pinned in tests/test_notes_bus.py.
+"""
+import pytest
 import yaml
 
-from notes_util import append_items, load_items
+from notes_util import NotesError, append_items, load_items
 
-ITEM = {"type": "gap", "location": "Step 3", "note": "Who approves?",
+ITEM = {"kind": "review",   # M6 bus contract: every item carries its producer's kind
+        "type": "gap", "location": "Step 3", "note": "Who approves?",
         "author": "Reviewer", "date": "2026-01-02", "source": "workbook"}
 
 
@@ -74,14 +79,16 @@ def test_load_items_skips_non_dicts(tmp_path):
     """Non-dict entries under items: are dropped on load."""
     f = notes_path(tmp_path, "mixed")
     f.parent.mkdir(parents=True)
-    f.write_text("items:\n  - just a string\n  - {type: gap, note: ok}\n",
+    f.write_text("items:\n  - just a string\n  - {kind: review, type: gap, note: ok}\n",
                  encoding="utf-8")
-    assert load_items(tmp_path, "mixed") == [{"type": "gap", "note": "ok"}]
+    assert load_items(tmp_path, "mixed") == [{"kind": "review", "type": "gap",
+                                              "note": "ok"}]
 
 
 def test_emit_escapes_and_flattens(tmp_path):
     """Quotes/backslashes are escaped and newlines/tabs flattened to spaces."""
-    tricky = {"type": "note", "note": 'She said "hi"\nand\tleft \\ ok'}
+    tricky = {"kind": "review", "type": "note",
+              "note": 'She said "hi"\nand\tleft \\ ok'}
     append_items(tmp_path, "esc", [tricky])
     data = yaml.safe_load(notes_path(tmp_path, "esc").read_text(encoding="utf-8"))
     assert data["items"][0]["note"] == 'She said "hi" and left \\ ok'
@@ -89,14 +96,15 @@ def test_emit_escapes_and_flattens(tmp_path):
 
 def test_empty_values_omitted(tmp_path):
     """Keys whose value is None or '' are omitted from the emitted file."""
-    append_items(tmp_path, "sparse", [{"type": "gap", "note": "x",
+    append_items(tmp_path, "sparse", [{"kind": "review", "type": "gap", "note": "x",
                                        "author": "", "date": None}])
     data = yaml.safe_load(notes_path(tmp_path, "sparse").read_text(encoding="utf-8"))
-    assert data["items"] == [{"type": "gap", "note": "x"}]
+    assert data["items"] == [{"kind": "review", "type": "gap", "note": "x"}]
 
 
-def test_dedupe_ignores_unknown_keys(tmp_path):
-    """Fingerprint covers only the canonical keys; extra keys don't defeat dedupe."""
+def test_unknown_key_is_a_loud_error(tmp_path):
+    """M6 rule 2: a field outside the closed tuple is an ERROR, not a silent drop
+    on merge (it used to be ignored, which is how `kind`/`src` would vanish)."""
     append_items(tmp_path, "close", [ITEM])
-    extra = dict(ITEM, bogus="different")
-    assert append_items(tmp_path, "close", [extra]) == 0
+    with pytest.raises(NotesError):
+        append_items(tmp_path, "close", [dict(ITEM, bogus="different")])

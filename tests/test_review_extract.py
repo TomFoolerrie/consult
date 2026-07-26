@@ -178,6 +178,7 @@ def test_comments_only_extracts_comment_and_archives(area, returned):
     items = load_notes(area, "bank-rec")
     assert len(items) == 1
     (item,) = items
+    assert item["kind"] == "review"     # M6 notes-bus stamp (never retires a source)
     assert item["type"] == "comment"
     assert item["note"].startswith("Confirm which portal")
     assert item["author"] == "SME Reviewer"

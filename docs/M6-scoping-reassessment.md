@@ -1,7 +1,79 @@
 # M6 — Taxonomy + registry reassessment on new sources
 
-> **Status: DESIGNED — promoted from stub.** Deferred on the grounds that M1–M5
-> had to be solid first; they now are, and the deferral has a measured cost.
+> **Status: BUILT** (`scripts/notes_util.py`, `scripts/sources.py`,
+> `scripts/scaffold.py`, `scripts/orchestrate.py`, `scripts/review_extract.py`,
+> `agents/consult-taxonomy.md`, `skills/consult-taxonomy/SKILL.md`; tests in
+> `tests/test_notes_bus.py` (21) and `tests/test_m6_reassessment.py` (27) — the
+> suite goes 413 → 461).
+> Deltas from this design:
+>
+> - **The promote step DERIVES the source-note set from `touches`; the proposal
+>   supplies only the wording.** The ticket has the taxonomy agent authoring notes
+>   and confirm writing them, but a note list that stood on its own would break
+>   the veto this ticket specifies: "the sanctioned veto is upstream, at the
+>   confirm gate, by editing the proposal's `touches`" only works if `touches` is
+>   what decides. So `scaffold.py` walks the promoted `sources.yaml`, and for each
+>   outstanding source writes one `kind: source` note per `touches` slug that is
+>   already drafted, using the wording keyed `(slug, src)` in
+>   `.proposed/notes.yaml` (or a generated line if the agent supplied none).
+>   Wording for a pair `touches` does not claim is reported and dropped. Editing
+>   `touches` at the gate therefore really does cancel the dispatch, and a pass
+>   converges even if the agent writes no `notes.yaml` at all.
+> - **"Already drafted" is the `unfilled` sentinel, not the manifest.** A slug
+>   already in the manifest but never drafted must take the `fill` path (which
+>   hands the drafter its whole tagged source list); notes outrank fill, so
+>   notifying it would send an update drafter at an empty skeleton. `scaffold.py`
+>   borrows `orchestrate.UNFILLED_RE` rather than restating the grammar.
+> - **The cross-batch record is `consumed:` on each source entry** —
+>   `sources.py` accumulates it and never resets it, which is what makes the
+>   mixed new/existing case work in either batch order and doubles as the dedupe
+>   trace (see "Design decisions", below).
+> - **`mark-processed` grew `--updated`, and reads archived notes as evidence.**
+>   `--filled` keeps its meaning (first-draft fills, unconditional credit);
+>   update credit requires a `kind: source` item naming the source, found in
+>   `_review/processed/{slug}.notes.yaml` — the archive IS the success signal,
+>   since the driver archives only after a batch succeeds. `--updated <slugs>` is
+>   optional and additionally trusts the still-live note, for a driver that
+>   credits before it archives.
+> - **Guard 5's discriminator collapsed to one question.** The design has the
+>   gate check "touches all drafted, no pending source notes"; by the time guard 5
+>   is reached, guard 2 has already ruled out every pending note and guard 4 every
+>   `unfilled` sentinel. So the only question left is whether `_sources/new/` holds
+>   a file `sources.yaml` does not know at its current **hash** — unassessed →
+>   `taxonomy`, otherwise every source there is stranded → `unresolvable` naming
+>   the `SRC-` ids. Numbered **5a** in the ladder docstring.
+> - **The gate also catches two states the ticket did not name:** a source with an
+>   empty `touches` list, and one whose `touches` names a slug the manifest does
+>   not carry (audit F14's livelock — `taxonomy` used to re-fire forever). Both
+>   are stranded sources, and `human_action` already says "edit `touches`".
+> - **"In the same pass" means the same build RUN, not one dispatch batch.** For a
+>   mixed source the ladder returns `apply_review` and then `fill` on consecutive
+>   laps, because notes outrank fill (guard 2 > guard 4) — by design, and
+>   unchanged here. Both complete within one `continue <area>` run and the source
+>   retires at the end of it.
+> - **Unknown *fields* are loud, so one existing-test pin moved.**
+>   `test_notes_util.py::test_dedupe_ignores_unknown_keys` asserted the old silent
+>   drop; it is now `test_unknown_key_is_a_loud_error` (rule 2 verbatim). Four
+>   other edits stamped `kind: review` into that module's fixtures (the shared
+>   `ITEM` plus three inline items), and `test_review_extract.py` gained one line
+>   asserting the stamp end to end.
+> - **Two unowned producers needed their stamp**: `review_apply.py` fallback
+>   notes and `gaps_ingest.py` workbook answers are reviewer-originated items on
+>   the same bus, so each gained one line (`"kind": "review"`). Without it the
+>   first load after an ingest would fail loud.
+> - **Discovered while testing retirement:** removing a procedure also strands
+>   every source whose `touches` names it (F14 → a blocking reconcile error).
+>   The retirement guidance now tells the agent to re-emit those `touches` lists
+>   without the retired slug.
+> - **Not done here (out of ownership):** `skills/consult-orchestrate/SKILL.md`
+>   has no `unresolvable` handler, does not call `mark-processed` after an
+>   `apply_review` batch, and does not mention `--updated` — until it lands, a
+>   driver following the skill will apply source notes and never retire the
+>   source (it then rests at 5a's gate, which names the command).
+>   `agents/consult-drafter.md` does not yet describe the `kind` field, so a drafter
+>   reads a source note as ordinary prose instruction — correct behaviour, but
+>   undocumented.
+>
 > Evidence: `docs/audit-decide-exhaustiveness.md` (F7, plus F8's retirement half).
 
 ## The problem it solves
@@ -111,6 +183,85 @@ may be deleted freely — that is their design. The sanctioned veto for a
 - Two producers appending to one slug's notes file lose no fields; `kind:` and
   `src:` survive the merge.
 - A note item without `kind:` fails loud at load.
+
+### Where the accounting lives (build decisions)
+
+`sources.py` is the single owner: `sources.yaml` is the only place a consumption
+fact is recorded, and the only place the retirement rule is evaluated.
+
+**Cross-batch retirement — a durable per-slug record, not a batch set.** The
+tempting shape (`--filled` grows to mean "filled or updated") cannot work: a
+source touching `{new procedure A, existing procedure B}` is consumed in *two
+different batches* — B by `apply_review`, A by `fill` — and guard 2 outranks
+guard 4, so they are always at least one pass apart. A per-invocation set has no
+memory of the other batch. So each source entry carries
+
+```yaml
+consumed: [bank-rec]      # written by sources.py, never reset, never authored
+```
+
+the union of everything credited so far, intersected with `touches`. Retirement is
+`touches ⊆ consumed`, evaluated on every `mark-processed` call, so the two batches
+can land in either order, any number of passes apart. Rejected alternative: a
+separate `.consumed.json` signal file — it would be git-ignored (advisor state),
+and losing it would silently re-dispatch every drafter, while `consumed` is
+engagement state that belongs beside the `touches` it accounts against.
+
+**Credit requires kind-matched evidence, except for fills.** A `fill` dispatch
+carries the slug's whole tagged source list, so a successful fill *did* consume
+every source touching it — `--filled` credit is unconditional and needs no note.
+An update dispatch carries only `review_notes`, so its credit is only as good as
+the note that drove it: `sources.py` reads the slug's **archived** notes
+(`_review/processed/{slug}.notes.yaml`) and credits a source only where a
+`kind: source` item names it. The archive is the success signal — the driver
+archives after a batch succeeds, exactly as it passes `--filled` only for fills
+that succeeded — so no new "did it work?" channel was invented. `--updated
+<slugs>` additionally trusts the live note, for a driver that credits before it
+archives.
+
+**The dedupe trace is that same `consumed` record.** At the confirm gate,
+`scaffold.py` skips any `(source, slug)` pair already in `consumed`, so the same
+source cannot re-notify a procedure that already absorbed it — even many passes
+later, and even while the source is still outstanding for its *other*
+procedures. Two cheaper layers sit above it: a source already in `processed/` is
+never considered, and `notes_util`'s fingerprint dedupe (which now covers `kind`
+and `src`) absorbs a re-confirmed proposal whose note is still pending. All three
+are folder state, so `decide()` stays pure — it reads `sources.yaml` and the
+`_review/` tree, and remembers nothing.
+
+### What the orchestrator's prompt must gain (NOT built here)
+
+`skills/consult-orchestrate/SKILL.md` was outside this pass's ownership. Until it
+lands, a driver following the skill applies source notes and then never retires
+the source (it rests at guard 5a's gate, which names the command it skipped). It
+needs exactly four things:
+
+1. **`apply_review` gains a source-note branch.** After the batch and the existing
+   `archive-review --slugs <slugs…>`, run
+   `sources.py mark-processed <area> --updated <slugs…>` — the slugs whose update
+   drafter **succeeded**. Retirement is credited from the notes' `kind: source` +
+   `src:` fields, so this is what moves a source that only enriched drafted
+   procedures. Never pass those slugs as `--filled`: that credits every source
+   touching them regardless of kind, which is precisely the kind-blind accounting
+   the bus contract forbids.
+2. **The dispatch shape is unchanged, and SRC- resolution is the drafter's job.**
+   `{area, slug, mode: update, review_notes: _review/{slug}.notes.yaml}` — still
+   no `sources` list. Add one line to the handler: a note item may carry
+   `kind: source` with `src: SRC-<id>`, and the drafter resolves that id through
+   `_reference/sources.yaml` to find the file. Do not paste source paths into the
+   prompt; do not widen the dispatch.
+3. **`fill` keeps `--filled`** (first-draft credit, unconditional) — unchanged
+   wording, but the "Moving inputs" section should say *why* the two flags differ.
+4. **An `unresolvable` handler** (still missing from M18 as well): stop, print
+   `details.state` / `details.human_action`, and for guard 5a name the
+   `details.stranded_ids`. It is a resting gate (exit 0), not a failure.
+
+Signals-dictionary rows worth adding: `sources.yaml` `hash` ("what the advisor
+compares to decide a source has already been assessed — editing it buys a
+redundant taxonomy dispatch"), `sources.yaml` `consumed` ("which slugs have
+absorbed the source; written by mark-processed, and the dedupe trace"), and
+`_review/*.notes.yaml` `kind` ("who queued this item; only `source` items retire a
+source").
 
 ### Procedure-set diff (unchanged from the original sketch)
 

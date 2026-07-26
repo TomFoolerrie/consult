@@ -21,7 +21,8 @@ Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
  2b  review_triage    notes naming no live slug / _unassigned  (HUMAN GATE)
   3  taxonomy         no manifest.json AND _sources/new/*     (mode=initial)
   4  fill             manifest AND any procedure `unfilled`
-  5  taxonomy         manifest AND _sources/new/*             (mode=incremental)
+  5  taxonomy         manifest AND UNASSESSED _sources/new/*  (mode=incremental)
+ 5a  unresolvable     every source in new/ assessed + unconsumable (HUMAN GATE)
  5b  unresolvable     manifest slug whose fragment is absent   (HUMAN GATE)
   6  aggregate        procedure/registry hash changed vs aggregate state
   7  registry_topup   aggregate emitted unmatched-mention warnings (HUMAN GATE)
@@ -43,18 +44,25 @@ states where nothing satisfies that:
   * ``unresolvable`` (``human_gate: true``) — a RESTING GATE like ``review``, not
     an error: the folder is consistent, the ladder is out of moves. It carries
     ``details.state`` (what was detected), ``details.why_no_stage`` (why no stage
-    clears it) and ``details.human_action`` (the specific fix). Reached by an
-    orphaned manifest slug (5b), and by reconcile failures that no producer can
-    regenerate (8).
+    clears it) and ``details.human_action`` (the specific fix). Reached by a
+    stranded source in ``_sources/new/`` (5a, M6/F7), an orphaned manifest slug
+    (5b), and by reconcile failures that no producer can regenerate (8).
   * ``error`` (not a gate; ``next`` exits 2) — the area folder does not exist.
     A typo'd ``--area`` used to read as ``done`` (audit F3); it can no longer.
 
-The M18 partitions, all of them pure reads:
+The M18/M6 partitions, all of them pure reads:
 
   guard 2  a note is applicable only when its basename names a LIVE manifest
            procedure slug; orphans are ``review_triage``. With NO manifest at
            all guard 2 steps aside for guard 3 — nothing can be applied to an
            unscoped area (audit F1).
+  guard 5  a file in ``_sources/new/`` is work for the taxonomy agent only while
+           it is UNASSESSED — unregistered in ``_reference/sources.yaml``, or
+           registered at a different ``hash``. Sources registered at their
+           current bytes have already been read and proposed against, and the
+           guards above have already ruled out the two things that could consume
+           them (a pending note, an ``unfilled`` skeleton), so they are stranded:
+           ``unresolvable`` naming the ``SRC-`` ids (audit F7 / M6).
   guard 8  when reconcile's recorded failures (``.reconcile.json``
            ``failing_files``) are confined to agent-owned derived views the
            change signal already marks stale, ``synthesize`` takes precedence:
@@ -127,6 +135,15 @@ except Exception:  # pragma: no cover - callouts is always present
 
     def _blank_fences(text: str) -> str:
         return text
+
+# `_reference/sources.yaml` is OWNED BY sources.py (the `touches` validator, the
+# SRC- registry read, and M6's "has the taxonomy agent already read these bytes"
+# assessment). Borrowed, never restated, so guard 5 and `mark-processed` cannot
+# drift apart on what "assessed" means.
+try:
+    from sources import assess_new_sources as _assess_new_sources  # type: ignore
+except Exception:  # pragma: no cover - sources.py ships beside us
+    _assess_new_sources = None
 
 
 # --------------------------------------------------------------------------- #
@@ -291,6 +308,19 @@ class AreaState:
         """Path to _review/_unassigned.notes.yaml if present, else None."""
         p = os.path.join(self.folder, "_review", "_unassigned.notes.yaml")
         return p if os.path.isfile(p) else None
+
+    def new_source_assessment(self):
+        """`(unassessed, assessed)` for `_sources/new/` — guard 5's partition
+        (M6/F7), delegated to sources.py, which owns `sources.yaml`.
+
+        Unassessed = registered at a different hash, or not registered at all:
+        the taxonomy agent has never read these bytes. Assessed = already read
+        and already proposed against, so a taxonomy re-dispatch would propose
+        nothing new. Degrades to "everything unassessed" (pre-M6 behaviour:
+        `taxonomy`) if sources.py cannot be imported."""
+        if _assess_new_sources is None:  # pragma: no cover - sources.py is present
+            return ["_sources/new/"], []
+        return _assess_new_sources(self.folder)
 
     def unfilled_slugs(self):
         out = []
@@ -607,11 +637,49 @@ def decide(folder: str) -> dict:
             details["upstream_files"] = upstream_files
         return result("fill", reason, **details)
 
-    # 5 — incremental scope: new sources arrived after scaffolding
+    # 5 — incremental scope: new sources arrived after scaffolding.
+    #     M6/F7: only sources the taxonomy agent has NOT yet assessed are work
+    #     for it. `sources.yaml` is the discriminator (a pure read): a file in
+    #     new/ that is unregistered, or registered at a different hash, is
+    #     unassessed. A source registered at its current hash has already been
+    #     read and proposed against — and by the time this guard is reached,
+    #     guard 2 has ruled out any pending note and guard 4 any `unfilled`
+    #     skeleton, so NOTHING can consume it: re-dispatching taxonomy proposes
+    #     nothing new and re-spends a dispatch per lap. That is the gate below.
     if _dir_has_files(st.sources_new):
-        return result("taxonomy",
-                      "manifest exists and _sources/new/ non-empty (no unfilled)",
-                      mode="incremental")
+        unassessed, assessed = st.new_source_assessment()
+        if unassessed:
+            return result("taxonomy",
+                          "manifest exists and _sources/new/ holds %d unassessed "
+                          "source file(s) (no unfilled)" % len(unassessed),
+                          mode="incremental",
+                          unassessed=unassessed)
+        stranded = sorted(assessed, key=lambda e: e["id"])
+        ids = ", ".join(e["id"] for e in stranded)
+        return unresolvable(
+            "_sources/new/ holds %d already-assessed source(s) (%s) that nothing "
+            "can consume: every procedure they touch is drafted, and no "
+            "`kind: source` note is pending for them"
+            % (len(stranded), ids),
+            "`taxonomy` (incremental) would re-read sources already registered "
+            "at these exact bytes and propose nothing new (audit F7: one wasted "
+            "dispatch per lap, forever); `fill` dispatches on the `unfilled` "
+            "sentinel, which a drafted procedure does not carry, and "
+            "`apply_review` needs a note on the bus — the source notes that "
+            "would have carried these sources to their drafters are not on disk "
+            "(deleted, or never written because `touches` names nothing drafted)",
+            "per SRC- id: (a) re-issue its notes — re-run the taxonomy/confirm "
+            "pass, whose promote step writes one `kind: source` note per drafted "
+            "procedure it touches; (b) edit its `touches` in "
+            "_reference/sources.yaml to name the procedures it really informs "
+            "(the sanctioned veto, and the fix when `touches` is empty or "
+            "typo'd); or (c) retire it by hand — move the file to "
+            "_sources/processed/ and set `state: processed`. If its notes were "
+            "already applied and archived, `scripts/sources.py mark-processed "
+            "%s` retires it from that archived evidence." % folder,
+            stranded_sources=stranded,
+            stranded_ids=[e["id"] for e in stranded],
+        )
 
     # ---- steady-state derived pipeline (needs real procedures) ----
     if not st.procedures:

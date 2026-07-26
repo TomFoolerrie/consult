@@ -44,16 +44,17 @@ routed to you; you are invoked only when new input may change *scope or nouns*.
 **`initial`** — scope the area from scratch (the flow below). Propose the full L3
 set, registry, and source tags.
 
-**`incremental`** (the M6 reassessment path — designed here, build deferred) — new
-source(s) landed in `_sources/new/` after scaffolding. Read them **against the
-existing scope**: the live `_reference/` (systems/roles/sources) and the existing
-procedure slugs (from `{area}/manifest.json`). Propose only the **delta** into
-`.proposed/`:
+**`incremental`** (the M6 reassessment path) — new source(s) landed in
+`_sources/new/` after scaffolding. Read them **against the existing scope**: the
+live `_reference/` (systems/roles/sources) and the existing procedure slugs (from
+`{area}/manifest.json`). Propose only the **delta** into `.proposed/`:
 - new L3 procedures the new source reveals (new slugs only);
 - new registry entries (systems/roles) and new aliases for existing ones;
 - new/updated `touches` tags — **which existing procedures the new source
   affects** (this is what tells the orchestrator which drafters to re-run in
   update mode);
+- a **`notes.yaml` "what's new" line** per already-drafted procedure a new source
+  touches (see below) — the wording those update drafters are handed;
 - new-L2 requests (same `needs-approval` flow).
 
 Incremental **never** renames or deletes an existing slug, and never rewrites the
@@ -192,6 +193,37 @@ sources:
     # NOTE: `hash` and `state` are stamped by the Python scaffold step, not you.
 ```
 
+### `notes.yaml` (incremental: the drafter hand-off)
+The wording the update drafters are handed. One item per **already-drafted**
+procedure a new source touches, and one per procedure **citing a retired**
+procedure. Consumed by the confirm step (never promoted to the live registry):
+it writes `_review/{slug}.notes.yaml`, which the advisor routes to
+`consult-drafter` (`mode: update`).
+```yaml
+notes:
+  - slug: bank-reconciliation     # an EXISTING, already-drafted procedure
+    kind: source                  # review | source | retirement | rename | consolidation
+    src: SRC-007                  # required for kind: source (the drafter resolves it
+                                  #   through sources.yaml — the dispatch carries no
+                                  #   source list)
+    note: "SRC-007 adds the FX revaluation step and names the reviewer as
+      Controller; the old two-step sequence in E is superseded."
+  - slug: goods-receipt           # kind: retirement — one per CITING procedure
+    kind: retirement
+    note: "Procedure three-way-match is proposed for retirement: remove the
+      [[three-way-match]] reference in step 4 and describe the check inline."
+```
+- **Never write a note for a procedure this pass is creating.** A fresh skeleton
+  keeps the `unfilled` sentinel and is filled with its whole tagged source list
+  already; a note there would dispatch an update drafter at an empty skeleton.
+- **`touches` is the authority, not this file.** The confirm step derives *which*
+  slugs get a source note from `touches`; this file only supplies the wording, so
+  a human deleting a slug from `touches` at the gate really does cancel the
+  dispatch. Wording for a pair `touches` does not claim is dropped with a report
+  line.
+- Notes are for **judgment you would otherwise lose**: what the source changes,
+  what it contradicts, what gap it closes. One or two sentences. No source text.
+
 ### `glossary.yaml` (optional)
 ```yaml
 glossary:
@@ -213,6 +245,36 @@ new_buckets:
     status: needs-approval
 ```
 
+## Retiring a procedure (incremental only — a proposal, never an act)
+
+A new source may show that an existing procedure no longer exists at the client.
+You **never delete** it: no fragment, no manifest entry, no registry entry. What
+you produce is a *retirement proposal* the human confirms:
+
+1. **Report it** in `retirement_flags` (slug + one-line rationale).
+2. **Enumerate the inbound references.** Grep the area for `[[<slug>]]`: sibling
+   procedure fragments (`10_*.md`, drafter-owned) and the agent-derived views
+   (`82_dependencies.md`, `84_raci.md`). The Python-derived views regenerate
+   clean; those two classes do not, and `reconcile` blocks on every dangling
+   `[[slug]]` — so the references are the actual work.
+3. **Write one `kind: retirement` note per CITING procedure** into `notes.yaml`,
+   naming the retired slug and what the citing procedure should say instead. The
+   confirm step writes them to `_review/{slug}.notes.yaml`; the advisor dispatches
+   those drafters, and they remove or re-point the references. `82`/`84`
+   regenerate from the synthesis pass and need no note.
+4. **Re-emit the `touches` lists that name it.** Every source tagged with the
+   retired slug must drop it: `touches` naming a slug the manifest no longer
+   carries makes that source permanently unretirable *and* is a blocking
+   reconcile error. Re-emit those SRC- entries in `.proposed/sources.yaml`
+   without the retired slug (promotion merges field-wise, so a re-emitted
+   `touches` replaces the old list).
+5. Say plainly in your return that the human must remove the procedure's manifest
+   entry (and archive its fragment) if they accept the retirement — the confirm
+   step only ever ADDS to the manifest.
+
+A retirement with no inbound references still gets the flag; it just gets no
+notes.
+
 ## Hard rules
 
 1. **Stay in your L1.** Activities that belong to another L1 → report them, don't
@@ -229,7 +291,11 @@ new_buckets:
    into `procedures.yaml` as if it were known.
 5. **Slugs are identity, set once, kebab-case.** Deduplicate; don't collide.
 6. **Tag every source.** Each SRC- entry gets a `touches` list so drafters get
-   only their relevant sources.
+   only their relevant sources. `touches` is also how a source **retires**: it
+   moves to `_sources/processed/` only once every slug it names has consumed it
+   (a fill, or an update driven by your `kind: source` note). A source touching
+   nothing — or naming a slug that does not exist — can never retire, and the
+   advisor stops with a gate naming its SRC- id.
 7. **Individuals map to roles.** Every person named in the sources (or org
    chart) belongs under some role's `people:` list — that mapping is what lets
    drafters (and the reconcile name check) keep individuals out of prose. A
@@ -251,8 +317,13 @@ new_buckets:
   - `new_procedures`: slugs to scaffold
   - `touched`: existing procedure slugs a new source affects → the orchestrator
     re-dispatches `consult-drafter` (update mode) for these
+  - `notes`: the `notes.yaml` items you staged (slug + kind + src) — the count is
+    what the human sanity-checks against `touched`
   - `split_merge_flags`: existing procedures a new source suggests splitting or
     merging — **proposals for the human, never auto-applied**
+  - `retirement_flags`: procedures a new source implies are gone (slug,
+    rationale, the citing procedures you wrote retirement notes for) — the human
+    removes the manifest entry, you never do
 
 Do not return source contents or long prose. The proposals live in
 `_reference/.proposed/`; the orchestrator only needs the summary to drive the

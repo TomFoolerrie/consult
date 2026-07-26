@@ -42,7 +42,9 @@ judgment layer (comments) flows to the drafters from here.
 Notes are MERGED into _review/{slug}.notes.yaml (never overwrite — a slug's
 notes accumulate from several returned files), never _sources/new/ — the
 folder is the routing signal (review notes are content corrections to existing
-procedures; taxonomy is skipped).
+procedures; taxonomy is skipped). Every item this script writes is stamped
+`kind: review` — the M6 notes-bus contract (see scripts/notes_util.py), which is
+what stops a reviewer comment from retiring a source no drafter ever read.
 """
 from __future__ import annotations
 
@@ -491,7 +493,8 @@ def render_notes_yaml(slug: str, source_docx: str, items: List[Item]) -> str:
     lines.append(f"source_docx: {_yaml_scalar(source_docx)}")
     lines.append("items:")
     for it in items:
-        lines.append(f"  - type: {it.kind}")
+        lines.append("  - kind: review")      # M6 bus contract (see notes_util)
+        lines.append(f"    type: {it.kind}")
         lines.append(f"    location: {_yaml_scalar(it.location)}")
         lines.append(f"    anchor: {_yaml_scalar(it.anchor)}")
         if it.kind == "tracked-change":
@@ -565,7 +568,11 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool,
     for slug, its in sorted(by_slug.items()):
         dicts = []
         for it in its:
-            d = {"type": it.kind, "location": it.location, "anchor": it.anchor,
+            # `kind: review` is this producer's stamp on the M6 notes bus: it is
+            # what keeps a reviewer comment from ever retiring a source (only
+            # `kind: source` consumption credits one — see notes_util).
+            d = {"kind": "review",
+                 "type": it.kind, "location": it.location, "anchor": it.anchor,
                  "author": it.author, "date": it.date, "source": docx_path.name}
             if it.kind == "tracked-change":
                 d["change"] = it.change

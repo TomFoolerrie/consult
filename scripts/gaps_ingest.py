@@ -64,6 +64,7 @@ def ingest_workbook(area: Path, path: Path) -> tuple[int, int]:
         if status:
             note += f" [status: {status}]"
         per_slug.setdefault(slug.strip() or UNASSIGNED, []).append({
+            "kind": "review",            # M6 notes-bus stamp (see notes_util)
             "type": "comment",
             "location": f"gap workbook row ({gap_id or local})",
             "anchor": question,

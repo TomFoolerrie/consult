@@ -22,6 +22,18 @@ only touch existing procedures may therefore run with an empty — or absent —
 procedures.yaml: registry merge + source stamping still happen and `.proposed/`
 is still consumed, so the advisor loop advances normally.
 
+M6 — RE-DISPATCH RIDES THE NOTES QUEUE. This step is also where an incremental
+pass's *already-drafted* procedures get told about the new sources: for each
+outstanding source in the promoted `sources.yaml`, every slug in its `touches`
+that is already drafted (no `unfilled` sentinel) gets a `_review/{slug}.notes.yaml`
+item — `kind: source`, `src: SRC-<id>`, plus the "what's new" wording the taxonomy
+agent staged in `.proposed/notes.yaml`. The advisor's guard 2 then dispatches
+`consult-drafter` in `mode: update` for exactly those slugs. Freshly scaffolded
+slugs get no note: they carry the sentinel and take the `fill` path, which already
+hands the drafter its whole tagged source list. Retirement notes (F8's workflow
+half) ride the same file, `kind: retirement`, one per procedure citing the retired
+slug. `.proposed/notes.yaml` is CONSUMED here, never promoted.
+
 Nothing touches the live folder until `--confirm` is passed. The step is
 idempotent: re-running with the same confirmed set is a no-op; adding one
 procedure creates only its file and a manifest entry with a sparse `order`
@@ -39,6 +51,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -52,6 +65,19 @@ try:
     import doc_model  # type: ignore
 except Exception:  # pragma: no cover - doc_model is a hard dependency in practice
     doc_model = None
+
+# notes_util owns the `_review/{slug}.notes.yaml` bus shape (M6): we are one of
+# its five producers (source notes + retirement notes, written at confirm).
+import notes_util  # noqa: E402
+
+# The `unfilled` sentinel grammar is OWNED BY the advisor (orchestrate.py guard
+# 4). Borrowed, never restated, so "is this procedure already drafted?" is
+# answered identically here and at the guard that would otherwise fill it.
+try:
+    from orchestrate import UNFILLED_RE  # type: ignore
+except Exception:  # pragma: no cover - orchestrate ships beside us
+    UNFILLED_RE = re.compile(r"(<!--\s*unfilled\s*-->)|(status\s*:\s*unfilled)",
+                             re.I)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -452,6 +478,184 @@ def stamp_sources(area: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# the notes bus: re-dispatch rides the review queue (M6)
+# --------------------------------------------------------------------------- #
+
+# `.proposed/notes.yaml` — the taxonomy agent's note WORDING. Consumed here (like
+# procedures.yaml / new_buckets.yaml), never promoted to the live registry.
+PROPOSED_NOTES = "notes.yaml"
+PROPOSED_NOTE_KEYS = ("slug", "kind", "src", "note", "type", "location", "anchor")
+
+
+def load_proposed_notes(area: Path) -> list[dict]:
+    """Raw `notes:` list from `_reference/.proposed/notes.yaml` (or [])."""
+    data = _load_yaml(area / "_reference" / ".proposed" / PROPOSED_NOTES)
+    items = data.get("notes") or []
+    return [it for it in items if it is not None]
+
+
+def validate_proposed_notes(items: list[dict], known_slugs: set[str],
+                            known_src_ids: set[str]) -> list[dict]:
+    """Shape-check the proposal's notes BEFORE anything is promoted.
+
+    SHAPE is fail-loud (an item with no `kind`, an unknown kind, no note text, a
+    `kind: source` item with no/unknown `src`): the human fixes `.proposed/` and
+    re-confirms, with the live folder untouched. TARGETING is not: a note naming
+    a slug this area does not carry is dropped with a WARNING rather than
+    aborting the confirm — writing it would create an orphan note and gate the
+    ladder at `review_triage`, and the human editing `touches` at the gate (the
+    sanctioned M6 veto) must never hard-fail the promotion."""
+    out: list[dict] = []
+    for i, it in enumerate(items, start=1):
+        where = "_reference/.proposed/%s item %d" % (PROPOSED_NOTES, i)
+        if not isinstance(it, dict):
+            raise SystemExit("error: %s: not a mapping" % where)
+        unknown = sorted(k for k in it if k not in PROPOSED_NOTE_KEYS)
+        if unknown:
+            raise SystemExit(
+                "error: %s: unknown field(s) %s (allowed: %s)"
+                % (where, ", ".join(unknown), ", ".join(PROPOSED_NOTE_KEYS)))
+        slug = str(it.get("slug") or "").strip()
+        kind = str(it.get("kind") or "").strip()
+        src = str(it.get("src") or "").strip()
+        note = str(it.get("note") or "").strip()
+        if not slug:
+            raise SystemExit("error: %s: no `slug:` (which procedure's drafter "
+                             "is this note for?)" % where)
+        if not kind:
+            raise SystemExit(
+                "error: %s: no `kind:` — every notes-bus item carries one of %s "
+                "and there is no default (M6)"
+                % (where, " | ".join(notes_util.KINDS)))
+        if kind not in notes_util.KINDS:
+            raise SystemExit("error: %s: unknown kind %r (expected one of %s)"
+                             % (where, kind, " | ".join(notes_util.KINDS)))
+        if not note:
+            raise SystemExit("error: %s: no `note:` text — the drafter is given "
+                             "the note verbatim" % where)
+        if kind == "source":
+            if not src:
+                raise SystemExit(
+                    "error: %s: `kind: source` with no `src:` — the drafter "
+                    "resolves the SRC- id through sources.yaml, and retirement "
+                    "accounting credits nothing without it (M6)" % where)
+            if src not in known_src_ids:
+                raise SystemExit(
+                    "error: %s: src %r is not registered in sources.yaml "
+                    "(registered: %s)"
+                    % (where, src, ", ".join(sorted(known_src_ids)) or "none"))
+        if slug not in known_slugs:
+            print("  WARNING: %s: dropping note for '%s' — not a procedure in "
+                  "this area (an orphan note gates the ladder at review_triage)"
+                  % (where, slug))
+            continue
+        item = {"slug": slug, "kind": kind, "note": note}
+        for k in ("src", "type", "location", "anchor"):
+            v = str(it.get(k) or "").strip()
+            if v:
+                item[k] = v
+        out.append(item)
+    return out
+
+
+def _is_drafted(area: Path, rel: str) -> bool:
+    """True when a fragment exists and no longer carries the `unfilled` sentinel.
+
+    This is the M6 discriminator for "does this procedure need a note?": a
+    freshly scaffolded skeleton keeps the SENTINEL path (guard 4 `fill`
+    dispatches it with its whole tagged source list), so notifying it would
+    dispatch an update drafter at a skeleton — and guard 2 outranks guard 4, so
+    it would win."""
+    fp = area / rel
+    if not fp.is_file():
+        return False
+    return not UNFILLED_RE.search(fp.read_text(encoding="utf-8"))
+
+
+def default_source_note(sid: str, rel_file: str) -> str:
+    return ("New source %s informs this procedure. Read it (resolve %s through "
+            "_reference/sources.yaml — it is %s) and work in what it adds: "
+            "revise contradicted text and delete any GAP it closes."
+            % (sid, sid, rel_file or "listed there"))
+
+
+def write_promoted_notes(area: Path, slug_files: dict[str, str],
+                         proposal_notes: list[dict]) -> dict:
+    """Write the `_review/{slug}.notes.yaml` items this confirmed proposal implies.
+
+    Two producers in one pass, both landing on the M6 bus:
+
+    * **source notes** (`kind: source`, `src: SRC-<id>`) — DERIVED FROM `touches`
+      in the freshly promoted `sources.yaml`, not from the proposal's note list.
+      `touches` is the dispatch authority, so editing it at the confirm gate is
+      the sanctioned veto (M6 "Veto semantics"); the proposal only supplies the
+      "what's new" WORDING, keyed by (slug, src), and unmatched wording is
+      reported and dropped rather than written. One note per ALREADY-DRAFTED
+      procedure an outstanding source touches — guard 2 then dispatches
+      `consult-drafter` in `mode: update` for exactly those slugs.
+    * **retirement / rename / consolidation notes** — passed through from the
+      proposal (they have no `touches` analogue). A retirement proposal
+      enumerates the inbound `[[slug]]` references and carries one note per
+      citing procedure, so the drafters clean the references up; no fragment is
+      ever auto-deleted (audit F8's workflow half).
+
+    Dedupe is on the SRC- id: a slug already recorded in the source's `consumed`
+    list (sources.py's durable per-slug record) is never re-notified, so running
+    the same source twice cannot re-dispatch a drafter that already absorbed it.
+    """
+    wording = {(n["slug"], n.get("src")): n["note"]
+               for n in proposal_notes if n["kind"] == "source"}
+    used: set[tuple] = set()
+    report = {"written": [], "skeleton": [], "deduped": [], "dropped": []}
+
+    sfile = area / "_reference" / "sources.yaml"
+    data = _load_yaml(sfile) if sfile.is_file() else {}
+    for entry in (data.get("sources") or []):
+        if not isinstance(entry, dict) or entry.get("state") == "processed":
+            continue
+        sid = str(entry.get("id") or "").strip()
+        if not sid:
+            continue
+        touches = entry.get("touches") or []
+        if isinstance(touches, str):
+            touches = [touches]
+        consumed = set(str(s) for s in (entry.get("consumed") or []))
+        for slug in [str(s) for s in touches]:
+            rel = slug_files.get(slug)
+            if rel is None:
+                continue          # not a procedure here: reconcile/M22 reports it
+            if slug in consumed:
+                report["deduped"].append("%s→%s" % (sid, slug))
+                continue
+            if not _is_drafted(area, rel):
+                report["skeleton"].append("%s→%s" % (sid, slug))
+                continue
+            note = wording.get((slug, sid))
+            used.add((slug, sid))
+            item = {"kind": "source", "src": sid,
+                    "note": note or default_source_note(sid, str(entry.get("file") or ""))}
+            if notes_util.append_items(area, slug, [item]):
+                report["written"].append("%s→%s" % (sid, slug))
+
+    for n in proposal_notes:
+        if n["kind"] == "source":
+            if (n["slug"], n.get("src")) not in used:
+                # Wording for a (slug, src) pair `touches` does not claim: the
+                # human edited touches at the gate, or the agent disagreed with
+                # its own tags. touches wins — that is what makes it the veto.
+                report["dropped"].append("%s→%s" % (n.get("src"), n["slug"]))
+            continue
+        rel = slug_files.get(n["slug"])
+        if rel is None or not _is_drafted(area, rel):
+            report["skeleton"].append("%s→%s" % (n["kind"], n["slug"]))
+            continue
+        item = {k: v for k, v in n.items() if k != "slug"}
+        if notes_util.append_items(area, n["slug"], [item]):
+            report["written"].append("%s→%s" % (n["kind"], n["slug"]))
+    return report
+
+
+# --------------------------------------------------------------------------- #
 # manifest
 # --------------------------------------------------------------------------- #
 
@@ -584,6 +788,18 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
             "and no existing manifest to preserve"
         )
 
+    # M6 notes bus: shape-check `.proposed/notes.yaml` BEFORE anything is
+    # promoted, so a malformed proposal leaves the live folder untouched and the
+    # human re-confirms after fixing it. Ids are validated against the union of
+    # the live registry and the delta (the delta's own sources are not live yet).
+    known_src_ids = set()
+    for f in (area / "_reference" / "sources.yaml", proposed / "sources.yaml"):
+        for e in (_load_yaml(f).get("sources") or []):
+            if isinstance(e, dict) and e.get("id"):
+                known_src_ids.add(str(e["id"]).strip())
+    proposal_notes = validate_proposed_notes(
+        load_proposed_notes(area), {p["slug"] for p in procedures}, known_src_ids)
+
     l1 = resolve_l1(area, l1_arg)
 
     # 1) Promote (MERGE) the registry, then stamp deterministic byte-work.
@@ -654,6 +870,16 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     for d in DERIVED_FILES:
         _write_if_absent(d["file"], render_derived(d["kind"], d["writer"], d["heading"]))
 
+    # 5b) Re-dispatch rides the notes queue (M6/F7). Written AFTER the skeletons
+    #     exist, so "already drafted" is asked of the final folder state: a slug
+    #     created by this very pass carries the `unfilled` sentinel and takes the
+    #     `fill` path (with its whole tagged source list) instead of a note.
+    notes_report = write_promoted_notes(
+        area,
+        {c["slug"]: c["file"] for c in manifest["components"]
+         if c.get("role") == "procedure" and c.get("slug")},
+        proposal_notes)
+
     # 6) Consume the proposal set. Everything in .proposed/ has now been promoted
     #    (registry) or baked into the manifest (procedures/new_buckets), so the
     #    directory must go — otherwise the advisor's guard 1 keeps returning
@@ -667,6 +893,13 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
           f"created={len(created)}  skipped(existing)={len(skipped)}")
     if created:
         print("  created: " + ", ".join(created))
+    if notes_report["written"]:
+        print("  notes (→ apply_review): " + ", ".join(notes_report["written"]))
+    for key, label in (("skeleton", "no note needed (skeleton fills instead)"),
+                       ("deduped", "already consumed for that source"),
+                       ("dropped", "note wording dropped (not in `touches`)")):
+        if notes_report[key]:
+            print(f"  {label}: " + ", ".join(notes_report[key]))
     return 0
 
 

@@ -577,6 +577,7 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
         if e.entry.get("l2"):
             loc += f" (L2 {e.entry['l2']})"
         per_slug.setdefault(slug, []).append({
+            "kind": "review",            # M6 notes-bus stamp (see notes_util)
             "type": "tracked-change",
             "location": loc,
             "anchor": _clip(e.orig, 160),

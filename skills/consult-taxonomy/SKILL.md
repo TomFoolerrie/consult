@@ -163,12 +163,66 @@ sources:
 ```
 - Assign `SRC-` ids (initial: from `SRC-001`; incremental: continue from the
   existing max in the live `sources.yaml`).
-- **`touches` is load-bearing:** it is how the orchestrator hands each parallel
-  `consult-drafter` only its relevant sources instead of every drafter re-reading
-  every transcript. A source may touch many procedures; a procedure may draw on
-  many sources. Tag every source.
-- **Do NOT set `hash` or `state`.** Those are deterministic byte-work stamped by
-  `scaffold.py` at confirm, not by you.
+- **`touches` is load-bearing, twice over:**
+  1. it is how the orchestrator hands each parallel `consult-drafter` only its
+     relevant sources instead of every drafter re-reading every transcript;
+  2. it is the **dispatch and retirement authority**. A source leaves
+     `_sources/new/` only once every slug it names has consumed it — a first-draft
+     fill, or an update driven by the `kind: source` note the confirm step writes
+     from this list. So a source that touches nothing, or names a slug that does
+     not exist, can never retire: the advisor stops at a gate naming its SRC- id
+     and asks the human to fix `touches`. Tag every source, with real slugs.
+- **Do NOT set `hash`, `state` or `consumed`.** Those are deterministic
+  bookkeeping: `scaffold.py` stamps the hash/state at confirm, and `sources.py`
+  records `consumed` (which slugs have absorbed the source) as batches succeed.
+  The hash is also what tells the advisor a source has already been assessed —
+  edit it and you buy yourself a redundant taxonomy dispatch.
+
+### 4a. Hand the update drafters their brief → `.proposed/notes.yaml`
+
+**Incremental only, and the thing that makes an incremental pass converge.** A new
+source that only enriches procedures you already have creates no skeleton, so
+nothing would dispatch a drafter for it and the source could never retire (audit
+F7). The bridge is the notes bus: one item per **already-drafted** procedure a new
+source touches.
+
+```yaml
+notes:
+  - slug: bank-reconciliation     # an EXISTING, already-drafted procedure
+    kind: source                  # review | source | retirement | rename | consolidation
+    src: SRC-007                  # REQUIRED for kind: source
+    note: "SRC-007 adds the FX revaluation step and names the reviewer as
+      Controller; the two-step sequence in E is superseded."
+  - slug: goods-receipt
+    kind: retirement              # one per procedure CITING a retired one
+    note: "Procedure three-way-match is proposed for retirement: remove the
+      [[three-way-match]] reference in step 4 and describe the check inline."
+```
+
+What confirm does with it: for every outstanding source, each `touches` slug that
+is **already drafted** gets a `_review/{slug}.notes.yaml` item stamped
+`kind: source` + `src:`, using your wording (or a generated line if you supplied
+none). Guard 2 then dispatches `consult-drafter` in `mode: update` for exactly
+those slugs, and the drafter resolves the `SRC-` id through `sources.yaml` — the
+update dispatch deliberately carries no source list, so **the id is the only way
+the drafter can find the file**. `notes.yaml` is consumed at confirm, never
+promoted.
+
+Rules:
+
+- **Never write a note for a procedure this pass creates.** A fresh skeleton
+  carries the `unfilled` sentinel and is filled with its whole tagged source list;
+  a note there would send an update drafter at an empty skeleton (notes outrank
+  fill).
+- **`touches` decides, your wording only describes.** A human deleting a slug from
+  `touches` at the gate cancels that dispatch — that is the sanctioned veto for a
+  source note. Wording for a (slug, src) pair `touches` does not claim is dropped
+  with a report line, never written.
+- **Every item carries `kind`.** There is no default; a kind-less item fails the
+  confirm loudly. `kind` is what stops a reviewer's comment from retiring a source
+  no drafter ever read.
+- One or two sentences of judgment per note — what the source changes, what it
+  contradicts, what gap it closes. Never source text.
 
 ### 4b. Glossary (optional) → `.proposed/glossary.yaml`
 ```yaml
@@ -207,12 +261,14 @@ mutated.
 **`initial`** — scope from scratch: propose the full L3 set, the registry, and
 source tags for everything in `_sources/new/`.
 
-**`incremental`** (M6 reassessment path — designed, build deferred) — new sources
-landed after the area was scaffolded. Propose only the **delta**:
+**`incremental`** (the M6 reassessment path) — new sources landed after the area
+was scaffolded. Propose only the **delta**:
 - new L3 procedures (new slugs only);
 - new registry entries + new aliases for existing ones;
 - new/updated `touches` tags naming which **existing** procedures the new source
   affects — this drives which drafters re-run in update mode;
+- a `notes.yaml` item per already-drafted touched procedure (§4a) — the brief
+  those update drafters read;
 - new-bucket requests (same needs-approval flow).
 
 Incremental **never** renames or deletes an existing slug and never rewrites the
@@ -220,6 +276,18 @@ whole set. If a new source implies an existing procedure should **split or merge
 do not do it — **flag it** for the human in `split_merge_flags`. On promotion,
 scaffold MERGEs your delta into the live registry (adds new, updates re-emitted,
 leaves untouched entries intact) — so you only need to emit what changed.
+
+**Retirement is a proposal, never an act.** If a new source shows a procedure no
+longer exists: report it in `retirement_flags`, and do the work the human cannot
+see — grep the area for `[[<slug>]]` and write one `kind: retirement` note per
+**citing** procedure (sibling `10_*.md` fragments). Those dangling references are
+what `reconcile` blocks on, and only their drafters can fix them; `82`/`84`
+regenerate themselves. Also re-emit, without the retired slug, the `touches` list
+of every source tagged with it — a `touches` entry naming a slug the manifest no
+longer carries is both a blocking reconcile error and a source that can never
+retire. Never delete a fragment, a manifest entry or a registry entry — say in
+your return that the human removes the manifest entry if they accept, because
+confirm only ever ADDS to the manifest.
 
 ## What you return (compact)
 
@@ -235,7 +303,8 @@ leaves untouched entries intact) — so you only need to emit what changed.
 - `out_of_l1`: activities in the sources belonging to a different L1 (not scoped).
 - `unresolved`: sources you couldn't place, or material ambiguity for the human.
 - **incremental only:** `new_procedures`, `touched` (existing slugs a new source
-  affects), `split_merge_flags` (proposals for the human, never auto-applied).
+  affects), `notes` (the items you staged: slug + kind + src), `split_merge_flags`
+  and `retirement_flags` (proposals for the human, never auto-applied).
 
 Do not return source contents. The proposals live in `.proposed/`; the summary
 just drives the confirm gate.
@@ -244,7 +313,9 @@ just drives the confirm gate.
 
 The human edits the files in `.proposed/` directly (add/remove/merge procedures,
 split a merged variant pair back into two, fix a role or person mapping, add an
-alias, blank a guessed limitation, approve a new bucket). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
+alias, blank a guessed limitation, approve a new bucket, **trim a source's
+`touches`** to cancel a drafter re-run). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
 which promotes `.proposed/` → live `_reference/` (a MERGE), builds `manifest.json`,
-and writes one A–H skeleton per procedure. Nothing you wrote reaches the live
-folder until that runs.
+writes one A–H skeleton per new procedure, and writes the `_review/{slug}.notes.yaml`
+items your `notes.yaml` + the `touches` tags imply. Nothing you wrote reaches the
+live folder until that runs.
