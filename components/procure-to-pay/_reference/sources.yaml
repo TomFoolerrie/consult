@@ -20,6 +20,7 @@ sources:
   - po-invoice-entry-and-three-way-match
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
+  - weekly-payment-run
   - wire-and-manual-payment
 - id: SRC-002
   file: _sources/processed/2026-05-13-procurement-lead-interview.md
@@ -62,6 +63,7 @@ sources:
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
+  - weekly-payment-run
   - wire-and-manual-payment
 - id: SRC-004
   file: _sources/processed/2026-05-19-receiving-supervisor-walkthrough.md
@@ -114,6 +116,7 @@ sources:
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
+  - weekly-payment-run
   - wire-and-manual-payment
 - id: SRC-006
   file: _sources/new/prior-sop-ap-invoice-processing-v3.md
@@ -140,4 +143,5 @@ sources:
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
+  - weekly-payment-run
   - wire-and-manual-payment
