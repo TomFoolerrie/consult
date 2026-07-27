@@ -35,6 +35,7 @@ sources:
   consumed:
   - confirming-po
   - new-vendor-onboarding
+  - po-issuance-and-change-orders
   - requisition-and-approval
   - vendor-banking-change
   - vendor-master-data-maintenance
@@ -72,6 +73,7 @@ sources:
   state: new
   consumed:
   - confirming-po
+  - po-issuance-and-change-orders
 - id: SRC-005
   file: _sources/new/2026-05-20-consultant-working-notes.md
   touches:
@@ -98,6 +100,7 @@ sources:
   - invoice-intake-and-capture
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
+  - po-issuance-and-change-orders
   - requisition-and-approval
   - vendor-banking-change
   - vendor-master-data-maintenance
