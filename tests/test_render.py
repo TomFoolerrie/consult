@@ -588,6 +588,21 @@ def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
                      "Reference & Appendices"]
 
 
+def test_toc_title_is_not_a_heading_so_the_toc_cannot_list_itself(tmp_path):
+    """The TOC field collects Heading 1-3; a Heading-styled page title makes
+    the table list itself as its first entry. The title is a direct-formatted
+    Normal paragraph instead — same chapter look, invisible to the field."""
+    area = make_area(tmp_path)
+    out = tmp_path / "t.docx"
+    render.render_folder(area, out, include_toc=True, emit_signal=False)
+    toc_title = [p for p in Document(str(out)).paragraphs
+                 if p.text == "Table of Contents"]
+    assert len(toc_title) == 1
+    assert toc_title[0].style.name == "Normal"
+    run = toc_title[0].runs[0]
+    assert run.font.size.pt == 20 and run.font.bold
+
+
 def test_subset_kit_render_has_no_dividers(tmp_path):
     """Kit docs are lean per-owner excerpts: a chapter head over a single
     excerpted procedure is noise, so subset renders carry no H1 at all."""
