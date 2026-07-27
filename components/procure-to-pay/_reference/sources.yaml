@@ -17,6 +17,7 @@ sources:
   - goods-receipt
   - invoice-intake-and-capture
   - non-po-invoice-entry-and-approval
+  - po-invoice-entry-and-three-way-match
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
@@ -59,12 +60,13 @@ sources:
   consumed:
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
+  - po-invoice-entry-and-three-way-match
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
 - id: SRC-004
-  file: _sources/new/2026-05-19-receiving-supervisor-walkthrough.md
+  file: _sources/processed/2026-05-19-receiving-supervisor-walkthrough.md
   touches:
   - goods-receipt
   - return-to-vendor
@@ -72,11 +74,13 @@ sources:
   - confirming-po
   - po-invoice-entry-and-three-way-match
   hash: 068d208be9a1bd80afdc764eb236086a3f6927424370ca66f536a7010b096b1e
-  state: new
+  state: processed
   consumed:
   - confirming-po
   - goods-receipt
+  - po-invoice-entry-and-three-way-match
   - po-issuance-and-change-orders
+  - return-to-vendor
 - id: SRC-005
   file: _sources/new/2026-05-20-consultant-working-notes.md
   touches:
@@ -105,8 +109,10 @@ sources:
   - invoice-intake-and-capture
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
+  - po-invoice-entry-and-three-way-match
   - po-issuance-and-change-orders
   - requisition-and-approval
+  - return-to-vendor
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
@@ -130,6 +136,7 @@ sources:
   - invoice-intake-and-capture
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
+  - po-invoice-entry-and-three-way-match
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
