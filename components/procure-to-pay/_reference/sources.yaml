@@ -15,6 +15,8 @@ sources:
   state: new
   consumed:
   - invoice-intake-and-capture
+  - non-po-invoice-entry-and-approval
+  - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
 - id: SRC-002
@@ -33,6 +35,9 @@ sources:
   consumed:
   - confirming-po
   - new-vendor-onboarding
+  - requisition-and-approval
+  - vendor-banking-change
+  - vendor-master-data-maintenance
   - vendor-statement-reconciliation
 - id: SRC-003
   file: _sources/new/2026-05-14-controller-interview.md
@@ -50,6 +55,9 @@ sources:
   state: new
   consumed:
   - new-vendor-onboarding
+  - non-po-invoice-entry-and-approval
+  - vendor-banking-change
+  - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
 - id: SRC-004
@@ -89,6 +97,10 @@ sources:
   - confirming-po
   - invoice-intake-and-capture
   - new-vendor-onboarding
+  - non-po-invoice-entry-and-approval
+  - requisition-and-approval
+  - vendor-banking-change
+  - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
 - id: SRC-006
@@ -109,5 +121,8 @@ sources:
   consumed:
   - invoice-intake-and-capture
   - new-vendor-onboarding
+  - non-po-invoice-entry-and-approval
+  - vendor-banking-change
+  - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - wire-and-manual-payment
