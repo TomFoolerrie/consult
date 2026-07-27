@@ -469,7 +469,15 @@ the conflict; never silently choose.
   in prose, add a best-guess slug to `consult-meta`, and **report it** (status) —
   never invent a registry entry.
 
-### 3. Cross-references and sources
+### 3. Language — American English, always
+Write in **American English** in every fragment: *synchronize* not
+*synchronise*, *organization* not *organisation*, *color/analyze/center*
+likewise. Source material (client transcripts, prior SOPs) may use British
+spellings — normalize them when you draft; never carry them through. This
+applies to update passes too: if you touch a paragraph containing a British
+spelling, fix it.
+
+### 4. Cross-references and sources
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
