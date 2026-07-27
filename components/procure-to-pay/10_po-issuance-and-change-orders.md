@@ -70,7 +70,7 @@ receive a PDF copy by email. (SRC-002)
 > - **Nature:** unknown
 > - **Owner to confirm:** Procurement Lead
 
-#### Step 3: Synchronise the purchase order to NetSuite
+#### Step 3: Synchronize the purchase order to NetSuite
 
 The issued purchase order synchronizes into NetSuite, where it becomes available
 for receipt and for matching against the supplier invoice.
