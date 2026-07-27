@@ -276,7 +276,7 @@ def _letter_sections(text: str, letters) -> str:
     """Stamp the display LETTER onto every section heading (M23).
 
     The identity/display split for sections: the fragment carries
-    `### Process Overview`, the DOCUMENT carries `### A. Process Overview`, and
+    `### Scope`, the DOCUMENT carries `### A. Scope`, and
     `letters` (the profile's `sections:` order) decides which letter. Exactly
     what `_heading_for` does with a procedure's display number, and exactly why
     reordering a profile re-letters a render with zero fragment edits.
@@ -296,6 +296,7 @@ def _letter_sections(text: str, letters) -> str:
     transform has no business rewriting.
     """
     out = []
+    seen: set[str] = set()
     for ln in text.split("\n"):
         slug = doc_model.section_of_heading(ln)
         if slug is None or slug not in letters:
@@ -304,6 +305,15 @@ def _letter_sections(text: str, letters) -> str:
         written = doc_model.section_heading_title(ln)
         title = (doc_model.section_title(slug)
                  if doc_model.section_of_title(written) == slug else written)
+        # M16 move 1's C+D merge, pre-content-wave: a fragment carrying BOTH
+        # `### Pre-Requisites` and `### Inputs` resolves both to
+        # `before-you-start`. Only the FIRST takes the registry title; a repeat
+        # keeps its authored one under the same letter, so nothing is lost and
+        # the un-merged pair is visible rather than printed twice identically
+        # (see doc_model.duplicate_sections — tolerate + report, never fail).
+        if slug in seen:
+            title = written
+        seen.add(slug)
         out.append(f"### {letters[slug]}. {title}")
     return "\n".join(out)
 

@@ -240,8 +240,10 @@ PROFILE_KEY = "profile"
 #: `doc_model.section_slug`) so a profile written before M23 keeps meaning the
 #: same sections through any later rename.
 ALL_SECTIONS = list(doc_model.SECTION_SLUGS)
-#: Sections no engagement may drop: scope, card, steps.
-MANDATORY_SECTIONS = ["overview", "quick-reference", "steps"]
+#: Sections no engagement may drop: scope, card, procedure. M16's "Interaction
+#: with M14" — the mandatory subset is A/B/D in the seven-section model (it was
+#: A/B/E), which in slugs is the same three sections it always was.
+MANDATORY_SECTIONS = ["scope", "quick-reference", "steps"]
 #: The section whose callouts would vanish if it left the body with no register.
 CONTROLS_SECTION = "controls"
 #: The register that catches them (M14 `appendix-controls`).
@@ -343,7 +345,7 @@ class Profile:
         a surprised reader needs — but only when a profile is actually in play.
         """
         if not self.configured:
-            return f"{prefix}: none (full A–H, nothing omitted)"
+            return f"{prefix}: none (full A–G, nothing omitted)"
         line = (f"{prefix}: {self.layer_label()} — "
                 f"sections {' '.join(self.lettered_sections())}")
         if self.body_omit:
@@ -446,12 +448,13 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
         if missing:
             raise ProfileError(
                 f"{where}: `sections:` omits mandatory section(s) "
-                f"{', '.join(missing)} — overview (scope), quick-reference "
-                f"(the card) and steps are what makes a procedure a procedure"
+                f"{', '.join(missing)} — scope, quick-reference (the At a "
+                f"Glance card) and steps (the Procedure) are what makes a "
+                f"procedure a procedure"
             )
         # `sections:` IS the order letters are assigned in (M23), so the human's
         # order is kept — with a `sections:` that names today's set in today's
-        # order, that is the canonical A–H.
+        # order, that is the canonical A–G.
     else:
         sections = list(ALL_SECTIONS)
 

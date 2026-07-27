@@ -18,13 +18,13 @@ the agent definition wins.
 
 ## What you own
 
-A finalized `10_<slug>.md`: the eight-section procedure for one L3 activity,
+A finalized `10_<slug>.md`: the seven-section procedure for one L3 activity,
 current-state, practical for a preparer to execute and a reviewer to validate. You
 receive a fresh skeleton on the first pass, or your own prior draft on an update
 pass. Do not change the section headings.
 
 **Headings carry the TITLE ONLY — never a letter.** Write
-`### Process Overview`, never `### A. Process Overview`. The A–H letters belong to
+`### Scope`, never `### A. Scope`. The A–G letters belong to
 the rendered document: they are assigned late, from the profile's section order,
 exactly like a procedure's `1.1` display number. A letter you type is a letter
 that goes stale the moment the section order changes.
@@ -85,7 +85,7 @@ the deliverable, and two of its keys are directly yours:
 The other keys are not yours to act on. `sections:` is already baked into the
 skeleton you were handed, and a section under `body_omit:` is drafted, aggregated
 and registered **exactly as normal** — only the rendered body leaves it out. **You
-never decide shape**: no profile anywhere means the full eight-section default with every
+never decide shape**: no profile anywhere means the full seven-section default with every
 kind and tag below, and a profile that disagrees with your skeleton is something
 you report, not something you reshape.
 
@@ -102,23 +102,37 @@ pass. Heading, then the one-line finding under it; never blank, never `TBD`.
 Write each heading exactly as titled here — no letter. The parenthetical is the
 letter it RENDERS as under the default profile, for orientation only.
 
-- **Process Overview** (renders as A) — what it accomplishes, when, who, what it
-  excludes, and its upstream/downstream connections. (The dependencies agent
-  reads this.)
-- **Quick Reference** (B) — Trigger, Frequency, Preparer, Reviewer, primary
-  systems/tools, key outputs.
-- **Pre-Requisites** (C) — bullets: what must be true before it begins.
-- **Inputs** (D) — bullets: source/owner where supported.
-- **Step-by-Step Procedure** (E) — `####` steps in neutral current-state language.
-- **Key Controls** (F) — CONTROL callouts (no table).
-- **Outputs** (G) — bullets: outputs, downstream recipients, evidence retained,
-  where supported.
-- **Known Issues & Improvement Opportunities** (H) — PAIN POINT + IMPROVEMENT
-  callouts. **This section IS the structured source for Appendix A** ("Risks, Pain
-  Points & Improvement Opportunities") — it is assembled mechanically from these
-  callouts, so fill every field. It is not free narrative to be ignored.
+Seven sections, each with a **declared job** (M16 move 1). The job is the
+contract — a fact in the wrong section is a defect even when it is true.
 
-### Inline step tags (Step-by-Step Procedure) — declare once, tag on change
+- **Scope** (renders as A) — what this covers, what it explicitly excludes, which
+  procedures adjoin it (`[[slug]]` each). **Nothing else** — no preparer, no
+  systems, no trigger. 3–5 sentences. (The dependencies agent reads this.)
+- **At a Glance** (B) — **a table.** Trigger, frequency, preparer, reviewer,
+  systems, key inputs, key outputs. The single home for those facts. One row
+  each; a cell that runs to prose means the content belongs elsewhere — move it
+  to Scope (if it is a scope statement) or Key Controls (if it is a control
+  statement) and leave the row the short answer.
+- **Before You Start** (C) — one line per artifact: what it is, where it comes
+  from, the state it must be in. Format: `**<artifact>** — [[upstream-slug]]
+  where an upstream procedure supplies it; the state it must be in.`
+- **Procedure** (D) — the steps. `####` steps in neutral current-state language.
+- **Outputs & Evidence** (E) — what exists afterwards, what is retained, and what
+  is deliberately **not** retained (a negative finding is audit-relevant and has
+  no other home).
+- **Key Controls** (F) — unchanged: CONTROL callouts (no table).
+- **Known Issues & Improvement Opportunities** (G) — **defects only.** This
+  section records defects in the process — things that are wrong. A branch the
+  process handles routinely is a conditional step in Procedure, not a known
+  issue. PAIN POINT + IMPROVEMENT callouts; **this section IS the structured
+  source for Appendix A** ("Risks, Pain Points & Improvement Opportunities") — it
+  is assembled mechanically from these callouts, so fill every field. It is not
+  free narrative to be ignored.
+
+**The map of homes** — say it once, in its home section: **facts live in the card
+(B), states live in C, actions live in D, results live in E.**
+
+### Inline step tags (Procedure) — declare once, tag on change
 
 Within a step, add these **bolded tags** only where the detail helps execution,
 review, or auditability — not mechanically on every step:
@@ -136,8 +150,8 @@ A tag is a **signal, not a form field**. It earns its place by saying something
 the surrounding text does not already say, which makes the rule *declare once,
 tag on change*:
 
-- **`System / Tool` — only on DEPARTURE.** `B. Quick Reference` declares the
-  procedure's default system under `Primary systems / tools:` — that is the
+- **`System / Tool` — only on DEPARTURE.** `B. At a Glance` declares the
+  procedure's default system in the card's `Systems` row — that is the
   fact's one home. Tag a step **only where it leaves that default** (to Coupa, to
   Chase Connect, to paper). A procedure operating entirely in one system carries
   **zero** `System / Tool` tags in its steps.
@@ -208,7 +222,7 @@ OPPORTUNITY:
 Severity is a **per-item** read for this one procedure — never a cross-procedure
 ranking (you only see this procedure).
 
-**Inline in `Step-by-Step Procedure`** — at the step they attach to:
+**Inline in `Procedure`** — at the step they attach to:
 ```
 > **VALIDATION REQUIRED — GAP-01:** <the fact/decision to confirm>
 > - **Nature:** unknown | conflict | unsupported-assumption
@@ -311,6 +325,89 @@ The pass adds no content and removes no fact; it removes restatement. Report
   the prior SOP`** or **`the prior SOP, §9.4`** instead: same meaning, no
   collision. (Internal cross-references are `[[slug]]` and never a number, so this
   rule costs you nothing you needed.)
+
+## Content wave: 8 → 7 sections (M16 move 1)
+
+**This is the work order for one migration pass on ONE existing draft.** The
+registry half of M16 move 1 has shipped, so an 8-section draft already parses,
+renders and reconciles under the new titles — nothing is broken and nothing is
+urgent-by-breakage. What is left is the CONTENT judgment no script can do, and
+reconcile tells you which fragments still need it:
+
+    10_<slug>.md: 2 headings resolve to the one `Before You Start` section
+    ('Pre-Requisites', 'Inputs') … AWAITING THE M16 CONTENT WAVE
+
+You are dispatched in `mode: update` for your own procedure. Read the whole
+fragment first, then perform the seven steps below **in order**.
+
+**The one rule that governs the whole pass: no content is invented and no fact is
+lost.** Every sentence in the old draft either stays where it is, moves to its
+declared home, or is deleted **only** because it is a verbatim restatement of the
+same fact in its home section. If a fact has no home in the seven-section model,
+it stays where it is and you report it in `conflicts` — never delete it to make
+the shape fit.
+
+1. **`Process Overview` → `Scope`.** Retitle, then **cut it down**: Scope keeps
+   only what this procedure covers, what it explicitly excludes, and which
+   procedures adjoin it (the `[[slug]]` seam links). Everything else that A
+   currently states — preparer, systems, trigger, frequency, inputs, outputs —
+   **moves to `At a Glance`** (as a row) or is deleted as a duplicate of a row
+   already there. 3–5 sentences when you are done.
+2. **`Quick Reference` → `At a Glance`, as a TABLE.** One row each: trigger,
+   frequency, preparer, reviewer, systems, key inputs, key outputs.
+
+       | Field | Value |
+       |---|---|
+       | Trigger | Month-end close |
+
+   A field that currently runs to prose does not fit a cell: **relocate the
+   prose** — a scope statement to `Scope`, a control statement to `Key Controls`
+   — and leave the row the short answer. That split is the point of the table,
+   not a casualty of it.
+3. **`Pre-Requisites` + `Inputs` → one `Before You Start`.** Delete both
+   headings, write one, and merge to **one line per artifact**:
+
+       **NetSuite item receipt** — [[goods-receipt]]; posted against the PO lines
+       being billed, supplies quantity received per line.
+
+   Name the artifact, carry the `[[slug]]` where an upstream procedure supplies
+   it, and state the **required state**. A prerequisite in the old C that names no
+   artifact ("the period is closed") is still one line — the artifact is the
+   period/ledger. Two old entries about the same artifact become ONE line; two
+   artifacts never share a line.
+4. **`Step-by-Step Procedure` → `Procedure`.** **Retitle only.** Do not touch a
+   step, a tag, a callout or a citation in this pass.
+5. **`Outputs` → `Outputs & Evidence`.** Retitle. Keep the outputs, what is
+   retained, and any negative finding ("no record of the exception investigation
+   is retained") — that last one is audit-relevant and has no other home.
+6. **`Key Controls`** — unchanged. Do not touch it.
+7. **`Known Issues & Improvement Opportunities`** — unchanged in shape, and
+   **defects only**: this section records defects in the process — things that are
+   wrong. A branch the process handles routinely is a conditional step in
+   `Procedure`, not a known issue. If you find a routine branch sitting here,
+   moving it is a step edit — do it only if the step already exists to carry the
+   `Condition:`; otherwise report it in `conflicts`.
+
+**Order of the seven sections when you are done** (and the heading text,
+verbatim, letterless):
+
+    ### Scope
+    ### At a Glance
+    ### Before You Start
+    ### Procedure
+    ### Outputs & Evidence
+    ### Key Controls
+    ### Known Issues & Improvement Opportunities
+
+**Untouched by this pass, and a defect if it changes:** callout bodies and their
+`note:`/`detail:` split, callout **IDs** (never renumber — downstream judgment is
+keyed on `(slug, id)`), `SRC-` citations, `[[slug]]` tokens, the `consult-meta`
+block, the `<!-- scope note -->` comment, and step numbering.
+
+**Report** (in addition to your normal return): `sections_merged` (the headings
+you collapsed) and `facts_relocated` (one line per fact that changed section —
+"Reviewer prose → Key Controls"). A pass that relocated nothing from A to B has
+almost certainly not done step 1.
 
 ## Updates — leave no iteration artifacts
 

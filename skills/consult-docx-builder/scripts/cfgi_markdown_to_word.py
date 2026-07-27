@@ -62,13 +62,20 @@ BODY_SIZE = 10
 SMALL_SIZE = 9
 
 # Standalone section-label lines that should render as a subtitle rather than a
-# heading. The consult-drafter A–H subsections are ### headings and handled by
+# heading. The consult-drafter A–G subsections are ### headings and handled by
 # the heading path; these cover free-standing labels a draft might still use.
+# The M16 seven-section labels and the pre-M16 A–H ones are both listed: a draft
+# in either shape renders, exactly as the registry parses both (M23 transition).
 SECTION_LABELS = {
-    "Purpose", "Scope", "Procedure Header",
-    "A. Process Overview", "B. Quick Reference", "C. Pre-Requisites",
-    "D. Inputs", "E. Step-by-Step Procedure", "F. Key Controls",
-    "G. Outputs", "H. Known Issues / Improvement Notes",
+    "Purpose", "Procedure Header",
+    # M16 move 1 — the seven sections
+    "A. Scope", "B. At a Glance", "C. Before You Start", "D. Procedure",
+    "E. Outputs & Evidence", "F. Key Controls",
+    "G. Known Issues & Improvement Opportunities",
+    # pre-M16 A–H
+    "Scope", "A. Process Overview", "B. Quick Reference", "C. Pre-Requisites",
+    "D. Inputs", "E. Step-by-Step Procedure", "G. Outputs",
+    "H. Known Issues / Improvement Notes",
 }
 # Sections lifted to the cover page and suppressed inline when a cover is built.
 COVER_SECTIONS = {"document profile"}

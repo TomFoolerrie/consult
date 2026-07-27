@@ -31,25 +31,23 @@ def fragment(*, step_body: str, gap_fields: str = "", pp_fields: str = "",
     """A reconcile-clean `bank-rec` fragment with injectable callout fields."""
     return f"""## Bank Reconciliation
 
-### A. Process Overview
+### Scope
 
-The Controller performs this monthly. (SRC-001)
+Covers the monthly reconciliation only. (SRC-001)
 
-### B. Quick Reference
+### At a Glance
 
-- **Frequency:** Monthly
-- **Preparer:** Controller
-- **Primary systems / tools:** NetSuite
+| Field | Value |
+|---|---|
+| Frequency | Monthly |
+| Preparer | Controller |
+| Systems | NetSuite |
 
-### C. Pre-Requisites
+### Before You Start
 
-- The period is closed in NetSuite.
+- **Bank statement** — Treasury; downloaded for the closed period.
 
-### D. Inputs
-
-- **Input 1:** Bank statement — Treasury.
-
-### E. Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Export the statement
 
@@ -59,18 +57,18 @@ The Controller performs this monthly. (SRC-001)
 {gap_fields}> - **Nature:** conflict
 > - **Owner to confirm:** Controller
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** The Controller signs off on the reconciliation.
 {ctrl_fields}> - **Type:** Detective
 > - **Frequency:** Monthly
 > - **Owner:** Controller
 
-### G. Outputs
+### Outputs & Evidence
 
 - **Output 1:** Signed reconciliation.
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** The statement is exported by hand every month.
 {pp_fields}> - **Impact:** Two hours per close
@@ -199,7 +197,7 @@ def test_controls_register_carries_a_control_detail(tmp_path):
     so as a WARNING, not an error."""
     ctrl = ("> - **Note:** Sign-off is evidenced on the reconciliation.\n"
             "> - **Detail:** The sign-off is a wet signature on the printout.\n")
-    prof = {"sections": list("ABCDEFGH"), "body_omit": ["F"],
+    prof = {"sections": list(client_config.ALL_SECTIONS), "body_omit": ["F"],
             "derived": client_config.DEFAULT_DERIVED + ["controls"]}
     a = area(tmp_path, fragment(step_body=PLAIN_STEP, ctrl_fields=ctrl),
              profile=prof)
@@ -213,7 +211,7 @@ def test_detail_reaches_the_appendix_when_body_omit_hides_its_home(tmp_path):
     aggregates, so the detail still lands in its register."""
     pp = ("> - **Note:** Manual export, monthly.\n"
           "> - **Detail:** The export is re-keyed into a workbook by hand.\n")
-    prof = {"sections": list("ABCDEFGH"), "body_omit": ["H"]}
+    prof = {"sections": list(client_config.ALL_SECTIONS), "body_omit": ["H"]}
     a = area(tmp_path, fragment(step_body=PLAIN_STEP, pp_fields=pp), profile=prof)
     body = h.rendered_text(a)
     assert "Manual export, monthly." not in body        # H is out of the body

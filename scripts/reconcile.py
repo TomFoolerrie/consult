@@ -48,6 +48,9 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
       citation checks are skipped — see the documented boundaries below)
     - M16.3 — a `detail:` on a CONTROL / SCREENSHOT PLACEHOLDER: those kinds are
       short by nature and take `note` only. The register still carries it
+    - M16.1 — two `###` headings resolving to ONE section (`Pre-Requisites` +
+      `Inputs` after the merge): the fragment is awaiting the content wave. Every
+      fact is kept (aggregate concatenates) so this can never be an error
 
 Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
@@ -615,6 +618,33 @@ def check_note_detail(file: str, lines: list[str], frag: Frag) -> None:
     close()
 
 
+def check_merged_sections(file: str, text: str, frag: Frag) -> None:
+    """M16 move 1 — TWO HEADINGS, ONE SECTION: the transition state, as a WARNING.
+
+    The registry merged `Pre-Requisites` + `Inputs` into `Before You Start`, so a
+    fragment drafted before the content wave heads the SAME slug twice. Nothing
+    is broken by it — aggregate concatenates the bodies (no fact is lost), render
+    letters both headings the same and only re-titles the first — so this is
+    fail-LOUD but NOT blocking: the wave is imminent, and erroring would wedge
+    every already-drafted area on what was supposed to be a registry edit.
+
+    The warning names the fragment, the merged section and the two headings, so
+    it doubles as the content wave's work list.
+    """
+    for slug, titles in doc_model.duplicate_sections(text).items():
+        merged = doc_model.SECTION_MERGE_SOURCES.get(slug)
+        why = (f" \u2014 {' + '.join(merged)} merged into it (M16 move 1)"
+               if merged else "")
+        frag.warnings.append(
+            f"{file}: {len(titles)} headings resolve to the one "
+            f"`{doc_model.section_title(slug)}` section "
+            f"({', '.join(repr(t) for t in titles)}){why}: every fact is kept "
+            f"and the render is coherent, but this fragment is AWAITING THE "
+            f"M16 CONTENT WAVE (see the drafter contract's "
+            f"\"Content wave: 8 \u2192 7 sections\" work order)"
+        )
+
+
 def parse_procedure(slug: str, file: str, text: str) -> Frag:
     frag = Frag(slug, file)
     stripped = strip_fences(text)
@@ -671,6 +701,7 @@ def parse_procedure(slug: str, file: str, text: str) -> Frag:
             frag.referenced.setdefault(_id, []).append(n)
 
     check_note_detail(file, lines, frag)
+    check_merged_sections(file, text, frag)
 
     # per-fragment dangling: every referenced id defined in THIS procedure
     for _id, ref_lines in frag.referenced.items():

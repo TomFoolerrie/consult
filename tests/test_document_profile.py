@@ -90,47 +90,46 @@ def derived_kinds(area: Path) -> list[str]:
 
 
 def fragment(title: str, slug: str, ctrl: str, pp: str) -> str:
-    """A drafted procedure with a real F control, a real H pain point, and a
-    `[[slug]]` cross-reference INSIDE the F section (bullet: a reference in an
-    omitted section still reconciles)."""
+    """A drafted procedure (the M16 seven-section model) with a real controls
+    control, a real known-issues pain point, and a `[[slug]]` cross-reference
+    INSIDE the controls section (bullet: a reference in an omitted section still
+    reconciles)."""
     other = "payment-run" if slug == "bank-rec" else "bank-rec"
     return f"""## {title}
 
-### A. Process Overview
+### Scope
 
-The Controller performs this monthly. (SRC-001)
+Covers the monthly reconciliation only. (SRC-001)
 
-### B. Quick Reference
+### At a Glance
 
-- **Frequency:** Monthly
-- **Preparer:** Controller
+| Field | Value |
+|---|---|
+| Frequency | Monthly |
+| Preparer | Controller |
 
-### C. Pre-Requisites
+### Before You Start
 
-- The period is closed in NetSuite.
+- **Bank statement** — Treasury; downloaded for the closed period.
 
-### D. Inputs
-
-- **Input 1:** Bank statement — Treasury.
-
-### E. Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Export
 
 Export the statement from the portal.
 
-### F. Key Controls
+### Outputs & Evidence
+
+- **Output 1:** Signed reconciliation.
+
+### Key Controls
 
 > **CONTROL — {ctrl}:** Controller signs off on the reconciliation; see [[{other}]].
 > - **Type:** Detective
 > - **Frequency:** Monthly
 > - **Owner:** Controller
 
-### G. Outputs
-
-- **Output 1:** Signed reconciliation.
-
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — {pp}:** The statement is exported by hand every month.
 > - **Impact:** Two hours per close
@@ -238,7 +237,7 @@ def test_absent_profile_scaffolds_byte_identical_manifest_and_skeletons(tmp_path
     controls register, every section heading — LETTERLESS since M23)."""
     plain = scaffold_area(engagement(tmp_path / "plain"))
     explicit_root = engagement(tmp_path / "explicit")
-    write_profile(explicit_root, sections=list("ABCDEFGH"), body_omit=[])
+    write_profile(explicit_root, sections=list(client_config.ALL_SECTIONS), body_omit=[])
     explicit = scaffold_area(explicit_root)
 
     assert ((plain / "manifest.json").read_bytes()
@@ -257,7 +256,7 @@ def test_absent_profile_renders_byte_identical_body(tmp_path):
     that excludes nothing."""
     plain = drafted_area(engagement(tmp_path / "plain"))
     explicit_root = engagement(tmp_path / "explicit")
-    write_profile(explicit_root, sections=list("ABCDEFGH"), body_omit=[])
+    write_profile(explicit_root, sections=list(client_config.ALL_SECTIONS), body_omit=[])
     explicit = drafted_area(explicit_root)
 
     assert rendered_text(plain) == rendered_text(explicit)
@@ -271,7 +270,7 @@ def test_profile_without_f_scaffolds_no_f_section(tmp_path):
     """Enforcement point 1: the skeleton has no Key Controls heading and every
     other section survives, sentinel and end matter intact."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = scaffold_area(root)
 
     skeleton = (area / "10_bank-rec.md").read_text(encoding="utf-8")
@@ -288,13 +287,13 @@ def test_profile_without_f_renders_no_f_and_reconciles_clean(tmp_path):
     after drafting): the render shows no F section and no control, while
     reconcile — which reads fragments, not renders — stays clean."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = drafted_area(root)
 
     text = rendered_text(area)
     assert "F. Key Controls" not in text
     assert "CTRL-" not in text
-    assert "Step-by-Step Procedure" in text        # the rest is untouched
+    assert "Procedure" in text        # the rest is untouched
 
     orchestrate.emit_aggregate(str(area), warnings=[])
     assert reconcile.reconcile(area) == 0
@@ -315,7 +314,7 @@ def test_adding_a_section_after_drafting_returns_reprofile_with_the_count(tmp_pa
     advisor returns `reprofile`, names every procedure and the dispatch count,
     and gates (it is a cost gate)."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = scaffold_area(root)
     for slug in ("bank-rec", "payment-run"):
         path = area / f"10_{slug}.md"
@@ -324,7 +323,7 @@ def test_adding_a_section_after_drafting_returns_reprofile_with_the_count(tmp_pa
                         encoding="utf-8")
     assert orchestrate.decide(str(area))["action"] != "reprofile"
 
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
     d = orchestrate.decide(str(area))
     assert d["action"] == "reprofile"
     assert d["human_gate"] is True
@@ -338,14 +337,14 @@ def test_reprofile_clears_once_the_drafters_write_the_heading(tmp_path):
     """Bullet 3, second half: the guard clears when the heading appears — even
     when the answer is "none identified", which is what makes it terminate."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = scaffold_area(root)
     for slug in ("bank-rec", "payment-run"):
         path = area / f"10_{slug}.md"
         path.write_text(path.read_text(encoding="utf-8")
                         .replace("<!-- unfilled -->", "Drafted. (SRC-001)"),
                         encoding="utf-8")
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
     assert orchestrate.decide(str(area))["action"] == "reprofile"
 
     # the drafter adds the heading to ONE procedure: partial migration is fine
@@ -378,12 +377,12 @@ def test_removing_a_section_never_dispatches_and_re_adding_does_not_either(tmp_p
     before = (area / "10_bank-rec.md").read_bytes()
     _walk_to_steady_state(area)
 
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     assert orchestrate.decide(str(area))["action"] != "reprofile"
     assert "F. Key Controls" not in rendered_text(area, "without-f.docx")
     assert (area / "10_bank-rec.md").read_bytes() == before
 
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
     assert orchestrate.decide(str(area))["action"] != "reprofile"
     assert "F. Key Controls" in rendered_text(area, "with-f.docx")
     assert (area / "10_bank-rec.md").read_bytes() == before
@@ -454,11 +453,11 @@ def test_removing_the_body_omit_entry_restores_h_with_no_redraft(tmp_path):
     write_profile(root, body_omit=["H"])
     area = drafted_area(root)
     before = (area / "10_bank-rec.md").read_bytes()
-    assert "H. Known Issues" not in rendered_text(area, "omitted.docx")
+    assert "G. Known Issues" not in rendered_text(area, "omitted.docx")
 
     write_profile(root, body_omit=[])
     text = rendered_text(area, "restored.docx")
-    assert "H. Known Issues" in text
+    assert "G. Known Issues" in text
     assert "The statement is exported by hand every month." in text
     assert (area / "10_bank-rec.md").read_bytes() == before
     _walk_to_steady_state(area)
@@ -511,8 +510,9 @@ def test_controls_register_is_empty_but_present_with_no_controls(tmp_path):
                         ("payment-run", "20_payment-run.md")):
         path = area / fname
         text = path.read_text(encoding="utf-8")
-        head, _, tail = text.partition("### F. Key Controls")
-        path.write_text(head + "### G." + tail.split("### G.", 1)[1],
+        head, _, tail = text.partition("### Key Controls")
+        path.write_text(head + "### Known Issues"
+                        + tail.split("### Known Issues", 1)[1],
                         encoding="utf-8")
     assert aggregate.run(str(area)) == 0
     assert "_No controls recorded._" in register_of(area,
@@ -613,14 +613,14 @@ def test_area_profile_shadows_the_engagement_profile_whole(tmp_path):
     """`profile:` is one top-level key, so M13's per-key rule applies: an
     area's own profile.yaml wins entirely, with provenance reported."""
     root = engagement(tmp_path)
-    write_profile(root, sections=list("ABCDEFGH"), body_omit=["H"])
+    write_profile(root, sections=list(client_config.ALL_SECTIONS), body_omit=["H"])
     area = root / "treasury"
     (area / "_client").mkdir(parents=True)
     (area / "_client" / "profile.yaml").write_text(
         yaml.safe_dump({"profile": {"sections": list("ABE")}}), encoding="utf-8")
 
     prof = client_config.profile(area)
-    assert prof.sections == ["overview", "quick-reference", "steps"]
+    assert prof.sections == ["scope", "quick-reference", "steps"]
     assert prof.body_omit == []              # shadowed WHOLE, not merged
     assert prof.layer == "area"
     assert prof.report_line().startswith("document profile: _client/ (area)")
@@ -631,14 +631,14 @@ def test_report_line_states_the_shape_when_a_profile_is_in_play(tmp_path):
     the sections and body_omit a surprised reader needs to see."""
     root = engagement(tmp_path)
     assert client_config.profile(root / "t").report_line() == (
-        "document profile: none (full A–H, nothing omitted)")
+        "document profile: none (full A–G, nothing omitted)")
 
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "G"],
-                  body_omit=["H"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS
+                                  if s != "outputs"], body_omit=["H"])
     line = client_config.profile(root / "t").report_line()
     assert line == ("document profile: _client/ (engagement) — sections "
-                    "A=overview B=quick-reference C=prerequisites D=inputs "
-                    "E=steps F=controls G=issues, body_omit issues")
+                    "A=scope B=quick-reference C=before-you-start D=steps "
+                    "E=controls F=issues, body_omit issues")
 
 
 def test_sections_are_canonicalized_to_slugs_in_the_profiles_own_order(tmp_path):
@@ -648,8 +648,8 @@ def test_sections_are_canonicalized_to_slugs_in_the_profiles_own_order(tmp_path)
     root = engagement(tmp_path)
     write_profile(root, sections=["E", "A", "H", "B"])
     prof = client_config.profile(root / "t")
-    assert prof.sections == ["steps", "overview", "issues", "quick-reference"]
-    assert prof.letters() == {"steps": "A", "overview": "B",
+    assert prof.sections == ["steps", "scope", "issues", "quick-reference"]
+    assert prof.letters() == {"steps": "A", "scope": "B",
                               "issues": "C", "quick-reference": "D"}
 
 
@@ -698,7 +698,7 @@ def test_a_second_same_layer_file_claiming_profile_is_already_fatal(tmp_path):
     """M13 gives M14 this for free: two files in one `_client/` layer both
     claiming `profile:` stops the run rather than picking a winner."""
     root = engagement(tmp_path)
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
     (root / "_client" / "shape.yaml").write_text(
         yaml.safe_dump({"profile": {"sections": list("ABE")}}), encoding="utf-8")
     with pytest.raises(client_config.ClientConfigError) as exc:
@@ -714,14 +714,14 @@ def test_reprofile_is_a_pure_read_that_writes_nothing(tmp_path):
     """Advisor purity (M7/M18): the new guard adds no state file and no write —
     same answer twice, not one byte changed."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = scaffold_area(root)
     for slug in ("bank-rec", "payment-run"):
         path = area / f"10_{slug}.md"
         path.write_text(path.read_text(encoding="utf-8")
                         .replace("<!-- unfilled -->", "Drafted. (SRC-001)"),
                         encoding="utf-8")
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
 
     def snapshot():
         return {p.relative_to(area): p.read_bytes()
@@ -740,9 +740,9 @@ def test_reprofile_sits_below_fill_and_above_aggregate(tmp_path):
     `reprofile`), and the migration is quoted before any derived view is built
     from a shape that is about to change."""
     root = engagement(tmp_path)
-    write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS if s != "controls"])
     area = scaffold_area(root)
-    write_profile(root, sections=list("ABCDEFGH"))
+    write_profile(root, sections=list(client_config.ALL_SECTIONS))
 
     # both fragments still carry the sentinel -> fill outranks reprofile
     assert orchestrate.decide(str(area))["action"] == "fill"

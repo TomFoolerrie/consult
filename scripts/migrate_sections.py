@@ -7,7 +7,7 @@ migrate_sections.py — M23's one-time, MECHANICAL section-heading migration.
 
 Strips the display LETTER off every procedure sub-section heading in one area:
 
-    ### A. Process Overview   ->   ### Process Overview
+    ### A. Scope   ->   ### Scope
 
 That is the whole job. Titles are NOT touched, bodies are NOT touched, callouts,
 steps, `consult-meta` end matter and line COUNT are all untouched — this is pure

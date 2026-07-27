@@ -101,48 +101,87 @@ CONSULT_META_RE = re.compile(
 ISSUES_SECTION = "issues"
 CONTROLS_SECTION = "controls"
 
-# A `###` sub-section line. Both forms parse (M23): `### Process Overview` and
-# the not-yet-migrated `### A. Process Overview`. Identity is the SLUG the
+# A `###` sub-section line. Both forms parse (M23): `### Scope` and the
+# not-yet-migrated `### A. Process Overview`. Identity is the SLUG the
 # shared registry resolves it to, never the letter.
 SUBSECTION_RE = doc_model.SECTION_HEADING_RE
 
-# A `- **Label:** value` list bullet (Quick Reference etc.).
+# A `- **Label:** value` list bullet (the At a Glance card etc.).
 BULLET_KV_RE = re.compile(r"^\s*-\s*\*\*\s*(?P<k>[^:*]+?)\s*:\s*\*\*\s*(?P<v>.*?)\s*$")
+
+# A two-column markdown table row — the M16 `At a Glance` card's post-content-wave
+# form (`| Trigger | Month-end close |`), read by the same `parse_bullets`.
+TABLE_KV_RE = re.compile(r"^\s*\|(?P<k>[^|]*)\|(?P<v>[^|]*)\|\s*$")
 
 
 def split_subsections(text: str) -> dict[str, str]:
-    """Return {section-slug: body_text} for a procedure's `###` sub-sections."""
+    """Return {section-slug: body_text} for a procedure's `###` sub-sections.
+
+    TWO HEADINGS, ONE SLUG (M16 move 1's C+D merge, pre-content-wave): a
+    fragment carrying `### Pre-Requisites` AND `### Inputs` resolves both to
+    `before-you-start`, so the bodies are CONCATENATED in document order rather
+    than the second overwriting the first. No fact is lost while the content
+    wave is pending; `reconcile` reports the fragment (see
+    `doc_model.duplicate_sections`).
+    """
     sections: dict[str, str] = {}
+
+    def _close(slug: str, buf: list[str]) -> None:
+        body = "\n".join(buf).strip()
+        prior = sections.get(slug)
+        sections[slug] = f"{prior}\n\n{body}".strip() if prior else body
+
     current: str | None = None
     buf: list[str] = []
     for line in text.splitlines():
         slug = doc_model.section_of_heading(line)
         if slug is not None:
             if current is not None:
-                sections[current] = "\n".join(buf).strip()
+                _close(current, buf)
             current = slug
             buf = []
             continue
         if line.startswith("## "):  # next fragment / unknown heading ends the run
             if current is not None:
-                sections[current] = "\n".join(buf).strip()
+                _close(current, buf)
                 current = None
             buf = []
             continue
         if current is not None:
             buf.append(line)
     if current is not None:
-        sections[current] = "\n".join(buf).strip()
+        _close(current, buf)
     return sections
 
 
 def parse_bullets(body: str) -> dict[str, str]:
-    """Parse `- **Label:** value` bullets from a section body into a dict."""
+    """Parse a label/value section body (the At a Glance card) into a dict.
+
+    Two authored forms, both read the same way — which is what lets M16 move 1's
+    content wave turn the card into a TABLE without the registers, the RACI
+    inputs or the Quick Reference kit losing the preparer on the way:
+
+      - `- **Label:** value`  (the pre-wave bullet list), and
+      - `| Label | value |`   (the post-wave two-column table row).
+
+    A table header row (`| Field | Value |`) and its `|---|---|` rule carry no
+    facts, so they are skipped; a bolded label in a cell is unwrapped.
+    """
     out: dict[str, str] = {}
     for line in body.splitlines():
         m = BULLET_KV_RE.match(line)
         if m:
             out[m.group("k").strip()] = m.group("v").strip()
+            continue
+        m = TABLE_KV_RE.match(line)
+        if m:
+            key = m.group("k").strip().strip("*").strip().rstrip(":").strip()
+            val = m.group("v").strip()
+            if not key or set(key) <= set("-: "):
+                continue                      # the `|---|---|` rule
+            if key.lower() in ("field", "label") and val.lower() == "value":
+                continue                      # a header row, not a fact
+            out.setdefault(key, val)
     return out
 
 
@@ -674,7 +713,7 @@ def run(area_arg: str) -> int:
             "callouts": callouts,
             "meta": meta,
             "quick_ref": quick_ref,
-            "section_a": sections.get("overview", ""),
+            "section_a": sections.get("scope", ""),
             "section_e": sections.get("steps", ""),
         })
 

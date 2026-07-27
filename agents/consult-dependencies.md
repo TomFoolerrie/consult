@@ -2,7 +2,7 @@
 name: consult-dependencies
 description: >-
   M5 judgment subagent that authors one area's Key Dependencies view (82_dependencies.md)
-  from the upstream/downstream language in each procedure's A. Process Overview (supplied
+  from the upstream/downstream language in each procedure's A. Scope (supplied
   as raw_dependencies in M3's extract bundle). Infers procedure→procedure and external
   dependencies, referencing procedures by [[slug]]. Change-scoped: only re-derives rows for
   changed procedures, preserving the rest from its prior file. Writes exactly one file;
@@ -23,7 +23,7 @@ Read your inputs, write the file, return a short status. Never return prose.
 - Your **prior file** `{area}/82_dependencies.md` (preserve unaffected rows).
 
 Read:
-1. The bundle's **`raw_dependencies`** — each procedure's `A. Process Overview`
+1. The bundle's **`raw_dependencies`** — each procedure's `A. Scope`
    text, tagged by slug. This is your evidence; you do **not** need to open the
    procedure files.
 2. The prior `82_dependencies.md` (if it exists).
@@ -34,7 +34,7 @@ Read:
 
 The **Key Dependencies** section: for each procedure, its **upstream** (what must
 happen / be available before it) and **downstream** (what depends on its output)
-dependencies, read from the A. Process Overview prose.
+dependencies, read from the A. Scope prose.
 
 - Reference another procedure with its **`[[slug]]` token**, never a number/title.
 - **External** dependencies (another team, an upstream system feed, a period-close
