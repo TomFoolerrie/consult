@@ -566,9 +566,21 @@ def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
     render.render_folder(area, out, emit_signal=False)
     h1 = [p for p in Document(str(out)).paragraphs
           if p.style.name == "Heading 1"]
+    # This fixture's only front matter is the cover-lifted Document Profile,
+    # so no Introduction chapter — an empty chapter head would be worse than
+    # none.
     assert [p.text for p in h1] == ["1. Invoices", "2. Payments",
                                     "Reference & Appendices"]
     assert all(p.paragraph_format.page_break_before for p in h1)
+
+    # With the cover off the profile renders inline as front matter, and the
+    # Introduction chapter appears above it.
+    out2 = tmp_path / "d2.docx"
+    render.render_folder(area, out2, do_cover=False, emit_signal=False)
+    texts = [p.text for p in Document(str(out2)).paragraphs
+             if p.style.name == "Heading 1"]
+    assert texts == ["Introduction", "1. Invoices", "2. Payments",
+                     "Reference & Appendices"]
 
 
 def test_subset_kit_render_has_no_dividers(tmp_path):

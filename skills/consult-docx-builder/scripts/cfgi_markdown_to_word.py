@@ -230,7 +230,10 @@ def define_styles(doc) -> None:
     doc.styles["Normal"].paragraph_format.space_after = Pt(6)
     specs = {
         "Title": (40, PALETTE["dark_green"], True, False),
-        "Heading 1": (14, PALETTE["dark_green"], False, False),
+        # H1 is the CHAPTER level — the L2 dividers (and the TOC page head).
+        # It must visibly outrank the bold 13pt H2 section headings beneath
+        # it; at its old 14pt regular it read flatter than its own children.
+        "Heading 1": (20, PALETTE["dark_green"], True, False),
         "Heading 2": (13, PALETTE["green"], True, False),
         "Heading 3": (12, PALETTE["green"], False, True),
         "Heading 4": (11, PALETTE["black"], True, False),
@@ -1018,7 +1021,12 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
             # drawn under both. (Single-file docs still have one inline H1;
             # folder docs hold their single H1/title on the cover and start
             # every section at H2.)
-            if style in ("Heading 1", "Heading 2"):
+            if style == "Heading 1":
+                # Chapter rule: heavier than the H2 hairline, dark green to
+                # match the chapter type, with air below before content.
+                para_bottom_border(p, PALETTE["dark_green"], size="12", space="4")
+                p.paragraph_format.space_after = Pt(14)
+            elif style == "Heading 2":
                 para_bottom_border(p)
             i += 1
             continue

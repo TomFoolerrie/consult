@@ -715,7 +715,8 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     # head over a single excerpted procedure is noise.
     l2_ordinal = {l2: i for i, l2 in
                   enumerate(manifest.get("l2_order", []) or [], start=1)}
-    divider_state = {"l2": None, "in_procedures": False, "backmatter": False}
+    divider_state = {"l2": None, "front": False, "in_procedures": False,
+                     "backmatter": False}
 
     def emit_divider(section, role, slug):
         if subset:
@@ -728,7 +729,15 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
                 title = l2.replace("-", " ").title()
                 emit(f"# {l2_ordinal.get(l2, '')}. {title}".replace("# . ", "# "))
                 emit("")
-        elif divider_state["in_procedures"] and not divider_state["backmatter"]:
+        elif not divider_state["in_procedures"]:
+            # Front matter (Process Overview, the reader-orientation views)
+            # gets the same chapter treatment, or it floats parentless above
+            # chapter 1 in the TOC and on the page.
+            if not divider_state["front"]:
+                divider_state["front"] = True
+                emit("# Introduction")
+                emit("")
+        elif not divider_state["backmatter"]:
             divider_state["backmatter"] = True
             emit("# Reference & Appendices")
             emit("")
