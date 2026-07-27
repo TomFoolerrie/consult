@@ -1,0 +1,133 @@
+procedures:
+  # ---------------- vendor-management ----------------
+  - slug: new-vendor-onboarding
+    title: New Vendor Onboarding
+    l2: vendor-management
+    confidence: high
+    sources: [SRC-002, SRC-003, SRC-005, SRC-006]
+    variants: []
+    upstream: []
+
+  - slug: vendor-banking-change
+    title: Vendor Remit-To Banking Change
+    l2: vendor-management
+    confidence: medium
+    sources: [SRC-002, SRC-003, SRC-005, SRC-006]
+    variants: []
+    upstream: [new-vendor-onboarding]
+
+  - slug: vendor-master-data-maintenance
+    title: Vendor Master Data Maintenance and Periodic Review
+    l2: vendor-management
+    confidence: medium
+    sources: [SRC-001, SRC-002, SRC-003, SRC-005, SRC-006]
+    variants: ["Record maintenance (terms, GL defaults, sync repair)", "Semi-annual master file review (inactive/duplicate/incomplete)"]
+    upstream: [new-vendor-onboarding]
+
+  # ---------------- procurement ----------------
+  - slug: requisition-and-approval
+    title: Requisition Creation and Approval
+    l2: procurement
+    confidence: high
+    sources: [SRC-002, SRC-005]
+    variants: ["Catalog / punchout requisition", "Non-catalog free-text requisition", "Services requisition (SOW required)"]
+    upstream: [new-vendor-onboarding]
+
+  - slug: po-issuance-and-change-orders
+    title: Purchase Order Issuance and Change Orders
+    l2: procurement
+    confidence: high
+    sources: [SRC-002, SRC-004, SRC-005]
+    variants: ["Initial PO issuance and transmission", "Change order / PO revision"]
+    upstream: [requisition-and-approval]
+
+  - slug: confirming-po
+    title: Confirming (After-the-Fact) Purchase Order
+    l2: procurement
+    confidence: medium
+    sources: [SRC-002, SRC-004, SRC-005]
+    variants: []
+    upstream: []
+
+  - slug: blanket-po-management
+    title: Blanket Purchase Order Setup and Not-to-Exceed Monitoring
+    l2: procurement
+    confidence: low
+    sources: [SRC-002, SRC-005]
+    variants: []
+    upstream: [po-issuance-and-change-orders]
+
+  # ---------------- receiving ----------------
+  - slug: goods-receipt
+    title: Goods Receipt
+    l2: receiving
+    confidence: high
+    sources: [SRC-004, SRC-001, SRC-005, SRC-006]
+    variants: ["Dock receipt against PO (Plants 1 and 2)", "Plant 3 consumption-based auto-receipt (TBD)", "Services / non-inventory receipt confirmation by department (TBD)"]
+    upstream: [po-issuance-and-change-orders]
+
+  - slug: return-to-vendor
+    title: Return to Vendor and Credit Memo
+    l2: receiving
+    confidence: medium
+    sources: [SRC-004, SRC-005]
+    variants: []
+    upstream: [goods-receipt]
+
+  # ---------------- invoice-processing ----------------
+  - slug: invoice-intake-and-capture
+    title: Invoice Intake, Imaging and OCR Capture
+    l2: invoice-processing
+    confidence: high
+    sources: [SRC-001, SRC-005, SRC-006]
+    variants: ["Electronic (AP Inbox) intake", "Paper intake and scanning"]
+    upstream: []
+
+  - slug: po-invoice-entry-and-three-way-match
+    title: PO Invoice Entry and Three-Way Match
+    l2: invoice-processing
+    confidence: high
+    sources: [SRC-001, SRC-003, SRC-004, SRC-005, SRC-006]
+    variants: []
+    upstream: [invoice-intake-and-capture, goods-receipt]
+
+  - slug: non-po-invoice-entry-and-approval
+    title: Non-PO Invoice Entry and Approval Routing
+    l2: invoice-processing
+    confidence: high
+    sources: [SRC-001, SRC-003, SRC-005, SRC-006]
+    variants: []
+    upstream: [invoice-intake-and-capture]
+
+  - slug: vendor-statement-reconciliation
+    title: Vendor Statement Reconciliation
+    l2: invoice-processing
+    confidence: medium
+    sources: [SRC-001, SRC-002, SRC-003, SRC-005, SRC-006]
+    variants: []
+    upstream: []
+
+  # ---------------- payments ----------------
+  - slug: weekly-payment-run
+    title: Weekly Payment Run (ACH and Check)
+    l2: payments
+    confidence: high
+    sources: [SRC-001, SRC-003, SRC-005, SRC-006]
+    variants: ["ACH / NACHA batch", "Check run and positive pay issue file"]
+    upstream: [po-invoice-entry-and-three-way-match, non-po-invoice-entry-and-approval]
+
+  - slug: wire-and-manual-payment
+    title: Wire Transfer and Manual Payment
+    l2: payments
+    confidence: medium
+    sources: [SRC-001, SRC-003, SRC-005, SRC-006]
+    variants: ["Wire transfer", "Manual / emergency check"]
+    upstream: []
+
+  - slug: positive-pay-exception-handling
+    title: Positive Pay Exception Handling
+    l2: payments
+    confidence: high
+    sources: [SRC-001, SRC-003, SRC-005, SRC-006]
+    variants: []
+    upstream: [weekly-payment-run]
