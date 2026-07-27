@@ -478,8 +478,12 @@ def test_body_omit_f_with_controls_register_collects_every_control(tmp_path):
 
     register = register_of(area, "89_appendix-controls.md")
     assert "<!-- derived: appendix-controls; writer: python -->" in register
-    # M23: the caption names the section by TITLE (display), never by letter.
-    assert "aggregated mechanically from the Key Controls section" in register
+    # Reviewer rule: the caption speaks client language — no pipeline
+    # vocabulary ("callout", "aggregated mechanically") and no reference to
+    # the body section it is built from (a profile may hide that section).
+    assert "Key controls identified for the processes" in register
+    assert "aggregated mechanically" not in register
+    assert "callout" not in register.lower()
     # two procedures, one control each -> the two document-global display ids,
     # each exactly once, each row carrying its procedure's [[#slug]] token
     assert register.count("CTRL-01") == 1 and register.count("CTRL-02") == 1

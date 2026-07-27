@@ -499,14 +499,14 @@ def _body(ctx, p, c) -> str:
 
 
 def build_appendix_a(ctx) -> str:
-    # The reader-facing prose names the section by its TITLE (display), taken
-    # from the registry — M23: it must never name a letter, which is a position.
-    lines = [f"_Pain Points and Improvement Opportunities, aggregated "
-             f"mechanically from the "
-             f"{doc_model.section_title(ISSUES_SECTION)} section callouts "
-             f"(observation, impact, severity authored in the callout). IDs are "
-             f"numbered sequentially through the document; rows are grouped by "
-             f"sub-process._", ""]
+    # Reader-facing prose: client language only. It must not say "callout" or
+    # "aggregated mechanically" (pipeline vocabulary), and it must not name
+    # the body section it is built from — a profile may hide that section
+    # (`body_omit: [issues]`), leaving the reference pointing at nothing.
+    lines = [f"_Pain points and improvement opportunities observed in the "
+             f"current-state walkthroughs, with the impact and severity "
+             f"recorded for each. IDs are numbered sequentially through the "
+             f"document; items are grouped by sub-process._", ""]
 
     lines.append("### Pain Points")
     any_pp = False
@@ -561,11 +561,12 @@ def build_appendix_controls(ctx) -> str:
     emitted when the profile asks for it (the manifest is the authority: this
     builder runs iff an `appendix-controls` component is listed).
     """
-    lines = [f"_Key controls, aggregated mechanically from the "
-             f"{doc_model.section_title(CONTROLS_SECTION)} section callouts "
-             f"(statement, type, frequency and owner authored in the callout). "
-             f"IDs are numbered sequentially through the document; rows are "
-             f"grouped by sub-process._"]
+    # Client language only — see build_appendix_a for why this intro names
+    # neither "callouts" nor the body section it is built from.
+    lines = [f"_Key controls identified for the processes in this document, "
+             f"with the type, frequency and owner recorded for each. IDs are "
+             f"numbered sequentially through the document; rows are grouped "
+             f"by sub-process._"]
     any_row = False
     for l2_title, rows in _grouped_by_l2(ctx, "CTRL"):
         any_row = True
