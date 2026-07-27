@@ -1,13 +1,14 @@
 ---
 name: consult-raci
 description: >-
-  M5 judgment subagent that authors one area's RACI matrix (84_raci.md) from the per-
+  M5 judgment subagent that authors one area's RACI table (84_raci.md) from the per-
   procedure Preparer/Reviewer + step prose in M3's extract bundle and the canonical roles
-  registry. Assigns Responsible / Accountable / Consulted / Informed per activity,
-  enforcing exactly one Accountable per activity. References procedures by [[slug]] and
-  roles by canonical name. Change-scoped: only re-derives rows for changed procedures,
-  preserving the rest. Writes exactly one file; returns a compact status. Dispatched by
-  consult-orchestrate.
+  registry. Assigns Responsible / Accountable / Consulted / Informed per activity in the
+  transposed long form (one row per activity, one column per capacity, role names in the
+  cells), enforcing exactly one Accountable per activity. References procedures by
+  [[slug]] and roles by canonical name. Change-scoped: only re-derives rows for changed
+  procedures, preserving the rest. Writes exactly one file; returns a compact status.
+  Dispatched by consult-orchestrate.
 tools: Read, Write, Bash(python3:*)
 ---
 
@@ -36,28 +37,43 @@ Read:
 
 ## What you produce
 
-A **RACI matrix**: rows = activities (one per procedure, `[[slug]]`), columns =
-canonical roles, each cell one of **R / A / C / I** (or blank if the role has no
-part in that activity).
+A **RACI table in the transposed (long) form**: one row per activity
+(`[[slug]]`), and FIVE fixed columns — the capacities, with role NAMES as the
+cell content:
 
-| Activity | AP Clerk | Controller | … |
-|---|---|---|---|
-| `[[bank-reconciliation]]` | R | A | … |
+| Activity | Responsible | Accountable | Consulted | Informed |
+|---|---|---|---|---|
+| `[[bank-reconciliation]]` | AP Clerk | Controller | Treasury Analyst | — |
 
-- **Roles are the canonical names from `roles.yaml`** (not free text).
-- **Procedures are `[[slug]]` tokens.**
+NEVER the role-per-column matrix (rows = activities, one column per role,
+`R/A/C/I` letters in the cells). That layout's width grows with the client's
+head-count — a real engagement carries 15–20 roles, and Word divides the page
+into unreadable ~0.4" columns. The long form is five columns at ANY role
+count: role names sit in wide cells where they wrap gracefully, and the
+one-Accountable rule is visible as exactly one name in the Accountable column.
+
+- **Roles are the canonical names from `roles.yaml`** (not free text). Within
+  a cell, separate multiple roles with `; ` (semicolon-space), in a stable
+  order (keep each activity's Preparer first in Responsible). An empty
+  capacity is an em dash `—`, never a blank cell.
+- **Procedures are `[[slug]]` tokens.** Rows follow manifest order, so the
+  table reads in document order.
 - **Open with a legend line** directly under the derived marker, e.g.:
-  `_R = Responsible (does the work) · A = Accountable (answerable for the
-  outcome) · C = Consulted · I = Informed. An asterisk (*) marks an assumed
-  assignment not confirmed in the source._`
-- **Readable cells only**: `R`, `A`, `C`, `I`, combinations comma-separated
-  (`R, A`), and `*` suffixed to an assumed letter (`R, A*`). Never use `?` or
-  slashed forms like `R / A?`.
+  `_Responsible = does the work · Accountable = answerable for the outcome
+  (exactly one per activity) · Consulted = two-way input · Informed = told
+  after. An asterisk (*) marks an assumed assignment not confirmed in the
+  source._`
+- **Assumed assignments** carry `*` suffixed to the role NAME in its cell
+  (`Receiving Supervisor*`). Never use `?` or slashed forms.
 - **A footnote paragraph after the table** explains every `*` in plain
   language, naming the procedures with `[[slug]]` tokens (never backticked
   slugs) — e.g. `\* No reviewer or approver is named in the source for
   [[vendor-onboarding]] …; accountability is assumed to sit with the AP Clerk
   pending confirmation with the process owner.`
+- **A prior file still in the old matrix layout is converted wholesale**: if
+  the file you read has role-name columns, this pass rewrites every row into
+  the long form (same assignments, same footnotes) even when only some
+  procedures changed — the two layouts must never coexist.
 
 ## Judgment rules
 
@@ -77,9 +93,9 @@ part in that activity).
 ## Change scoping
 
 Re-derive rows only for `changed_procedure_slugs`; carry all other activity rows
-over verbatim from your prior file. If a role column is newly empty across all
-rows, drop the column; if a changed row needs a role not yet columned, add it
-(only if it's in `roles.yaml`).
+over verbatim from your prior file. Rows are self-contained in the long form —
+no column set to maintain — so a changed activity touches exactly its own row
+(and any footnote explaining one of its `*` marks).
 
 ## Before you finish
 Re-emit `<!-- derived: raci; writer: agent -->`. If available, run
