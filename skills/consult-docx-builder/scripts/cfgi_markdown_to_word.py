@@ -520,10 +520,11 @@ def table_kind(tb: TableBlock, ctx: str) -> str:
         return "gap"
     if "control" in h:
         return "control"
-    # Pain-point-only tables get red; a mixed risks/pain/opportunity register
-    # (Appendix A) has no "pain" in its header, so it stays standard and its
-    # improvement rows aren't miscolored as pain.
-    if "pain" in h or "known issue" in h:
+    # Pain-point-ONLY tables get red. The paired register (Appendix A) has
+    # "Pain Point" AND "Improvement Opportunity" in one header — a whole-table
+    # red wash there paints recommendations as problems (reviewer feedback),
+    # so any header that also mentions improvements stays standard.
+    if ("pain" in h or "known issue" in h) and "improvement" not in h:
         return "pain"
     return "standard"
 
