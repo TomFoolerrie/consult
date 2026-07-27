@@ -691,3 +691,37 @@ def test_wide_raci_table_renders(tmp_path):
     doc = Document(str(out))
     assert doc.tables, "no table rendered"
     assert all(c.width > 0 for c in doc.tables[0].columns)
+
+
+def test_raci_rows_render_in_display_number_order(tmp_path):
+    """Reviewer ask: RACI activities appear sequentially (1.1, 1.2, … 2.1).
+    Ordering is render-time display keyed on each row's leading [[slug]]
+    token — the derived file's authored order is never rewritten. A row
+    without a resolvable slug leaves the authored order untouched."""
+    area = make_area(tmp_path)
+    manifest = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    manifest["components"].append(
+        {"file": "84_raci.md", "heading": "RACI Matrix", "role": "derived",
+         "derived_kind": "raci", "writer": "agent", "order": 84})
+    (area / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (area / "84_raci.md").write_text(
+        "## RACI Matrix\n\n"
+        "| Activity | Responsible | Accountable | Consulted | Informed |\n"
+        "|---|---|---|---|---|\n"
+        "| [[cash-application]] | AR Clerk | Controller | — | — |\n"
+        "| [[vendor-onboarding]] | AP Clerk | Controller | — | — |\n"
+        "| [[payment-run]] | AP Clerk | Controller | — | — |\n",
+        encoding="utf-8")
+
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    doc = Document(str(out))
+    raci = next(t for t in doc.tables
+                if t.rows[0].cells[0].text.strip() == "Activity")
+    acts = [r.cells[0].text for r in raci.rows[1:]]
+    assert acts == ["1.1 Vendor Onboarding", "2.1 Payment Run",
+                    "2.2 Cash Application"]
+
+    # authored file untouched (display-only ordering)
+    assert (area / "84_raci.md").read_text(encoding="utf-8").split("\n")[4] \
+        .startswith("| [[cash-application]]")

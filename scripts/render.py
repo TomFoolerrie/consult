@@ -517,6 +517,41 @@ def _lead_conditions(text: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# RACI display ordering — like letters and display numbers, row order is a
+# render-time concern: the derived file's authored order is never rewritten.
+# --------------------------------------------------------------------------- #
+_RACI_ROW_SLUG_RE = re.compile(r"^\|\s*\[\[\s*([a-z0-9][a-z0-9-]*)\s*\]\]")
+_TABLE_SEP_RE = re.compile(r"^\s*\|?[\s|:\-]+\|?\s*$")
+
+
+def _order_raci_rows(text: str, numbers) -> str:
+    """Sort the RACI matrix's activity rows into procedure display-number
+    order (1.1, 1.2, … 2.1). Fires only when EVERY row of the table leads
+    with a resolvable `[[slug]]` token — anything else (a hand-added row, an
+    unknown slug) leaves the authored order untouched rather than guessing."""
+    lines = text.split("\n")
+    for i, ln in enumerate(lines):
+        if not (ln.lstrip().startswith("|") and i + 1 < len(lines)
+                and "-" in lines[i + 1] and _TABLE_SEP_RE.match(lines[i + 1])):
+            continue
+        j = i + 2
+        rows = []
+        while j < len(lines) and lines[j].lstrip().startswith("|"):
+            rows.append(lines[j])
+            j += 1
+        keys = []
+        for r in rows:
+            m = _RACI_ROW_SLUG_RE.match(r.lstrip())
+            num = numbers.get(m.group(1)) if m else None
+            if not num:
+                return text
+            keys.append(tuple(int(x) for x in num.split(".")))
+        ordered = [r for _, r in sorted(zip(keys, rows), key=lambda t: t[0])]
+        return "\n".join(lines[:i + 2] + ordered + lines[j:])
+    return text
+
+
+# --------------------------------------------------------------------------- #
 # Final-mode transforms (line count NOT preserved — final mode has no
 # provenance; there is no review round against a final deliverable)
 # --------------------------------------------------------------------------- #
@@ -819,6 +854,9 @@ def render_folder(folder: Path, out: Path, *,
             continue
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
+        if _attr(section, "derived_kind") == "raci":
+            # BEFORE token resolution, which replaces the [[slug]] sort keys.
+            raw_body = _order_raci_rows(raw_body, numbers)
         if role == "procedure":
             submap = ids_by_slug.get(slug, {})
             if submap:
