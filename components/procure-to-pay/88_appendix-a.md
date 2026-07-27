@@ -2,7 +2,7 @@
 
 <!-- derived: appendix-a; writer: python -->
 
-_Pain Points and Improvement Opportunities, aggregated mechanically from the `H` section callouts (observation, impact, severity authored in the callout). IDs are numbered sequentially through the document; rows are grouped by sub-process._
+_Pain Points and Improvement Opportunities, aggregated mechanically from the Known Issues & Improvement Opportunities section callouts (observation, impact, severity authored in the callout). IDs are numbered sequentially through the document; rows are grouped by sub-process._
 
 ### Pain Points
 
