@@ -1,6 +1,6 @@
 sources:
 - id: SRC-001
-  file: _sources/new/2026-05-12-ap-manager-interview.md
+  file: _sources/processed/2026-05-12-ap-manager-interview.md
   touches:
   - invoice-intake-and-capture
   - po-invoice-entry-and-three-way-match
@@ -12,12 +12,13 @@ sources:
   - goods-receipt
   - vendor-master-data-maintenance
   hash: dbcec805cb6653650c7c2568736b89c435e43113bea60c49363a42700d9ea843
-  state: new
+  state: processed
   consumed:
   - goods-receipt
   - invoice-intake-and-capture
   - non-po-invoice-entry-and-approval
   - po-invoice-entry-and-three-way-match
+  - positive-pay-exception-handling
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
   - weekly-payment-run
@@ -45,7 +46,7 @@ sources:
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
 - id: SRC-003
-  file: _sources/new/2026-05-14-controller-interview.md
+  file: _sources/processed/2026-05-14-controller-interview.md
   touches:
   - new-vendor-onboarding
   - vendor-banking-change
@@ -57,11 +58,12 @@ sources:
   - wire-and-manual-payment
   - positive-pay-exception-handling
   hash: 9d0a99fdf0b3eed4bca9673b8244f3e0d56d76e2eb7d87ff38b9fe44ef1e5e02
-  state: new
+  state: processed
   consumed:
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
   - po-invoice-entry-and-three-way-match
+  - positive-pay-exception-handling
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
@@ -84,7 +86,7 @@ sources:
   - po-issuance-and-change-orders
   - return-to-vendor
 - id: SRC-005
-  file: _sources/new/2026-05-20-consultant-working-notes.md
+  file: _sources/processed/2026-05-20-consultant-working-notes.md
   touches:
   - new-vendor-onboarding
   - vendor-banking-change
@@ -103,7 +105,7 @@ sources:
   - wire-and-manual-payment
   - positive-pay-exception-handling
   hash: 3001b3999e142c6e244b2e585d22a27582f253bf25ddfb184e8069140dae9f26
-  state: new
+  state: processed
   consumed:
   - blanket-po-management
   - confirming-po
@@ -113,6 +115,7 @@ sources:
   - non-po-invoice-entry-and-approval
   - po-invoice-entry-and-three-way-match
   - po-issuance-and-change-orders
+  - positive-pay-exception-handling
   - requisition-and-approval
   - return-to-vendor
   - vendor-banking-change
@@ -121,7 +124,7 @@ sources:
   - weekly-payment-run
   - wire-and-manual-payment
 - id: SRC-006
-  file: _sources/new/prior-sop-ap-invoice-processing-v3.md
+  file: _sources/processed/prior-sop-ap-invoice-processing-v3.md
   touches:
   - invoice-intake-and-capture
   - po-invoice-entry-and-three-way-match
@@ -134,12 +137,13 @@ sources:
   - vendor-banking-change
   - new-vendor-onboarding
   hash: 857869adfd595f4a1bcb798e15bcee497daa3b86e307ecc647e3e38c0d77ac0c
-  state: new
+  state: processed
   consumed:
   - invoice-intake-and-capture
   - new-vendor-onboarding
   - non-po-invoice-entry-and-approval
   - po-invoice-entry-and-three-way-match
+  - positive-pay-exception-handling
   - vendor-banking-change
   - vendor-master-data-maintenance
   - vendor-statement-reconciliation
