@@ -125,7 +125,7 @@ contract — a fact in the wrong section is a defect even when it is true.
   section records defects in the process — things that are wrong. A branch the
   process handles routinely is a conditional step in Procedure, not a known
   issue. PAIN POINT + IMPROVEMENT callouts; **this section IS the structured
-  source for Appendix A** ("Risks, Pain Points & Improvement Opportunities") — it
+  source for the pain-point register** ("Appendix — Pain Points & Improvement Opportunities") — it
   is assembled mechanically from these callouts, so fill every field. It is not
   free narrative to be ignored.
 
