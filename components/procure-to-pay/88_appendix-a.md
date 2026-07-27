@@ -1,4 +1,4 @@
-## Appendix — Risks, Pain Points & Improvement Opportunities
+## Appendix — Pain Points & Improvement Opportunities
 
 <!-- derived: appendix-a; writer: python -->
 
