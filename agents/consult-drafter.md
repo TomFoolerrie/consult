@@ -481,6 +481,16 @@ spelling, fix it.
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
+- **Citations are parenthetical-only — never woven into sentence meaning.**
+  The final-mode render mechanically scrubs exactly two shapes: a parenthetical
+  containing NOTHING but SRC/GAP ids and separators — `(SRC-002, SRC-005)`,
+  `(GAP-011)` — and a pure-citation sentence `See GAP-011.`. Write ONLY those
+  shapes. Never make an id do grammatical work: not *"see GAP-011, which is
+  unresolved"*, not *"(SRC-004; see GAP-011, which is open)"* — those survive
+  into the client export as dangling references a human must hand-edit. If the
+  sentence needs the fact, say it in words and cite after: *"The approver is
+  disputed and unresolved (SRC-004, GAP-011)."* The meaning survives the
+  scrub; the ids vanish cleanly.
 - **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
   PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
   the area on `(see|per|step|section) N.N` anywhere in a fragment — that check

@@ -179,12 +179,18 @@ revert); its failures degrade to notes, never to corrupted fragments.
   index flags it).
 - **User asks for the client deliverable while gaps are open** → that's
   allowed by design: `--mode final` strips and reports counts; relay the
-  counts so the acceptance is informed. If it also prints a WARNING listing
-  dangling gap references (prose like "see GAP-07" whose callout/appendix row
-  the strip removed), relay that list verbatim — the reader of the export
-  would see those references with nothing to look up — and note the fix is
-  closing those gaps through the review round (or hand-editing before
-  shipping); never rewrite the prose yourself.
+  counts so the acceptance is informed. Final mode also **scrubs citations**:
+  a parenthetical of nothing but SRC/GAP ids — `(SRC-002, SRC-005)` — and a
+  pure-citation sentence (`See GAP-011.`) are removed mechanically (the
+  drafter contract mandates exactly those shapes). If the render prints a
+  WARNING listing surviving SRC/GAP references, those are ids **woven into
+  sentence meaning** (legacy prose like "see GAP-07, which is unresolved")
+  that the scrub must not touch: relay that list verbatim — the reader of the
+  export would see those references with nothing to look up — and note the
+  fixes: gap refs close through the review round; woven refs can be reworded
+  by dispatching that procedure's drafter (update mode) with the citation
+  shape rule, or hand-edited before shipping. Never rewrite the prose
+  yourself.
 
 ## How you are invoked
 

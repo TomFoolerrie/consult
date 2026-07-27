@@ -173,8 +173,50 @@ def _strip_consult_meta(text: str) -> str:
 
 _CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
 
-#: A gap id anywhere in text — the final-mode dangling-reference detector.
-_GAP_ID_RE = re.compile(r"\bGAP-\d+\b")
+#: Citation scrub (final mode only). SRC-## ids are the drafters' provenance
+#: citations and GAP-## ids point at callouts/log rows that final mode strips —
+#: neither belongs in a client-facing export. Only two UNAMBIGUOUS shapes are
+#: removed mechanically: a parenthetical containing NOTHING but citation ids
+#: ("(SRC-002, SRC-005)", "(see GAP-011)") and a pure-citation sentence
+#: ("See GAP-012 and GAP-014."). An id woven into sentence meaning ("; see
+#: GAP-011, which is unresolved") is prose — it is never auto-edited; it falls
+#: through to the dangling-reference warning for a human to reword.
+#: Fragments hard-wrap prose at ~80 columns, so a citation may span a line
+#: break; _WS allows AT MOST ONE newline so a match can rejoin a wrapped
+#: paragraph but can never swallow a blank line (a paragraph boundary).
+_WS = r"[ \t]*(?:\n[ \t]*)?"
+_CITE_ID = r"(?:SRC|GAP)-\d+"
+_CITE_PAREN_RE = re.compile(
+    rf"{_WS}\({_WS}(?:see{_WS})?{_CITE_ID}"
+    rf"(?:{_WS}(?:[,;]|\band\b){_WS}{_CITE_ID})*{_WS}\)",
+    re.IGNORECASE)
+_CITE_SENTENCE_RE = re.compile(
+    rf"{_WS}\bSee{_WS}{_CITE_ID}"
+    rf"(?:{_WS}(?:[,;]|\band\b){_WS}{_CITE_ID})*{_WS}\.")
+#: What the scrub could not remove — the final-mode dangling-reference detector
+#: (formerly GAP-only; SRC ids dangle identically once sources.yaml is not
+#: shipped with the deliverable).
+_GAP_ID_RE = re.compile(rf"\b{_CITE_ID}\b")
+
+
+def _scrub_citations(text: str, stats: dict) -> str:
+    text, n1 = _CITE_PAREN_RE.subn("", text)
+    text, n2 = _CITE_SENTENCE_RE.subn("", text)
+    # Sentence skeletons left when the [[GAP-…]] tag strip deleted the whole
+    # object of a "see" clause: "owner. See ." / "owner. See and ." (the tag
+    # opened its own sentence) and "unconfirmed — see." / "— see ." (a
+    # trailing dash clause). Then seam repair: a space stranded before
+    # punctuation and doubled interior spaces — both anchored on a following
+    # non-space so a trailing double space (markdown hard break) survives.
+    text = re.sub(rf"(?:(?<=[.!?])|(?<=\n))[ \t]*\bSee(?:[ \t]+and\b)*"
+                  rf"{_WS}[,;]?[ \t]*\.", "", text)
+    text = re.sub(rf"[ \t]*[—–-][ \t]*\bsee(?:[ \t]+and\b)*{_WS}[,;]?[ \t]*"
+                  rf"(?=\.)", "", text, flags=re.IGNORECASE)
+    if n1 or n2:
+        text = re.sub(r" +([.,;:!?])", r"\1", text)
+        text = re.sub(r"(?<=\S)  +(?=\S)", " ", text)
+    stats["citations_scrubbed"] += n1 + n2
+    return text
 
 
 def _rewrite_callout_ids(text: str, submap: dict) -> str:
@@ -531,12 +573,16 @@ def _final_transform(text: str, slug: str, folder: Path,
                 stats["screens_placeholder"] += 1
                 out.extend(lines[block_start:i])
             continue
-        # inline body gap tags vanish in final mode
-        stripped, n = re.subn(r"\s*\[\[\s*GAP-[^\]]*\]\]", "", ln)
-        stats["gap_tags_stripped"] += n
-        out.append(stripped)
+        out.append(ln)
         i += 1
-    return "\n".join(out)
+    # Inline body gap tags vanish in final mode. Whole-text, because fragments
+    # hard-wrap prose: the tag (and the whitespace before it) may span a line
+    # break; at most one newline is consumed so a blank line (paragraph
+    # boundary) never is.
+    joined, n = re.subn(r"[ \t]*(?:\n[ \t]*)?\[\[[ \t]*GAP-[^\]]*\]\]", "",
+                        "\n".join(out))
+    stats["gap_tags_stripped"] += n
+    return joined
 
 
 # --------------------------------------------------------------------------- #
@@ -700,6 +746,7 @@ def render_folder(folder: Path, out: Path, *,
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
+             "citations_scrubbed": 0,
              "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
              "dangling_refs": {}, "dangling_ref_count": 0,
              "screens_embedded": 0, "screens_placeholder": 0,
@@ -788,20 +835,26 @@ def render_folder(folder: Path, out: Path, *,
             raw_body = _final_transform(
                 raw_body, slug, folder,
                 disp_to_local_by_slug.get(slug, {}), stats)
-            # What the strip above cannot reach: a free-prose mention of a gap
-            # id ("... see GAP-37") in Scope, At a Glance or Outputs. Its
-            # DEFINITION — the callout and the gap-log row — is exactly what
-            # final mode removes, so the reference now points at nothing the
-            # reader has. Reconcile cannot flag these (in the FRAGMENTS the
-            # ids are still defined), and prose cannot be rewritten
-            # mechanically without risking the deliverable's wording — so they
-            # are counted and enumerated for the human running the export.
-            # They clean themselves up through the review round: closing a gap
-            # deletes its callout, at which point the same prose mention DOES
-            # dangle at reconcile and the drafter must remove it.
+        if mode == "final":
+            # Citation scrub — EVERY section (derived registers and static
+            # front/back matter cite sources too, not just procedures), after
+            # every other body transform so it sees what the reader would.
+            raw_body = _scrub_citations(raw_body, stats)
+            # What the scrub cannot reach: an id woven into sentence meaning
+            # ("... see GAP-37, which is unresolved") whose DEFINITION —
+            # callout, gap-log row, sources.yaml entry — never reaches the
+            # final reader. Reconcile cannot flag these (in the FRAGMENTS the
+            # ids are still defined), and meaning-bearing prose cannot be
+            # rewritten mechanically without risking the deliverable's
+            # wording — so they are counted and enumerated for the human
+            # running the export. Gap refs also clean themselves up through
+            # the review round: closing a gap deletes its callout, at which
+            # point the same prose mention DOES dangle at reconcile and the
+            # drafter must remove it.
             refs = _GAP_ID_RE.findall(raw_body)
             if refs:
-                stats["dangling_gap_refs"][slug] = sorted(set(refs))
+                key = slug or heading or "front-matter"
+                stats["dangling_gap_refs"][key] = sorted(set(refs))
                 stats["dangling_gap_ref_count"] += len(refs)
         if homeless_re is not None and role == "procedure":
             # Scanned AFTER every body transform, so it counts what the
@@ -933,16 +986,18 @@ def main(argv=None) -> int:
         if a.mode == "final":
             print(f"final mode: stripped {stats['gaps_stripped']} open gap callout(s) "
                   f"+ {stats['gap_tags_stripped']} inline tag(s); "
+                  f"scrubbed {stats['citations_scrubbed']} SRC/GAP citation(s); "
                   f"{stats['screens_embedded']} screenshot(s) embedded, "
                   f"{stats['screens_placeholder']} placeholder(s) remain")
             if stats["dangling_gap_ref_count"]:
-                print(f"WARNING: {stats['dangling_gap_ref_count']} dangling gap "
-                      f"reference(s) survive in ordinary prose — the callouts "
-                      f"and gap-log rows they point at were stripped by this "
-                      f"final render:")
+                print(f"WARNING: {stats['dangling_gap_ref_count']} SRC/GAP "
+                      f"reference(s) survive in ordinary prose — they are "
+                      f"woven into sentence meaning, so the citation scrub "
+                      f"could not remove them mechanically, and what they "
+                      f"point at is not in this final render:")
                 for pslug, ids in sorted(stats["dangling_gap_refs"].items()):
                     print(f"  {pslug}: " + ", ".join(ids))
-                print("  close these gaps through the review round (once a gap "
+                print("  close gaps through the review round (once a gap "
                       "closes, its leftover prose reference fails reconcile "
                       "until the drafter removes it), or hand-edit the prose "
                       "before shipping this export")
