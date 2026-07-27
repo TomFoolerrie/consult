@@ -40,7 +40,10 @@ sections the skeletons carry and which derived components the manifest lists.
 Nothing else in the pipeline gets to decide shape: the drafter fills what it is
 handed, and render (enforcement point 2) strips what a later profile change
 removed. A `body_omit` section is scaffolded exactly as if it were not listed —
-it is authored and aggregated, and only the RENDER hides it.
+it is authored and aggregated, and only the RENDER hides it. A profile whose
+`derived:` set changes AFTER the confirm gate ran is reconciled into the live
+manifest with `--sync-profile` (no `.proposed/` round): the path that lets an
+area acquire `appendix-controls` so `body_omit: [controls]` has a destination.
 
 Nothing touches the live folder until `--confirm` is passed. The step is
 idempotent: re-running with the same confirmed set is a no-op; adding one
@@ -1008,10 +1011,94 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     return 0
 
 
+def sync_profile(area: Path) -> int:
+    """Reconcile the live manifest's DERIVED components with the resolved
+    profile — enforcement point 1 re-run, WITHOUT a `.proposed/` round.
+
+    The confirm gate is the manifest's only writer and it refuses to run
+    without proposals, so a profile whose `derived:` set changed AFTER
+    scaffolding had no supported path back into the manifest. The case that
+    matters is adding `appendix-controls` so `body_omit: [controls]` has a
+    destination — without the component, render (which builds from the
+    manifest, not the profile) would drop every control, which is why it
+    fails loudly and names this command.
+
+    Only the derived set is touched: static and procedure components are
+    preserved byte-for-byte, and a derived entry whose kind the profile still
+    wants keeps its existing (possibly hand-edited) fields. An added kind
+    takes its DERIVED_FILES spec and gets its stub file iff absent; a removed
+    kind loses only its manifest entry — the file stays on disk (scaffold
+    never deletes) and the next render simply omits the view, exactly as a
+    fresh confirm would. Idempotent: an in-sync manifest is left unwritten.
+    """
+    manifest_path = area / "manifest.json"
+    if not manifest_path.is_file():
+        raise SystemExit(
+            f"error: no manifest at {manifest_path} — sync-profile reconciles "
+            "an ALREADY-SCAFFOLDED area with a changed profile; a fresh area "
+            "goes through the confirm gate (--confirm)"
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    profile = client_config.profile(area)
+
+    wanted = profile_derived_files(profile)
+    wanted_kinds = {d["kind"] for d in wanted}
+    existing = {c.get("derived_kind"): c for c in manifest.get("components", [])
+                if c.get("role") == "derived"}
+
+    components = [c for c in manifest.get("components", [])
+                  if c.get("role") != "derived"]
+    added, created = [], []
+    for d in wanted:
+        if d["kind"] in existing:
+            components.append(existing[d["kind"]])
+            continue
+        components.append({"file": d["file"], "role": "derived",
+                           "derived_kind": d["kind"], "writer": d["writer"],
+                           "heading": d["heading"], "order": d["order"]})
+        added.append(d["kind"])
+        fp = area / d["file"]
+        if not fp.exists():
+            fp.write_text(render_derived(d["kind"], d["writer"], d["heading"]),
+                          encoding="utf-8")
+            created.append(d["file"])
+    removed = sorted(k for k in existing if k not in wanted_kinds)
+    components.sort(key=lambda c: (c["order"], c["file"]))
+    manifest["components"] = components
+
+    if doc_model is not None:
+        errors = doc_model.validate_manifest(manifest)
+        if errors:
+            raise SystemExit(
+                "error: synced manifest failed validation:\n  - "
+                + "\n  - ".join(errors)
+            )
+
+    print(f"sync-profile {area}")
+    print(f"  {profile.report_line()}")
+    if not added and not removed:
+        print("  manifest already matches the profile — nothing to do")
+        return 0
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    if added:
+        print("  derived added: " + ", ".join(added))
+    if created:
+        print("  created: " + ", ".join(created))
+    if removed:
+        print("  derived removed (files kept on disk): " + ", ".join(removed))
+    print("  re-run aggregate before the next render so new registers fill")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="M0 confirm-gate scaffolder")
     ap.add_argument("--confirm", action="store_true",
                     help="promote _reference/.proposed/ and scaffold the area")
+    ap.add_argument("--sync-profile", action="store_true",
+                    help="reconcile the live manifest's derived components with "
+                         "the resolved profile (no .proposed/ round needed)")
     ap.add_argument("--area", required=True, help="path to the area folder")
     ap.add_argument("--l1", default=None, help="L1 taxonomy slug (else read from manifest/area.yaml)")
     ap.add_argument("--taxonomy", default=str(DEFAULT_TAXONOMY), help="path to the reference taxonomy")
@@ -1019,7 +1106,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--subtitle", default=None, help="document subtitle override")
     args = ap.parse_args(argv)
 
-    if not args.confirm:
+    if args.confirm and args.sync_profile:
+        raise SystemExit("error: pass --confirm or --sync-profile, not both "
+                         "(a confirm already rebuilds the derived set from "
+                         "the profile)")
+    if not args.confirm and not args.sync_profile:
         raise SystemExit(
             "refusing to run without --confirm: this is the human confirm gate. "
             "Review _reference/.proposed/ first, then re-run with --confirm."
@@ -1028,6 +1119,8 @@ def main(argv: list[str] | None = None) -> int:
     area = Path(args.area).resolve()
     if not area.is_dir():
         raise SystemExit(f"error: area folder not found: {area}")
+    if args.sync_profile:
+        return sync_profile(area)
     return confirm(area, args.l1, Path(args.taxonomy), args.title, args.subtitle)
 
 

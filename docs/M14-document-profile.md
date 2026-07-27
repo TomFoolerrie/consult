@@ -172,6 +172,32 @@ blank) — so the guard clears and cannot re-fire forever.
 
 Removals need no action at all: the next render simply omits them.
 
+### Manifest drift — the trap the profile validator cannot see
+
+The `reprofile` guard covers FRAGMENTS; the manifest's `derived` set can drift
+the same way. The validator refuses `body_omit: [F]` without `appendix-controls`
+in `derived:`, but it vouches only for the profile — the register itself is a
+manifest component, written at the confirm gate. A profile that acquires the
+omission (with the register properly listed) after an area was scaffolded
+leaves a manifest with no register component, and render builds from the
+manifest: the controls section is hidden from every body while nothing collects
+the callouts.
+
+Two-sided fix, same fail-loud discipline as the validator:
+
+- **Render refuses the combination.** Enforcement point 2 re-checks the
+  validator's cross-field rule against the manifest it actually builds from:
+  `controls` in the profile's `body_omit` with no `appendix-controls` component
+  listed stops the render, naming the loss and the repair command. A document
+  with the controls silently gone is never written.
+- **`scaffold.py --sync-profile --area <area>`** is the supported repair: it
+  reconciles the live manifest's derived components with the resolved profile
+  without a `.proposed/` round (which the confirm gate requires and a profile
+  change alone never produces). Additions take their spec entry and stub file;
+  removals lose only the manifest entry (files stay on disk); static and
+  procedure components are untouched; a manifest already in sync is left
+  unwritten. Re-run aggregate afterwards so the new register fills.
+
 ### Interaction with existing gates
 
 `reprofile` sits below `fill` (skeletons first) and above `aggregate` (don't

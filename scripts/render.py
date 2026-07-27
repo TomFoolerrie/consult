@@ -622,6 +622,26 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
+    # The profile validator's cross-field rule refuses `body_omit: [controls]`
+    # unless `derived:` carries the controls register — but it can only vouch
+    # for the PROFILE. The register is a manifest component, written at the
+    # confirm gate (enforcement point 1); a profile that acquired the omission
+    # after that gate ran would blank the controls section from every body
+    # below while the manifest lists no register to catch the callouts, and
+    # every control would silently leave the document. Same rule, re-checked
+    # here against what this render actually builds from.
+    if (client_config.CONTROLS_SECTION in profile.body_omit
+            and not any(c.get("derived_kind") == client_config.CONTROLS_REGISTER
+                        for c in manifest.get("components", []))):
+        raise SystemExit(
+            f"error: the profile's `body_omit:` hides the "
+            f"`{client_config.CONTROLS_SECTION}` section from the procedure "
+            f"body, but this manifest lists no `{client_config.CONTROLS_REGISTER}` "
+            f"component to catch the CONTROL callouts — rendering would drop "
+            f"every control from the document. The manifest predates the "
+            f"profile change: run `python3 scripts/scaffold.py --sync-profile "
+            f"--area {folder}` to add the register, re-aggregate, then re-render."
+        )
     numbers = doc_model.display_numbers(manifest)
     # Token resolution map: [[slug]] -> "1.1 Vendor Onboarding". Bare numbers
     # are correct for section headings, but in prose and derived tables (where
