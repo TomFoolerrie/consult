@@ -6,7 +6,7 @@
 
 This procedure covers the conversion of a fully approved requisition into a
 purchase order in Coupa, transmission of that purchase order to the supplier, its
-synchronisation into NetSuite, and any subsequent amendment of an issued purchase
+synchronization into NetSuite, and any subsequent amendment of an issued purchase
 order by change order. Both variants are covered here: initial issuance and the
 change order or revision of a purchase order already in the supplier's hands.
 Creation and approval of the underlying requisition are excluded and are
@@ -25,9 +25,9 @@ in [[po-invoice-entry-and-three-way-match]]. (SRC-002, SRC-004, SRC-005)
 | Frequency | Ad hoc, continuous |
 | Preparer | Coupa (system-generated on full approval); Buyer or Requester for a change order |
 | Reviewer | Approval chain approvers by value — Cost Center Owner, Functional Vice President, Chief Financial Officer — on a value-increasing change order only |
-| Systems | Coupa (purchase order creation, transmission and change orders); NetSuite (receives the synchronised purchase order) |
+| Systems | Coupa (purchase order creation, transmission and change orders); NetSuite (receives the synchronized purchase order) |
 | Key inputs | Fully approved Coupa requisition; supplier cXML enablement status or remit contact email |
-| Key outputs | Issued purchase order numbered `NIG-<sequential>`, transmitted to the supplier and synchronised to NetSuite; revised purchase order versions where amended |
+| Key outputs | Issued purchase order numbered `NIG-<sequential>`, transmitted to the supplier and synchronized to NetSuite; revised purchase order versions where amended |
 
 ### Before You Start
 
@@ -35,7 +35,7 @@ in [[po-invoice-entry-and-three-way-match]]. (SRC-002, SRC-004, SRC-005)
   approver in the chain must have approved before Coupa will cut the purchase
   order.
 - **Active supplier record** — [[new-vendor-onboarding]]; must exist in Coupa and
-  in NetSuite, since the purchase order is cut in Coupa and synchronised to the
+  in NetSuite, since the purchase order is cut in Coupa and synchronized to the
   NetSuite vendor master.
 - **Supplier transmission method** — held on the supplier record as either cXML
   enablement or an email contact; determines how the purchase order is sent.
@@ -72,7 +72,7 @@ receive a PDF copy by email. (SRC-002)
 
 #### Step 3: Synchronise the purchase order to NetSuite
 
-The issued purchase order synchronises into NetSuite, where it becomes available
+The issued purchase order synchronizes into NetSuite, where it becomes available
 for receipt and for matching against the supplier invoice.
 
 - **System / Tool:** NetSuite, which receives the purchase order from Coupa.
@@ -80,8 +80,8 @@ for receipt and for matching against the supplier invoice.
   receipt and a bill can be recorded.
 
 > **VALIDATION REQUIRED — GAP-02:** The Coupa-to-NetSuite integration has no named owner and no described monitoring or alerting.
-> - **Note:** A purchase order that fails to reach NetSuite is not signalled by any process described in the sources; confirm the owner and the failure-detection mechanism before relying on synchronisation.
-> - **Detail:** The nightly supplier synchronisation from Coupa to NetSuite is known to fail intermittently, leaving records incomplete and corrected by hand, and no interviewee could name an owner or any monitoring or alerting over the integration (SRC-005). The same working notes record that each failure consumes roughly three people for about an hour. No source described whether purchase order synchronisation shares that integration, that failure mode or that absence of monitoring. Resolution sits with the IT Manager jointly with the Procurement Lead.
+> - **Note:** A purchase order that fails to reach NetSuite is not signalled by any process described in the sources; confirm the owner and the failure-detection mechanism before relying on synchronization.
+> - **Detail:** The nightly supplier synchronization from Coupa to NetSuite is known to fail intermittently, leaving records incomplete and corrected by hand, and no interviewee could name an owner or any monitoring or alerting over the integration (SRC-005). The same working notes record that each failure consumes roughly three people for about an hour. No source described whether purchase order synchronization shares that integration, that failure mode or that absence of monitoring. Resolution sits with the IT Manager jointly with the Procurement Lead.
 > - **Nature:** unknown
 > - **Owner to confirm:** IT Manager
 
@@ -139,24 +139,24 @@ A revision that decreases the purchase order value does not re-enter the approva
 chain and is issued on the approvals already recorded against the prior version.
 (SRC-002)
 
-#### Step 8: Transmit and synchronise the revised purchase order
+#### Step 8: Transmit and synchronize the revised purchase order
 
 - **Condition:** a change order has been raised
 
 The revised purchase order version is transmitted to the supplier and
-synchronised to NetSuite by the same channels as the initial issuance.
+synchronized to NetSuite by the same channels as the initial issuance.
 
 ### Outputs & Evidence
 
 - **Issued purchase order** — numbered `NIG-<sequential>` in Coupa; transmitted
-  to the supplier and synchronised to NetSuite, where it is the input to
+  to the supplier and synchronized to NetSuite, where it is the input to
   [[goods-receipt]] and to [[po-invoice-entry-and-three-way-match]].
 - **Revised purchase order version** — supersedes the prior version in Coupa and
-  re-synchronises to NetSuite.
+  re-synchronizes to NetSuite.
 - **Evidence retained:** the purchase order record, its version history and the
   approval chain recorded against each version are retained in Coupa.
 - **Not retained:** no record of a failed purchase order transmission or a failed
-  Coupa-to-NetSuite synchronisation is retained, and no source described one being
+  Coupa-to-NetSuite synchronization is retained, and no source described one being
   produced; no measurement of change order volume, of re-approval turnaround, or
   of the frequency of over-receipt-driven change orders is retained.
 
@@ -181,7 +181,7 @@ synchronised to NetSuite by the same channels as the initial issuance.
 
 > **PAIN POINT — PP-001:** Failures of the Coupa-to-NetSuite integration are detected by their downstream symptoms rather than by monitoring, and have no owner.
 > - **Note:** Each failure is worked out reactively and consumes roughly three people for about an hour; no alerting exists and no interviewee could name an owner.
-> - **Detail:** The Procurement Lead named Coupa-to-NetSuite synchronisation as one of his four pain points, stating that every time something does not sync, three people spend an hour on it (SRC-002). The working notes record that the nightly synchronisation breaks intermittently, that records land incomplete and are corrected by hand, and that nobody could name an owner or any monitoring or alerting over it (SRC-005).
+> - **Detail:** The Procurement Lead named Coupa-to-NetSuite synchronization as one of his four pain points, stating that every time something does not sync, three people spend an hour on it (SRC-002). The working notes record that the nightly synchronization breaks intermittently, that records land incomplete and are corrected by hand, and that nobody could name an owner or any monitoring or alerting over it (SRC-005).
 > - **Impact:** A purchase order that does not reach NetSuite blocks receipt and invoice matching until somebody notices downstream, and the remediation effort is unplanned and undirected.
 > - **Severity:** High
 
@@ -191,7 +191,7 @@ synchronised to NetSuite by the same channels as the initial issuance.
 > - **Impact:** Buyers cannot predict what a revision will require, and no party can assert that value-increasing amendments are approved at the correct level.
 > - **Severity:** Medium
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** Assign a named owner to the Coupa-to-NetSuite integration and implement failure alerting, so that a purchase order or supplier record that does not synchronise is detected at the integration rather than by the receiving dock or Accounts Payable.
+> **IMPROVEMENT OPPORTUNITY — IO-001:** Assign a named owner to the Coupa-to-NetSuite integration and implement failure alerting, so that a purchase order or supplier record that does not synchronize is detected at the integration rather than by the receiving dock or Accounts Payable.
 > - **Addresses:** PP-001
 
 > **IMPROVEMENT OPPORTUNITY — IO-002:** Extract the Coupa approval chain configuration and document the change order re-approval rule, including the receiving tolerance that forces a change order, so that both are stated from the system of record rather than from recollection.

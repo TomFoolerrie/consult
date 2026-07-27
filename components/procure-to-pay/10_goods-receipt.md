@@ -34,7 +34,7 @@ accrual are outside this procedure. (SRC-001, SRC-004, SRC-005)
 ### Before You Start
 
 - **Open purchase order in NetSuite** — [[po-issuance-and-change-orders]];
-  synchronised from Coupa and open for the quantity being delivered.
+  synchronized from Coupa and open for the quantity being delivered.
 - **Carrier bill of lading** — handed over by the driver on arrival; must be
   counted against and signed before the carrier leaves.
 - **Supplier packing slip** — accompanies the shipment; carries the purchase order
