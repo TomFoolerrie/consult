@@ -2,11 +2,11 @@
 
 <!-- scope note: covers variants — ACH payment run (NACHA file upload and release); Check run (MICR print and positive pay issue file). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the Company's weekly disbursement cycle: the Accounts Payable Manager builds a payment proposal in NetSuite from bills released through [[po-invoice-entry-and-three-way-match]] and approved through [[non-po-invoice-entry-and-approval]], the Corporate Controller reviews and approves the proposal, and payment is executed in two variants — an ACH batch (NACHA file) uploaded to and released in Chase Connect, and a check run printed on the MICR printer with a positive pay issue file transmitted to the bank. Dual authorization on outbound funds is one of the three procure-to-pay controls in scope for the external audit (SRC-003). Wire transfers and manually issued checks are excluded — see [[wire-and-manual-payment]] — as is the disposition of positive pay exceptions, handled in [[positive-pay-exception-handling]].
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** The weekly disbursement cycle — the Company executes one payment run per week (§7.1 of the prior SOP, SRC-006; SRC-001)
 - **Frequency:** Weekly — proposal built Wednesday afternoon, reviewed and released Thursday (SRC-001; calendar confirmed with the AP team during gap review)
@@ -15,20 +15,20 @@ This procedure covers the Company's weekly disbursement cycle: the Accounts Paya
 - **Primary systems / tools:** NetSuite (Pay Bills, check print, positive pay issue file); Chase Connect (ACH upload and release); Excel for the proposal review
 - **Key outputs:** Released ACH (NACHA) batch; printed checks; positive pay issue file; approved payment proposal
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - Bills eligible for payment exist in NetSuite: PO bills matched and released through [[po-invoice-entry-and-three-way-match]], and non-PO bills carrying all required approvals from [[non-po-invoice-entry-and-approval]] (SRC-001).
 - The Accounts Payable Manager holds NetSuite access to the Pay Bills function but holds no vendor edit rights and no bank release entitlement (SRC-003).
 - Release entitlement in Chase Connect is held by the Corporate Controller and, as backup, the Treasury Analyst — under separate user IDs with separate tokens from the uploading user (SRC-001).
 - For the check variant: blank check stock is available in the locked drawer in the AP room and the signature plate is in the safe, whose combination is held only by the Accounts Payable Manager and the Corporate Controller (SRC-001).
 
-### D. Inputs
+### Inputs
 
 - **Open payables in NetSuite:** released PO bills and fully approved non-PO bills, selected by due date (SRC-001).
 - **Early-payment discount data:** bills whose discount is about to expire are pulled into the proposal alongside those coming due (SRC-001).
 - **Payment proposal export (Excel):** the working file the Accounts Payable Manager scrubs and the Corporate Controller reviews (SRC-001).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Build the payment proposal
 
@@ -86,7 +86,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 - **System / Tool:** MICR printer (check print)
 - **Evidence Required:** Positive pay issue file transmission
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** The Corporate Controller reviews and approves the payment proposal before file generation; the Accounts Payable Manager, who builds the proposal, cannot release it (SRC-001, SRC-003; §7.2 of the prior SOP, SRC-006). Part of the dual-authorization control set in scope for the external audit (SRC-003).
 > - **Type:** Preventive
@@ -108,7 +108,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 > - **Frequency:** Each check run
 > - **Owner:** Accounts Payable Manager
 
-### G. Outputs
+### Outputs
 
 - **Released ACH (NACHA) batch in Chase Connect:** the week's electronic disbursements (SRC-001).
 - **Printed checks:** roughly thirty per week, mailed to suppliers (SRC-001).
@@ -116,7 +116,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 - **Payment register in NetSuite:** matched against the daily Chase bank feed in the monthly bank reconciliation performed by the Assistant Controller's team (SRC-003).
 - **Evidence retained:** the approved payment proposal — evidence of approval is retained per the prior SOP (§7.2 of the prior SOP, SRC-006), but its location is unconfirmed (see GAP-02 at Step 2 in E).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** The Corporate Controller both approves the payment run in NetSuite and releases it at Chase Connect. External auditors have pushed back on this combination twice; the compensating argument — approval against a proposal the Controller did not build, plus a post-hoc review of the payment register — was characterized by the Controller as "a compensating story. It's not a great one" (SRC-003, SRC-005).
 > - **Impact:** A single individual sits on both the ERP approval and the bank release leg of an audit-scoped dual-authorization control, weakening the three-way segregation across proposal, approval and release.

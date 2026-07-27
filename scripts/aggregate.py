@@ -96,27 +96,34 @@ CONSULT_META_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
-# A `### A. Heading` sub-section line.
-SUBSECTION_RE = re.compile(r"^###\s+(?P<letter>[A-H])\.\s+(?P<title>.*?)\s*$")
+# M23 — the HOME SECTIONS of the two mechanical registers, as SLUGS. These were
+# the letters `H` and `F`; each was a position masquerading as an identity.
+ISSUES_SECTION = "issues"
+CONTROLS_SECTION = "controls"
+
+# A `###` sub-section line. Both forms parse (M23): `### Process Overview` and
+# the not-yet-migrated `### A. Process Overview`. Identity is the SLUG the
+# shared registry resolves it to, never the letter.
+SUBSECTION_RE = doc_model.SECTION_HEADING_RE
 
 # A `- **Label:** value` list bullet (Quick Reference etc.).
 BULLET_KV_RE = re.compile(r"^\s*-\s*\*\*\s*(?P<k>[^:*]+?)\s*:\s*\*\*\s*(?P<v>.*?)\s*$")
 
 
 def split_subsections(text: str) -> dict[str, str]:
-    """Return {letter: body_text} for the `### A.`..`### H.` sub-sections."""
+    """Return {section-slug: body_text} for a procedure's `###` sub-sections."""
     sections: dict[str, str] = {}
     current: str | None = None
     buf: list[str] = []
     for line in text.splitlines():
-        m = SUBSECTION_RE.match(line)
-        if m:
+        slug = doc_model.section_of_heading(line)
+        if slug is not None:
             if current is not None:
                 sections[current] = "\n".join(buf).strip()
-            current = m.group("letter")
+            current = slug
             buf = []
             continue
-        if line.startswith("## "):  # next fragment / non A-H heading ends the run
+        if line.startswith("## "):  # next fragment / unknown heading ends the run
             if current is not None:
                 sections[current] = "\n".join(buf).strip()
                 current = None
@@ -453,10 +460,14 @@ def _body(ctx, p, c) -> str:
 
 
 def build_appendix_a(ctx) -> str:
-    lines = ["_Pain Points and Improvement Opportunities, aggregated mechanically "
-             "from the `H` section callouts (observation, impact, severity authored "
-             "in the callout). IDs are numbered sequentially through the document; "
-             "rows are grouped by sub-process._", ""]
+    # The reader-facing prose names the section by its TITLE (display), taken
+    # from the registry — M23: it must never name a letter, which is a position.
+    lines = [f"_Pain Points and Improvement Opportunities, aggregated "
+             f"mechanically from the "
+             f"{doc_model.section_title(ISSUES_SECTION)} section callouts "
+             f"(observation, impact, severity authored in the callout). IDs are "
+             f"numbered sequentially through the document; rows are grouped by "
+             f"sub-process._", ""]
 
     lines.append("### Pain Points")
     any_pp = False
@@ -500,9 +511,9 @@ def build_appendix_a(ctx) -> str:
 def build_appendix_controls(ctx) -> str:
     """The M14 controls register — `appendix-controls`.
 
-    Pain points have had a register since M3 (Appendix A, built from the `H`
-    callouts); controls had none, because `F. Key Controls` is a SECTION. So an
-    engagement that moves F out of the procedure body (`body_omit: [F]`) needs
+    Pain points have had a register since M3 (Appendix A, built from the
+    `issues` callouts); controls had none, because Key Controls is a SECTION. So
+    an engagement that moves it out of the body (`body_omit: [controls]`) needs
     this destination, or the controls simply vanish — which is why the profile
     validator refuses that combination.
 
@@ -511,10 +522,11 @@ def build_appendix_controls(ctx) -> str:
     emitted when the profile asks for it (the manifest is the authority: this
     builder runs iff an `appendix-controls` component is listed).
     """
-    lines = ["_Key controls, aggregated mechanically from the `F` section "
-             "callouts (statement, type, frequency and owner authored in the "
-             "callout). IDs are numbered sequentially through the document; "
-             "rows are grouped by sub-process._"]
+    lines = [f"_Key controls, aggregated mechanically from the "
+             f"{doc_model.section_title(CONTROLS_SECTION)} section callouts "
+             f"(statement, type, frequency and owner authored in the callout). "
+             f"IDs are numbered sequentially through the document; rows are "
+             f"grouped by sub-process._"]
     any_row = False
     for l2_title, rows in _grouped_by_l2(ctx, "CTRL"):
         any_row = True
@@ -642,7 +654,7 @@ def run(area_arg: str) -> int:
             return 1
 
         sections = split_subsections(raw)
-        quick_ref = parse_bullets(sections.get("B", ""))
+        quick_ref = parse_bullets(sections.get("quick-reference", ""))
 
         # Severity enum sanity → WARNING (never fail-loud; ID grammar only fails).
         for co in callouts:
@@ -662,8 +674,8 @@ def run(area_arg: str) -> int:
             "callouts": callouts,
             "meta": meta,
             "quick_ref": quick_ref,
-            "section_a": sections.get("A", ""),
-            "section_e": sections.get("E", ""),
+            "section_a": sections.get("overview", ""),
+            "section_e": sections.get("steps", ""),
         })
 
     # ---- Registry joins (nouns via consult-meta slug lists only). ----

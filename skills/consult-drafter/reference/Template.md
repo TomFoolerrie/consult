@@ -10,11 +10,13 @@ _Current-state desktop procedures._
     disk carry no `#`.
   - Every section is `##`. `##` is the ONLY thing that starts a new fragment, so
     the splitter yields exactly one fragment per section — no wrapper headings.
-  - Inside a procedure: A–H are `###`, steps are `####`.
+  - Inside a procedure: sub-sections are `###` and carry the TITLE ONLY (never
+    a letter — M23: the A–H letters are stamped at RENDER from the profile's
+    section order), steps are `####`.
   - Static sections are human-owned. Procedure sections are the source of truth
     (fill agent / human). Derived sections are generated and carry a
     `<!-- derived: KIND; writer: W -->` marker — never hand-edit them.
-  - The per-procedure A–H block is defined once in `procedure_skeleton.md` and
+  - The per-procedure section block is defined once in `procedure_skeleton.md` and
     reproduced below as the single procedure example.
 -->
 
@@ -47,7 +49,8 @@ This document provides current-state desktop procedures for **[Process Name]**,
 written for preparers, reviewers, approvers, process owners, and audit /
 compliance stakeholders.
 
-Each procedure follows a consistent A–H structure:
+Each procedure follows a consistent A–H structure (the letters are the rendered
+document's; the fragments on disk carry the titles alone):
 
 - **A. Process Overview** — what the procedure accomplishes and where it fits.
 - **B. Quick Reference** — trigger, cadence, owners, systems, key outputs.
@@ -116,13 +119,13 @@ business outcome it supports.
 
 <!-- unfilled -->
 
-### A. Process Overview
+### Process Overview
 
 TBD — What this procedure accomplishes, when it occurs, who performs it, what it
 excludes, and how it connects to upstream / downstream activities. (This section
 is what the dependencies agent reads.)
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** TBD
 - **Frequency:** TBD
@@ -131,15 +134,15 @@ is what the dependencies agent reads.)
 - **Primary systems / tools:** TBD
 - **Key outputs:** TBD
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - TBD — what must be true before the procedure begins.
 
-### D. Inputs
+### Inputs
 
 - **Input 1:** TBD — source / owner.
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: TBD
 
@@ -159,19 +162,19 @@ auditability — not mechanically on every step.
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** TBD — what to capture and what it must validate.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** TBD
 > - **Owner:** TBD
 
-### G. Outputs
+### Outputs
 
 - **Output 1:** TBD
 - **Evidence retained:** TBD
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
 > - **Impact:** TBD

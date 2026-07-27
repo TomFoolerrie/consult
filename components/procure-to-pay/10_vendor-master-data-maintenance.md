@@ -1,6 +1,6 @@
 ## Vendor Master Data Maintenance
 
-### A. Process Overview
+### Process Overview
 
 Vendor Master Data Maintenance is the ongoing stewardship of the NetSuite
 vendor master — the system of record for the supplier from a payment
@@ -20,7 +20,7 @@ accurate, and the segregation between vendor-record maintenance and payment
 release is one of the three procure-to-pay controls in the external auditors'
 scope (SRC-003).
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A supplier record lands from the nightly Coupa-to-NetSuite sync with incomplete data (typically a blank payment term); a non-banking change to an existing vendor record is requested; the semi-annual master file review falls due (SRC-002, SRC-005, SRC-006).
 - **Frequency:** Ad hoc for sync corrections and record changes; semi-annual for the master file review (per the prior SOP — operation unconfirmed, see GAP-03).
@@ -29,20 +29,20 @@ scope (SRC-003).
 - **Primary systems / tools:** NetSuite (vendor master); Coupa (sourcing-side supplier record; nightly sync into NetSuite).
 - **Key outputs:** Corrected, complete vendor records in NetSuite; semi-annual master file review results reported to the Corporate Controller (per the prior SOP).
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - The supplier exists as a NetSuite vendor record, created through [[new-vendor-onboarding]] (SRC-002).
 - The person entering changes holds the NetSuite Vendor Maintenance role and holds no payment preparation, payment approval, or banking portal entitlements (SRC-003; §9.3 of the prior AP SOP, SRC-006).
 - For sync-fallout corrections: the nightly Coupa-to-NetSuite supplier sync has run (SRC-002).
 - Any request touching remit-to banking details has been separated out for processing under [[vendor-banking-change]] — it is not handled here.
 
-### D. Inputs
+### Inputs
 
 - **Newly synced supplier records:** pushed from Coupa into NetSuite by the nightly supplier sync, including any that arrive with a blank payment term — source: Coupa (SRC-002, SRC-005).
 - **Non-banking change requests:** requested changes to an existing vendor's master data other than remit-to banking details; how these requests arrive was not established (see GAP-02).
 - **The NetSuite supplier master file:** the population reviewed semi-annually for inactive, duplicate and incomplete records (§9.5 of the prior AP SOP, SRC-006).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Identify the record requiring maintenance
 
@@ -115,7 +115,7 @@ in H) indicates it has not been effective
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Segregation of duties over the vendor master — additions and modifications to the supplier master record are performed only by personnel holding the Vendor Maintenance role, which must not carry payment preparation, payment approval, or banking portal entitlements (§9.3 of the prior AP SOP, SRC-006). In the current state the role is held by the Accounts Payable Clerk, who has no payment permissions in NetSuite — cannot approve a bill and cannot access the Pay Bills screen — while payment-run preparation sits with the Accounts Payable Manager and run approval and bank release with the Corporate Controller (SRC-003). This segregation is one of the three procure-to-pay controls in the external auditors' scope; known deviations from the role restriction are recorded in H (SRC-003).
 > - **Type:** Preventive
@@ -127,13 +127,13 @@ in H) indicates it has not been effective
 > - **Frequency:** Semi-annual (per the prior SOP; operation unconfirmed)
 > - **Owner:** Accounts Payable Manager
 
-### G. Outputs
+### Outputs
 
 - **Corrected, complete vendor master records in NetSuite** — every downstream payable and payment activity transacts against them, including invoice matching and [[weekly-payment-run]] (SRC-002, SRC-003).
 - **Semi-annual master file review results** reported to the Corporate Controller (§9.5 of the prior AP SOP, SRC-006; operation unconfirmed — see GAP-03).
 - **Evidence retained:** TBD — no evidence requirements were described for sync corrections or non-banking record changes (see GAP-02), and no reporting or retention location for the master file review is described (see GAP-03).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** The supplier master population has degraded without an operating hygiene process: roughly 11,000 vendor records exist, only about 4,000 of which have been active in the last 24 months, with some vendors present multiple times under different spellings; there is no de-duplication project and no owner of the cleanup — the Procurement Lead has carried it as an unactioned to-do — and the semi-annual file review that should catch inactive, duplicate and incomplete records is not evidenced as operating (SRC-002, SRC-005, SRC-006).
 > - **Impact:** Duplicate and stale records fragment spend history, make the onboarding duplicate check unreliable, and expand the surface for duplicate or misdirected payments; the Corporate Controller flagged an 11,000-record master file with no owner as a material exposure (SRC-002, SRC-003).

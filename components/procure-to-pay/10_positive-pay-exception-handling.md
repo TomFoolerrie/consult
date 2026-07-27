@@ -1,10 +1,10 @@
 ## Positive Pay Exception Handling
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the review and disposition of positive pay exception items — checks presented to the bank that do not match the positive pay issue file transmitted from NetSuite at check print under [[weekly-payment-run]]. The Accounts Payable Manager reviews each exception in Chase Connect the business morning after a check run and decides pay or return before the bank's disposition deadline; any item with no decision by the deadline is returned by default, a configuration the Company set deliberately (SRC-001, SRC-003). The procedure runs whenever the bank flags an exception, in practice tied to the weekly Thursday check run. Transmission of the issue file itself is part of [[weekly-payment-run]] and is not repeated here.
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** Positive pay exception item(s) presented in Chase Connect following a check issue date (SRC-001, SRC-003)
 - **Frequency:** As exceptions arise; exception items post the next business morning after the check run — in practice by 10 AM Friday following the Thursday run (SRC-001, SRC-003)
@@ -13,17 +13,17 @@ This procedure covers the review and disposition of positive pay exception items
 - **Primary systems / tools:** Chase Connect (exception presentation and disposition); NetSuite (check issue records)
 - **Key outputs:** Pay / return decision on each exception item recorded in Chase Connect; default return of any undecided item
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - Checks have been printed and the positive pay issue file transmitted to Chase from NetSuite at check print, on each date checks are issued, under [[weekly-payment-run]] (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006).
 - The Accounts Payable Manager holds Chase Connect access to the positive pay exception queue (SRC-001).
 
-### D. Inputs
+### Inputs
 
 - **Positive pay exception items in Chase Connect:** presented checks the bank could not match to the issue file — source: the depository institution (SRC-001, SRC-003).
 - **Positive pay issue file / check issue records in NetSuite:** the record of what the Company actually issued, transmitted at check print by [[weekly-payment-run]] (SRC-003).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Receive and review exception items
 
@@ -53,7 +53,7 @@ Any exception item with no decision recorded by the deadline is returned by the 
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Positive pay exception review: the bank flags any presented check that does not match the issue file, and the Accounts Payable Manager dispositions each flagged item (pay or return) in Chase Connect before the deadline established by the depository institution (SRC-001, SRC-003; §7.6 of the prior SOP, SRC-006).
 > - **Type:** Detective
@@ -70,13 +70,13 @@ Any exception item with no decision recorded by the deadline is returned by the 
 > - **Frequency:** Continuous (bank configuration)
 > - **Owner:** Corporate Controller
 
-### G. Outputs
+### Outputs
 
 - **Dispositioned exception items:** pay or return decision recorded in Chase Connect for each flagged check (SRC-001).
 - **Returned items:** checks returned by decision or by the default-return configuration (SRC-001, SRC-003).
 - **Evidence retained:** The pay/return decision is recorded only in Chase Connect's decision log; no NetSuite record or email trail of the disposition is kept (process owner confirmation via the gap workbook).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Exception disposition is a single-person dependency with a hard, short window: only the Accounts Payable Manager reviews exceptions, decisions are due within roughly three hours of the items posting (10 AM to 1 PM Friday), no backup dispositioner was identified, and the deadline has been missed once — triggering a default return (SRC-001, SRC-003, SRC-005).
 > - **Impact:** A missed window returns every undecided item, including legitimate Company checks — the fail-safe protects against fraud but converts an absence or a busy Friday morning into returned vendor payments.

@@ -15,7 +15,7 @@ After a working-mode render, this builds one folder per process owner:
         screenshots_<person-slug>.docx  their SC items + paste boxes
 
 Ownership is deterministic string-work over data the pipeline already has:
-  - procedure owner  = B. Quick Reference "Preparer" role → roles.yaml
+  - procedure owner  = the Quick Reference "Preparer" role → roles.yaml
     `people:` → LOWEST org-chart rank (deepest reports_to = closest to the
     work); their manager is listed as the escalation.
   - gap row owner    = the gap's "Owner to confirm" role, same resolution;
@@ -114,7 +114,9 @@ def collect(folder: Path):
             continue
         raw = fpath.read_text(encoding="utf-8")
         subs = split_subsections(raw)
-        preparer = _pick(parse_bullets(subs.get("B", "")), "preparer")
+        # M23: the Quick Reference card, by SLUG — this was `subs["B"]`, a
+        # letter (a render position) standing in for the section's identity.
+        preparer = _pick(parse_bullets(subs.get("quick-reference", "")), "preparer")
         owner, role = ppl.contact_for_text(preparer)
         label = f"{numbers.get(slug, '')} {comp.get('heading', '')}".strip()
         procs[slug] = {

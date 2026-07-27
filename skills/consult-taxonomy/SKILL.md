@@ -320,6 +320,6 @@ split a merged variant pair back into two, fix a role or person mapping, add an
 alias, blank a guessed limitation, approve a new bucket, **trim a source's
 `touches`** to cancel a drafter re-run). Confirm = `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area {area} --l1 {l1}`,
 which promotes `.proposed/` → live `_reference/` (a MERGE), builds `manifest.json`,
-writes one A–H skeleton per new procedure, and writes the `_review/{slug}.notes.yaml`
+writes one section skeleton per new procedure, and writes the `_review/{slug}.notes.yaml`
 items your `notes.yaml` + the `touches` tags imply. Nothing you wrote reaches the
 live folder until that runs.

@@ -1,10 +1,10 @@
 ## Goods Receipt
 
-### A. Process Overview
+### Process Overview
 
 Goods Receipt records the physical arrival of purchased goods at the plant receiving docks and creates the NetSuite item receipt that forms the receiving leg of the three-way match. It runs continuously — each inbound carrier delivery — and is performed by Receivers under the Receiving Supervisor at each facility. Receipts are recorded against open purchase orders issued through [[po-issuance-and-change-orders]]; the resulting item receipt is what allows a supplier invoice to release through [[po-invoice-entry-and-three-way-match]], and open receipts with no bill feed the systematic month-end received-not-invoiced accrual (a Record to Report activity outside this process). Returns of damaged or incorrect goods are handled under [[return-to-vendor]], and deliveries that cannot be tied to a purchase order are resolved through [[confirming-po]]. Receipting of services (which involve no dock delivery) and Plant 3's consumption-based auto-receipt arrangement are treated as variants within the steps below, both pending validation.
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** An inbound carrier delivery at a plant receiving dock (SRC-004).
 - **Frequency:** Daily; each delivery, across two receiving shifts (SRC-004).
@@ -13,20 +13,20 @@ Goods Receipt records the physical arrival of purchased goods at the plant recei
 - **Primary systems / tools:** NetSuite (Receive Orders).
 - **Key outputs:** NetSuite item receipt; annotated bill of lading for shortage/damage exceptions; filed packing slip.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - An approved, open purchase order exists in NetSuite for the goods being delivered — issued via [[po-issuance-and-change-orders]]; purchase orders originate in Coupa and reach NetSuite on the nightly sync (SRC-005).
 - Receiving staff hold NetSuite access to the Receive Orders function (SRC-004).
 - The delivery is accompanied by a bill of lading and, in most cases, a packing slip bearing the purchase order number (SRC-004).
 
-### D. Inputs
+### Inputs
 
 - **Bill of lading:** presented by the carrier's driver at delivery (SRC-004).
 - **Packing slip:** supplied with the shipment; the primary means of identifying the purchase order (SRC-004).
 - **Open purchase order:** held in NetSuite, from [[po-issuance-and-change-orders]].
 - **Quantity-discrepancy inquiries:** raised by Accounts Payable from the match-exception queue in [[po-invoice-entry-and-three-way-match]] (SRC-001).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 The steps below reflect the documented walkthrough of the Plant 2 receiving dock (SRC-004). Plant 1 follows the same flow; Plant 3 differences are covered in Step 7.
 
@@ -99,7 +99,7 @@ Plant 1 follows the same dock process as Plant 2 (SRC-004). Plant 3 operates a K
 > - **Nature:** unknown
 > - **Owner to confirm:** Buyer
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Piece counts are verified against the bill of lading and the shipment is inspected for damage before acceptance; shortages and damage are annotated on the bill of lading and acknowledged by the carrier driver's signature (SRC-004).
 > - **Type:** Preventive
@@ -121,14 +121,14 @@ Plant 1 follows the same dock process as Plant 2 (SRC-004). Plant 3 operates a K
 > - **Frequency:** Per quantity match exception
 > - **Owner:** Receiving Supervisor
 
-### G. Outputs
+### Outputs
 
 - **Item receipt (NetSuite):** the receiving leg of the three-way match, consumed by [[po-invoice-entry-and-three-way-match]]; open receipts with no bill also drive the systematic month-end received-not-invoiced accrual taken from a NetSuite saved search (a Record to Report activity) (SRC-005, SRC-006).
 - **Annotated bill of lading:** documents shortage and damage exceptions, signed by the carrier's driver; a copy is retained and scanned (SRC-004).
 - **Labeled, put-away inventory:** inventory items are labeled at receipt and put away by location (SRC-004).
 - **Evidence retained:** the NetSuite item receipt; annotated bill of lading copies; paper packing slips filed by month in the receiving office (retention as described in E) (SRC-004).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Receipts are not consistently entered on the day of delivery. Second shift performs the physical put-away but leaves system keying for the next morning, and on heavy days a Tuesday-afternoon delivery may not be in NetSuite until Thursday; dock staffing is two Receivers on first shift and one on second (SRC-004).
 > - **Impact:** Goods physically received but not yet entered account for roughly sixty percent of Accounts Payable's three-way match exceptions, driving rework for the Senior Accounts Payable Specialist and delaying invoice release; the Accounts Payable Manager, the Corporate Controller and the Receiving Supervisor each independently named late receipt entry the process's top issue, and a portion of inventory cycle-count variance traces to late or incorrect receipt entry (SRC-001, SRC-004, SRC-005).

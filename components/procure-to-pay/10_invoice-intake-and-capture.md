@@ -1,10 +1,10 @@
 ## Invoice Intake and Capture
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the receipt and digital capture of supplier invoices — from arrival in the AP Inbox (ap-invoices@) or as paper mail at the Company's post office box, through header-data extraction in Ephesoft, to the creation of a bill in a pending state in NetSuite. It runs daily: the Accounts Payable Clerk triages the mailbox and scans paper receipts, and the Senior Accounts Payable Specialist keys the documents that fail automated extraction. Suppliers are directed to the AP Inbox by the purchase order terms and conditions issued in [[po-issuance-and-change-orders]]. Captured bills flow downstream for entry and matching in [[po-invoice-entry-and-three-way-match]] and for coding and approval in [[non-po-invoice-entry-and-approval]]; this procedure ends once the pending bill exists in NetSuite. Payroll disbursements, intercompany settlements, and employee expense reimbursements (handled in Concur under a separate Travel & Expense function) are excluded (§1.2 of the prior SOP, SRC-006).
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** Receipt of a supplier invoice — by email to the AP Inbox (ap-invoices@) or by paper mail to the Company's post office box (SRC-001)
 - **Frequency:** Daily (mailbox triaged each business day; paper mail scanned as received)
@@ -13,19 +13,19 @@ This procedure covers the receipt and digital capture of supplier invoices — f
 - **Primary systems / tools:** AP Inbox (ap-invoices@); Ephesoft; NetSuite
 - **Key outputs:** NetSuite bill in a pending state with the invoice image attached, visible on the "AP - Bills Pending Review" saved search
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - Suppliers have been directed to submit invoices to the AP Inbox through the purchase order terms and conditions (§4.1 of the prior SOP, SRC-006).
 - The Accounts Payable Clerk and Senior Accounts Payable Specialist have access to the AP Inbox and to the Ephesoft validation queue (SRC-001).
 - Scanning capability is available to digitize paper invoices (SRC-001).
 - The Ephesoft-to-NetSuite integration is operating, so captured documents post as pending bills (SRC-001).
 
-### D. Inputs
+### Inputs
 
 - **Supplier invoices received by email:** sent by the Supplier to the AP Inbox (ap-invoices@); roughly ninety percent or more of invoice volume arrives this way (SRC-001).
 - **Supplier invoices received in paper form:** sent by the Supplier to the Company's post office box; approximately forty to fifty pieces per week (SRC-001).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Triage the AP Inbox
 
@@ -74,7 +74,7 @@ Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A captured bill in NetSuite in a pending state with the invoice image attached — validates the Ephesoft-to-NetSuite hand-off and the image attachment.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Documents whose Ephesoft extraction confidence score falls below the configured threshold are routed to the manual validation queue and keyed by hand rather than auto-posting, preventing low-confidence OCR data from entering NetSuite unreviewed. The live threshold value is unconfirmed — a validation gap is raised at Step 3 in E.
 > - **Type:** Preventive
@@ -86,12 +86,12 @@ Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state
 > - **Frequency:** Each paper receipt (daily mail cycle)
 > - **Owner:** Accounts Payable Clerk
 
-### G. Outputs
+### Outputs
 
 - **Pending bill in NetSuite:** one bill in a pending state per captured invoice, consumed downstream through the "AP - Bills Pending Review" saved search by [[po-invoice-entry-and-three-way-match]] and [[non-po-invoice-entry-and-approval]].
 - **Evidence retained:** the original invoice image, attached to the resulting NetSuite bill and retained for not less than seven years (§4.5 of the prior SOP, SRC-006; attachment practice confirmed in fieldwork, SRC-005).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Ephesoft purchase order extraction is unreliable when the supplier does not place the PO reference in a standard position on the invoice — for example, inside a paragraph of body text — and below-threshold documents fall to the manual validation queue for hand keying (SRC-001).
 > - **Impact:** Recurring manual keying workload for the Accounts Payable Clerk and Senior Accounts Payable Specialist, and missed PO references that push otherwise matchable invoices toward manual handling downstream.

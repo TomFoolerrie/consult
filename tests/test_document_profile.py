@@ -20,6 +20,7 @@ from docx import Document
 
 import aggregate
 import client_config
+import doc_model
 import orchestrate
 import reconcile
 import render
@@ -222,7 +223,7 @@ def test_absent_profile_resolves_to_todays_full_shape(tmp_path):
     today's derived set (no controls register), and `configured` False."""
     prof = client_config.profile(engagement(tmp_path) / "treasury")
     assert prof.configured is False
-    assert prof.sections == list("ABCDEFGH")
+    assert prof.sections == client_config.ALL_SECTIONS   # M23: slugs
     assert prof.body_omit == []
     assert prof.callouts == client_config.ALL_CALLOUTS
     assert prof.derived == client_config.DEFAULT_DERIVED
@@ -234,7 +235,7 @@ def test_absent_profile_scaffolds_byte_identical_manifest_and_skeletons(tmp_path
     """Bullet 1, scaffold half: an engagement with no profile.yaml and one whose
     profile spells out today's shape produce byte-identical output — and both
     match the shape scaffold produced before M14 (eight derived views, no
-    controls register, every A–H heading)."""
+    controls register, every section heading — LETTERLESS since M23)."""
     plain = scaffold_area(engagement(tmp_path / "plain"))
     explicit_root = engagement(tmp_path / "explicit")
     write_profile(explicit_root, sections=list("ABCDEFGH"), body_omit=[])
@@ -245,8 +246,8 @@ def test_absent_profile_scaffolds_byte_identical_manifest_and_skeletons(tmp_path
     assert ((plain / "10_bank-rec.md").read_bytes()
             == (explicit / "10_bank-rec.md").read_bytes())
     skeleton = (plain / "10_bank-rec.md").read_text(encoding="utf-8")
-    for letter in "ABCDEFGH":
-        assert f"### {letter}." in skeleton
+    for title in doc_model.SECTION_TITLES.values():
+        assert f"### {title}" in skeleton
     assert derived_kinds(plain) == client_config.DEFAULT_DERIVED
 
 
@@ -267,16 +268,17 @@ def test_absent_profile_renders_byte_identical_body(tmp_path):
 # --------------------------------------------------------------------------- #
 
 def test_profile_without_f_scaffolds_no_f_section(tmp_path):
-    """Enforcement point 1: the skeleton has no `### F.` and every other
-    section survives, sentinel and end matter intact."""
+    """Enforcement point 1: the skeleton has no Key Controls heading and every
+    other section survives, sentinel and end matter intact."""
     root = engagement(tmp_path)
     write_profile(root, sections=[s for s in "ABCDEFGH" if s != "F"])
     area = scaffold_area(root)
 
     skeleton = (area / "10_bank-rec.md").read_text(encoding="utf-8")
-    assert "### F." not in skeleton and "Key Controls" not in skeleton
-    for letter in "ABCDEGH":
-        assert f"### {letter}." in skeleton
+    assert "Key Controls" not in skeleton
+    for slug, title in doc_model.SECTION_TITLES.items():
+        if slug != "controls":
+            assert f"### {title}" in skeleton
     assert "<!-- unfilled -->" in skeleton
     assert "consult-meta" in skeleton
 
@@ -327,8 +329,9 @@ def test_adding_a_section_after_drafting_returns_reprofile_with_the_count(tmp_pa
     assert d["action"] == "reprofile"
     assert d["human_gate"] is True
     assert d["details"]["dispatches"] == 2
-    assert d["details"]["missing"] == {"bank-rec": ["F"], "payment-run": ["F"]}
-    assert "F" in d["reason"]
+    assert d["details"]["missing"] == {"bank-rec": ["controls"],
+                                      "payment-run": ["controls"]}
+    assert "controls" in d["reason"]
 
 
 def test_reprofile_clears_once_the_drafters_write_the_heading(tmp_path):
@@ -476,7 +479,8 @@ def test_body_omit_f_with_controls_register_collects_every_control(tmp_path):
 
     register = register_of(area, "89_appendix-controls.md")
     assert "<!-- derived: appendix-controls; writer: python -->" in register
-    assert "aggregated mechanically from the `F` section callouts" in register
+    # M23: the caption names the section by TITLE (display), never by letter.
+    assert "aggregated mechanically from the Key Controls section" in register
     # two procedures, one control each -> the two document-global display ids,
     # each exactly once, each row carrying its procedure's [[#slug]] token
     assert register.count("CTRL-01") == 1 and register.count("CTRL-02") == 1
@@ -540,8 +544,8 @@ def test_body_omit_naming_a_section_absent_from_sections_is_a_named_error(tmp_pa
     with pytest.raises(ProfileError) as exc:
         client_config.profile(root / "treasury")
     message = str(exc.value)
-    assert "body_omit" in message and "H" in message
-    assert "ABCDEFG" in message
+    assert "body_omit" in message and "issues" in message
+    assert "outputs" in message          # the `sections:` it is absent from
 
 
 def test_a_profile_error_stops_the_confirm_before_it_touches_the_folder(tmp_path):
@@ -616,7 +620,7 @@ def test_area_profile_shadows_the_engagement_profile_whole(tmp_path):
         yaml.safe_dump({"profile": {"sections": list("ABE")}}), encoding="utf-8")
 
     prof = client_config.profile(area)
-    assert prof.sections == ["A", "B", "E"]
+    assert prof.sections == ["overview", "quick-reference", "steps"]
     assert prof.body_omit == []              # shadowed WHOLE, not merged
     assert prof.layer == "area"
     assert prof.report_line().startswith("document profile: _client/ (area)")
@@ -632,16 +636,21 @@ def test_report_line_states_the_shape_when_a_profile_is_in_play(tmp_path):
     write_profile(root, sections=[s for s in "ABCDEFGH" if s != "G"],
                   body_omit=["H"])
     line = client_config.profile(root / "t").report_line()
-    assert line == ("document profile: _client/ (engagement) — "
-                    "sections ABCDEFH, body_omit H")
+    assert line == ("document profile: _client/ (engagement) — sections "
+                    "A=overview B=quick-reference C=prerequisites D=inputs "
+                    "E=steps F=controls G=issues, body_omit issues")
 
 
-def test_sections_are_canonicalized_to_document_order(tmp_path):
-    """Reordering is out of scope (A–H identity is the heading contract), so a
-    profile listing sections out of order still means document order."""
+def test_sections_are_canonicalized_to_slugs_in_the_profiles_own_order(tmp_path):
+    """M23 replaces M14's "reordering is out of scope": section tokens are
+    canonicalized to SLUGS, but the profile's ORDER is kept, because that order
+    is what assigns the letters."""
     root = engagement(tmp_path)
     write_profile(root, sections=["E", "A", "H", "B"])
-    assert client_config.profile(root / "t").sections == ["A", "B", "E", "H"]
+    prof = client_config.profile(root / "t")
+    assert prof.sections == ["steps", "overview", "issues", "quick-reference"]
+    assert prof.letters() == {"steps": "A", "overview": "B",
+                              "issues": "C", "quick-reference": "D"}
 
 
 def test_derived_shorthand_names_canonicalize_to_manifest_kinds(tmp_path):
@@ -658,7 +667,7 @@ def test_derived_shorthand_names_canonicalize_to_manifest_kinds(tmp_path):
 
 VALIDATOR_CASES = [
     ("a section that is not a section",
-     {"sections": ["A", "B", "E", "Z"]}, "heading contract"),
+     {"sections": ["A", "B", "E", "Z"]}, "is not a section"),
     ("a mandatory section dropped",
      {"sections": ["A", "B", "C"]}, "mandatory section"),
     ("an unknown callout kind",
@@ -805,8 +814,8 @@ def test_scaffold_keeps_the_end_matter_when_the_last_section_goes(tmp_path):
     end matter, which belongs to no section."""
     kept = scaffold.keep_sections(
         scaffold._FALLBACK_SKELETON.format(heading="Bank Rec"),
-        [s for s in "ABCDEFGH" if s != "H"])
-    assert "### H." not in kept and "PAIN POINT" not in kept
+        [s for s in client_config.ALL_SECTIONS if s != "issues"])
+    assert "### Known Issues" not in kept and "PAIN POINT" not in kept
     assert "consult-meta" in kept
     assert "\n\n\n" not in kept                      # no gap map left behind
 
@@ -815,4 +824,4 @@ def test_keep_sections_returns_the_text_unchanged_when_nothing_drops():
     """The byte-identity short circuit, directly: a skeleton naming no excluded
     section is returned as-is, not reformatted."""
     text = scaffold._FALLBACK_SKELETON.format(heading="Bank Rec")
-    assert scaffold.keep_sections(text, list("ABCDEFGH")) is text
+    assert scaffold.keep_sections(text, client_config.ALL_SECTIONS) is text

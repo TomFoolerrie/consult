@@ -1,6 +1,6 @@
 ## New Vendor Onboarding
 
-### A. Process Overview
+### Process Overview
 
 New Vendor Onboarding establishes a new supplier in both Coupa — the system of
 record for the supplier record from a sourcing standpoint — and NetSuite — the
@@ -18,7 +18,7 @@ remit-to banking details are handled under [[vendor-banking-change]], and
 ongoing hygiene of the record population under
 [[vendor-master-data-maintenance]].
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A Requester needs goods or services from a supplier that does not exist as an active record in Coupa and NetSuite (SRC-002).
 - **Frequency:** Ad hoc, on demand.
@@ -27,14 +27,14 @@ ongoing hygiene of the record population under
 - **Primary systems / tools:** Coupa (including the SIM portal), NetSuite.
 - **Key outputs:** Approved, active supplier record in Coupa with diligence evidence attached; active NetSuite vendor master record with payment terms and default GL coding.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - A genuine business need from a Requester for a supplier not already active in Coupa and NetSuite (SRC-002).
 - The prospective supplier's completed W-9, available to attach to the New Supplier Request form (SRC-002).
 - Supplier contact details sufficient for Coupa to issue the SIM self-registration invitation (SRC-002).
 - Requester access to Coupa to submit the New Supplier Request form.
 
-### D. Inputs
+### Inputs
 
 - **New Supplier Request form (Coupa):** completed by the Requester (SRC-002).
 - **Supplier W-9:** provided by the Supplier; attached to the request by the Requester (SRC-002).
@@ -43,7 +43,7 @@ ongoing hygiene of the record population under
 - **Existing supplier list:** the current Coupa supplier population, used for the duplicate check (SRC-002).
 - **Supplier self-registration data (SIM portal):** banking details, W-9, insurance certificates, and diversity classification, entered by the Supplier (SRC-002, SRC-005).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Submit the New Supplier Request form
 
@@ -130,7 +130,7 @@ in F.
 
 > **SCREENSHOT PLACEHOLDER — SC-03:** An activated NetSuite vendor record showing vendor status, payment terms, and default GL coding as set by the Accounts Payable Clerk.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Onboarding diligence — before a new supplier is invited to register, the Procurement Lead or Buyer verifies the W-9 name against the taxpayer identification number via the IRS TIN match, screens the supplier against the OFAC SDN list, and checks for duplicates against the existing supplier list; the OFAC screenshot and TIN match evidence are attached to the Coupa supplier record (SRC-002, SRC-005).
 > - **Type:** Preventive
@@ -152,13 +152,13 @@ in F.
 > - **Frequency:** Continuous (role-based)
 > - **Owner:** Corporate Controller
 
-### G. Outputs
+### Outputs
 
 - **Approved supplier record in Coupa**, with OFAC screenshot and TIN match evidence attached, and supplier-entered W-9, insurance certificates, and banking details held in the SIM portal (SRC-002, SRC-005).
 - **Active NetSuite vendor master record** with payment terms and default GL coding — consumed downstream by [[requisition-and-approval]] and by AP for invoice matching and payment (SRC-002).
 - **Evidence retained:** OFAC SDN search-result screenshot and TIN match result on the Coupa supplier record; supplier self-registration data (W-9, insurance certificates, banking) in Coupa SIM (SRC-005).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** The supplier master population is heavily duplicated and inactive — roughly 11,000 supplier records of which only about 4,000 have been active in the last 24 months, with some vendors present four times under different spellings; there is no de-duplication project and no owner (SRC-002, SRC-005).
 > - **Impact:** The duplicate check performed during onboarding diligence is unreliable, new duplicate records continue to be created, and spend history is fragmented across records; the Corporate Controller flagged the unowned vendor master as a material exposure (SRC-002, SRC-003).

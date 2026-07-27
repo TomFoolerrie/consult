@@ -1,10 +1,10 @@
 ## Confirming (After-the-Fact) PO
 
-### A. Process Overview
+### Process Overview
 
 This procedure regularizes purchases made outside the standard requisition process: a supplier has already delivered goods or performed work — typically on an emergency plant call-out — without a requisition or purchase order, and Procurement raises a purchase order after the fact (a "confirming PO") so the invoice can be matched and paid. It runs ad hoc, triggered when Accounts Payable receives a supplier invoice that references no purchase order and returns it to Procurement. The Buyer or Procurement Lead prepares the confirming PO in Coupa, nominally on the strength of a written justification from the Plant Manager. Upstream, the procedure is fed by off-process purchases that bypass [[requisition-and-approval]]; downstream, the confirming PO syncs to NetSuite so the returned invoice can be processed through [[po-invoice-entry-and-three-way-match]]. Standard purchase order issuance and change orders are excluded — see [[po-issuance-and-change-orders]].
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A supplier invoice arrives for goods or services already supplied without a purchase order, and Accounts Payable returns it to Procurement.
 - **Frequency:** Ad hoc; approximately 15–20 per month, concentrated at Plant 2 (Procurement Lead estimate, SRC-002, corroborated in SRC-005; not validated against system data).
@@ -13,19 +13,19 @@ This procedure regularizes purchases made outside the standard requisition proce
 - **Primary systems / tools:** Coupa (PO creation); NetSuite (receives the PO by sync for invoice matching).
 - **Key outputs:** Confirming purchase order; justification documentation; entry in the Procurement Lead's informal log.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - Goods have been delivered or services performed by a supplier without a requisition or purchase order in place.
 - The supplier invoice (or other evidence of the purchase) has been returned to Procurement by Accounts Payable.
 - The supplier exists in Coupa and NetSuite; a supplier not yet set up must first complete [[new-vendor-onboarding]].
 
-### D. Inputs
+### Inputs
 
 - **Supplier invoice with no purchase order reference** — returned by Accounts Payable.
 - **Written justification for the purchase** — nominally from the Plant Manager; in current practice an email from the requesting party (Procurement Lead, SRC-002).
 - **Details of the goods or services supplied** — from the Requester who engaged the supplier and from the supplier's invoice.
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Identify the off-process purchase and return the invoice to Procurement
 
@@ -83,7 +83,7 @@ The Procurement Lead records the confirming PO in an informal spreadsheet. No fo
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** The Procurement Lead's confirming PO spreadsheet, showing the fields tracked and recent monthly volume, to substantiate the 15–20 per month estimate.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** A written justification from the Plant Manager is required before a confirming PO is raised for an off-process purchase.
 > - **Type:** Preventive
@@ -97,14 +97,14 @@ CTRL-001 does not operate as designed in practice; see PP-002 in H.
 > - **Frequency:** Each occurrence
 > - **Owner:** TBD — confirm with process owner
 
-### G. Outputs
+### Outputs
 
 - **Confirming purchase order** — created in Coupa and synced to NetSuite; consumed by Accounts Payable to match and pay the previously returned invoice via [[po-invoice-entry-and-three-way-match]].
 - **Justification documentation** — the written justification obtained for the purchase (in practice, an email).
 - **Informal log entry** — a row in the Procurement Lead's confirming PO spreadsheet.
 - **Evidence retained:** TBD — where the justification and its linkage to the PO record are filed was not established during fieldwork; confirm with process owner.
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Confirming POs represent spend committed outside the procurement process — approximately 15–20 per month, concentrated at Plant 2 — with the supplier engaged before any purchase order exists.
 > - **Impact:** Procurement has no leverage on price, and the purchase is committed before any approval or sourcing control can operate (SRC-002, SRC-005).

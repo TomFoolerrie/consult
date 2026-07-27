@@ -235,7 +235,6 @@ def _clean_body(text: str, numbers) -> str:
 # Both are no-ops that return the text UNCHANGED when the profile excludes
 # nothing, so an engagement with no `profile.yaml` renders byte-identically.
 # --------------------------------------------------------------------------- #
-_SECTION_LINE_RE = re.compile(r"^###\s+(?P<letter>[A-Z])\.\s")
 _META_FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.IGNORECASE)
 
 # A callout label line, loose enough to catch every kind in the LABEL map:
@@ -246,14 +245,19 @@ _CALLOUT_LABEL_RE = re.compile(
 )
 
 
-def _blank_sections(text: str, letters) -> str:
-    """Blank the `### X.` blocks of every section in `letters`.
+def _blank_sections(text: str, slugs) -> str:
+    """Blank the `###` blocks of every section slug in `slugs` (M23).
+
+    Keyed on the section SLUG, resolved from the heading by
+    `doc_model.section_slug` — which accepts the migrated form
+    (`### Key Controls`) and the not-yet-migrated one (`### F. Key Controls`)
+    alike, so an unmigrated area keeps rendering exactly as it does today.
 
     The `consult-meta` end matter belongs to no section, so it survives even
-    when the section it trails is hidden — otherwise hiding `H` would strip a
-    procedure's system/role bindings out of the assembled body.
+    when the section it trails is hidden — otherwise hiding `issues` would strip
+    a procedure's system/role bindings out of the assembled body.
     """
-    if not letters:
+    if not slugs:
         return text
     out: list[str] = []
     dropping = False
@@ -261,10 +265,46 @@ def _blank_sections(text: str, letters) -> str:
         if _META_FENCE_RE.match(ln):
             dropping = False
         else:
-            m = _SECTION_LINE_RE.match(ln)
-            if m:
-                dropping = m.group("letter") in letters
+            slug = doc_model.section_of_heading(ln)
+            if slug is not None:
+                dropping = slug in slugs
         out.append("" if dropping else ln)
+    return "\n".join(out)
+
+
+def _letter_sections(text: str, letters) -> str:
+    """Stamp the display LETTER onto every section heading (M23).
+
+    The identity/display split for sections: the fragment carries
+    `### Process Overview`, the DOCUMENT carries `### A. Process Overview`, and
+    `letters` (the profile's `sections:` order) decides which letter. Exactly
+    what `_heading_for` does with a procedure's display number, and exactly why
+    reordering a profile re-letters a render with zero fragment edits.
+
+    LINE-COUNT-PRESERVING (one heading line rewritten in place) and it runs
+    BEFORE the body is emitted, so the M10 provenance map — whose entry hashes
+    are taken from RENDERED paragraph text — sees the letters, not the titles.
+
+    A heading that already carries a letter has it REPLACED, so an unmigrated
+    fragment renders with the letter the profile says, never the stale one baked
+    into its heading.
+
+    The TITLE comes from the registry whenever the heading was resolved BY title
+    (which is what makes a registry rename show up in the document without any
+    fragment edit), and is left exactly as authored when only the LETTER
+    resolved it — a heading the registry does not know is local wording this
+    transform has no business rewriting.
+    """
+    out = []
+    for ln in text.split("\n"):
+        slug = doc_model.section_of_heading(ln)
+        if slug is None or slug not in letters:
+            out.append(ln)
+            continue
+        written = doc_model.section_heading_title(ln)
+        title = (doc_model.section_title(slug)
+                 if doc_model.section_of_title(written) == slug else written)
+        out.append(f"### {letters[slug]}. {title}")
     return "\n".join(out)
 
 
@@ -298,9 +338,16 @@ def _blank_callouts(text: str, labels) -> str:
 
 
 def _apply_profile(text: str, profile) -> str:
-    """Strip everything the document profile excludes from one procedure body."""
+    """Strip everything the document profile excludes from one procedure body,
+    then stamp the section letters the profile's order assigns (M23).
+
+    Hiding first, lettering second: a section's letter is its position in
+    `sections:`, which `body_omit` does not change, so hiding one never shifts
+    another's letter.
+    """
     text = _blank_sections(text, profile.hidden_sections())
-    return _blank_callouts(text, profile.dropped_callouts())
+    text = _blank_callouts(text, profile.dropped_callouts())
+    return _letter_sections(text, profile.letters())
 
 
 # --------------------------------------------------------------------------- #

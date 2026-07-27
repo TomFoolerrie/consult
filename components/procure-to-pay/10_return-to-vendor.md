@@ -1,10 +1,10 @@
 ## Return to Vendor
 
-### A. Process Overview
+### Process Overview
 
 Return to Vendor covers the return of damaged or incorrect goods to the supplier after they have been received at a plant dock, and the follow-through to the vendor credit that should result. It is triggered as needed — when a receipt inspection or later discrepancy identifies goods that must go back — and is coordinated by the Receiving Supervisor at the affected facility with the Buyer, who obtains the return authorization from the supplier. The goods being returned were recorded through [[goods-receipt]]; the expected vendor credit memo ultimately offsets the supplier's account in Accounts Payable, where invoice activity is processed under [[po-invoice-entry-and-three-way-match]]. Ordinary shortage and damage notations taken at the dock before acceptance are part of [[goods-receipt]], not this procedure.
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** Goods identified as damaged or incorrect after receipt at the dock (SRC-004).
 - **Frequency:** As needed, per occurrence; no volume was stated (SRC-004).
@@ -13,19 +13,19 @@ Return to Vendor covers the return of damaged or incorrect goods to the supplier
 - **Primary systems / tools:** NetSuite (Return Authorization); email for the return request to the Buyer.
 - **Key outputs:** NetSuite Return Authorization; return shipment on the supplier's freight account; expected vendor credit memo.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - The goods were received into NetSuite as an item receipt through [[goods-receipt]] — the Return Authorization is entered against that receipt (SRC-004).
 - The goods have been identified as damaged or wrong (SRC-004).
 - A supplier-issued RMA number has been obtained by the Buyer before the return is processed (SRC-004).
 
-### D. Inputs
+### Inputs
 
 - **Damaged or incorrect goods:** identified at or after receipt; Receiving Supervisor (SRC-004).
 - **Original item receipt:** in NetSuite, from [[goods-receipt]] (SRC-004).
 - **RMA number:** issued by the supplier, obtained via the Buyer (SRC-004).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Identify the goods to be returned and notify the Buyer
 
@@ -60,7 +60,7 @@ A credit memo from the supplier is expected to follow the return. The Receiving 
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** A return is processed only against a supplier-issued RMA number obtained by the Buyer before the goods are shipped back (SRC-004).
 > - **Type:** Preventive
@@ -72,14 +72,14 @@ A credit memo from the supplier is expected to follow the return. The Receiving 
 > - **Frequency:** Each return
 > - **Owner:** Receiving Supervisor
 
-### G. Outputs
+### Outputs
 
 - **NetSuite Return Authorization:** the system record of the return, tied to the original item receipt (SRC-004).
 - **Return shipment:** goods returned to the supplier with freight on the supplier's account (SRC-004).
 - **Vendor credit memo:** expected from the supplier following the return; its receipt and application are unconfirmed (see the validation raised at Step 5) (SRC-004, SRC-005).
 - **Evidence retained:** the Return Authorization record in NetSuite; other retained evidence (RMA correspondence, return shipping documents) is TBD — confirm with process owner (SRC-004).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** There is no tracking of whether vendor credit memos actually arrive after a return. The Receiving Supervisor does not follow up ("Whether the credit ever shows up is not something I track"), assumes Accounts Payable does, and no one interviewed described owning the step (SRC-004, SRC-005).
 > - **Impact:** Credits owed by suppliers for returned goods may never be received or applied, overstating amounts paid to those suppliers; the exposure is unquantified (SRC-005).

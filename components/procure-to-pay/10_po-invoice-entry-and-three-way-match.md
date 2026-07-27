@@ -1,10 +1,10 @@
 ## PO Invoice Entry and Three-Way Match
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the entry and release of supplier invoices that reference a purchase order: from the pending bill created in NetSuite by [[invoice-intake-and-capture]], through the three-way match of the approved purchase order, the recorded item receipt from [[goods-receipt]], and the supplier invoice, to a bill eligible for payment in [[weekly-payment-run]]. It runs daily and is performed principally by the Senior Accounts Payable Specialist, who also works the match-exception queue. The three-way match is one of the three procure-to-pay controls in scope for the external audit (SRC-003). Invoices without a purchase order reference are excluded — they are coded and approved under [[non-po-invoice-entry-and-approval]].
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A captured bill bearing a purchase order reference appears in a pending state on the "AP - Bills Pending Review" saved search (SRC-001)
 - **Frequency:** Daily, as pending bills arrive; a clean match takes roughly ninety seconds per bill (SRC-001)
@@ -13,21 +13,21 @@ This procedure covers the entry and release of supplier invoices that reference 
 - **Primary systems / tools:** NetSuite
 - **Key outputs:** Matched bill released for payment; bills in "Match Exception - Hold" status pending resolution
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - A pending bill with a purchase order reference exists in NetSuite, created through [[invoice-intake-and-capture]] with the invoice image attached (SRC-001).
 - An approved purchase order exists in NetSuite for the invoice, issued through [[po-issuance-and-change-orders]] (SRC-001).
 - An item receipt has been recorded against the purchase order in [[goods-receipt]] — all three documents must be present before the payable is eligible for release (§5.2 of the prior SOP, SRC-006).
 - The Senior Accounts Payable Specialist holds NetSuite access to the Enter Bills function and the "AP - Bills Pending Review" saved search (SRC-001).
 
-### D. Inputs
+### Inputs
 
 - **Pending bill (NetSuite):** created by [[invoice-intake-and-capture]], with the supplier invoice image attached (SRC-001).
 - **Approved purchase order (NetSuite):** from [[po-issuance-and-change-orders]] (SRC-001).
 - **Item receipt (NetSuite):** the receiving leg, recorded in [[goods-receipt]] (SRC-001, SRC-004).
 - **Receiving documentation:** filed packing slips held by receiving, pulled when a quantity discrepancy must be researched (SRC-004).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Select the pending PO bill
 
@@ -79,7 +79,7 @@ A bill that fails the match is flagged by NetSuite to a status of "Match Excepti
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A bill in "Match Exception - Hold" status in NetSuite — validates the exception status name and that failed matches hold rather than release.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Three-way match: the approved purchase order, the recorded goods receipt and the supplier invoice must all be present, and agree within tolerance, before the payable is eligible for release; failed matches hold in "Match Exception - Hold" status (SRC-001; §5.2–§5.3 of the prior SOP, SRC-006). One of the three procure-to-pay controls in scope for the external audit (SRC-003). The tolerance value is contested — a validation gap is raised at Step 4 in E.
 > - **Type:** Preventive
@@ -96,14 +96,14 @@ A bill that fails the match is flagged by NetSuite to a status of "Match Excepti
 > - **Frequency:** Each bill entry (system-enforced)
 > - **Owner:** TBD — confirm with process owner (a validation gap is raised at Step 2 in E)
 
-### G. Outputs
+### Outputs
 
 - **Released bill (NetSuite):** a matched bill eligible for payment, picked up by the payment proposal in [[weekly-payment-run]] (SRC-001).
 - **Bills in "Match Exception - Hold":** the exception queue worked by the Senior Accounts Payable Specialist until each broken leg is resolved (SRC-001).
 - **Exception referrals:** price variances referred to the responsible Buyer; receipt and quantity issues referred to the Receiving Supervisor (SRC-001, SRC-004).
 - **Evidence retained:** the supplier invoice image attached to the NetSuite bill, retained for not less than seven years (§4.5 of the prior SOP, SRC-006); written quantity confirmations from the Receiving Supervisor where obtained (§5.4 of the prior SOP, SRC-006).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Late receipt entry drives the exception queue: goods physically received but not yet keyed in NetSuite account for roughly sixty percent of match exceptions, so the Senior Accounts Payable Specialist is billing against nothing (SRC-001). The Accounts Payable Manager, the Corporate Controller and the Receiving Supervisor each independently named it the top issue (SRC-001, SRC-003, SRC-004, SRC-005).
 > - **Impact:** The Accounts Payable Manager estimates exception volume would drop by half with same-day receipt entry, recovering roughly a week of the Senior Accounts Payable Specialist's time each month; invoice release is delayed in the meantime (SRC-001).

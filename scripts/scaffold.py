@@ -84,6 +84,11 @@ import notes_util  # noqa: E402
 # drafter is told what the callout/tag vocabulary is; it never decides shape.
 import client_config  # noqa: E402
 
+# The section registry (M23) is doc_model's; client_config imports it hard, so
+# by here it has resolved even if the guarded import above did not.
+if doc_model is None:  # pragma: no cover - see the guarded import above
+    doc_model = client_config.doc_model
+
 # The `unfilled` sentinel grammar is OWNED BY the advisor (orchestrate.py guard
 # 4). Borrowed, never restated, so "is this procedure already drafted?" is
 # answered identically here and at the guard that would otherwise fill it.
@@ -346,12 +351,12 @@ _FALLBACK_SKELETON = """## {heading}
 
 <!-- unfilled -->
 
-### A. Process Overview
+### Process Overview
 
 TBD — What this procedure accomplishes, when it occurs, who performs it, what it
 excludes, and how it connects to upstream / downstream activities.
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** TBD
 - **Frequency:** TBD
@@ -360,33 +365,33 @@ excludes, and how it connects to upstream / downstream activities.
 - **Primary systems / tools:** TBD
 - **Key outputs:** TBD
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - TBD — what must be true before the procedure begins.
 
-### D. Inputs
+### Inputs
 
 - **Input 1:** TBD — source / owner.
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: TBD
 
 TBD — Describe the step in neutral current-state procedural language.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** TBD
 > - **Owner:** TBD
 
-### G. Outputs
+### Outputs
 
 - **Output 1:** TBD
 - **Evidence retained:** TBD
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
 > - **Impact:** TBD
@@ -402,15 +407,20 @@ roles:   []
 """
 
 
-# A `### X. Heading` sub-section line in the skeleton, and the end-matter fence
-# that terminates the last one (the `consult-meta` block belongs to no section,
-# so it must survive even when the section it trails is dropped).
-_SKEL_SECTION_RE = re.compile(r"^###\s+(?P<letter>[A-Z])\.\s")
+# The end-matter fence that terminates the last sub-section (the `consult-meta`
+# block belongs to no section, so it must survive even when the section it
+# trails is dropped). Sub-section headings are recognized by the shared
+# registry (M23): `### Key Controls` and a legacy `### Key Controls` both
+# resolve to the `controls` slug.
 _END_MATTER_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.I)
 
 
 def keep_sections(text: str, sections) -> str:
-    """Drop the `### X.` blocks of every section NOT in `sections` (M14).
+    """Drop the `###` blocks of every section NOT in `sections` (M14/M23).
+
+    `sections` is a list of section SLUGS; headings are resolved to slugs
+    through the shared registry, so a skeleton written either way (letterless,
+    or with a legacy `### F.` prefix) is filtered correctly.
 
     Byte-identical short circuit: if the skeleton names no section the profile
     excludes, the text is returned UNCHANGED — an engagement with no
@@ -422,8 +432,8 @@ def keep_sections(text: str, sections) -> str:
     """
     wanted = set(sections)
     lines = text.splitlines(keepends=True)
-    present = {m.group("letter") for ln in lines
-               if (m := _SKEL_SECTION_RE.match(ln))}
+    present = {s for ln in lines
+               if (s := doc_model.section_of_heading(ln)) is not None}
     if not present - wanted:
         return text
 
@@ -433,9 +443,9 @@ def keep_sections(text: str, sections) -> str:
         if _END_MATTER_RE.match(ln):
             dropping = False       # end matter belongs to no section
         else:
-            m = _SKEL_SECTION_RE.match(ln)
-            if m:
-                dropping = m.group("letter") not in wanted
+            slug = doc_model.section_of_heading(ln)
+            if slug is not None:
+                dropping = slug not in wanted
         if not dropping:
             out.append(ln)
     # Dropping whole blocks leaves runs of blank lines behind; collapse them so
@@ -445,18 +455,23 @@ def keep_sections(text: str, sections) -> str:
 
 
 def render_skeleton(heading: str, sections=None) -> str:
-    """Stamp one A–H skeleton for a procedure.
+    """Stamp one skeleton for a procedure — LETTERLESS headings (M23).
 
     Prefers M1's `procedure_skeleton.md` (the single definition of procedure
     SHAPE): take from its first `##` line onward (dropping the doc-comment header)
-    and substitute the title. Falls back to a minimal A–H shell if M1's file is
-    absent. Either way the `<!-- unfilled -->` sentinel is present.
+    and substitute the title. Falls back to a minimal shell built from the
+    section registry if M1's file is absent. Either way the `<!-- unfilled -->`
+    sentinel is present.
 
-    `sections` (M14) restricts the stamped skeleton to the profile's sections;
-    `None` stamps the full shape. M1 still owns the SHAPE of each section — this
-    only decides which of them exist.
+    The stamped headings carry the TITLE only (`### Process Overview`): the
+    letter is a render-time transform, so no drafter ever writes one and no
+    reshape ever re-writes one.
+
+    `sections` (M14) restricts the stamped skeleton to the profile's section
+    slugs; `None` stamps the full shape. M1 still owns the SHAPE of each
+    section — this only decides which of them exist.
     """
-    letters = (client_config.ALL_SECTIONS if sections is None else sections)
+    wanted = (client_config.ALL_SECTIONS if sections is None else sections)
     if PROCEDURE_SKELETON.is_file():
         raw = PROCEDURE_SKELETON.read_text(encoding="utf-8")
         lines = raw.splitlines(keepends=True)
@@ -471,8 +486,8 @@ def render_skeleton(heading: str, sections=None) -> str:
                 body = body.replace(
                     f"## {heading}\n", f"## {heading}\n\n<!-- unfilled -->\n", 1
                 )
-            return keep_sections(body, letters)
-    return keep_sections(_FALLBACK_SKELETON.format(heading=heading), letters)
+            return keep_sections(body, wanted)
+    return keep_sections(_FALLBACK_SKELETON.format(heading=heading), wanted)
 
 
 def render_static(heading: str) -> str:

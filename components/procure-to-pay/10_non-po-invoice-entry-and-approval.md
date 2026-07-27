@@ -1,10 +1,10 @@
 ## Non-PO Invoice Entry and Approval
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the entry, coding, and approval of supplier invoices that carry no purchase order reference — utilities, legal, insurance, freight bills that do not tie to a PO, and purchases under the PO threshold — roughly a quarter of invoice volume (SRC-001). Because there is no purchase order approval behind these invoices, each bill is coded manually to the general ledger and routed through NetSuite approval workflow before it becomes eligible for payment. The Accounts Payable Clerk performs the entry and coding as captured bills arrive from [[invoice-intake-and-capture]]; approvers act on the routed bills in their NetSuite queues. Approved bills flow into the weekly disbursement cycle in [[weekly-payment-run]]. Invoices bearing a valid purchase order reference are excluded — those are handled in [[po-invoice-entry-and-three-way-match]] — as are payroll disbursements, intercompany settlements, and employee expense reimbursements (§1.2 of the prior SOP, SRC-006).
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A captured bill without a purchase order reference appears in NetSuite in a pending state (SRC-001)
 - **Frequency:** Continuous — worked as bills arrive; roughly a quarter of total invoice volume is non-PO (SRC-001; SRC-005)
@@ -13,20 +13,20 @@ This procedure covers the entry, coding, and approval of supplier invoices that 
 - **Primary systems / tools:** NetSuite
 - **Key outputs:** Fully approved non-PO bill in NetSuite, eligible for the weekly payment run
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - The invoice has been captured and exists in NetSuite as a bill in a pending state with the invoice image attached, per [[invoice-intake-and-capture]] (SRC-001).
 - The supplier exists in the NetSuite vendor master; vendor record creation and maintenance are handled in [[vendor-master-data-maintenance]] (SRC-003).
 - The invoice genuinely carries no purchase order reference — where a purchase order exists, payable lines are not created manually and the bill is processed through [[po-invoice-entry-and-three-way-match]] instead (§5.1 of the prior SOP, SRC-006).
 - The Accounts Payable Clerk has access to the NetSuite Enter Bills function and to the Company chart of accounts for coding (SRC-001; §5.5 of the prior SOP, SRC-006).
 
-### D. Inputs
+### Inputs
 
 - **Pending non-PO bill in NetSuite:** produced by [[invoice-intake-and-capture]], visible on the "AP - Bills Pending Review" saved search, with the invoice image attached (SRC-001).
 - **Company chart of accounts:** the coding reference for general ledger account assignment (§5.5 of the prior SOP, SRC-006).
 - **Freight bills:** sent by carriers directly to Accounts Payable rather than through receiving (SRC-004); handling within the non-PO stream is unconfirmed — see GAP-03 in E.
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Identify the bill as non-PO
 
@@ -80,7 +80,7 @@ Once all required approvals are recorded, the bill is fully approved in NetSuite
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A non-PO bill in NetSuite showing the completed approval history — validates that approvals are recorded in the system rather than by email.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Every non-PO invoice is approved through the dollar-tiered NetSuite approval workflow before it becomes eligible for payment, beginning with the Cost Center Owner and adding senior approvers as value increases. The live tier breakpoints and approver set are contested — see GAP-01 at Step 3 in E.
 > - **Type:** Preventive
@@ -102,12 +102,12 @@ Once all required approvals are recorded, the bill is fully approved in NetSuite
 > - **Frequency:** Each approval
 > - **Owner:** TBD — confirm with process owner whether this is system-enforced in the NetSuite workflow or a policy expectation (covered by GAP-01, the workflow configuration pull)
 
-### G. Outputs
+### Outputs
 
 - **Approved non-PO bill in NetSuite:** fully coded and carrying all required approvals, consumed downstream by [[weekly-payment-run]] (SRC-001).
 - **Evidence retained:** the approval history recorded on the bill in NetSuite (§6.2 of the prior SOP, SRC-006), and the original invoice image attached to the bill record, retained for not less than seven years (§4.5 of the prior SOP, SRC-006).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Non-PO approvals sit in approvers' NetSuite queues for up to two weeks with no escalation — the prior SOP's automatic three-business-day escalation is either not configured or not operating (SRC-001; SRC-005).
 > - **Impact:** Delayed payables, manual chasing by the AP team, and invoices that stall "until someone yells" (SRC-001).

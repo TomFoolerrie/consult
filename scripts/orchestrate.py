@@ -140,6 +140,10 @@ except Exception:  # pragma: no cover - fallback only until M2 ships doc_model
         with open(os.path.join(folder, "manifest.json"), encoding="utf-8") as fh:
             return json.load(fh)
 
+# The SECTION REGISTRY (M23) is doc_model's too: guard 4.5 asks "which sections
+# does this fragment carry?", and the answer must be slugs, not letters.
+import doc_model  # noqa: E402
+
 # The `[[slug]]` grammar is owned by callouts.py (shared with aggregate + render).
 # Borrowed, never restated, so the M18 diagnosis of a dangling reference cannot
 # drift from the reconcile gate that reports it.
@@ -232,11 +236,19 @@ def resolve_area(area: str) -> str:
 
 UNFILLED_RE = re.compile(r"(<!--\s*unfilled\s*-->)|(status\s*:\s*unfilled)", re.I)
 PENDING_RE = re.compile(r"_Pending synthesis", re.I)
-# A `### X.` sub-section heading inside a procedure fragment (M14 guard 4.5).
+# A `###` sub-section heading inside a procedure fragment (M14 guard 4.5).
 # The HEADING IS THE SIGNAL: scaffold always writes one per profile section, so
 # a fragment missing one predates the profile change. No state file, nothing to
 # keep in sync, and it survives hand edits.
-SECTION_HEADING_RE = re.compile(r"^###\s+([A-Z])\.\s", re.MULTILINE)
+#
+# M23: keyed on the section SLUG the shared registry resolves the heading to,
+# not on the letter — `### Key Controls` and a not-yet-migrated
+# `### F. Key Controls` are the same section, so the migration itself can never
+# read as profile drift.
+def _present_sections(text: str) -> set:
+    """The section slugs a fragment carries (doc_model is the one parser)."""
+    return {s for line in text.splitlines()
+            if (s := doc_model.section_of_heading(line)) is not None}
 
 
 class AreaState:
@@ -386,7 +398,7 @@ class AreaState:
         fragment (M14 guard 4.5).
 
         The drift signal is the missing heading ITSELF: scaffold writes one
-        `### X.` per profile section, so a fragment lacking one predates the
+        `###` heading per profile section, so a fragment lacking one predates the
         profile change and needs a drafter update pass. Nothing to reconcile
         against a state file, and per-procedure rather than all-or-nothing.
 
@@ -400,7 +412,7 @@ class AreaState:
         for slug, path in self.procedures:
             if not os.path.isfile(path):
                 continue
-            present = set(SECTION_HEADING_RE.findall(_read_text(path)))
+            present = _present_sections(_read_text(path))
             absent = [s for s in prof.sections if s not in present]
             if absent:
                 out[slug] = absent

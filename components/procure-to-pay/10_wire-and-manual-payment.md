@@ -2,11 +2,11 @@
 
 <!-- scope note: covers variants — Wire transfer; Manual / emergency check. Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### A. Process Overview
+### Process Overview
 
 This procedure covers the two disbursement paths that run outside the weekly ACH and check cycle documented in [[weekly-payment-run]]: wire transfers and manual (emergency) checks. Wires — approximately eight to ten per month, chiefly to overseas tooling suppliers and one German bearing supplier — are initiated by the Treasury Analyst in Chase Connect on the strength of a signed Wire Transfer Request Form and are subject to dual authorization in the portal regardless of value (SRC-001, SRC-003). Manual checks are permitted only in exceptional circumstances with the written authorization of the Corporate Controller, per §7.5 of the prior AP SOP (SRC-006); no interviewee described one being issued, and the current-state practice is raised for validation in this procedure. Upstream, the procedure disburses against supplier obligations, paying to remittance details maintained through [[vendor-banking-change]]; downstream, any check issued feeds the positive pay cycle in [[positive-pay-exception-handling]], and all disbursements clear through the monthly bank reconciliation performed by the Assistant Controller (SRC-003). It excludes the routine weekly disbursement cycle and employee expense reimbursements, which pay through the payroll ACH file from a separate bank account (SRC-003).
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** Wire — receipt of a completed Wire Transfer Request Form signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006). Manual check — an exceptional circumstance authorized in writing by the Corporate Controller (§7.5 of the prior AP SOP, SRC-006).
 - **Frequency:** Wires — approximately eight to ten per month (SRC-001, SRC-005). Manual checks — TBD; no occurrence was described during fieldwork (SRC-005).
@@ -15,7 +15,7 @@ This procedure covers the two disbursement paths that run outside the weekly ACH
 - **Primary systems / tools:** Chase Connect; Finance Shared Drive; NetSuite (positive pay issue file at check print).
 - **Key outputs:** Executed wire transfer; issued manual check; positive pay issue file on each check issuance date; retained signed Wire Transfer Request Form.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - A supplier payment is to be made outside the weekly disbursement cycle in [[weekly-payment-run]] — in practice, wires are the standing payment method for overseas suppliers (SRC-001).
 - The supplier exists on the NetSuite vendor master with remittance details maintained through [[vendor-banking-change]] (SRC-003).
@@ -23,14 +23,14 @@ This procedure covers the two disbursement paths that run outside the weekly ACH
 - The Treasury Analyst holds wire-initiation entitlement in Chase Connect, and the Corporate Controller and Chief Financial Officer hold portal approval entitlements (SRC-001).
 - For a manual check: the written authorization of the Corporate Controller has been obtained, and access to the blank check stock (locked drawer in the AP room) and the check signature plate (safe) is available (SRC-001; §7.5 of the prior AP SOP, SRC-006).
 
-### D. Inputs
+### Inputs
 
 - **Completed, signed Wire Transfer Request Form:** PDF template held on the Finance Shared Drive under Finance/Treasury/Forms; signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006).
 - **Beneficiary banking details for the wire:** the details keyed into Chase Connect; whether these are taken from the Wire Transfer Request Form or from the NetSuite vendor master record was not established (GAP-01).
 - **Written Corporate Controller authorization (manual check):** required before any manual check is issued — source: Corporate Controller (§7.5 of the prior AP SOP, SRC-006).
 - **Blank check stock and signature plate (manual check):** stock held in a locked drawer in the AP room; signature plate held in the safe (SRC-001, SRC-005).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Obtain documented authorization for the off-cycle disbursement
 
@@ -106,7 +106,7 @@ The signed Wire Transfer Request Form is retained on the Finance Shared Drive (S
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** A wire is initiated only upon receipt of a completed Wire Transfer Request Form signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006).
 > - **Type:** Preventive
@@ -133,7 +133,7 @@ The signed Wire Transfer Request Form is retained on the Finance Shared Drive (S
 > - **Frequency:** Each check issuance date
 > - **Owner:** Accounts Payable Manager
 
-### G. Outputs
+### Outputs
 
 - **Executed wire transfer:** to the supplier's bank; same-day value where keyed and approved before the 2:00 PM Eastern cutoff (SRC-001).
 - **Issued manual check:** to the supplier, in exceptional circumstances only (§7.5 of the prior AP SOP, SRC-006).
@@ -141,7 +141,7 @@ The signed Wire Transfer Request Form is retained on the Finance Shared Drive (S
 - **Evidence retained:** the signed Wire Transfer Request Form, filed on the Finance Shared Drive (SRC-005); the Corporate Controller's written authorization for any manual check — retention location TBD — confirm with process owner (GAP-03).
 - **Downstream:** disbursements flow into the daily Chase Connect bank feed to NetSuite and clear through the monthly bank reconciliation performed by the Assistant Controller (SRC-003).
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** The manual / emergency check path exists in policy — exceptional circumstances, written Corporate Controller authorization (§7.5 of the prior AP SOP, SRC-006) — but no interviewee could describe it operating: no preparer, mechanics, frequency, or authorization evidence could be identified during fieldwork (SRC-005).
 > - **Impact:** An off-cycle disbursement path of unknown frequency cannot currently be evidenced as controlled; if a manual check were issued today, the authorization control could not be demonstrated to an auditor from the record.

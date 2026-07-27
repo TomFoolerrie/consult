@@ -2,7 +2,7 @@
 
 <!-- scope note: covers variants — Catalog / punchout requisition; Non-catalog free-text requisition; Services requisition (statement of work required). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### A. Process Overview
+### Process Overview
 
 Requisition and Approval is the entry point for all purchase-order-backed
 spend: a Requester raises a requisition in Coupa, and the requisition routes
@@ -19,7 +19,7 @@ under [[non-po-invoice-entry-and-approval]]. Downstream, the fully approved
 requisition triggers [[po-issuance-and-change-orders]], where Coupa generates
 and transmits the purchase order.
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** A Requester needs goods or services from a supplier that is active in Coupa (SRC-002).
 - **Frequency:** Ad hoc — continuous, on demand.
@@ -28,21 +28,21 @@ and transmits the purchase order.
 - **Primary systems / tools:** Coupa.
 - **Key outputs:** Fully approved requisition in Coupa, ready for purchase order generation.
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - The supplier exists and is active in Coupa and NetSuite; a supplier not on file must first complete [[new-vendor-onboarding]] (SRC-002).
 - The Requester has access to Coupa to raise the requisition.
 - For a services requisition: a statement of work is prepared and available to attach (SRC-002).
 - For a capital requisition: an approved AFE (Authorization for Expenditure) number has been issued (SRC-002).
 
-### D. Inputs
+### Inputs
 
 - **Requirement details:** description, quantity, and supplier for the goods or services needed — from the Requester.
 - **Hosted catalog / punchout content:** supplier-maintained catalog items and pricing, used on the catalog path (SRC-002).
 - **Statement of work:** services requisitions only; attached by the Requester (SRC-002).
 - **Approved AFE number:** capital requisitions only (SRC-002). AFE issuance itself sits outside this procedure and was not described in the sources.
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Initiate the requisition and select the request path
 
@@ -124,7 +124,7 @@ Coupa, and Coupa generates and transmits the purchase order. Purchase order
 generation, transmission, and subsequent change orders are documented under
 [[po-issuance-and-change-orders]] (SRC-002).
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** Tiered requisition approval chain in Coupa: every requisition requires Cost Center Owner approval, with the Functional Vice President added from $2,000 and the Chief Financial Officer above $25,000 (upper threshold contested — see GAP-02 in E) (SRC-002).
 > - **Type:** Preventive
@@ -136,12 +136,12 @@ generation, transmission, and subsequent change orders are documented under
 > - **Frequency:** Each capital requisition
 > - **Owner:** System-enforced in Coupa; administering role TBD — confirm with process owner (see GAP-01 in E)
 
-### G. Outputs
+### Outputs
 
 - **Fully approved requisition (Coupa):** consumed by [[po-issuance-and-change-orders]], where Coupa generates and transmits the purchase order (SRC-002).
 - **Evidence retained:** the requisition record and its approval history in Coupa, where all approvals are executed (SRC-002); no separate archive location was described in the sources.
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Requisition-to-PO cycle time runs at a median of 6.5 days, of which roughly five days is requisitions sitting in approver queues (SRC-002). The figure comes from the Procurement Lead's own spreadsheet rather than a system report and should be treated as indicative (SRC-005).
 > - **Impact:** Slow fulfillment of operational needs; approval queue dwell dominates the requisition-to-PO cycle.

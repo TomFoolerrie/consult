@@ -8,6 +8,8 @@ M4 docx builder, M5 synthesis, and reconcile.py). It owns:
   - load_manifest(folder)        -> dict         (read manifest.json)
   - validate_manifest(manifest)  -> [errors]     (v1 schema check)
   - display_numbers(manifest)    -> {slug: "L2.seq"}   (the ONLY numberer)
+  - SECTION_TITLES / section_slug / section_letters    (M23 section registry:
+    slug is identity, the A–H letter is a render-time display transform)
   - resolve_tokens(text, numbers, mode) -> text   ([[slug]] -> number/title)
   - assemble(folder)             -> AssembledDoc  (structured, not a string)
 
@@ -21,6 +23,7 @@ Python 3, stdlib only.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -153,6 +156,177 @@ def validate_manifest(manifest: dict) -> list[str]:
             errors.append(f'duplicate "file" {file!r} appears {n} times')
 
     return errors
+
+
+# --------------------------------------------------------------------------- #
+# M23 — the SECTION REGISTRY.  Slug is IDENTITY, letter is DISPLAY.
+#
+# This is the sections' half of the split `[[slug]]` : display number already
+# has for procedures and `CTRL-01` : `CTRL-07` has for callouts. It lives here,
+# in the shared spine, for the same reason `display_numbers` does: it is read by
+# every engine (scaffold stamps titles from it, render assigns letters from it,
+# client_config canonicalizes profile tokens through it, aggregate keys section
+# bodies by it) and it must have exactly ONE definition. It is pure data plus
+# three pure functions — no manifest, no filesystem, stdlib only.
+#
+# Fragments carry `### Process Overview`; the LETTER is stamped at render from
+# the profile's `sections:` order. The A–H letters remain accepted as PROFILE
+# aliases (frozen at their historical positions below) so a profile written
+# before this ticket keeps meaning the same sections through any later rename.
+# --------------------------------------------------------------------------- #
+
+#: slug -> canonical title, in canonical document order. M16 move 1 is an edit
+#: to THIS dict (merge/rename entries) plus a content wave — never a re-letter
+#: of every fragment heading in the corpus.
+SECTION_TITLES: dict[str, str] = {
+    "overview": "Process Overview",
+    "quick-reference": "Quick Reference",
+    "prerequisites": "Pre-Requisites",
+    "inputs": "Inputs",
+    "steps": "Step-by-Step Procedure",
+    "controls": "Key Controls",
+    "outputs": "Outputs",
+    "issues": "Known Issues & Improvement Opportunities",
+}
+#: Canonical document order (the order letters are assigned in by default).
+SECTION_SLUGS: list[str] = list(SECTION_TITLES)
+
+#: The historical A–H letter positions, FROZEN as profile aliases. These are
+#: not derived from the order above: their whole job is to keep an existing
+#: `body_omit: [F]` pointing at `controls` even after a future reshape moves
+#: the controls section somewhere other than sixth.
+SECTION_LETTER_ALIASES: dict[str, str] = {
+    "A": "overview", "B": "quick-reference", "C": "prerequisites",
+    "D": "inputs", "E": "steps", "F": "controls", "G": "outputs",
+    "H": "issues",
+}
+
+#: A `###` sub-section heading, with the letter prefix OPTIONAL — the parse
+#: contract for the transition: `### Process Overview` (migrated) and
+#: `### A. Process Overview` (not yet migrated) both resolve to `overview`.
+#: `####` steps never match (`###` must be followed by whitespace).
+SECTION_HEADING_RE = re.compile(
+    r"^(?P<hashes>#{3})\s+(?:(?P<letter>[A-Z])\.\s+)?(?P<title>\S.*?)\s*$"
+)
+
+
+def _norm_section_key(text: str) -> str:
+    """Normalize a slug or title to its lookup key ("Pre-Requisites" ->
+    "pre-requisites"), so registry titles, slugs and hand-typed variants of
+    either resolve to the same entry."""
+    return re.sub(r"[^a-z0-9]+", "-", str(text).strip().lower()).strip("-")
+
+
+#: PAST titles -> slug. A section renamed in `SECTION_TITLES` adds its old title
+#: here and every already-drafted fragment keeps resolving — which is what makes
+#: M16 move 1's rename a registry edit instead of a corpus-wide heading rewrite.
+#: Empty today: nothing has been renamed yet.
+SECTION_TITLE_ALIASES: dict[str, str] = {}
+
+#: (title_keys, section_keys) rebuilt whenever the registry above changes, so a
+#: runtime registry edit (a rename, a merge) takes effect everywhere at once.
+_KEYS_CACHE: tuple = ()
+
+
+def _section_keys() -> tuple[dict, dict]:
+    """(title spellings -> slug, profile-input spellings -> slug).
+
+    Title keys are TITLES ONLY — a heading is matched against them, so
+    `### Steps` (which is nobody's title) stays unresolved rather than being
+    mistaken for `Step-by-Step Procedure`. Profile-input keys add the slugs.
+    """
+    global _KEYS_CACHE
+    stamp = (tuple(SECTION_TITLES.items()), tuple(SECTION_TITLE_ALIASES.items()))
+    if _KEYS_CACHE and _KEYS_CACHE[0] == stamp:
+        return _KEYS_CACHE[1], _KEYS_CACHE[2]
+    titles: dict[str, str] = {}
+    inputs: dict[str, str] = {}
+    for slug, title in SECTION_TITLES.items():
+        for key in (_norm_section_key(title),
+                    _norm_section_key(title).replace("-", "")):
+            titles.setdefault(key, slug)
+        for key in (slug, _norm_section_key(slug), _norm_section_key(title),
+                    _norm_section_key(title).replace("-", "")):
+            inputs.setdefault(key, slug)
+    for title, slug in SECTION_TITLE_ALIASES.items():
+        for key in (_norm_section_key(title),
+                    _norm_section_key(title).replace("-", "")):
+            titles.setdefault(key, slug)
+            inputs.setdefault(key, slug)
+    _KEYS_CACHE = (stamp, titles, inputs)
+    return titles, inputs
+
+
+def section_slug(token) -> Optional[str]:
+    """Canonicalize one section reference to its slug, or None if unknown.
+
+    Accepts the slug (`controls`), the canonical title (`Key Controls`) and the
+    historical letter alias (`F`, `F.`) — profile point 3's "letter aliases
+    remain accepted at parse time and are canonicalized to slugs".
+    """
+    if token is None:
+        return None
+    text = str(token).strip().rstrip(".")
+    if not text:
+        return None
+    if len(text) == 1 and text.upper() in SECTION_LETTER_ALIASES:
+        return SECTION_LETTER_ALIASES[text.upper()]
+    return _section_keys()[1].get(_norm_section_key(text))
+
+
+def section_of_title(title: str) -> Optional[str]:
+    """The slug whose TITLE (canonical or a registered past title) this text is,
+    or None. Titles only — `section_slug` is the one that also takes slugs and
+    letters."""
+    return _section_keys()[0].get(_norm_section_key(title or ""))
+
+
+def section_of_heading(line: str) -> Optional[str]:
+    """The section slug a `###` heading line identifies, or None.
+
+    THE ONE PARSER of a section heading — render (hide/letter), aggregate (key
+    the bodies), scaffold (filter the skeleton), kits and the advisor's profile
+    drift guard all ask here, so "which section is this?" cannot be answered two
+    ways.
+
+    TRANSITION CONTRACT (both forms parse, migration is never a prerequisite):
+      - `### Process Overview`      -> `overview`  (migrated; title matched)
+      - `### A. Process Overview`   -> `overview`  (title matched)
+      - `### F. Some Local Wording` -> `controls`  (title unknown; LETTER used)
+      - `### Steps`                 -> None        (nobody's title, no letter)
+    Title first, letter second: the title is the identity the drafter writes,
+    the letter is a legacy positional fallback.
+    """
+    m = SECTION_HEADING_RE.match(line or "")
+    if not m:
+        return None
+    slug = section_of_title(m.group("title"))
+    if slug is None and m.group("letter"):
+        slug = SECTION_LETTER_ALIASES.get(m.group("letter"))
+    return slug
+
+
+def section_heading_title(line: str) -> Optional[str]:
+    """The title text of a `###` heading, letter prefix stripped."""
+    m = SECTION_HEADING_RE.match(line or "")
+    return m.group("title") if m else None
+
+
+def section_letters(order=None) -> dict[str, str]:
+    """Return {slug: letter} — the render-time DISPLAY transform.
+
+    The letter is the section's 1-based position in `order` (the profile's
+    `sections:` list), exactly as a procedure's display number is its position
+    in its L2 bucket. With the default order this is A–H, which is why a
+    rendered document is letter-identical to a pre-M23 one.
+    """
+    slugs = list(SECTION_SLUGS if order is None else order)
+    return {slug: chr(ord("A") + i) for i, slug in enumerate(slugs)}
+
+
+def section_title(slug: str) -> str:
+    """The canonical title for a slug (the slug itself if unregistered)."""
+    return SECTION_TITLES.get(slug, slug)
 
 
 # --------------------------------------------------------------------------- #

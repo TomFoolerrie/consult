@@ -2,7 +2,7 @@
 
 <!-- scope note: covers variants — PO issuance and transmission (cXML or PDF); Change order (PO revision); Blanket PO (annual not-to-exceed). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### A. Process Overview
+### Process Overview
 
 PO Issuance and Change Orders turns a fully approved Coupa requisition into a
 purchase order in the Supplier's hands: Coupa generates the purchase order
@@ -18,7 +18,7 @@ the purchase order is received against in [[goods-receipt]] and matched in
 fact for goods or services a vendor has already supplied are excluded — they
 follow [[confirming-po]] (SRC-002).
 
-### B. Quick Reference
+### Quick Reference
 
 - **Trigger:** Full approval of a requisition in Coupa (issuance); a required revision to an issued purchase order, including over-shipment blocks referred by receiving (change order); recurring annual spend (blanket purchase order) (SRC-002, SRC-004).
 - **Frequency:** Continuous — purchase orders issue as requisitions complete approval; change orders and blanket setup are ad hoc.
@@ -27,21 +27,21 @@ follow [[confirming-po]] (SRC-002).
 - **Primary systems / tools:** Coupa (purchase order generation, transmission, revision, blanket NTE); NetSuite (receives the purchase order by sync).
 - **Key outputs:** Transmitted purchase order (NIG- sequential number); purchase order revisions with re-approval trail; blanket purchase orders with annual NTE; purchase order record in NetSuite (SRC-002).
 
-### C. Pre-Requisites
+### Pre-Requisites
 
 - A fully approved requisition exists in Coupa — the output of [[requisition-and-approval]] (SRC-002).
 - The Supplier is active in Coupa with a transmission path: cXML enablement, or an email address for the PDF copy (SRC-002).
 - For a change order: an issued purchase order exists in Coupa (SRC-002).
 - For a release against a blanket purchase order: cumulative releases remain below the annual NTE — releases block once the ceiling is reached (SRC-002).
 
-### D. Inputs
+### Inputs
 
 - **Fully approved requisition:** from [[requisition-and-approval]] — the Requester and the completed approval chain (SRC-002).
 - **Supplier transmission details:** cXML enablement status or the Supplier's email address, held on the Coupa supplier record (SRC-002).
 - **Change order request:** the revised quantities or values, from the Requester or Buyer; includes over-shipment blocks referred by the Receiving Supervisor (SRC-002, SRC-004).
 - **Blanket purchase order terms:** the annual not-to-exceed value for the recurring spend category (SRC-002).
 
-### E. Step-by-Step Procedure
+### Step-by-Step Procedure
 
 #### Step 1: Coupa generates the purchase order at final requisition approval
 
@@ -138,7 +138,7 @@ described: TBD — confirm with process owner
 
 > **SCREENSHOT PLACEHOLDER — SC-03:** The Coupa blanket purchase order burn-down report for an active blanket; validates that the report exists and shows cumulative releases against the annual NTE.
 
-### F. Key Controls
+### Key Controls
 
 > **CONTROL — CTRL-001:** A purchase order is generated only from a fully approved requisition — Coupa does not cut the purchase order until the approval chain of [[requisition-and-approval]] completes (SRC-002).
 > - **Type:** Preventive
@@ -155,7 +155,7 @@ described: TBD — confirm with process owner
 > - **Frequency:** Each release against a blanket purchase order
 > - **Owner:** System-enforced in Coupa; monitoring owner undefined (GAP-04 in E)
 
-### G. Outputs
+### Outputs
 
 - **Issued purchase order:** transmitted to the Supplier by cXML (approximately sixty enabled suppliers) or PDF email (SRC-002).
 - **Purchase order record in NetSuite:** the open purchase order that [[goods-receipt]] receives against and [[po-invoice-entry-and-three-way-match]] matches against (SRC-002).
@@ -163,7 +163,7 @@ described: TBD — confirm with process owner
 - **Blanket purchase orders:** annual NTE instruments released against by receipt, with a Coupa burn-down report available on demand (SRC-002).
 - **Evidence retained:** the purchase order's version and approval history on the Coupa record (SRC-002); no separate archive location was described in the sources.
 
-### H. Known Issues & Improvement Opportunities
+### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Blanket purchase order NTE burn-down is unmonitored: the Coupa report exists, but no one runs it on a schedule and no owner is defined, so blankets hit the annual ceiling mid-year — described as month nine — and all releases block without warning, producing urgent escalations to the Buyer (SRC-002, SRC-005).
 > - **Impact:** Supply interruption for recurring services and materials until the block is cleared; unplanned firefighting for the Buyer.

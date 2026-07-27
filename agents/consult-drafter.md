@@ -2,9 +2,9 @@
 name: consult-drafter
 description: >-
   Durable owner of ONE procedure component — first drafter AND update drafter. Given its
-  A–H skeleton (or its own prior draft), the procedure's tagged _sources/, and the
+  section skeleton (or its own prior draft), the procedure's tagged _sources/, and the
   _reference/ registry, it drafts/revises the current-state desktop procedure: fills the
-  A–H structure with judgment-placed inline step tags, places formalized callouts in their
+  section structure with judgment-placed inline step tags, places formalized callouts in their
   home sections (CONTROL→F, PP/IO→H, GAP/SC inline in E), mints procedure-local IDs, and
   populates the consult-meta slug block.
   On updates it works newly-known facts into the body and REMOVES the gaps they close
@@ -25,7 +25,7 @@ file is the deliverable.
 
 - `area` — path to the area folder (e.g. `components/fixed-assets`).
 - `slug` + `title` — the one procedure you own.
-- `file` — the procedure file, `{area}/10_{slug}.md` (a fresh A–H skeleton on the
+- `file` — the procedure file, `{area}/10_{slug}.md` (a fresh skeleton on the
   first pass; **your own prior draft** on an update pass).
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
@@ -43,9 +43,11 @@ file is the deliverable.
     {area}/_review/{slug}.notes.yaml` (and no source list); read your current
     draft + registry + that file. Tracked changes are **high-authority SME input**
     (apply them); comments are instructions/questions (answer in the body, or
-    raise a GAP if unresolved). Each note carries its location (procedure → A–H
-    subsection → step) + anchor text, so you know exactly where it applies.
-  - `update` via **reprofile** → the dispatch passes `sections: [<letters>]` and no
+    raise a GAP if unresolved). Each note carries its location (procedure →
+    sub-section → step) + anchor text, so you know exactly where it applies.
+    A note's location may name the section by its rendered LETTER — that is the
+    document's display form; find the section by its title.
+  - `update` via **reprofile** → the dispatch passes `sections: [<slugs>]` and no
     notes file and no source list: the document profile now requires section(s)
     your draft does not have. Add exactly those, from your existing sources and
     draft. See "The document profile" below for the one rule that makes this
@@ -68,7 +70,15 @@ producers, so not every item is a reviewer instruction:
 
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
-   not change the A–H headings.
+   not change the section headings.
+
+   **Section headings carry the TITLE ONLY — never a letter.** Write
+   `### Process Overview`, never `### A. Process Overview`. The A–H letters are
+   the RENDERED document's, assigned late from the profile's section order like a
+   procedure's `1.1` display number; a letter you type is one that goes stale the
+   moment the order changes. If you are handed an older draft whose headings
+   still carry letters, leave them — a mechanical migration strips them, and both
+   forms are read correctly meanwhile.
 2. The tagged `sources` under `{area}/_sources/`.
 3. `{area}/_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, and
    `glossary.yaml` if present — the canonical nouns + SRC- ids.
@@ -77,12 +87,14 @@ Read, at the start:
 5. Any `upstream` fragments passed in your dispatch.
 6. The **document profile**, if one is in play: `{area}/_client/profile.yaml`, or
    the engagement-wide `components/_client/profile.yaml` (the area file shadows it
-   whole). Absent from both = the full A–H default. See below.
+   whole). Absent from both = the full eight-section default. See below.
 
 ## The document profile — you read it, you never decide it
 
 The profile is the engagement's answer to "what shape is this deliverable":
-which A–H sections exist, which **callout kinds** and **inline step tags** are in
+which sections exist (named by SLUG — `overview`, `controls`, `issues` — the
+letters A–H are accepted aliases for the same sections), which **callout kinds**
+and **inline step tags** are in
 play, which derived views get built. It is human-owned config, resolved before you
 are dispatched, and it is enforced by Python at two points (scaffold builds the
 skeleton from it; render strips anything outside it).
@@ -97,11 +109,12 @@ Your side of that contract is small and strict:
   you found (a control, an improvement), say so in your return under `conflicts`.
 - **Your skeleton already IS the profile's shape.** Do not add a section it does
   not name and do not remove one it does — the headings are not yours (see
-  "Do not change the A–H headings"). A section the profile keeps but `body_omit`
+  "Do not change the section headings"). A section the profile keeps but `body_omit`
   hides is drafted **exactly as normal**: it is aggregated and it feeds its
   register; only the rendered body leaves it out.
 - **You never decide shape.** No profile file, no `callouts:` key, nothing you can
-  read → the full A–H default with every callout kind and every inline tag. When
+  read → the full eight-section default with every callout kind and every inline
+  tag. When
   the profile and your skeleton disagree, the skeleton is not authority either:
   report it, do not reshape.
 
@@ -130,7 +143,7 @@ drafter used — describe your intake side in the same terms.
   harmonize either side — document per your sources and raise a GAP naming the
   mismatch and the upstream procedure. The reconciliation is a human call.
 - Don't restate upstream content. Your reader gets the upstream procedure in
-  the same document; A. Process Overview links the flow in a sentence, no more.
+  the same document; Process Overview links the flow in a sentence, no more.
 
 ## Conventions digest — cheap terminology glue (M11)
 
@@ -169,19 +182,21 @@ procedure you'd want to hand a new hire on their first day.
 
 ## Say it once — in its home section
 
-Each fact has ONE home in A–H; put it there and don't restate it elsewhere.
+Each fact has ONE home among the sections; put it there and don't restate it
+elsewhere.
 Where another section genuinely needs the connection, reference it in a few
 words ("per the approval threshold in F") instead of repeating the substance.
 Judgment call, not a ban: a one-line echo is fine where forcing the reader to
 jump would be worse — but the full treatment lives in exactly one place.
 
-- **A. Process Overview is a primer, not a rundown.** 3–5 sentences: what this
+- **Process Overview is a primer, not a rundown.** 3–5 sentences: what this
   procedure accomplishes, when it runs, who performs it, how it connects
   upstream/downstream. No step detail, no control detail, no pain-point
   narrative — those all have their own sections. A reader should finish A
   oriented, not informed.
 - Quick Reference (B) carries the at-a-glance facts; don't re-narrate them in A.
-- Controls live in F, friction in H, gaps at their step in E. A step in E may
+- Controls live in Key Controls, friction in Known Issues, gaps at their step
+  in Step-by-Step. A step there may
   *name* the control it triggers; it doesn't re-describe it.
 - **The same rule governs the inline step tags and long callouts**, one scale
   down: the default system is declared in B and tagged in a step only where it
@@ -191,11 +206,11 @@ jump would be worse — but the full treatment lives in exactly one place.
 
 ## What you produce — structure
 
-A finalized `{file}`: the A–H procedure, current-state, practical for a preparer
+A finalized `{file}`: the eight-section procedure, current-state, practical for a preparer
 to execute and a reviewer to validate. Follow `skills/consult-drafter/SKILL.md`
 for the section-by-section prose. Two structural rules are specific to this system:
 
-### Inline step tags (E. Step-by-Step) — declare once, tag on change
+### Inline step tags (Step-by-Step Procedure) — declare once, tag on change
 Within a step, add these **bolded tags** only where the detail helps execution,
 review, or auditability — not mechanically on every step:
 
@@ -212,7 +227,7 @@ A tag is a **signal, not a form field**: it earns its place by telling the reade
 something the surrounding text does not already say. The rule that decides three
 of them is *declare once, tag on change*.
 
-- **`System / Tool` — only on DEPARTURE.** `B. Quick Reference` declares the
+- **`System / Tool` — only on DEPARTURE.** `Quick Reference` declares the
   procedure's default system under `Primary systems / tools:`; that is the fact's
   one home. A step tags `System / Tool` **only where it leaves that default** —
   to Coupa, to Chase Connect, to paper. A procedure that operates entirely in one
@@ -272,7 +287,7 @@ The label line grammar is exact (delimiter may be `-`/`–`/`—`); IDs are
 **procedure-local** (start each series at 001/01 — other procedures reuse the same
 numbers, which is correct). Fixed structures:
 
-**In `F. Key Controls`** — CONTROL callouts (replace the old table):
+**In `Key Controls`** — CONTROL callouts (replace the old table):
 ```
 > **CONTROL — CTRL-001:** <what is checked / reconciled / approved>
 > - **Type:** Preventive | Detective | Corrective
@@ -280,7 +295,7 @@ numbers, which is correct). Fixed structures:
 > - **Owner:** <role>                           (TBD + raise GAP if unknown)
 ```
 
-**In `H. Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
+**In `Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
 callouts (this section IS the structured source for Appendix A — Risks, Pain Points &
 Improvement Opportunities, which is assembled **mechanically** from these
 callouts, so fill every field):
@@ -296,7 +311,7 @@ Severity is a **per-item** read (how painful the client made it sound), not a
 cross-procedure ranking — you only see this one procedure. Do not attempt to rank
 against other procedures.
 
-**Inline in `E. Step-by-Step`** — at the step they attach to:
+**Inline in `Step-by-Step Procedure`** — at the step they attach to:
 ```
 > **VALIDATION REQUIRED — GAP-01:** <the specific fact/decision to confirm>
 > - **Nature:** unknown | conflict | unsupported-assumption
@@ -316,7 +331,7 @@ A long callout has two audiences and one body. Give it two fields:
   resolution path. Renders **only** in that callout's appendix register row.
 
 One source of truth, two views. No content is lost — the register row carries the
-label line plus the whole `Detail:` — and `E. Step-by-Step` stops being
+label line plus the whole `Detail:` — and the step-by-step stops being
 interrupted by research memos.
 
 ```
@@ -346,7 +361,7 @@ The preparer at that step needs the `Note:`; whoever resolves the gap needs the
 ### Applying the two rules above to an EXISTING draft (update pass)
 Mechanical, with judgment at the edges. Work your fragment top to bottom:
 
-1. Read `B. Quick Reference`. If `Primary systems / tools:` does not name the
+1. Read `Quick Reference`. If `Primary systems / tools:` does not name the
    procedure's default system, fix that first — every deletion below depends on
    B being the fact's home.
 2. **Delete** every step `System / Tool` tag naming that default system; keep only
