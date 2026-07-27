@@ -428,3 +428,26 @@ def test_hedge_inside_callout_is_not_flagged(tmp_path, capsys):
     rc, out = run(area, capsys)
     assert rc == 0
     assert "HEDGE IN PROSE" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 15. British spellings (drafter contract: American English, always)
+# --------------------------------------------------------------------------- #
+
+def test_british_spelling_warns_naming_word_and_line(tmp_path, capsys):
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe run is authorised and synchronised nightly.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "BRITISH SPELLING" in out and "'authorised'" in out
+
+
+def test_shared_spellings_never_flag(tmp_path, capsys):
+    """'analysis', 'analyst', 'advise', 'premise' are correct American
+    English — the check is a word list, not a general -ise detector."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe analyst documents the analysis on this premise "
+                   "and can advise the Controller.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "BRITISH SPELLING" not in out
