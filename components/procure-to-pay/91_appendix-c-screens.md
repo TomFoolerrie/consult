@@ -2,7 +2,7 @@
 
 <!-- derived: screenshot-index; writer: python -->
 
-_Screenshot placeholders aggregated from the `SCREENSHOT PLACEHOLDER` callouts. IDs are numbered sequentially through the document; rows are grouped by sub-process._
+_Index of the screenshots and system evidence referenced in this document, with capture status. IDs are numbered sequentially through the document; rows are grouped by sub-process._
 
 #### Vendor Management
 
