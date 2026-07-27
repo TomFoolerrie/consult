@@ -177,7 +177,12 @@ revert); its failures degrade to notes, never to corrupted fragments.
   chart is missing/thin; tell the user which role has no person mapped.
 - **User asks for the client deliverable while gaps are open** → that's
   allowed by design: `--mode final` strips and reports counts; relay the
-  counts so the acceptance is informed.
+  counts so the acceptance is informed. If it also prints a WARNING listing
+  dangling gap references (prose like "see GAP-07" whose callout/appendix row
+  the strip removed), relay that list verbatim — the reader of the export
+  would see those references with nothing to look up — and note the fix is
+  closing those gaps through the review round (or hand-editing before
+  shipping); never rewrite the prose yourself.
 
 ## How you are invoked
 
