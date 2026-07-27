@@ -20,7 +20,7 @@ procedure. (SRC-001, SRC-003, SRC-006)
 | Trigger | The bank presents one or more positive pay exception items against the issued-check register for a check run |
 | Frequency | Per check run, where the bank returns exceptions; exceptions are presented the business morning after checks are issued |
 | Preparer | Accounts Payable Manager |
-| Reviewer | None — the disposition is made and finalised by the preparer alone (see PP-001) |
+| Reviewer | None — the disposition is made and finalized by the preparer alone (see PP-001) |
 | Systems | Chase Connect (positive pay exception queue and disposition) |
 | Key inputs | Exception items presented by the bank; the issued-check register established by the transmitted issue file |
 | Key outputs | A pay or return disposition recorded in the bank portal for each exception item |

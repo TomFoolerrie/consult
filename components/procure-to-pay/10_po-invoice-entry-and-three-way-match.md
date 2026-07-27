@@ -213,7 +213,7 @@ available for selection in [[weekly-payment-run]] according to its due date.
 > - **Severity:** High
 
 > **PAIN POINT — PP-004:** Match exception research leaves no record on the transaction.
-> - **Impact:** The cause of each exception, the time it was held and the resolution reached exist only in email, so the exception population cannot be analysed, reported or evidenced to an auditor. (SRC-001, SRC-005)
+> - **Impact:** The cause of each exception, the time it was held and the resolution reached exist only in email, so the exception population cannot be analyzed, reported or evidenced to an auditor. (SRC-001, SRC-005)
 > - **Severity:** Medium
 
 > **IMPROVEMENT OPPORTUNITY — IO-001:** Pull, confirm and publish the configured NetSuite match tolerance, and re-approve it as a documented Controller-owned policy so that a single figure governs the control.

@@ -44,7 +44,7 @@ processed without a purchase order are handled under
 
 ### Procedure
 
-#### Step 1: Receive the returned invoice and identify the unauthorised commitment
+#### Step 1: Receive the returned invoice and identify the unauthorized commitment
 
 An invoice that cannot be matched to a purchase order is returned by Accounts
 Payable to procurement. The supplier, the plant or department that placed the
@@ -132,7 +132,7 @@ returned invoice can be entered and matched
 ### Key Controls
 
 > **CONTROL — CTRL-001:** An invoice that cannot be matched to a purchase order is
-> not processed; it is returned to procurement, which surfaces the unauthorised
+> not processed; it is returned to procurement, which surfaces the unauthorized
 > commitment and forces creation of a confirming purchase order.
 > - **Type:** Detective
 > - **Frequency:** Each occurrence

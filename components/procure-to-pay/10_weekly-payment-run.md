@@ -117,8 +117,8 @@ and the preparer holds no release entitlement (see CTRL-002).
 - **System / Tool:** Chase Connect
 
 > **VALIDATION REQUIRED — GAP-03:** Whether a second approver is required on every ACH batch or only above a dollar threshold is unconfirmed.
-> - **Note:** Two accounts of the same control are in circulation; confirm the configured entitlement before describing the batch as dual-authorised without exception.
-> - **Detail:** The Accounts Payable Manager states that a second approver is required on every batch with no dollar floor, dual authorisation having been applied to all batches following a 2022 phishing incident (SRC-001). The Corporate Controller states that the configured entitlement requires a second approver only above $100,000 and that a single release is permitted below that, adding that practice is stricter than entitlement because the weekly run always exceeds the threshold, and asking that the control be documented as configured with the stricter practice noted (SRC-003). §7.3 of the prior SOP requires only that the individual transmitting the file not be the individual releasing it, and sets no second-approver threshold (SRC-006). The working notes call for the bank entitlement report to be obtained to settle the point (SRC-005).
+> - **Note:** Two accounts of the same control are in circulation; confirm the configured entitlement before describing the batch as dual-authorized without exception.
+> - **Detail:** The Accounts Payable Manager states that a second approver is required on every batch with no dollar floor, dual authorization having been applied to all batches following a 2022 phishing incident (SRC-001). The Corporate Controller states that the configured entitlement requires a second approver only above $100,000 and that a single release is permitted below that, adding that practice is stricter than entitlement because the weekly run always exceeds the threshold, and asking that the control be documented as configured with the stricter practice noted (SRC-003). §7.3 of the prior SOP requires only that the individual transmitting the file not be the individual releasing it, and sets no second-approver threshold (SRC-006). The working notes call for the bank entitlement report to be obtained to settle the point (SRC-005).
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
@@ -191,13 +191,13 @@ items returned by the bank against this file are dispositioned under
 
 ### Known Issues & Improvement Opportunities
 
-> **PAIN POINT — PP-001:** The Corporate Controller both approves the payment run in NetSuite and releases the funds at the bank, so the two authorisation points in the cycle rest with one individual.
+> **PAIN POINT — PP-001:** The Corporate Controller both approves the payment run in NetSuite and releases the funds at the bank, so the two authorization points in the cycle rest with one individual.
 > - **Note:** The segregation across the run is three-way in name only at the approval and release steps; the auditors have challenged it twice.
 > - **Detail:** The Controller describes the separation as "roughly" three-way — vendor master with the Accounts Payable Clerk, proposal build with the Accounts Payable Manager, approval and release with the Controller — and acknowledges that approving the run in the ERP and releasing it at the bank sits with the same person. External audit has pushed back on this twice. The compensating position offered is that the Controller approves a proposal they did not build and that the payment register is reviewed after the fact, which the Controller characterised as a compensating story and "not a great one" (SRC-003, SRC-005).
 > - **Impact:** A single individual can carry an approved payment through to settlement; the mitigating review is detective and after the fact.
 > - **Severity:** High
 
-> **PAIN POINT — PP-002:** The documented disbursement procedure has drifted from practice — the prior SOP describes a Monday/Wednesday cycle that no one performing the run recognises, and no two accounts of the current calendar agree.
+> **PAIN POINT — PP-002:** The documented disbursement procedure has drifted from practice — the prior SOP describes a Monday/Wednesday cycle that no one performing the run recognizes, and no two accounts of the current calendar agree.
 > - **Impact:** There is no authoritative statement of when the proposal is built, reviewed and released, which leaves the timing of the approval control unverifiable; if the proposal is reviewed and released the same morning, the review is compressed to the point the Controller identified it as a finding.
 > - **Severity:** Medium
 

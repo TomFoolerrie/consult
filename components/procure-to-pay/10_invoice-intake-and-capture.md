@@ -156,7 +156,7 @@ procedures. (SRC-001, SRC-006)
 > - **Impact:** Forty to fifty pieces per week require manual handling, date-stamping and scanning before capture can begin, adding at least one business day to intake. (SRC-001, SRC-006)
 > - **Severity:** Low
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** Introduce an accounts payable automation layer with improved OCR extraction, so that purchase order references are recognised reliably regardless of placement on the invoice face.
+> **IMPROVEMENT OPPORTUNITY — IO-001:** Introduce an accounts payable automation layer with improved OCR extraction, so that purchase order references are recognized reliably regardless of placement on the invoice face.
 > - **Addresses:** PP-001
 
 > **IMPROVEMENT OPPORTUNITY — IO-002:** Provide supplier self-service visibility of invoice and payment status through a vendor portal, removing routine status enquiries from the Accounts Payable team.

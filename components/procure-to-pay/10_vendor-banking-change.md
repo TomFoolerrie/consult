@@ -179,7 +179,7 @@ banking change.
 > **IMPROVEMENT OPPORTUNITY — IO-001:** Assign a single named owner for the callback verification and a named second approver, and confirm both against the NetSuite and Coupa entitlements actually in force.
 > - **Addresses:** PP-001
 
-> **IMPROVEMENT OPPORTUNITY — IO-002:** Standardise the callback evidence as a structured record on the vendor record — date, time, person spoken to, confirmation, performer, approver — so that the control can be evidenced without reconstruction.
+> **IMPROVEMENT OPPORTUNITY — IO-002:** Standardize the callback evidence as a structured record on the vendor record — date, time, person spoken to, confirmation, performer, approver — so that the control can be evidenced without reconstruction.
 > - **Addresses:** PP-002
 
 > **IMPROVEMENT OPPORTUNITY — IO-003:** Route banking changes on existing suppliers through the Coupa Supplier Information Management portal, so the new account is entered by the authenticated supplier rather than keyed from an email.
