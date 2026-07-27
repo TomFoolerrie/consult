@@ -676,6 +676,32 @@ def test_callout_color_comes_from_the_label_not_the_prose(tmp_path):
     assert fills == ["F3F8F4", "FCF7CC"]   # control green, then gap yellow
 
 
+def test_paired_pain_improvement_table_is_not_red(tmp_path):
+    """The Appendix A register pairs 'Pain Point' and 'Improvement
+    Opportunity' in ONE header — the pain-table red wash must not fire on it
+    (a red recommendation reads as a problem). A pain-only table keeps the
+    red styling."""
+    md = tmp_path / "a.md"
+    md.write_text(
+        "# T\n\n## Appendix\n\n"
+        "| Pain Point | Impact | Severity | Improvement Opportunity |\n"
+        "|---|---|---|---|\n"
+        "| PP-01 — manual matching | Two days | High | IO-01 — automate |\n"
+        "\n\n## Known Issues\n\n"
+        "| Pain Point | Impact |\n"
+        "|---|---|\n"
+        "| PP-02 — re-keying | An hour a day |\n",
+        encoding="utf-8")
+    out = tmp_path / "a.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    body_fills = []
+    for t in Document(str(out)).tables:
+        shd = t.cell(1, 0)._tc.get_or_add_tcPr().find(qn("w:shd"))
+        body_fills.append(shd.get(qn("w:fill")))
+    assert body_fills[0] == "FFFFFF"       # paired register: standard
+    assert body_fills[1] == "FBEBEB"       # pain-only table: still red
+
+
 def test_wide_raci_table_renders(tmp_path):
     """A 17-column RACI matrix converts without a width error."""
     md = tmp_path / "wide.md"
