@@ -594,7 +594,8 @@ def test_toc_title_is_not_a_heading_so_the_toc_cannot_list_itself(tmp_path):
     Normal paragraph instead — same chapter look, invisible to the field."""
     area = make_area(tmp_path)
     out = tmp_path / "t.docx"
-    render.render_folder(area, out, include_toc=True, emit_signal=False)
+    # No flag passed: folder renders carry the TOC unconditionally.
+    render.render_folder(area, out, emit_signal=False)
     toc_title = [p for p in Document(str(out)).paragraphs
                  if p.text == "Table of Contents"]
     assert len(toc_title) == 1
@@ -609,8 +610,9 @@ def test_subset_kit_render_has_no_dividers(tmp_path):
     area = make_area(tmp_path)
     out = tmp_path / "k.docx"
     render.render_folder(area, out, slugs=["payment-run"], emit_signal=False)
-    assert not [p for p in Document(str(out)).paragraphs
-                if p.style.name == "Heading 1"]
+    doc = Document(str(out))
+    assert not [p for p in doc.paragraphs if p.style.name == "Heading 1"]
+    assert not [p for p in doc.paragraphs if p.text == "Table of Contents"]
 
 
 def test_callout_color_comes_from_the_label_not_the_prose(tmp_path):
