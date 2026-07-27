@@ -1,6 +1,6 @@
 ---
 name: consult-drafter
-description: "Fills ONE current-state desktop procedure (the A–H skeleton) from tagged sources and the reference registry."
+description: "Fills ONE current-state desktop procedure (the section skeleton) from tagged sources and the reference registry."
 ---
 
 # Consult Drafter
@@ -11,17 +11,23 @@ document, the front matter, the appendices, or any other procedure. Those are
 static (human-owned) or derived (generated) files.
 
 **Load `reference/Template.md` and `reference/procedure_skeleton.md` after this
-skill.** The skeleton is the exact A–H shape you fill; the template shows how your
+skill.** The skeleton is the exact section shape you fill; the template shows how your
 fragment sits in the assembled document. This SKILL is the how-to; the agent
 definition `agents/consult-drafter.md` is the contract — where they touch,
 the agent definition wins.
 
 ## What you own
 
-A finalized `10_<slug>.md`: the A–H procedure for one L3 activity, current-state,
-practical for a preparer to execute and a reviewer to validate. You receive a
-fresh A–H skeleton on the first pass, or your own prior draft on an update pass.
-Do not change the A–H headings.
+A finalized `10_<slug>.md`: the eight-section procedure for one L3 activity,
+current-state, practical for a preparer to execute and a reviewer to validate. You
+receive a fresh skeleton on the first pass, or your own prior draft on an update
+pass. Do not change the section headings.
+
+**Headings carry the TITLE ONLY — never a letter.** Write
+`### Process Overview`, never `### A. Process Overview`. The A–H letters belong to
+the rendered document: they are assigned late, from the profile's section order,
+exactly like a procedure's `1.1` display number. A letter you type is a letter
+that goes stale the moment the section order changes.
 
 Read at the start: your `{file}`; the `_sources/` tagged to this procedure;
 `_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, `glossary.yaml` (if
@@ -79,7 +85,7 @@ the deliverable, and two of its keys are directly yours:
 The other keys are not yours to act on. `sections:` is already baked into the
 skeleton you were handed, and a section under `body_omit:` is drafted, aggregated
 and registered **exactly as normal** — only the rendered body leaves it out. **You
-never decide shape**: no profile anywhere means the full A–H default with every
+never decide shape**: no profile anywhere means the full eight-section default with every
 kind and tag below, and a profile that disagrees with your skeleton is something
 you report, not something you reshape.
 
@@ -87,28 +93,32 @@ you report, not something you reshape.
 (the profile now requires a section your draft lacks), write the heading **even
 when the finding is "none identified in the current state" — a heading you do not
 write re-fires the guard forever.** The advisor detects drift by the missing
-`### X.` heading itself, so a section you judged empty and skipped is
+`###` heading itself, so a section you judged empty and skipped is
 indistinguishable from one never drafted, and you will be dispatched for it every
 pass. Heading, then the one-line finding under it; never blank, never `TBD`.
 
-## The A–H sections
+## The sections
 
-- **A. Process Overview** — what it accomplishes, when, who, what it excludes, and
-  its upstream/downstream connections. (The dependencies agent reads this.)
-- **B. Quick Reference** — Trigger, Frequency, Preparer, Reviewer, primary
+Write each heading exactly as titled here — no letter. The parenthetical is the
+letter it RENDERS as under the default profile, for orientation only.
+
+- **Process Overview** (renders as A) — what it accomplishes, when, who, what it
+  excludes, and its upstream/downstream connections. (The dependencies agent
+  reads this.)
+- **Quick Reference** (B) — Trigger, Frequency, Preparer, Reviewer, primary
   systems/tools, key outputs.
-- **C. Pre-Requisites** — bullets: what must be true before it begins.
-- **D. Inputs** — bullets: source/owner where supported.
-- **E. Step-by-Step Procedure** — `####` steps in neutral current-state language.
-- **F. Key Controls** — CONTROL callouts (no table).
-- **G. Outputs** — bullets: outputs, downstream recipients, evidence retained,
+- **Pre-Requisites** (C) — bullets: what must be true before it begins.
+- **Inputs** (D) — bullets: source/owner where supported.
+- **Step-by-Step Procedure** (E) — `####` steps in neutral current-state language.
+- **Key Controls** (F) — CONTROL callouts (no table).
+- **Outputs** (G) — bullets: outputs, downstream recipients, evidence retained,
   where supported.
-- **H. Known Issues & Improvement Opportunities** — PAIN POINT + IMPROVEMENT
+- **Known Issues & Improvement Opportunities** (H) — PAIN POINT + IMPROVEMENT
   callouts. **This section IS the structured source for Appendix A** ("Risks, Pain
   Points & Improvement Opportunities") — it is assembled mechanically from these
   callouts, so fill every field. It is not free narrative to be ignored.
 
-### Inline step tags (E) — declare once, tag on change
+### Inline step tags (Step-by-Step Procedure) — declare once, tag on change
 
 Within a step, add these **bolded tags** only where the detail helps execution,
 review, or auditability — not mechanically on every step:
@@ -177,7 +187,7 @@ The label line grammar is exact (delimiter may be `-`/`–`/`—`). IDs are
 numbers, which is correct. Never renumber an existing ID on update; a removed item
 leaves its number retired.
 
-**In `F. Key Controls`** — CONTROL:
+**In `Key Controls`** — CONTROL:
 ```
 > **CONTROL — CTRL-001:** <what is checked / reconciled / approved>
 > - **Type:** Preventive | Detective | Corrective
@@ -185,7 +195,8 @@ leaves its number retired.
 > - **Owner:** <role>                           (TBD + raise GAP if unknown)
 ```
 
-**In `H`** — PAIN POINT + IMPROVEMENT OPPORTUNITY:
+**In `Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
+OPPORTUNITY:
 ```
 > **PAIN POINT — PP-001:** <observed current-state friction, source-grounded>
 > - **Impact:** <consequence from the source>   (TBD if the source is silent)
@@ -197,7 +208,7 @@ leaves its number retired.
 Severity is a **per-item** read for this one procedure — never a cross-procedure
 ranking (you only see this procedure).
 
-**Inline in `E`** — at the step they attach to:
+**Inline in `Step-by-Step Procedure`** — at the step they attach to:
 ```
 > **VALIDATION REQUIRED — GAP-01:** <the fact/decision to confirm>
 > - **Nature:** unknown | conflict | unsupported-assumption
@@ -218,7 +229,8 @@ One body, two audiences, two fields:
   path). Renders **only** in that callout's appendix register row.
 
 One source of truth, two views: nothing is lost (the register row carries the
-label line plus the whole `Detail:`) and `E` stops being interrupted by research
+label line plus the whole `Detail:`) and the step-by-step is no longer
+interrupted by research
 memos.
 
 ```

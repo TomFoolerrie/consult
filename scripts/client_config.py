@@ -47,8 +47,14 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import doc_model  # noqa: E402  (shared spine — M23 section registry)
 
 try:
     import yaml
@@ -220,7 +226,7 @@ def report_line(area, prefix: str = "client config") -> str:
 # import this module without importing each other.
 #
 # ABSENT PROFILE = TODAY. `profile(area)` with no `profile:` key anywhere
-# returns the full A–H set, an EMPTY `body_omit`, today's derived set (which
+# returns the full section set, an EMPTY `body_omit`, today's derived set (which
 # does NOT include `appendix-controls`), and `configured = False`; every
 # consumer short-circuits on that, so the manifest, the skeletons and the
 # render stay byte-identical to pre-M14 output.
@@ -228,12 +234,16 @@ def report_line(area, prefix: str = "client config") -> str:
 
 PROFILE_KEY = "profile"
 
-#: A–H is the heading contract (M14 out of scope: reordering / renaming).
-ALL_SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"]
+#: M23 — sections are SLUGS here, canonical order from the shared spine's
+#: registry. The A–H letters are display, assigned at render from the order of
+#: `sections:` below; they remain accepted as INPUT aliases (see
+#: `doc_model.section_slug`) so a profile written before M23 keeps meaning the
+#: same sections through any later rename.
+ALL_SECTIONS = list(doc_model.SECTION_SLUGS)
 #: Sections no engagement may drop: scope, card, steps.
-MANDATORY_SECTIONS = ["A", "B", "E"]
+MANDATORY_SECTIONS = ["overview", "quick-reference", "steps"]
 #: The section whose callouts would vanish if it left the body with no register.
-CONTROLS_SECTION = "F"
+CONTROLS_SECTION = "controls"
 #: The register that catches them (M14 `appendix-controls`).
 CONTROLS_REGISTER = "appendix-controls"
 
@@ -292,6 +302,9 @@ class Profile:
 
     `configured` is False when no layer supplied a `profile:` key at all — the
     "absent file → today's behavior" case every consumer short-circuits on.
+
+    `sections` and `body_omit` hold SLUGS (M23); `sections` order is the order
+    letters are assigned in at render.
     """
 
     sections: list[str] = field(default_factory=lambda: list(ALL_SECTIONS))
@@ -331,10 +344,29 @@ class Profile:
         """
         if not self.configured:
             return f"{prefix}: none (full A–H, nothing omitted)"
-        line = f"{prefix}: {self.layer_label()} — sections {''.join(self.sections)}"
+        line = (f"{prefix}: {self.layer_label()} — "
+                f"sections {' '.join(self.lettered_sections())}")
         if self.body_omit:
-            line += f", body_omit {''.join(self.body_omit)}"
+            line += f", body_omit {' '.join(sorted(self.body_omit))}"
         return line
+
+    def letters(self) -> dict[str, str]:
+        """{slug: letter} for this profile — the render-time display map (M23).
+
+        `sections:` order IS the lettering, so reordering the profile re-letters
+        the document with zero fragment edits.
+        """
+        return doc_model.section_letters(self.sections)
+
+    def lettered_sections(self) -> list[str]:
+        """`["A=overview", "B=quick-reference", …]` — the reporting form.
+
+        Sections are slugs now, so the report has to say both halves: the slug
+        (what the profile means) and the letter it renders as (what the reader
+        of the .docx sees).
+        """
+        letters = self.letters()
+        return [f"{letters[s]}={s}" for s in self.sections]
 
 
 def _string_list(raw, key: str, where: str) -> list[str]:
@@ -366,6 +398,16 @@ def _dedupe(items: list[str]) -> list[str]:
     return list(dict.fromkeys(items))
 
 
+def _canon_sections(items) -> list[str]:
+    """Canonicalize a profile section list to slugs, order preserved (M23).
+
+    An unrecognized token is passed through UNCHANGED rather than dropped, so
+    the caller's own "not a section" / "absent from `sections:`" error can name
+    exactly what the human typed.
+    """
+    return _dedupe(doc_model.section_slug(s) or str(s).strip() for s in items)
+
+
 def parse_profile(raw, where: str = "_client/profile.yaml",
                   layer: str | None = None) -> Profile:
     """Validate one `profile:` mapping into a `Profile`. Fail-loud and named.
@@ -390,35 +432,37 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
 
     # ---- sections -------------------------------------------------------
     if "sections" in raw:
-        sections = _dedupe(s.upper() for s in _string_list(raw["sections"],
-                                                           "sections", where))
-        bad = [s for s in sections if s not in ALL_SECTIONS]
+        named = _string_list(raw["sections"], "sections", where)
+        bad = [s for s in named if doc_model.section_slug(s) is None]
         if bad:
             raise ProfileError(
                 f"{where}: `sections:` names {', '.join(bad)}, which is not a "
-                f"section — A–H is the heading contract (renaming and "
-                f"reordering are out of scope)"
+                f"section — the section registry is "
+                f"{', '.join(ALL_SECTIONS)} (letters A–H are accepted as "
+                f"aliases for the sections they render as)"
             )
+        sections = _canon_sections(named)
         missing = [s for s in MANDATORY_SECTIONS if s not in sections]
         if missing:
             raise ProfileError(
                 f"{where}: `sections:` omits mandatory section(s) "
-                f"{', '.join(missing)} — A (scope), B (quick reference) and "
-                f"E (the steps) are what makes a procedure a procedure"
+                f"{', '.join(missing)} — overview (scope), quick-reference "
+                f"(the card) and steps are what makes a procedure a procedure"
             )
-        # Canonical document order, whatever order the human typed.
-        sections = [s for s in ALL_SECTIONS if s in sections]
+        # `sections:` IS the order letters are assigned in (M23), so the human's
+        # order is kept — with a `sections:` that names today's set in today's
+        # order, that is the canonical A–H.
     else:
         sections = list(ALL_SECTIONS)
 
     # ---- body_omit ------------------------------------------------------
-    body_omit = _dedupe(s.upper() for s in _string_list(raw.get("body_omit"),
-                                                        "body_omit", where))
+    body_omit = _canon_sections(_string_list(raw.get("body_omit"),
+                                             "body_omit", where))
     absent = [s for s in body_omit if s not in sections]
     if absent:
         raise ProfileError(
             f"{where}: `body_omit:` names section(s) {', '.join(absent)} "
-            f"absent from `sections:` ({''.join(sections)}) — omitting "
+            f"absent from `sections:` ({', '.join(sections)}) — omitting "
             f"something that does not exist is a profile error, not a no-op"
         )
     body_omit = [s for s in ALL_SECTIONS if s in body_omit]
@@ -457,17 +501,17 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
         derived = list(DEFAULT_DERIVED)
 
     # ---- the one cross-field rule that protects the deliverable ---------
-    # `F` out of the body with no register means the controls are simply gone
-    # from the document: F is a SECTION, so unlike H (Appendix A) it has no
-    # destination unless the profile asks for one.
+    # `controls` out of the body with no register means the controls are simply
+    # gone from the document: it is a SECTION, so unlike `issues` (which has
+    # Appendix A) it has no destination unless the profile asks for one.
     if CONTROLS_SECTION in body_omit and CONTROLS_REGISTER not in derived:
         raise ProfileError(
-            f"{where}: `body_omit:` hides section {CONTROLS_SECTION} from the "
+            f"{where}: `body_omit:` hides the `{CONTROLS_SECTION}` section from the "
             f"procedure body but `derived:` does not include "
             f"`{CONTROLS_REGISTER}` — the controls would vanish from the "
             f"document entirely. Add `{CONTROLS_REGISTER}` to `derived:` (the "
             f"register that collects the CONTROL callouts), or stop omitting "
-            f"{CONTROLS_SECTION}."
+            f"`{CONTROLS_SECTION}`."
         )
 
     inline_tags = (_string_list(raw["inline_tags"], "inline_tags", where)

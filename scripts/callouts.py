@@ -2,7 +2,8 @@
 
 Both `aggregate.py` (extracts callouts into rows) and `reconcile.py` (validates
 IDs) import from here so the drift-critical pieces — the LABEL→prefix map, the
-severity enum, the tolerant delimiter, and the ID/gap-tag grammar — are defined
+LABEL→home-section-slug map, the severity enum, the tolerant delimiter, and the
+ID/gap-tag grammar — are defined
 exactly once. Each engine keeps its own higher-level callout-*line* matcher
 (aggregate's is extract-strict; reconcile's is loose enough to still flag a
 malformed ID), but both build it from the shared `DELIM` and validate against the
@@ -22,6 +23,26 @@ LABEL_TO_PREFIX = {
 # Back-compat alias (reconcile historically used this name).
 LABEL_PREFIX = LABEL_TO_PREFIX
 PREFIXES = sorted(set(LABEL_TO_PREFIX.values()))
+
+# M23 — LABEL → HOME SECTION SLUG. The contract "CONTROL callouts live in Key
+# Controls, PAIN POINT / IMPROVEMENT OPPORTUNITY in Known Issues, VALIDATION
+# REQUIRED and SCREENSHOT PLACEHOLDER inline at their step" used to be written
+# as CONTROL→F and PP/IO→H — a letter, which is a render-time POSITION, standing
+# in for the section's identity. Re-keyed to the `doc_model` registry slugs, so
+# a later reshape moves the section without silently re-pointing this map.
+LABEL_TO_HOME_SECTION = {
+    "CONTROL": "controls",
+    "PAIN POINT": "issues",
+    "IMPROVEMENT OPPORTUNITY": "issues",
+    "VALIDATION REQUIRED": "steps",
+    "SCREENSHOT PLACEHOLDER": "steps",
+}
+
+
+def home_section(label: str) -> str | None:
+    """The section slug a callout of this LABEL belongs in, or None."""
+    return LABEL_TO_HOME_SECTION.get(re.sub(r"\s+", " ", label or "").strip().upper())
+
 
 # PP/IO severity enum (validated as a WARNING, never fail-loud).
 SEVERITY_ENUM = {"High", "Medium", "Low"}

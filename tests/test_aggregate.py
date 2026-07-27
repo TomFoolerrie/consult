@@ -129,15 +129,16 @@ GOOD_CALLOUTS = """\
 # Pure helpers
 # --------------------------------------------------------------------------- #
 
-def test_split_subsections_letters_and_boundaries():
-    """split_subsections keys A–H bodies and a `## ` heading ends the run."""
-    text = ("### A. Purpose\nalpha\n\n### B. Quick Reference\nbravo\n"
-            "## Next Fragment\nignored\n### C. Systems\ncharlie\n")
+def test_split_subsections_slugs_and_boundaries():
+    """split_subsections keys bodies by section SLUG (M23) and a `## ` heading
+    ends the run. Letterless and legacy lettered headings key alike."""
+    text = ("### A. Process Overview\nalpha\n\n### Quick Reference\nbravo\n"
+            "## Next Fragment\nignored\n### C. Pre-Requisites\ncharlie\n")
     got = aggregate.split_subsections(text)
-    assert got["A"] == "alpha"
-    assert got["B"] == "bravo"
-    assert got["C"] == "charlie"
-    assert "ignored" not in got.get("B", "")
+    assert got["overview"] == "alpha"
+    assert got["quick-reference"] == "bravo"
+    assert got["prerequisites"] == "charlie"
+    assert "ignored" not in got.get("quick-reference", "")
 
 
 def test_parse_bullets_key_value():
