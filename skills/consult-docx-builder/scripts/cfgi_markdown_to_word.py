@@ -923,9 +923,20 @@ def build_cover(doc, title: str, subtitle: str, profile_rows: List[List[str]]) -
 # Main conversion
 # --------------------------------------------------------------------------- #
 def _emit_toc(doc) -> None:
-    para(doc, "Table of Contents", "Heading 1")
+    # The page title is deliberately NOT a Heading style: the TOC field
+    # collects Heading 1-3, so a Heading-styled title makes the table list
+    # ITSELF as its first entry ("Table of Contents .... 2"). A Normal
+    # paragraph direct-formatted to chapter weight looks identical and is
+    # invisible to the field. (Word's References -> "Update Table" button can
+    # still swap the raw field for its Automatic Table gallery, which brings
+    # its own "Contents" title — update with F9 / right-click "Update Field"
+    # to keep this one.)
     p = doc.add_paragraph()
-    add_toc(p)
+    styled_run(p, Seg("Table of Contents", bold=True), PALETTE["dark_green"], 20)
+    para_bottom_border(p, PALETTE["dark_green"], size="12", space="4")
+    p.paragraph_format.space_after = Pt(14)
+    p2 = doc.add_paragraph()
+    add_toc(p2)
     doc.add_page_break()
 
 
