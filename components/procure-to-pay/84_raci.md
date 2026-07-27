@@ -18,7 +18,7 @@ _R = Responsible (does the work) · A = Accountable (answerable for the outcome)
 | [[po-invoice-entry-and-three-way-match]] |  |  |  |  | C |  |  |  | C |  | R, A* |  |  |  |  |  | C |  |
 | [[non-po-invoice-entry-and-approval]] |  | A | C | C |  |  |  |  |  | R |  |  | C |  |  |  |  |  |
 | [[vendor-statement-reconciliation]] |  |  |  |  |  |  |  |  |  |  | R, A* | C | C |  |  |  | C |  |
-| [[weekly-payment-run]] |  |  |  |  |  |  |  |  |  |  |  | R | A |  | C |  |  |  |
+| [[weekly-payment-run]] |  |  |  |  |  |  |  |  |  |  |  | R | A | I | C |  |  |  |
 | [[wire-and-manual-payment]] | R |  | C | C |  |  |  |  |  |  |  | C | A |  I | R |  |  |  |
 | [[positive-pay-exception-handling]] |  |  |  |  |  |  |  |  |  |  |  | R, A* | C |  |  |  |  |  |
 
