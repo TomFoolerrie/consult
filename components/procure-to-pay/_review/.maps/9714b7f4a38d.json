@@ -1,0 +1,42 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "9714b7f4a38d",
+ "docx": "screenshots_marisol-vance.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "vendor-master-data-maintenance",
+   "local": "SC-01",
+   "disp": "SC-05"
+  },
+  "scr_001": {
+   "slug": "vendor-master-data-maintenance",
+   "local": "SC-02",
+   "disp": "SC-06"
+  },
+  "scr_002": {
+   "slug": "weekly-payment-run",
+   "local": "SC-01",
+   "disp": "SC-23"
+  },
+  "scr_003": {
+   "slug": "weekly-payment-run",
+   "local": "SC-02",
+   "disp": "SC-24"
+  },
+  "scr_004": {
+   "slug": "wire-and-manual-payment",
+   "local": "SC-01",
+   "disp": "SC-25"
+  },
+  "scr_005": {
+   "slug": "wire-and-manual-payment",
+   "local": "SC-02",
+   "disp": "SC-26"
+  },
+  "scr_006": {
+   "slug": "positive-pay-exception-handling",
+   "local": "SC-01",
+   "disp": "SC-27"
+  }
+ }
+}

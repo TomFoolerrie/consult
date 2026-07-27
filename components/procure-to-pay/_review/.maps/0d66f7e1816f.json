@@ -1,0 +1,12 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "0d66f7e1816f",
+ "docx": "screenshots_yusuf-adeyemi.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "blanket-po-management",
+   "local": "SC-01",
+   "disp": "SC-12"
+  }
+ }
+}

@@ -1,0 +1,988 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "e34975babe8b",
+ "area": "procure-to-pay",
+ "docx": "5.1_weekly-payment-run.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "f6664f863ce50be040650c8e44a978c41173ba09",
+  "10_vendor-banking-change.md": "294690d53fd84d711ff18993a6a0b60c3107956b",
+  "10_vendor-master-data-maintenance.md": "ee3d021c945136da3f3ce1c9cd7dfc1e55e81b41",
+  "10_requisition-and-approval.md": "f148be01dfd194dde82198cdd7d060f5f0289494",
+  "10_po-issuance-and-change-orders.md": "b5c36a844f3eb5472e3442b5bafbfec12efe373e",
+  "10_confirming-po.md": "8922f4b9636cb0046c1cba7894ff7d9bb6d3995b",
+  "10_blanket-po-management.md": "5312a7bf0989455a2b3db3234892e6c2cef61bcc",
+  "10_goods-receipt.md": "8122f7e5e4e97588e013a387ed947ce8e18f7574",
+  "10_return-to-vendor.md": "ea43046c577d48c58374b94ad5050aee92521cfd",
+  "10_invoice-intake-and-capture.md": "534abd51fae2c9355e87e58faa02da6ec47c114c",
+  "10_po-invoice-entry-and-three-way-match.md": "2a41c0e9842876dab85773d025cc307e2b59c447",
+  "10_non-po-invoice-entry-and-approval.md": "6b085fd3859daa72e67a5f040a788ed7ff3e5b48",
+  "10_vendor-statement-reconciliation.md": "14e122071bd736b03de9764703aab1599f843d11",
+  "10_weekly-payment-run.md": "3cf133411551aa67e25948ab7934bd631ebb8b52",
+  "10_wire-and-manual-payment.md": "8e15fb054e4c170961423be126aeaa2f412e6ae6",
+  "10_positive-pay-exception-handling.md": "9cec95b7da07418baf53f15fb19cdc05a0ac92e4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    6,
+    19
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "997a9608f25e9e7abdc556c3dd5816bfa5e1a121"
+  },
+  "cw_00001": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    33,
+    35
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "15d9a33b63c41159dd66b21d0f2ce50514d0b6f8"
+  },
+  "cw_00002": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    39,
+    41
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ec106cc3ee31fb3ce1b32d39e6aef1d0264b8728"
+  },
+  "cw_00003": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    42,
+    44
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1b8971c08370a67fd636805f8b6e827ba3f1950e"
+  },
+  "cw_00004": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    45,
+    48
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6ae798419d82617181c5f663a8d3554c9a69cb40"
+  },
+  "cw_00005": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    49,
+    51
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3a0525e181a251cdaf4a5f3db7ecc4dce9a479b8"
+  },
+  "cw_00006": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    57,
+    59
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "6be21f4ff00ac482fe017f7efa524b7f3efa4288"
+  },
+  "cw_00007": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    61,
+    61
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a6a825780fa4a0327b80cdcbc09c2ecca07f891a"
+  },
+  "cw_00008": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    62,
+    63
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d8ce39186ebe9422dfb7cbe655062c267a0bbe8a"
+  },
+  "cw_00009": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    65,
+    66
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "21aac97749a045f4151ef57ceb9b1c79b44e0741"
+  },
+  "cw_00010": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    65,
+    66
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "44bf028c5de6c6694d893afffd31537dde189242"
+  },
+  "cw_00011": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    68,
+    69
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00012": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    68,
+    69
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00013": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    71,
+    71
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7dae46e8a6cbd828a90dfa381f930603803be3c3"
+  },
+  "cw_00014": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    75,
+    77
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "a3f02b9cc504d28be4bb5d4cbda5bdcfebaa407d"
+  },
+  "cw_00015": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    79,
+    80
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "fd76c19241d77266e362a71f9986c1d8719d85a9"
+  },
+  "cw_00016": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    82,
+    84
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0cedf9fedb59d44c72dde00b9523c2f0a9db653a"
+  },
+  "cw_00017": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    82,
+    84
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00018": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    82,
+    84
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00019": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    88,
+    90
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "46403ca27976c6c0aa65456dfa807e3b02f8ccc0"
+  },
+  "cw_00020": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    92,
+    93
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "958ee4e4c51cd93fe011fb733bc18d60e921f12b"
+  },
+  "cw_00021": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    97,
+    97
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ec3f54f2b73fe1f133f5631ae57822c563fd0ff5"
+  },
+  "cw_00022": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    99,
+    100
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "4e9337f57e5fe524b6ca3e1725af25f9143a7173"
+  },
+  "cw_00023": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    102,
+    102
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2fd72ba173507c818b09f73b42465b296c169bd4"
+  },
+  "cw_00024": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    103,
+    103
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "af49dde97cc11a7f3883b7470162698cac6399f9"
+  },
+  "cw_00025": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    105,
+    105
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d6250d1032056a95db94132747015493ef83b3ce"
+  },
+  "cw_00026": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    109,
+    109
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ec3f54f2b73fe1f133f5631ae57822c563fd0ff5"
+  },
+  "cw_00027": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    111,
+    114
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1b610f42ef4970bfbc1f60ce775f155a02814772"
+  },
+  "cw_00028": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    116,
+    116
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "218c37191e20dccea1c8a94a5a010a8d139e54e5"
+  },
+  "cw_00029": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    118,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "bab6a258b209196089ff35e664716deaa80e9e2f"
+  },
+  "cw_00030": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    118,
+    119
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "3f2e6fe2ac3a8e42c5471933a953a9f900b5dc40"
+  },
+  "cw_00031": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00032": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00033": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    126,
+    126
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e4ed1f81f190094bdddf8ca37f7fec67cf6451ea"
+  },
+  "cw_00034": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    128,
+    131
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "056038ea9a13cce96298ffd3d4dda641537fb20a"
+  },
+  "cw_00035": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    133,
+    133
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "83dc487635215bf1224fa9f86923fa3831554667"
+  },
+  "cw_00036": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    137,
+    137
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e4ed1f81f190094bdddf8ca37f7fec67cf6451ea"
+  },
+  "cw_00037": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    139,
+    142
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9edb3556b22d9a97a80c9408e97a6a04ed6e1ae6"
+  },
+  "cw_00038": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    144,
+    146
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "81d9c61f861dfa96125a7a419b84561e618d71d7"
+  },
+  "cw_00039": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    150,
+    153
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7d2967bba0d8186cfe02f55604f132a4171e1d33"
+  },
+  "cw_00040": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    154,
+    155
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a94ae3b02e602bd1bc8acad44715815abb2e6ba5"
+  },
+  "cw_00041": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    156,
+    157
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8a05a37b6d4ddc9ed1685d219ebd0eb82b338482"
+  },
+  "cw_00042": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    158,
+    160
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5c719086be169d4ae399c5895f6870bd9755a5f1"
+  },
+  "cw_00043": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    161,
+    162
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ae68de58a0dfb0d4066190803d737bf3f7843c61"
+  },
+  "cw_00044": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    166,
+    169
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "e626aa4eceba79805ab1f423234b4aea6f9d5307"
+  },
+  "cw_00045": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    166,
+    169
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00046": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    166,
+    169
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9f5e6f38791eb17ed94f5db091bce4a528a75bc4"
+  },
+  "cw_00047": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    166,
+    169
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00048": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    171,
+    174
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c492316cf3916f3a78e5f289926b41fbd5bf9a90"
+  },
+  "cw_00049": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    171,
+    174
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00050": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    171,
+    174
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "53a639c0aef310afb521b66c756c939694f20ffd"
+  },
+  "cw_00051": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    171,
+    174
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00052": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    176,
+    179
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "7df277db743c36fdb69ccacd3c28a328ad44ba01"
+  },
+  "cw_00053": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    176,
+    179
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00054": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    176,
+    179
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "05bfc745e61ef421726d97f10637d78392bacf28"
+  },
+  "cw_00055": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    176,
+    179
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00056": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    181,
+    184
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "46bf72119d5c101856a35d422266c83a15cd6d2f"
+  },
+  "cw_00057": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    181,
+    184
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00058": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    181,
+    184
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "8c8a33082c49683c2f08ef7cf06f2630c0046c51"
+  },
+  "cw_00059": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    181,
+    184
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00060": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    186,
+    189
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3f6555842fc74431fb0888eb6d78a339504e6e62"
+  },
+  "cw_00061": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    186,
+    189
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00062": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    186,
+    189
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "05bfc745e61ef421726d97f10637d78392bacf28"
+  },
+  "cw_00063": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    186,
+    189
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00064": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    193,
+    194
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ef54355007c4db22098424a7b22f10de4af23f99"
+  },
+  "cw_00065": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    193,
+    194
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "b00d317e1bdf99976ba3aa7090d5b172c5a16c14"
+  },
+  "cw_00066": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    196,
+    197
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b1c76a5925fbcfc0244058db04a3efe653879f84"
+  },
+  "cw_00067": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    196,
+    197
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00068": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    199,
+    201
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0558c42c080fdb1b4a0507af60fb71b9122057d1"
+  },
+  "cw_00069": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    199,
+    201
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "dce06763e5e83d8fb787a1feb6f1e980f2d6d43f"
+  },
+  "cw_00070": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    199,
+    201
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00071": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    203,
+    205
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c73d9237fe5abba607d181c34ef4a1f1c9f2ef80"
+  },
+  "cw_00072": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    203,
+    205
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "b27096b768ec8592bcdad381d33b6b7d8f32d003"
+  },
+  "cw_00073": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    203,
+    205
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00074": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    207,
+    208
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5fa6e8be3432f74deaec2fdcfc99009cbba6926b"
+  },
+  "cw_00075": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    207,
+    208
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "de28e14def210286b74f3bed2ea050c0fef64ec6"
+  },
+  "cw_00076": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    210,
+    211
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ba98b114114ecd4e5dcce789e4d858c4f3210c15"
+  },
+  "cw_00077": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    210,
+    211
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "baa43ab6a07be38c5532d0f105365d5d2a5cb264"
+  },
+  "cw_00078": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    213,
+    214
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "aa2f380caa5df12152fac3e6d225b80316e9955b"
+  },
+  "cw_00079": {
+   "file": "10_weekly-payment-run.md",
+   "slug": "weekly-payment-run",
+   "l2": "payments",
+   "lines": [
+    213,
+    214
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0ea164cac5ff534aa0439560a3baabf9bcb4ea5b"
+  }
+ }
+}

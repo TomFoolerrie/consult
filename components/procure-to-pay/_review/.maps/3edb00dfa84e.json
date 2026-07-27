@@ -1,0 +1,568 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "3edb00dfa84e",
+ "area": "procure-to-pay",
+ "docx": "5.3_positive-pay-exception-handling.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "f6664f863ce50be040650c8e44a978c41173ba09",
+  "10_vendor-banking-change.md": "294690d53fd84d711ff18993a6a0b60c3107956b",
+  "10_vendor-master-data-maintenance.md": "ee3d021c945136da3f3ce1c9cd7dfc1e55e81b41",
+  "10_requisition-and-approval.md": "f148be01dfd194dde82198cdd7d060f5f0289494",
+  "10_po-issuance-and-change-orders.md": "b5c36a844f3eb5472e3442b5bafbfec12efe373e",
+  "10_confirming-po.md": "8922f4b9636cb0046c1cba7894ff7d9bb6d3995b",
+  "10_blanket-po-management.md": "5312a7bf0989455a2b3db3234892e6c2cef61bcc",
+  "10_goods-receipt.md": "8122f7e5e4e97588e013a387ed947ce8e18f7574",
+  "10_return-to-vendor.md": "ea43046c577d48c58374b94ad5050aee92521cfd",
+  "10_invoice-intake-and-capture.md": "534abd51fae2c9355e87e58faa02da6ec47c114c",
+  "10_po-invoice-entry-and-three-way-match.md": "2a41c0e9842876dab85773d025cc307e2b59c447",
+  "10_non-po-invoice-entry-and-approval.md": "6b085fd3859daa72e67a5f040a788ed7ff3e5b48",
+  "10_vendor-statement-reconciliation.md": "14e122071bd736b03de9764703aab1599f843d11",
+  "10_weekly-payment-run.md": "3cf133411551aa67e25948ab7934bd631ebb8b52",
+  "10_wire-and-manual-payment.md": "8e15fb054e4c170961423be126aeaa2f412e6ae6",
+  "10_positive-pay-exception-handling.md": "9cec95b7da07418baf53f15fb19cdc05a0ac92e4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    4,
+    13
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9187fe3d483e788060dd4fe32c730d2cfe585c6b"
+  },
+  "cw_00001": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    29,
+    31
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6ec15017d1a3243a38d858113c9439bd87aa3027"
+  },
+  "cw_00002": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    32,
+    34
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "85c497510862d86e77b0517564e067dd29e3a048"
+  },
+  "cw_00003": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    40,
+    43
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2d0c58ac1930f11e00ee77eac9bee35b871b0e5b"
+  },
+  "cw_00004": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    45,
+    46
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "daaad705101ddd7282dd0984c57ce1c566587aa5"
+  },
+  "cw_00005": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    48,
+    49
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4676144f38d35ca0831c5ad1d118ba436f29875b"
+  },
+  "cw_00006": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    48,
+    49
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0db494f9e4feee711311c06352db5dcf784abcfc"
+  },
+  "cw_00007": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    51,
+    52
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00008": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    51,
+    52
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00009": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    54,
+    54
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "0502444e19e6e6e9e16d7f468261fa083b9961cf"
+  },
+  "cw_00010": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    58,
+    61
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "e99b86ef0d78736910a21824d12a08e061980c8b"
+  },
+  "cw_00011": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    63,
+    64
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b1acbd7927a0bdc53af2119b94c27c5947a5128b"
+  },
+  "cw_00012": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    66,
+    67
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "05607031713ff8679da4493011805cefed537e01"
+  },
+  "cw_00013": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    66,
+    67
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "778daf305ba0955690238c5143bab8e7e8be5b46"
+  },
+  "cw_00014": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    69,
+    70
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00015": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    69,
+    70
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00016": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    74,
+    75
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d36e4d4f7d6e9d11a7f7ffe8ef3a59ce1f44a016"
+  },
+  "cw_00017": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    77,
+    81
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "7d060ed7d4ca79fd359aac0d901b4a0284e63477"
+  },
+  "cw_00018": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    83,
+    84
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "55167d6381d7f44da1d107c509d04332b28dc872"
+  },
+  "cw_00019": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    86,
+    89
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "43907b3f6f8a79e39874f993b4e0a2ee21194ea4"
+  },
+  "cw_00020": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    86,
+    89
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "c7568699a2f77eb7d8e53b06d8171de032dafaf3"
+  },
+  "cw_00021": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    86,
+    89
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00022": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    86,
+    89
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00023": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    93,
+    95
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "862a003dec20e31520ccf489e370f0c93d4d9c06"
+  },
+  "cw_00024": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    96,
+    98
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "494411e75b11464f4cb67757f04d888d6d8a0e18"
+  },
+  "cw_00025": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    99,
+    101
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "1291b8c24c3c3b02c0d26e8d11e778c3f90a5243"
+  },
+  "cw_00026": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    105,
+    108
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "64108fa62e6ddf3fd78937b8eb3168f0639d28bf"
+  },
+  "cw_00027": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    105,
+    108
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00028": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    105,
+    108
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "6395b67cdf26e4d5a1282fe983ef79dcb79632c8"
+  },
+  "cw_00029": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    105,
+    108
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00030": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    110,
+    113
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "39d1b6eae3d1e444c234afb42bdbfe0db3f2d324"
+  },
+  "cw_00031": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    110,
+    113
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00032": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    110,
+    113
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "05bfc745e61ef421726d97f10637d78392bacf28"
+  },
+  "cw_00033": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    110,
+    113
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "23aea09732fead1f6dd997120a0abba57e81debb"
+  },
+  "cw_00034": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    117,
+    118
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f6674d98c8136ce206590ec38d6cf1e670f14186"
+  },
+  "cw_00035": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    117,
+    118
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2445cb6b2430558933b77749b1e5eaa263dd1590"
+  },
+  "cw_00036": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    120,
+    121
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "83005cfb5418babccb33f6dd15ed64c157986c33"
+  },
+  "cw_00037": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    120,
+    121
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00038": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    123,
+    125
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "9d5d2a90df8ff419c08a69627842b8a48723499a"
+  },
+  "cw_00039": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    123,
+    125
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "96f4ac8d065cc7ebc0b6d2925105e3d8b77558f3"
+  },
+  "cw_00040": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    123,
+    125
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00041": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    127,
+    128
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "59c0d184a5462866ee2aefcd8db5cacd1ddd942e"
+  },
+  "cw_00042": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    127,
+    128
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "8f9dbfa051854316ffc767ce61369340aefdba78"
+  },
+  "cw_00043": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    130,
+    131
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "089274ce09986ae7926a0336c2bc7915ef99fae0"
+  },
+  "cw_00044": {
+   "file": "10_positive-pay-exception-handling.md",
+   "slug": "positive-pay-exception-handling",
+   "l2": "payments",
+   "lines": [
+    130,
+    131
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a2912548922e272b4594ac330ddc4dfddb4771ea"
+  }
+ }
+}

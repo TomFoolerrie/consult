@@ -1,0 +1,484 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "dc1fd094356c",
+ "area": "procure-to-pay",
+ "docx": "2.4_blanket-po-management.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "f6664f863ce50be040650c8e44a978c41173ba09",
+  "10_vendor-banking-change.md": "294690d53fd84d711ff18993a6a0b60c3107956b",
+  "10_vendor-master-data-maintenance.md": "ee3d021c945136da3f3ce1c9cd7dfc1e55e81b41",
+  "10_requisition-and-approval.md": "f148be01dfd194dde82198cdd7d060f5f0289494",
+  "10_po-issuance-and-change-orders.md": "b5c36a844f3eb5472e3442b5bafbfec12efe373e",
+  "10_confirming-po.md": "8922f4b9636cb0046c1cba7894ff7d9bb6d3995b",
+  "10_blanket-po-management.md": "5312a7bf0989455a2b3db3234892e6c2cef61bcc",
+  "10_goods-receipt.md": "8122f7e5e4e97588e013a387ed947ce8e18f7574",
+  "10_return-to-vendor.md": "ea43046c577d48c58374b94ad5050aee92521cfd",
+  "10_invoice-intake-and-capture.md": "534abd51fae2c9355e87e58faa02da6ec47c114c",
+  "10_po-invoice-entry-and-three-way-match.md": "2a41c0e9842876dab85773d025cc307e2b59c447",
+  "10_non-po-invoice-entry-and-approval.md": "6b085fd3859daa72e67a5f040a788ed7ff3e5b48",
+  "10_vendor-statement-reconciliation.md": "14e122071bd736b03de9764703aab1599f843d11",
+  "10_weekly-payment-run.md": "3cf133411551aa67e25948ab7934bd631ebb8b52",
+  "10_wire-and-manual-payment.md": "8e15fb054e4c170961423be126aeaa2f412e6ae6",
+  "10_positive-pay-exception-handling.md": "9cec95b7da07418baf53f15fb19cdc05a0ac92e4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    4,
+    15
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "75a116b6e07d2fff8b4c87f4c00b1f2490621225"
+  },
+  "cw_00001": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    31,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "dd2667b7b14fba669b3990a0e14ee86036cf5ab7"
+  },
+  "cw_00002": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    34,
+    35
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "93d11d77a7e75526db51cbb7545e681cb255a434"
+  },
+  "cw_00003": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    36,
+    37
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e53c85efc623be9e533805095163ad9e59c70d30"
+  },
+  "cw_00004": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    43,
+    45
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "786c02a17c50d199eda4895e8c6502e6c840a26c"
+  },
+  "cw_00005": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    47,
+    47
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4460fb3d9878ec84ba0cb1f6b2dde19ae9f38638"
+  },
+  "cw_00006": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    49,
+    50
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "98845c363d137f236c1ee8ad596d0275dcb9c67a"
+  },
+  "cw_00007": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    49,
+    50
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "51b825a0b4f6ea24c3113192b34ca74ea3274f7e"
+  },
+  "cw_00008": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    52,
+    53
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00009": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    52,
+    53
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00010": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    55,
+    55
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "dc6234c0776776183df624b9e8b7a1f55837cd34"
+  },
+  "cw_00011": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    59,
+    60
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "f8b6553f8e6b05c5117c478e69a2ac76e6a2ee4e"
+  },
+  "cw_00012": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    62,
+    63
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5dbfafb9e24c1aaa1d37ec8505e6813d18a4be64"
+  },
+  "cw_00013": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    67,
+    70
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "57a53bc7d531816fb0aff37ee504a8050e26f773"
+  },
+  "cw_00014": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    72,
+    73
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a0bc0cd74849fb4959c7fe29faba5927cb5e5c6d"
+  },
+  "cw_00015": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    72,
+    73
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "9e962dcabc4e870146f4fb6e35f527ead5a1893d"
+  },
+  "cw_00016": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    75,
+    76
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00017": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    75,
+    76
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00018": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    80,
+    80
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9e9403c03025dd9164b3c15ee9a6336178a95844"
+  },
+  "cw_00019": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    82,
+    86
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "3007ee6a4608fb8cbea4ab8434c31c1053ac23da"
+  },
+  "cw_00020": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "11d9c505637c3721f535948e5fc1b2a97c0c9959"
+  },
+  "cw_00021": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "57830771461e527e78186df04350f8a93acc8b8b"
+  },
+  "cw_00022": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00023": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00024": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    95,
+    96
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a5358b6c0905e28100ee16dacbd3c7803eb27a86"
+  },
+  "cw_00025": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    97,
+    98
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a9f7bd1f7a2aa2ab2317964e8784770a26b3f8cb"
+  },
+  "cw_00026": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    99,
+    100
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9cb7b9b6c728cebf3d98407442ca2366eff49bf7"
+  },
+  "cw_00027": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    101,
+    104
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "32723b13127408d41b11d5b9551628d44742e9a1"
+  },
+  "cw_00028": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    108,
+    111
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d359285a1b773001c7f1f1ccbca618153f2f67eb"
+  },
+  "cw_00029": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    108,
+    111
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00030": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    108,
+    111
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "d50fa613443a18735aafed731be07c07ae76af50"
+  },
+  "cw_00031": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    108,
+    111
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "8b8311f9ef1b657a3d445fbe14dde9336a9e258b"
+  },
+  "cw_00032": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    115,
+    116
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "3ef7c504d1c6c8e2f38d1e7ec645904a85daaaa5"
+  },
+  "cw_00033": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    115,
+    116
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "347b164c3701e69149f84d1b19ff1b493d139470"
+  },
+  "cw_00034": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    118,
+    119
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f05e5531ad8fef1ce8316d80a121dac6bc8f34f6"
+  },
+  "cw_00035": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    118,
+    119
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00036": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93bccfa8949136a97acc468a0e4cbd2401ff1cae"
+  },
+  "cw_00037": {
+   "file": "10_blanket-po-management.md",
+   "slug": "blanket-po-management",
+   "l2": "procurement",
+   "lines": [
+    121,
+    122
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "06f1edfa3dace00e8dc1a9248c318ecf8683618a"
+  }
+ }
+}

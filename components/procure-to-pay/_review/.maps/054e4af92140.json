@@ -1,0 +1,22 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "054e4af92140",
+ "docx": "screenshots_priya-raghunathan.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "po-invoice-entry-and-three-way-match",
+   "local": "SC-01",
+   "disp": "SC-18"
+  },
+  "scr_001": {
+   "slug": "po-invoice-entry-and-three-way-match",
+   "local": "SC-02",
+   "disp": "SC-19"
+  },
+  "scr_002": {
+   "slug": "vendor-statement-reconciliation",
+   "local": "SC-01",
+   "disp": "SC-22"
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "2d13aa11bf6b",
+ "docx": "screenshots_role-requester.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "po-issuance-and-change-orders",
+   "local": "SC-01",
+   "disp": "SC-09"
+  },
+  "scr_001": {
+   "slug": "po-issuance-and-change-orders",
+   "local": "SC-02",
+   "disp": "SC-10"
+  }
+ }
+}

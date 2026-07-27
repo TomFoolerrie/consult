@@ -1,0 +1,37 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "9d19f8eb440c",
+ "docx": "screenshots_tobias-lindqvist.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "vendor-banking-change",
+   "local": "SC-01",
+   "disp": "SC-03"
+  },
+  "scr_001": {
+   "slug": "vendor-banking-change",
+   "local": "SC-02",
+   "disp": "SC-04"
+  },
+  "scr_002": {
+   "slug": "invoice-intake-and-capture",
+   "local": "SC-01",
+   "disp": "SC-16"
+  },
+  "scr_003": {
+   "slug": "invoice-intake-and-capture",
+   "local": "SC-02",
+   "disp": "SC-17"
+  },
+  "scr_004": {
+   "slug": "non-po-invoice-entry-and-approval",
+   "local": "SC-01",
+   "disp": "SC-20"
+  },
+  "scr_005": {
+   "slug": "non-po-invoice-entry-and-approval",
+   "local": "SC-02",
+   "disp": "SC-21"
+  }
+ }
+}

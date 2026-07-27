@@ -1,0 +1,760 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "da863f37809b",
+ "area": "procure-to-pay",
+ "docx": "2.3_confirming-po.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "f6664f863ce50be040650c8e44a978c41173ba09",
+  "10_vendor-banking-change.md": "294690d53fd84d711ff18993a6a0b60c3107956b",
+  "10_vendor-master-data-maintenance.md": "ee3d021c945136da3f3ce1c9cd7dfc1e55e81b41",
+  "10_requisition-and-approval.md": "f148be01dfd194dde82198cdd7d060f5f0289494",
+  "10_po-issuance-and-change-orders.md": "b5c36a844f3eb5472e3442b5bafbfec12efe373e",
+  "10_confirming-po.md": "8922f4b9636cb0046c1cba7894ff7d9bb6d3995b",
+  "10_blanket-po-management.md": "5312a7bf0989455a2b3db3234892e6c2cef61bcc",
+  "10_goods-receipt.md": "8122f7e5e4e97588e013a387ed947ce8e18f7574",
+  "10_return-to-vendor.md": "ea43046c577d48c58374b94ad5050aee92521cfd",
+  "10_invoice-intake-and-capture.md": "534abd51fae2c9355e87e58faa02da6ec47c114c",
+  "10_po-invoice-entry-and-three-way-match.md": "2a41c0e9842876dab85773d025cc307e2b59c447",
+  "10_non-po-invoice-entry-and-approval.md": "6b085fd3859daa72e67a5f040a788ed7ff3e5b48",
+  "10_vendor-statement-reconciliation.md": "14e122071bd736b03de9764703aab1599f843d11",
+  "10_weekly-payment-run.md": "3cf133411551aa67e25948ab7934bd631ebb8b52",
+  "10_wire-and-manual-payment.md": "8e15fb054e4c170961423be126aeaa2f412e6ae6",
+  "10_positive-pay-exception-handling.md": "9cec95b7da07418baf53f15fb19cdc05a0ac92e4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    4,
+    15
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "a927f8eeabdec38ddba8ce20f2e4c79f031415d9"
+  },
+  "cw_00001": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    31,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "73aeda859c6d96d16f4b94b5320e8831deecd2f8"
+  },
+  "cw_00002": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    34,
+    36
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "3c164846b4bde5572f0c4b152661c0d7968e742a"
+  },
+  "cw_00003": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    37,
+    39
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "890091d71893289f607cd25836aeb1d8f5160b7d"
+  },
+  "cw_00004": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    40,
+    42
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "78b956b95e01b459aac427fc50f3a4640a11453c"
+  },
+  "cw_00005": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    48,
+    51
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "40b0e36c74b574bf2de58f55a5695f6acbd9aaee"
+  },
+  "cw_00006": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    53,
+    53
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "466c019e001052544b6b006c8ca3cbd4ecf9ec2e"
+  },
+  "cw_00007": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    57,
+    59
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "270d1a36d6a1fb061f5c002d2ec14f95cc3c1566"
+  },
+  "cw_00008": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    61,
+    64
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "2dd8da8ae99e6d6ec18234d479ea8b4ed49265f7"
+  },
+  "cw_00009": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    61,
+    64
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e5890bba91e986be8de3bdce2856c332e2ed9e47"
+  },
+  "cw_00010": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    61,
+    64
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "0e0eb527753d2f4113c03d3048e31cfefb712783"
+  },
+  "cw_00011": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    71,
+    72
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00012": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    71,
+    72
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00013": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    76,
+    79
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "5baa6f7b4b152d1162d61bcc1b430d66f7feda3d"
+  },
+  "cw_00014": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    81,
+    84
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ab650acb1adf5a0c55928670990bd5aec004812f"
+  },
+  "cw_00015": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    81,
+    84
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a21798604b62f79b99ae1374a87e22b3774e2d86"
+  },
+  "cw_00016": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    81,
+    84
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "4aa6754749e804136c9d88cce8a5ba6766112762"
+  },
+  "cw_00017": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    93,
+    94
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00018": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    93,
+    94
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a77ccb0418658ea62059cd0c3ff6f5f1a9bc8bcf"
+  },
+  "cw_00019": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    96,
+    98
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c2aa19af4d3d972db97b0d058c1df0f0b17c7d84"
+  },
+  "cw_00020": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    102,
+    103
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "67d3ee5157e975d72263736de971e378bbdcc975"
+  },
+  "cw_00021": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    105,
+    108
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1622a45b384b0bfcb5b2aac7ab75d4b41b9bf251"
+  },
+  "cw_00022": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    110,
+    111
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "9ab04e4c9ee5791692a189882450696a8a38c216"
+  },
+  "cw_00023": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    115,
+    118
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "e433434bd58c04485c87ae593a80b2c7c365c54d"
+  },
+  "cw_00024": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    122,
+    123
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "b408f2b40fa06a7ca2dfb562202644e55a2d6bca"
+  },
+  "cw_00025": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    124,
+    126
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "857a9d273049d62d11ed54406b9971c585f5de9d"
+  },
+  "cw_00026": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    127,
+    129
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "02ed1c7232ca38c814b99579247517b7c438df40"
+  },
+  "cw_00027": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    133,
+    138
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f0796bb997133b2d063df2bc8c9e94295f77273d"
+  },
+  "cw_00028": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    133,
+    138
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00029": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    133,
+    138
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9917a3309f7ad2d22469e2902e3c284d1b709601"
+  },
+  "cw_00030": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    133,
+    138
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "fd2530e4f53c0ebc6947b82a19764e8d699844ca"
+  },
+  "cw_00031": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    140,
+    144
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "4113afe97f762d5ae51394cb3528e6d4878fd2cf"
+  },
+  "cw_00032": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    140,
+    144
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00033": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    140,
+    144
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9917a3309f7ad2d22469e2902e3c284d1b709601"
+  },
+  "cw_00034": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    140,
+    144
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "151bdeecadc111608fca0d77f9c086d3ff54f4b0"
+  },
+  "cw_00035": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    146,
+    151
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "24b191f3486ebcb8a806b86012edf1087031850d"
+  },
+  "cw_00036": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    146,
+    151
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00037": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    146,
+    151
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "9917a3309f7ad2d22469e2902e3c284d1b709601"
+  },
+  "cw_00038": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    146,
+    151
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "45ef513baeb423d9687d1ff4655fed14efa6083e"
+  },
+  "cw_00039": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    155,
+    159
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "07bb5f7f6f56572bcc6adcb68b151b9a80f8cf6c"
+  },
+  "cw_00040": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    155,
+    159
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "dba945ad25b757f065ea78facadb9eee3328ff2a"
+  },
+  "cw_00041": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    155,
+    159
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "65c6e9f9fb956056fb90042de8aa74fe07386f72"
+  },
+  "cw_00042": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    167,
+    169
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "e115476c8fb9c616852e35d8d22376ad2409cd81"
+  },
+  "cw_00043": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    167,
+    169
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "fd07e552868f26f8f13a3633d7b2fe4d9ccaad39"
+  },
+  "cw_00044": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    167,
+    169
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00045": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    171,
+    176
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "ff48b41045fbc6ca2879d4d251641174cd20496a"
+  },
+  "cw_00046": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    171,
+    176
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "88ef98b08df7757ae1228fb453584b0e10e7aac9"
+  },
+  "cw_00047": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    171,
+    176
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "1d10530f410a9b6c8a85a33258741be0e95384e3"
+  },
+  "cw_00048": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    171,
+    176
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00049": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    178,
+    181
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c72777136ed3d094b03fd90ac633faa8c2ca5b5c"
+  },
+  "cw_00050": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    178,
+    181
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "532ba5880232c05b9c610eeb6df2048874cb45cb"
+  },
+  "cw_00051": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    178,
+    181
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ad642daea1811feda6b8fca70b50213a2da8eff2"
+  },
+  "cw_00052": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    189,
+    192
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "33637add9232a8627421bcc404b84ac5cc546c8b"
+  },
+  "cw_00053": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    189,
+    192
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "d0e7fc3c2cfc1c81fa787dcbbd8f3024e765dc37"
+  },
+  "cw_00054": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    189,
+    192
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00055": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    194,
+    197
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "dc069261f914f37ef9b671bfa839270e767b1faf"
+  },
+  "cw_00056": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    194,
+    197
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "ba6fd4982878637b0f5e0eb841791e9b0b718ed4"
+  },
+  "cw_00057": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    199,
+    202
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a8c2893ee4089e5f6dc7da00606c8f2a6aa2b9c8"
+  },
+  "cw_00058": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    199,
+    202
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "f43cfac2d09f600e240a3716808bee9d987d140c"
+  },
+  "cw_00059": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    204,
+    208
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "bf3f5f412194caa12198eafc85761e99c1530eb4"
+  },
+  "cw_00060": {
+   "file": "10_confirming-po.md",
+   "slug": "confirming-po",
+   "l2": "procurement",
+   "lines": [
+    204,
+    208
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "d904c41f6ec8be54bd4c610b0c9e5eae0269c524"
+  }
+ }
+}
