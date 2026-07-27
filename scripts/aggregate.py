@@ -611,9 +611,11 @@ def build_gap_log(ctx) -> str:
 
 
 def build_screenshot_index(ctx) -> str:
-    lines = ["_Screenshot placeholders aggregated from the `SCREENSHOT "
-             "PLACEHOLDER` callouts. IDs are numbered sequentially through "
-             "the document; rows are grouped by sub-process._"]
+    # Client language only — see build_appendix_a.
+    lines = ["_Index of the screenshots and system evidence referenced in "
+             "this document, with capture status. IDs are numbered "
+             "sequentially through the document; rows are grouped by "
+             "sub-process._"]
     any_row = False
     for l2_title, rows in _grouped_by_l2(ctx, "SC"):
         any_row = True
