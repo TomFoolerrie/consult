@@ -1,9 +1,71 @@
 # M16 — Section model: one home per fact
 
-> **Status: BUILT — moves 3, 4 and 2.** Move 1 (the seven-section model) is
-> **PENDING the section-slug decision**: A–H stays exactly as it is until then,
-> so nothing below about re-lettering has been applied. Supersedes M15, which is
-> retired into this ticket (see "What M15 contributed" below).
+> **Status: BUILT — moves 3, 4, 2, and move 1's REGISTRY half.** Move 1's
+> **CONTENT WAVE is PENDING** (a drafter pass per fragment). Supersedes M15,
+> which is retired into this ticket (see "What M15 contributed" below).
+>
+> **Move 1, registry half (as built).** M23 made this a registry edit, and it
+> was: `doc_model.SECTION_TITLES` is now the seven-section set, and no fragment
+> was opened.
+>
+> Slug mapping — a slug is IDENTITY, so it changes only where the section's job
+> did:
+>
+> | Was (slug / title) | Is (slug / title) | Letter |
+> |---|---|---|
+> | `overview` / Process Overview | **`scope`** / **Scope** | A |
+> | `quick-reference` / Quick Reference | `quick-reference` / **At a Glance** | B |
+> | `prerequisites` / Pre-Requisites | **`before-you-start`** / **Before You Start** | C |
+> | `inputs` / Inputs | **`before-you-start`** (merged) | C |
+> | `steps` / Step-by-Step Procedure | `steps` / **Procedure** | D |
+> | `outputs` / Outputs | `outputs` / **Outputs & Evidence** | E |
+> | `controls` / Key Controls | `controls` / Key Controls (job unchanged; "Controls" is an accepted alias title) | F |
+> | `issues` / Known Issues & Improvement Opportunities | unchanged | G |
+>
+> - **`SECTION_TITLE_ALIASES` carries every pre-M16 title** (`Process Overview`,
+>   `Quick Reference`, `Pre-Requisites`, `Inputs`, `Step-by-Step Procedure`,
+>   `Outputs`, plus the docx builder's legacy `Known Issues / Improvement
+>   Notes`), and a new **`SECTION_SLUG_ALIASES`** carries the pre-M16 SLUGS
+>   (`overview`, `prerequisites`, `inputs`) as profile input. So every drafted
+>   fragment and every hand-written `profile.yaml` keeps resolving: the rename
+>   half cost **zero fragment edits**, exactly as M23 promised.
+> - **Outputs moved ahead of Controls** (E and F), per the table below. This is
+>   the one ordering change, and it is why a legacy `sections: [A…H]` letter list
+>   re-letters `controls` to E: the letters are frozen at their historical
+>   MEANING, not at the new positions.
+> - **`body_omit: [F, H]` still means controls + known-issues.** M23 design
+>   point 3 ("existing profiles keep meaning the same sections through any future
+>   rename") deliberately overrides this ticket's `body_omit: [F, G]` prose:
+>   `SECTION_LETTER_ALIASES` is frozen, so `G` still means `outputs` even though
+>   `outputs` renders as E. Write slugs in new profiles.
+> - **Mandatory set is `scope` / `quick-reference` / `steps`** (A/B/D — the card
+>   and the procedure), per "Interaction with M14".
+>
+> **Two headings, one slug — the transition, pre-content-wave.** A fragment
+> drafted before the wave carries both `### Pre-Requisites` and `### Inputs`, and
+> both resolve to `before-you-start`. The behaviour is **tolerate + report, never
+> fail** (`doc_model.duplicate_sections` is the one scanner):
+> `aggregate.split_subsections` **concatenates** the two bodies in document order
+> (no fact is lost, every register still sees its content); render letters both
+> headings `C` and gives the registry title to the **first only**, so the second
+> stays visibly as authored (`C. Inputs` under `C. Before You Start`);
+> `reconcile` emits a **WARNING** naming the fragment, the merge and the work
+> order, so the state is loud but exit stays 0. Erroring would wedge every
+> already-drafted area on what was supposed to be a registry edit, and the wave
+> is imminent.
+>
+> **The content wave's work order** is `"Content wave: 8 → 7 sections (M16 move
+> 1)"` in `skills/consult-drafter/SKILL.md` — the per-fragment migration
+> procedure (A keeps scope/exclusions/adjacent slugs only; B becomes the table;
+> C+D merge one line per artifact; E→Procedure and G→Outputs & Evidence are
+> retitles; H stays defects-only), under two standing rules: no content invented,
+> no facts lost. Drafters report `sections_merged` + `facts_relocated`.
+> `agents/consult-drafter.md` points at it and carries the seven declared jobs.
+>
+> Also as built: `parse_bullets` reads the At a Glance card as a bullet list OR a
+> two-column table, so retabling B in the wave never costs a register its
+> preparer. Tests: `tests/test_section_identity.py` grew the seven-section
+> registry, the frozen-alias and old-model-fragment cases; suite 602 → 612.
 >
 > What shipped, in the recommended order:
 >
@@ -26,13 +88,12 @@
 >   written as a pass an UPDATE-mode drafter can run against an existing
 >   fragment. Python still never enforces the tag vocabulary.
 >
-> **Why move 1 waits.** Re-lettering is a full re-draft (~15 passes) and the
-> migration is dispatched by M14's drift detector — a fragment missing a heading
-> the profile requires is exactly the state a re-lettered area is in, so the
-> `reprofile` guard reports the dispatch count before it is spent (see
-> "Interaction with M14" below and `docs/M14-document-profile.md`). Deciding the
-> section slugs after moves 3/4/2 are visible in the document is the whole point
-> of the recommended order.
+> **Why the wave is still a wave.** The re-LETTER cost nothing (M23), but the
+> CONTENT mergers cannot be mechanized: phrasing state-plus-artifact in one line,
+> and deciding which of A's sentences is a scope statement and which is a card
+> row, is judgment. That is ~15 drafter passes, dispatched per fragment, and the
+> pipeline is correct in the meantime — which is the difference between this and
+> a flag day.
 
 ## Goal
 

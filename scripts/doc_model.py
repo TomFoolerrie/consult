@@ -9,7 +9,8 @@ M4 docx builder, M5 synthesis, and reconcile.py). It owns:
   - validate_manifest(manifest)  -> [errors]     (v1 schema check)
   - display_numbers(manifest)    -> {slug: "L2.seq"}   (the ONLY numberer)
   - SECTION_TITLES / section_slug / section_letters    (M23 section registry:
-    slug is identity, the A–H letter is a render-time display transform)
+    slug is identity, the A–G letter is a render-time display transform;
+    M16 move 1's seven-section model is an edit to that registry)
   - resolve_tokens(text, numbers, mode) -> text   ([[slug]] -> number/title)
   - assemble(folder)             -> AssembledDoc  (structured, not a string)
 
@@ -169,41 +170,54 @@ def validate_manifest(manifest: dict) -> list[str]:
 # bodies by it) and it must have exactly ONE definition. It is pure data plus
 # three pure functions — no manifest, no filesystem, stdlib only.
 #
-# Fragments carry `### Process Overview`; the LETTER is stamped at render from
+# Fragments carry `### Scope`; the LETTER is stamped at render from
 # the profile's `sections:` order. The A–H letters remain accepted as PROFILE
-# aliases (frozen at their historical positions below) so a profile written
-# before this ticket keeps meaning the same sections through any later rename.
+# aliases (frozen at their historical MEANING below) so a profile written before
+# M16 move 1 keeps meaning the same sections after the rename + merge.
 # --------------------------------------------------------------------------- #
 
-#: slug -> canonical title, in canonical document order. M16 move 1 is an edit
-#: to THIS dict (merge/rename entries) plus a content wave — never a re-letter
-#: of every fragment heading in the corpus.
+#: slug -> canonical title, in canonical document order. THE M16 MOVE 1 EDIT
+#: (the seven-section model with declared jobs) is this dict plus the alias maps
+#: below — never a re-letter of every fragment heading in the corpus.
+#:
+#: The seven sections and their declared jobs (docs/M16-section-model.md,
+#: Design 1) — the drafter contract carries them verbatim:
+#:   A. Scope                 what this covers/excludes, which procedures adjoin
+#:   B. At a Glance           a TABLE; the single home for the card facts
+#:   C. Before You Start      one line per artifact (Pre-Requisites + Inputs)
+#:   D. Procedure             the steps
+#:   E. Outputs & Evidence    what exists afterwards, what is retained
+#:   F. Key Controls          job unchanged
+#:   G. Known Issues …        defects only
 SECTION_TITLES: dict[str, str] = {
-    "overview": "Process Overview",
-    "quick-reference": "Quick Reference",
-    "prerequisites": "Pre-Requisites",
-    "inputs": "Inputs",
-    "steps": "Step-by-Step Procedure",
+    "scope": "Scope",
+    "quick-reference": "At a Glance",
+    "before-you-start": "Before You Start",
+    "steps": "Procedure",
+    "outputs": "Outputs & Evidence",
     "controls": "Key Controls",
-    "outputs": "Outputs",
     "issues": "Known Issues & Improvement Opportunities",
 }
 #: Canonical document order (the order letters are assigned in by default).
 SECTION_SLUGS: list[str] = list(SECTION_TITLES)
 
-#: The historical A–H letter positions, FROZEN as profile aliases. These are
-#: not derived from the order above: their whole job is to keep an existing
-#: `body_omit: [F]` pointing at `controls` even after a future reshape moves
-#: the controls section somewhere other than sixth.
+#: The historical A–H letter positions, FROZEN as profile aliases — pointed at
+#: the M16 slugs the historical sections BECAME. These are not derived from the
+#: order above: their whole job is to keep an existing `body_omit: [F]` pointing
+#: at `controls` and `[H]` at `issues` across any reshape, which is why `G` still
+#: means `outputs` even though `outputs` renders as E in the seven-section model
+#: (M23 point 3 — "existing profiles keep meaning the same sections through any
+#: future rename" — deliberately overrides M16's `body_omit: [F, G]` prose).
+#: `C` and `D` both point at the merged `before-you-start`.
 SECTION_LETTER_ALIASES: dict[str, str] = {
-    "A": "overview", "B": "quick-reference", "C": "prerequisites",
-    "D": "inputs", "E": "steps", "F": "controls", "G": "outputs",
+    "A": "scope", "B": "quick-reference", "C": "before-you-start",
+    "D": "before-you-start", "E": "steps", "F": "controls", "G": "outputs",
     "H": "issues",
 }
 
 #: A `###` sub-section heading, with the letter prefix OPTIONAL — the parse
-#: contract for the transition: `### Process Overview` (migrated) and
-#: `### A. Process Overview` (not yet migrated) both resolve to `overview`.
+#: contract for the transition: `### Scope` (migrated) and
+#: `### A. Process Overview` (pre-M16 title, unmigrated) both resolve to `scope`.
 #: `####` steps never match (`###` must be followed by whitespace).
 SECTION_HEADING_RE = re.compile(
     r"^(?P<hashes>#{3})\s+(?:(?P<letter>[A-Z])\.\s+)?(?P<title>\S.*?)\s*$"
@@ -220,8 +234,40 @@ def _norm_section_key(text: str) -> str:
 #: PAST titles -> slug. A section renamed in `SECTION_TITLES` adds its old title
 #: here and every already-drafted fragment keeps resolving — which is what makes
 #: M16 move 1's rename a registry edit instead of a corpus-wide heading rewrite.
-#: Empty today: nothing has been renamed yet.
-SECTION_TITLE_ALIASES: dict[str, str] = {}
+#: This is the whole cost of M16 move 1's RENAME half: every 8-section fragment
+#: in the corpus keeps parsing, rendering, aggregating and reconciling, and the
+#: CONTENT wave (A-shrink, B-table, C+D merge) follows as a drafter pass.
+SECTION_TITLE_ALIASES: dict[str, str] = {
+    "Process Overview": "scope",
+    "Quick Reference": "quick-reference",
+    "Pre-Requisites": "before-you-start",
+    "Inputs": "before-you-start",
+    "Step-by-Step Procedure": "steps",
+    "Outputs": "outputs",
+    # M16's table names F simply "Controls"; the job is unchanged, so the
+    # canonical title stays "Key Controls" and the short form is accepted.
+    "Controls": "controls",
+    # The docx builder's legacy label for H.
+    "Known Issues / Improvement Notes": "issues",
+}
+
+#: PAST slugs -> slug. The profile-input half of the same promise: a hand-written
+#: `body_omit: [overview]` or `sections: [prerequisites, inputs]` keeps meaning
+#: the sections it always meant. Titles are matched separately (above), so these
+#: never make a `###` heading resolve.
+SECTION_SLUG_ALIASES: dict[str, str] = {
+    "overview": "scope",
+    "prerequisites": "before-you-start",
+    "inputs": "before-you-start",
+}
+
+#: The M16 C+D merge, recorded so a diagnostic can NAME it. A fragment drafted
+#: before the content wave carries BOTH of these headings, and both resolve to
+#: `before-you-start` — see `duplicate_sections` for what the pipeline does with
+#: that (tolerate, keep every fact, report).
+SECTION_MERGE_SOURCES: dict[str, tuple[str, ...]] = {
+    "before-you-start": ("Pre-Requisites", "Inputs"),
+}
 
 #: (title_keys, section_keys) rebuilt whenever the registry above changes, so a
 #: runtime registry edit (a rename, a merge) takes effect everywhere at once.
@@ -236,7 +282,8 @@ def _section_keys() -> tuple[dict, dict]:
     mistaken for `Step-by-Step Procedure`. Profile-input keys add the slugs.
     """
     global _KEYS_CACHE
-    stamp = (tuple(SECTION_TITLES.items()), tuple(SECTION_TITLE_ALIASES.items()))
+    stamp = (tuple(SECTION_TITLES.items()), tuple(SECTION_TITLE_ALIASES.items()),
+             tuple(SECTION_SLUG_ALIASES.items()))
     if _KEYS_CACHE and _KEYS_CACHE[0] == stamp:
         return _KEYS_CACHE[1], _KEYS_CACHE[2]
     titles: dict[str, str] = {}
@@ -253,6 +300,8 @@ def _section_keys() -> tuple[dict, dict]:
                     _norm_section_key(title).replace("-", "")):
             titles.setdefault(key, slug)
             inputs.setdefault(key, slug)
+    for old_slug, slug in SECTION_SLUG_ALIASES.items():
+        inputs.setdefault(_norm_section_key(old_slug), slug)
     _KEYS_CACHE = (stamp, titles, inputs)
     return titles, inputs
 
@@ -290,8 +339,8 @@ def section_of_heading(line: str) -> Optional[str]:
     ways.
 
     TRANSITION CONTRACT (both forms parse, migration is never a prerequisite):
-      - `### Process Overview`      -> `overview`  (migrated; title matched)
-      - `### A. Process Overview`   -> `overview`  (title matched)
+      - `### Scope`                 -> `scope`     (migrated; title matched)
+      - `### A. Process Overview`   -> `scope`     (a PAST title; still matched)
       - `### F. Some Local Wording` -> `controls`  (title unknown; LETTER used)
       - `### Steps`                 -> None        (nobody's title, no letter)
     Title first, letter second: the title is the identity the drafter writes,
@@ -310,6 +359,41 @@ def section_heading_title(line: str) -> Optional[str]:
     """The title text of a `###` heading, letter prefix stripped."""
     m = SECTION_HEADING_RE.match(line or "")
     return m.group("title") if m else None
+
+
+def section_headings(text: str) -> list[tuple[str, str]]:
+    """Every resolvable `###` section heading in `text`, as (slug, written title),
+    in document order. THE ONE SCANNER — reconcile's merge diagnostic and any
+    other "which sections does this fragment have, and how many times?" question
+    ask here rather than re-walking lines with their own regex."""
+    out: list[tuple[str, str]] = []
+    for line in (text or "").split("\n"):
+        slug = section_of_heading(line)
+        if slug is not None:
+            out.append((slug, section_heading_title(line) or ""))
+    return out
+
+
+def duplicate_sections(text: str) -> dict[str, list[str]]:
+    """{slug: [written titles]} for every section slug `text` heads MORE THAN
+    ONCE — i.e. the M16 C+D transition state, where a fragment drafted before
+    the content wave carries `### Pre-Requisites` AND `### Inputs` and both
+    resolve to `before-you-start`.
+
+    THE TRANSITION BEHAVIOUR IS TOLERATE + REPORT, never fail:
+      - `aggregate.split_subsections` CONCATENATES the bodies in document order,
+        so no fact is lost and every register still sees its content;
+      - `render` letters both headings the same and gives the registry title to
+        the FIRST only, so the second stays visibly as authored (`C. Inputs`
+        under `C. Before You Start`) — the reader can see the un-merged pair;
+      - `reconcile` emits a WARNING naming the fragment and the merge, so the
+        state is loud but exit 0: the content wave is imminent and blocking the
+        gate on it would wedge every existing area on a rename.
+    """
+    seen: dict[str, list[str]] = {}
+    for slug, written in section_headings(text):
+        seen.setdefault(slug, []).append(written)
+    return {slug: titles for slug, titles in seen.items() if len(titles) > 1}
 
 
 def section_letters(order=None) -> dict[str, str]:

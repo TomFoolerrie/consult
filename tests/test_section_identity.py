@@ -48,11 +48,12 @@ SOURCES_YAML = ("sources:\n- id: SRC-001\n  file: _sources/processed/i.md\n"
                 "  touches:\n  - bank-rec\n  state: processed\n")
 
 SECTION_BODIES = {
-    "overview": "The Controller performs this monthly. (SRC-001)",
-    "quick-reference": ("- **Frequency:** Monthly\n"
-                        "- **Preparer:** Controller"),
-    "prerequisites": "- The period is closed in NetSuite.",
-    "inputs": "- **Input 1:** Bank statement — Treasury.",
+    "scope": "Covers the monthly reconciliation only. (SRC-001)",
+    "quick-reference": ("| Field | Value |\n|---|---|\n"
+                        "| Frequency | Monthly |\n"
+                        "| Preparer | Controller |"),
+    "before-you-start": ("- **Bank statement** — Treasury; downloaded for the "
+                         "closed period."),
     "steps": ("#### Step 1: Export\n\nExport the statement from the portal."),
     "controls": ("> **CONTROL — CTRL-001:** Controller signs off.\n"
                  "> - **Type:** Detective\n"
@@ -63,6 +64,60 @@ SECTION_BODIES = {
                "> - **Impact:** Two hours per close\n"
                "> - **Severity:** Medium"),
 }
+
+#: An 8-heading fragment as the corpus carried it BEFORE M16 move 1 — the state
+#: every already-drafted area is in on the day the registry lands. Titles resolve
+#: through `SECTION_TITLE_ALIASES`, and `Pre-Requisites` + `Inputs` both resolve
+#: to the merged `before-you-start`.
+OLD_MODEL_FRAGMENT = """## Bank Reconciliation
+
+### A. Process Overview
+
+The Controller performs this monthly. (SRC-001)
+
+### B. Quick Reference
+
+- **Frequency:** Monthly
+- **Preparer:** Controller
+
+### C. Pre-Requisites
+
+- The period is closed in NetSuite.
+
+### D. Inputs
+
+- **Input 1:** Bank statement — Treasury.
+
+### E. Step-by-Step Procedure
+
+#### Step 1: Export
+
+Export the statement from the portal.
+
+### F. Key Controls
+
+> **CONTROL — CTRL-001:** Controller signs off.
+> - **Type:** Detective
+> - **Frequency:** Monthly
+> - **Owner:** Controller
+
+### G. Outputs
+
+- **Output 1:** Signed reconciliation.
+
+### H. Known Issues & Improvement Opportunities
+
+> **PAIN POINT — PP-001:** The statement is exported by hand.
+> - **Impact:** Two hours per close
+> - **Severity:** Medium
+
+```consult-meta
+systems:
+  - netsuite
+roles:
+  - controller
+```
+"""
 META = "```consult-meta\nsystems:\n  - netsuite\nroles:\n  - controller\n```\n"
 
 
@@ -149,18 +204,48 @@ def sha(path: Path) -> str:
 # Design point 1 — the registry
 # --------------------------------------------------------------------------- #
 
-def test_the_registry_is_the_current_a_to_h_set_mapped_one_to_one():
-    """Out of scope: changing any section's title or count. The eight slugs are
-    today's A–H, in order."""
+def test_the_registry_is_the_m16_seven_section_set():
+    """M16 move 1's registry half: seven slugs, in the ticket's document order,
+    with the declared-job titles."""
     assert list(doc_model.SECTION_TITLES) == [
-        "overview", "quick-reference", "prerequisites", "inputs", "steps",
-        "controls", "outputs", "issues"]
+        "scope", "quick-reference", "before-you-start", "steps", "outputs",
+        "controls", "issues"]
     assert doc_model.section_letters() == {
-        "overview": "A", "quick-reference": "B", "prerequisites": "C",
-        "inputs": "D", "steps": "E", "controls": "F", "outputs": "G",
-        "issues": "H"}
+        "scope": "A", "quick-reference": "B", "before-you-start": "C",
+        "steps": "D", "outputs": "E", "controls": "F", "issues": "G"}
+
+
+def test_the_letter_aliases_stay_frozen_at_their_historical_meaning():
+    """The letters are NOT the new positions: they are frozen at the sections
+    they historically named, so a profile written before M16 move 1 keeps
+    meaning the same sections (M23 design point 3). `G` still means `outputs`
+    even though `outputs` now renders as E, and `C`/`D` both point at the merged
+    `before-you-start`."""
     assert doc_model.SECTION_LETTER_ALIASES == {
-        letter: slug for slug, letter in doc_model.section_letters().items()}
+        "A": "scope", "B": "quick-reference", "C": "before-you-start",
+        "D": "before-you-start", "E": "steps", "F": "controls",
+        "G": "outputs", "H": "issues"}
+    assert doc_model.section_letters()["outputs"] == "E"   # display ≠ alias
+
+
+def test_every_pre_m16_heading_still_resolves():
+    """The rename half of M16 move 1 costs ZERO fragment edits: every 8-section
+    title in the corpus resolves through `SECTION_TITLE_ALIASES`, and the two
+    merged ones land on the same slug."""
+    for title, slug in [("Process Overview", "scope"),
+                        ("Quick Reference", "quick-reference"),
+                        ("Pre-Requisites", "before-you-start"),
+                        ("Inputs", "before-you-start"),
+                        ("Step-by-Step Procedure", "steps"),
+                        ("Outputs", "outputs"),
+                        ("Key Controls", "controls"),
+                        ("Known Issues & Improvement Opportunities", "issues")]:
+        assert doc_model.section_of_heading(f"### {title}") == slug
+        assert doc_model.section_slug(title) == slug
+    # the pre-M16 SLUGS keep resolving as profile input, too
+    for old, slug in [("overview", "scope"), ("prerequisites", "before-you-start"),
+                      ("inputs", "before-you-start")]:
+        assert doc_model.section_slug(old) == slug
 
 
 @pytest.mark.parametrize("token,slug", [
@@ -168,7 +253,9 @@ def test_the_registry_is_the_current_a_to_h_set_mapped_one_to_one():
     ("Key Controls", "controls"),        # the canonical title
     ("key-controls", "controls"),        # a normalized spelling
     ("F", "controls"), ("f", "controls"), ("F.", "controls"),   # letter aliases
-    ("H", "issues"), ("A", "overview"),
+    ("H", "issues"), ("A", "scope"), ("D", "before-you-start"),
+    ("overview", "scope"),               # a pre-M16 slug (profile input)
+    ("At a Glance", "quick-reference"),  # the new title
     ("steps", "steps"), ("Steps", "steps"),   # the SLUG, case-insensitive
     ("Z", None), ("", None), (None, None), ("Appendix A", None),
 ])
@@ -181,8 +268,11 @@ def test_section_slug_canonicalizes_every_accepted_spelling(token, slug):
 
 
 @pytest.mark.parametrize("line,slug", [
-    ("### Process Overview", "overview"),           # migrated
-    ("### A. Process Overview", "overview"),        # not yet migrated
+    ("### Scope", "scope"),                         # migrated
+    ("### Process Overview", "scope"),              # the pre-M16 title
+    ("### A. Process Overview", "scope"),           # pre-M16 AND unmigrated
+    ("### Inputs", "before-you-start"),             # merged into C
+    ("### Pre-Requisites", "before-you-start"),     # …and so is this
     ("### F. Local Wording For Controls", "controls"),   # letter fallback
     ("### Known Issues & Improvement Opportunities", "issues"),
     ("#### Step 1: Export", None),                  # a step is not a section
@@ -206,7 +296,7 @@ def test_letterless_fragments_render_letter_identical_to_lettered_ones(tmp_path)
     legacy = rendered_text(area_with(engagement(tmp_path / "old"),
                                      letterless=False))
     assert migrated == legacy
-    for letter, slug in doc_model.SECTION_LETTER_ALIASES.items():
+    for slug, letter in doc_model.section_letters().items():
         assert f"{letter}. {doc_model.SECTION_TITLES[slug]}" in migrated
 
 
@@ -214,10 +304,10 @@ def test_the_fragment_on_disk_never_carries_a_letter(tmp_path):
     """Design point 2: the letter exists only in the rendered document."""
     area = area_with(engagement(tmp_path))
     text = (area / "10_bank-rec.md").read_text(encoding="utf-8")
-    assert "### Process Overview" in text
+    assert "### Scope" in text
     for letter in doc_model.SECTION_LETTER_ALIASES:
         assert f"### {letter}." not in text
-    assert "A. Process Overview" in rendered_text(area)
+    assert "A. Scope" in rendered_text(area)
 
 
 def test_scaffold_stamps_letterless_skeletons_from_the_registry(tmp_path):
@@ -251,14 +341,14 @@ def test_reordering_sections_reletters_the_render_with_zero_fragment_edits(tmp_p
     area = area_with(components)
     frag = area / "10_bank-rec.md"
     before = sha(frag)
-    assert "A. Process Overview" in rendered_text(area, "one.docx")
+    assert "A. Scope" in rendered_text(area, "one.docx")
 
-    reordered = ["quick-reference", "overview", "prerequisites", "inputs",
-                 "steps", "controls", "outputs", "issues"]
+    reordered = ["quick-reference", "scope", "before-you-start", "steps",
+                 "outputs", "controls", "issues"]
     write_profile(components, sections=reordered)
     text = rendered_text(area, "two.docx")
 
-    assert "A. Quick Reference" in text and "B. Process Overview" in text
+    assert "A. At a Glance" in text and "B. Scope" in text
     assert sha(frag) == before
 
 
@@ -266,12 +356,12 @@ def test_a_lettered_fragment_is_reletterd_too_not_left_stale(tmp_path):
     """An UNMIGRATED fragment renders with the letter the PROFILE says, never
     the stale one baked into its heading."""
     components = engagement(tmp_path)
-    write_profile(components, sections=["quick-reference", "overview",
-                                        "prerequisites", "inputs", "steps",
-                                        "controls", "outputs", "issues"])
+    write_profile(components, sections=["quick-reference", "scope",
+                                        "before-you-start", "steps",
+                                        "outputs", "controls", "issues"])
     text = rendered_text(area_with(components, letterless=False))
-    assert "A. Quick Reference" in text and "B. Process Overview" in text
-    assert "A. Process Overview" not in text
+    assert "A. At a Glance" in text and "B. Scope" in text
+    assert "A. Scope" not in text
 
 
 # --------------------------------------------------------------------------- #
@@ -296,18 +386,18 @@ def test_sections_accepts_letters_and_slugs_interchangeably(tmp_path):
     """Design point 3: an existing letter-based profile and its slug-based twin
     resolve to the same Profile."""
     a = engagement(tmp_path / "letters")
-    write_profile(a, sections=[s for s in "ABCDEGH"],
+    write_profile(a, sections=[s for s in "ABCDE"] + ["G", "H"],
                   derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
     b = engagement(tmp_path / "slugs")
-    write_profile(b, sections=["overview", "quick-reference", "prerequisites",
-                               "inputs", "steps", "outputs", "issues"],
+    write_profile(b, sections=["scope", "quick-reference", "before-you-start",
+                               "steps", "outputs", "issues"],  # letters A B C D E G H
                   derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
     pa = client_config.profile(a / "treasury")
     pb = client_config.profile(b / "treasury")
     assert pa.sections == pb.sections
     assert pa.letters() == pb.letters()
-    # Dropping `controls` closes the gap: `outputs` becomes F, not G.
-    assert pa.letters()["outputs"] == "F"
+    # Dropping `controls` closes the gap: `issues` becomes F, not G.
+    assert pa.letters()["issues"] == "F"
 
 
 # --------------------------------------------------------------------------- #
@@ -365,7 +455,7 @@ def test_the_advisors_profile_drift_guard_keys_on_slugs(tmp_path):
     """Design point 5: the `reprofile` detector keeps working, and the migration
     itself can never read as drift (both heading forms count as present)."""
     components = engagement(tmp_path)
-    write_profile(components, sections=["overview", "quick-reference", "steps"])
+    write_profile(components, sections=["scope", "quick-reference", "steps"])
     area = area_with(components)
     orchestrate.emit_aggregate(str(area), warnings=[])
     for letterless in (True, False):
@@ -375,9 +465,9 @@ def test_the_advisors_profile_drift_guard_keys_on_slugs(tmp_path):
         assert orchestrate.decide(str(area))["action"] != "reprofile"
 
     # A section the profile requires and the fragment lacks IS drift, by slug.
-    write_profile(components, sections=["overview", "quick-reference", "steps"])
+    write_profile(components, sections=["scope", "quick-reference", "steps"])
     (area / "10_bank-rec.md").write_text(
-        fragment("Bank Reconciliation", slugs=["overview", "quick-reference"])
+        fragment("Bank Reconciliation", slugs=["scope", "quick-reference"])
         .replace("<!-- unfilled -->", ""), encoding="utf-8")
     d = orchestrate.decide(str(area))
     assert d["action"] == "reprofile"
@@ -396,8 +486,8 @@ def test_the_letter_stamp_runs_before_the_body_is_emitted(tmp_path):
     area = area_with(engagement(tmp_path))
     raw = (area / "10_bank-rec.md").read_text(encoding="utf-8")
     prof = client_config.profile(area)
-    assert "### A. Process Overview" in render._apply_profile(raw, prof)
-    assert "A. Process Overview" in rendered_text(area)
+    assert "### A. Scope" in render._apply_profile(raw, prof)
+    assert "A. Scope" in rendered_text(area)
 
 
 def test_the_review_map_still_anchors_on_the_right_fragment_lines(tmp_path):
@@ -517,20 +607,19 @@ def test_a_registry_rename_and_merge_relettes_without_touching_fragments(
     before = sha(frag)
 
     renamed = dict(doc_model.SECTION_TITLES)
-    renamed["controls"] = "Controls & Checks"          # the rename
+    renamed["controls"] = "Controls & Checks"          # a further rename
     monkeypatch.setattr(doc_model, "SECTION_TITLES", renamed)
     monkeypatch.setattr(doc_model, "SECTION_TITLE_ALIASES",
-                        {"Key Controls": "controls"})  # the old title lives on
-    # The merge half: `inputs` folds into `prerequisites`, so the profile drops
-    # it and every section after it moves up a letter.
-    write_profile(components, sections=["overview", "quick-reference",
-                                        "prerequisites", "steps", "controls",
-                                        "outputs", "issues"])
+                        dict(doc_model.SECTION_TITLE_ALIASES,
+                             **{"Key Controls": "controls"}))
+    write_profile(components, sections=["scope", "quick-reference",
+                                        "before-you-start", "steps",
+                                        "controls", "issues"])
 
     text = rendered_text(area, "reshaped.docx")
-    assert "D. Step-by-Step Procedure" in text          # was E
+    assert "D. Procedure" in text                       # was E pre-M16
     assert "E. Controls & Checks" in text               # renamed AND re-lettered
-    assert "D. Inputs" not in text
+    assert "F. Outputs & Evidence" not in text          # dropped by the profile
     assert sha(frag) == before                          # zero fragment edits
 
 
@@ -542,8 +631,8 @@ def test_the_letter_of_a_body_omitted_section_does_not_shift(tmp_path):
     write_profile(components, body_omit=["controls"],
                   derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
     text = rendered_text(area_with(components))
-    assert "E. Step-by-Step Procedure" in text
-    assert "G. Outputs" in text and "F. Outputs" not in text
+    assert "D. Procedure" in text
+    assert "E. Outputs & Evidence" in text and "F. Outputs" not in text
     assert "F. Key Controls" not in text
 
 
@@ -556,7 +645,7 @@ def test_an_unmigrated_area_renders_aggregates_and_reconciles_clean(tmp_path):
     migration is a tidy-up and never a prerequisite."""
     area = area_with(engagement(tmp_path), letterless=False)
     text = rendered_text(area)
-    assert "A. Process Overview" in text and "H. Known Issues" in text
+    assert "A. Scope" in text and "G. Known Issues" in text
     assert "PP-01" in text          # the display id
     orchestrate.emit_aggregate(str(area), warnings=[])
     assert reconcile.reconcile(area) == 0
@@ -567,8 +656,68 @@ def test_a_half_migrated_area_is_still_coherent(tmp_path):
     fragments must render with the same lettering."""
     area = area_with(engagement(tmp_path), letterless=False)
     mixed = (area / "10_bank-rec.md").read_text(encoding="utf-8")
-    mixed = mixed.replace("### A. Process Overview", "### Process Overview")
+    mixed = mixed.replace("### A. Scope", "### Scope")
     (area / "10_bank-rec.md").write_text(mixed, encoding="utf-8")
     text = rendered_text(area)
-    for letter, slug in doc_model.SECTION_LETTER_ALIASES.items():
+    for slug, letter in doc_model.section_letters().items():
         assert f"{letter}. {doc_model.SECTION_TITLES[slug]}" in text
+
+
+# --------------------------------------------------------------------------- #
+# M16 move 1 — the TRANSITION for an OLD-MODEL (8-heading) fragment
+# --------------------------------------------------------------------------- #
+
+def test_an_old_model_fragment_parses_renders_and_reconciles(tmp_path):
+    """The registry half's whole promise: a fragment drafted against the 8-section
+    model — untouched, letters and pre-M16 titles and all — still parses,
+    renders with the SEVEN-section lettering and the NEW titles, aggregates and
+    reconciles (exit 0). No drafter has run yet."""
+    area = area_with(engagement(tmp_path))
+    frag = area / "10_bank-rec.md"
+    frag.write_text(OLD_MODEL_FRAGMENT, encoding="utf-8")
+
+    text = rendered_text(area)
+    assert "A. Scope" in text                      # was `A. Process Overview`
+    assert "B. At a Glance" in text                # was `B. Quick Reference`
+    assert "C. Before You Start" in text           # was `C. Pre-Requisites`
+    assert "D. Procedure" in text                  # was `E. Step-by-Step …`
+    assert "E. Outputs & Evidence" in text         # was `G. Outputs`
+    assert "F. Key Controls" in text
+    assert "G. Known Issues" in text               # was H
+    assert "H. " not in text                       # seven sections, not eight
+
+    orchestrate.emit_aggregate(str(area), warnings=[])
+    assert reconcile.reconcile(area) == 0           # WARNING, never an error
+
+
+def test_two_headings_resolving_to_one_slug_tolerate_report_and_keep_facts(
+        tmp_path):
+    """The C+D merge, pre-content-wave. THE TRANSITION BEHAVIOUR:
+
+    - aggregate CONCATENATES the two bodies, so no fact is lost;
+    - render letters both headings C and re-titles only the FIRST, so the
+      un-merged pair is visible instead of printed twice;
+    - reconcile WARNS, naming the fragment and the content wave (exit stays 0).
+    """
+    area = area_with(engagement(tmp_path))
+    frag = area / "10_bank-rec.md"
+    frag.write_text(OLD_MODEL_FRAGMENT, encoding="utf-8")
+
+    dupes = doc_model.duplicate_sections(OLD_MODEL_FRAGMENT)
+    assert dupes == {"before-you-start": ["Pre-Requisites", "Inputs"]}
+
+    body = aggregate.split_subsections(OLD_MODEL_FRAGMENT)["before-you-start"]
+    assert "The period is closed in NetSuite." in body       # from C
+    assert "Bank statement — Treasury." in body              # from D — kept
+
+    text = rendered_text(area)
+    assert "C. Before You Start" in text
+    assert "C. Inputs" in text                # the repeat keeps its own title
+    assert text.count("C. Before You Start") == 1
+
+    warns = reconcile.parse_procedure("bank-rec", "10_bank-rec.md",
+                                      OLD_MODEL_FRAGMENT).warnings
+    assert any("AWAITING THE M16 CONTENT WAVE" in w for w in warns)
+    assert any("Before You Start" in w and "Inputs" in w for w in warns)
+    orchestrate.emit_aggregate(str(area), warnings=[])
+    assert reconcile.reconcile(area) == 0          # loud, not blocking

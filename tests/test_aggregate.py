@@ -131,13 +131,15 @@ GOOD_CALLOUTS = """\
 
 def test_split_subsections_slugs_and_boundaries():
     """split_subsections keys bodies by section SLUG (M23) and a `## ` heading
-    ends the run. Letterless and legacy lettered headings key alike."""
+    ends the run. Letterless, legacy lettered and pre-M16-titled headings key
+    alike (`Process Overview` → `scope`, `Pre-Requisites` → `before-you-start`).
+    """
     text = ("### A. Process Overview\nalpha\n\n### Quick Reference\nbravo\n"
             "## Next Fragment\nignored\n### C. Pre-Requisites\ncharlie\n")
     got = aggregate.split_subsections(text)
-    assert got["overview"] == "alpha"
+    assert got["scope"] == "alpha"
     assert got["quick-reference"] == "bravo"
-    assert got["prerequisites"] == "charlie"
+    assert got["before-you-start"] == "charlie"
     assert "ignored" not in got.get("quick-reference", "")
 
 
@@ -146,6 +148,16 @@ def test_parse_bullets_key_value():
     got = aggregate.parse_bullets(
         "- **Frequency:** Monthly\nplain line\n- **Owner:** Controller\n")
     assert got == {"Frequency": "Monthly", "Owner": "Controller"}
+
+
+def test_parse_bullets_reads_the_at_a_glance_table_too():
+    """M16 move 1 makes the card a TABLE. Both authored forms parse, so the
+    content wave can retable an existing card without the registers, the RACI
+    inputs or the Quick Reference kit losing the preparer."""
+    got = aggregate.parse_bullets(
+        "| Field | Value |\n|---|---|\n| Frequency | Monthly |\n"
+        "| **Preparer** | Controller |\n")
+    assert got == {"Frequency": "Monthly", "Preparer": "Controller"}
 
 
 def test_parse_consult_meta_missing_block_is_empty():

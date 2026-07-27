@@ -351,33 +351,38 @@ _FALLBACK_SKELETON = """## {heading}
 
 <!-- unfilled -->
 
-### Process Overview
+### Scope
 
-TBD — What this procedure accomplishes, when it occurs, who performs it, what it
-excludes, and how it connects to upstream / downstream activities.
+TBD — what this procedure covers, what it explicitly excludes, and which
+procedures adjoin it. Nothing else.
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** TBD
-- **Frequency:** TBD
-- **Preparer:** TBD
-- **Reviewer:** TBD
-- **Primary systems / tools:** TBD
-- **Key outputs:** TBD
+| Field | Value |
+|---|---|
+| Trigger | TBD |
+| Frequency | TBD |
+| Preparer | TBD |
+| Reviewer | TBD |
+| Systems | TBD |
+| Key inputs | TBD |
+| Key outputs | TBD |
 
-### Pre-Requisites
+### Before You Start
 
-- TBD — what must be true before the procedure begins.
+- **<Artifact>** — TBD; TBD — the state it must be in.
 
-### Inputs
-
-- **Input 1:** TBD — source / owner.
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: TBD
 
 TBD — Describe the step in neutral current-state procedural language.
+
+### Outputs & Evidence
+
+- **Output 1:** TBD
+- **Evidence retained:** TBD
+- **Not retained:** TBD
 
 ### Key Controls
 
@@ -385,11 +390,6 @@ TBD — Describe the step in neutral current-state procedural language.
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** TBD
 > - **Owner:** TBD
-
-### Outputs
-
-- **Output 1:** TBD
-- **Evidence retained:** TBD
 
 ### Known Issues & Improvement Opportunities
 
@@ -410,8 +410,9 @@ roles:   []
 # The end-matter fence that terminates the last sub-section (the `consult-meta`
 # block belongs to no section, so it must survive even when the section it
 # trails is dropped). Sub-section headings are recognized by the shared
-# registry (M23): `### Key Controls` and a legacy `### Key Controls` both
-# resolve to the `controls` slug.
+# registry (M23): `### Key Controls` and a legacy `### F. Key Controls` both
+# resolve to the `controls` slug, as do the pre-M16 titles (`### Inputs` →
+# `before-you-start`) through `SECTION_TITLE_ALIASES`.
 _END_MATTER_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.I)
 
 
@@ -463,7 +464,7 @@ def render_skeleton(heading: str, sections=None) -> str:
     section registry if M1's file is absent. Either way the `<!-- unfilled -->`
     sentinel is present.
 
-    The stamped headings carry the TITLE only (`### Process Overview`): the
+    The stamped headings carry the TITLE only (`### Scope`): the
     letter is a render-time transform, so no drafter ever writes one and no
     reshape ever re-writes one.
 

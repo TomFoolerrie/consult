@@ -73,7 +73,7 @@ Read, at the start:
    not change the section headings.
 
    **Section headings carry the TITLE ONLY — never a letter.** Write
-   `### Process Overview`, never `### A. Process Overview`. The A–H letters are
+   `### Scope`, never `### A. Scope`. The A–G letters are
    the RENDERED document's, assigned late from the profile's section order like a
    procedure's `1.1` display number; a letter you type is one that goes stale the
    moment the order changes. If you are handed an older draft whose headings
@@ -87,13 +87,15 @@ Read, at the start:
 5. Any `upstream` fragments passed in your dispatch.
 6. The **document profile**, if one is in play: `{area}/_client/profile.yaml`, or
    the engagement-wide `components/_client/profile.yaml` (the area file shadows it
-   whole). Absent from both = the full eight-section default. See below.
+   whole). Absent from both = the full seven-section default. See below.
 
 ## The document profile — you read it, you never decide it
 
 The profile is the engagement's answer to "what shape is this deliverable":
-which sections exist (named by SLUG — `overview`, `controls`, `issues` — the
-letters A–H are accepted aliases for the same sections), which **callout kinds**
+which sections exist (named by SLUG — `scope`, `controls`, `issues` — the
+letters A–H are accepted aliases for the sections they historically named, and
+the pre-M16 slugs (`overview`, `prerequisites`, `inputs`) still resolve too),
+which **callout kinds**
 and **inline step tags** are in
 play, which derived views get built. It is human-owned config, resolved before you
 are dispatched, and it is enforced by Python at two points (scaffold builds the
@@ -113,7 +115,7 @@ Your side of that contract is small and strict:
   hides is drafted **exactly as normal**: it is aggregated and it feeds its
   register; only the rendered body leaves it out.
 - **You never decide shape.** No profile file, no `callouts:` key, nothing you can
-  read → the full eight-section default with every callout kind and every inline
+  read → the full seven-section default with every callout kind and every inline
   tag. When
   the profile and your skeleton disagree, the skeleton is not authority either:
   report it, do not reshape.
@@ -143,7 +145,7 @@ drafter used — describe your intake side in the same terms.
   harmonize either side — document per your sources and raise a GAP naming the
   mismatch and the upstream procedure. The reconciliation is a human call.
 - Don't restate upstream content. Your reader gets the upstream procedure in
-  the same document; Process Overview links the flow in a sentence, no more.
+  the same document; Scope links the flow in a sentence, no more.
 
 ## Conventions digest — cheap terminology glue (M11)
 
@@ -189,28 +191,68 @@ words ("per the approval threshold in F") instead of repeating the substance.
 Judgment call, not a ban: a one-line echo is fine where forcing the reader to
 jump would be worse — but the full treatment lives in exactly one place.
 
-- **Process Overview is a primer, not a rundown.** 3–5 sentences: what this
-  procedure accomplishes, when it runs, who performs it, how it connects
-  upstream/downstream. No step detail, no control detail, no pain-point
-  narrative — those all have their own sections. A reader should finish A
-  oriented, not informed.
-- Quick Reference (B) carries the at-a-glance facts; don't re-narrate them in A.
+**THE MAP OF HOMES** (M16 move 1) — this is what makes "say it once" enforceable
+rather than aspirational: **facts live in the card (B), states live in C, actions
+live in D, results live in E.** Seven sections, each with a declared job:
+
+| | Job |
+|---|---|
+| **A. Scope** | what this covers, what it explicitly excludes, which procedures adjoin it. **Nothing else** — no preparer, no systems, no trigger. |
+| **B. At a Glance** | **a table.** Trigger, frequency, preparer, reviewer, systems, key inputs, key outputs. The single home for those facts. |
+| **C. Before You Start** | one line per artifact: what it is, where it comes from, the state it must be in. |
+| **D. Procedure** | the steps. |
+| **E. Outputs & Evidence** | what exists afterwards, what is retained, what is deliberately not retained. |
+| **F. Key Controls** | unchanged. |
+| **G. Known Issues & Improvement Opportunities** | **defects only** — see below. |
+
+- **Scope is a primer, not a rundown.** 3–5 sentences: what this procedure
+  covers, what it excludes, which procedures adjoin it. No preparer, no systems,
+  no trigger, no step detail, no control detail, no pain-point narrative — those
+  all have their own sections. A reader should finish A oriented, not informed.
+- At a Glance (B) carries the at-a-glance facts, one table row each; don't
+  re-narrate them in A. A four-sentence table cell is a sign the content was in
+  the wrong section: the prose moves to A (if it is a scope statement) or F (if it
+  is a control statement) and the row carries the short answer.
+- Before You Start (C) is one line per artifact — name, source (`[[slug]]` where
+  an upstream procedure supplies it), required state. Splitting "the state" from
+  "the artifact" is the distinction M16 removed; do not reinvent it.
+- Outputs & Evidence (E) keeps what B's `key outputs` row cannot: retention, and
+  the negative findings ("no record of the exception investigation is retained").
 - Controls live in Key Controls, friction in Known Issues, gaps at their step
-  in Step-by-Step. A step there may
+  in Procedure. A step there may
   *name* the control it triggers; it doesn't re-describe it.
+- **G stays defects-only.** G records defects in the process — things that are
+  wrong. A branch the process handles routinely is a conditional step, not a
+  known issue.
 - **The same rule governs the inline step tags and long callouts**, one scale
   down: the default system is declared in B and tagged in a step only where it
   changes, and a long callout's full account lives in its appendix register row
   while the step carries a one-line note. See "declare once, tag on change" and
   "a long callout splits" below.
 
+## The M16 content wave — migrating an existing 8-section draft
+
+An `update` pass on a fragment drafted against the old eight-section model
+(`Process Overview` … `Known Issues`) is a **content-wave pass**. The registry
+already reads those headings, so nothing is broken — what is owed is the judgment
+a script cannot do, and reconcile names the fragments still owing it ("AWAITING
+THE M16 CONTENT WAVE").
+
+Follow **"Content wave: 8 → 7 sections (M16 move 1)"** in
+`skills/consult-drafter/SKILL.md` — the per-fragment procedure, step by step. Its
+two standing rules are contract, not guidance: **no content is invented and no
+fact is lost** (a sentence stays, moves to its declared home, or is deleted only
+as a verbatim duplicate of the same fact in its home section), and callouts,
+callout IDs, `SRC-` citations, `[[slug]]` tokens and the `consult-meta` block are
+**unchanged** by the pass. Report `sections_merged` and `facts_relocated`.
+
 ## What you produce — structure
 
-A finalized `{file}`: the eight-section procedure, current-state, practical for a preparer
+A finalized `{file}`: the seven-section procedure, current-state, practical for a preparer
 to execute and a reviewer to validate. Follow `skills/consult-drafter/SKILL.md`
 for the section-by-section prose. Two structural rules are specific to this system:
 
-### Inline step tags (Step-by-Step Procedure) — declare once, tag on change
+### Inline step tags (Procedure) — declare once, tag on change
 Within a step, add these **bolded tags** only where the detail helps execution,
 review, or auditability — not mechanically on every step:
 
@@ -227,8 +269,8 @@ A tag is a **signal, not a form field**: it earns its place by telling the reade
 something the surrounding text does not already say. The rule that decides three
 of them is *declare once, tag on change*.
 
-- **`System / Tool` — only on DEPARTURE.** `Quick Reference` declares the
-  procedure's default system under `Primary systems / tools:`; that is the fact's
+- **`System / Tool` — only on DEPARTURE.** `At a Glance` declares the
+  procedure's default system in the card's `Systems` row; that is the fact's
   one home. A step tags `System / Tool` **only where it leaves that default** —
   to Coupa, to Chase Connect, to paper. A procedure that operates entirely in one
   system carries **zero** `System / Tool` tags in its steps. Stamped on every
@@ -311,7 +353,7 @@ Severity is a **per-item** read (how painful the client made it sound), not a
 cross-procedure ranking — you only see this one procedure. Do not attempt to rank
 against other procedures.
 
-**Inline in `Step-by-Step Procedure`** — at the step they attach to:
+**Inline in `Procedure`** — at the step they attach to:
 ```
 > **VALIDATION REQUIRED — GAP-01:** <the specific fact/decision to confirm>
 > - **Nature:** unknown | conflict | unsupported-assumption
@@ -361,7 +403,7 @@ The preparer at that step needs the `Note:`; whoever resolves the gap needs the
 ### Applying the two rules above to an EXISTING draft (update pass)
 Mechanical, with judgment at the edges. Work your fragment top to bottom:
 
-1. Read `Quick Reference`. If `Primary systems / tools:` does not name the
+1. Read `At a Glance`. If the `Systems` row does not name the
    procedure's default system, fix that first — every deletion below depends on
    B being the fact's home.
 2. **Delete** every step `System / Tool` tag naming that default system; keep only
@@ -462,6 +504,8 @@ A short status object/paragraph:
   `revised` (one line on what changed)
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,
   `conditions_added`, `callouts_split`
+- on an M16 content-wave pass: `sections_merged` (the headings you collapsed) and
+  `facts_relocated` (one line per fact that changed section)
 - `reconcile`: pass / the ERRORS you couldn't resolve
 
 Do not return the procedure prose. The orchestrator only needs the status; the

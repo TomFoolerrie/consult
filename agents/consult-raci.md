@@ -24,9 +24,9 @@ inputs, write the file, return a short status. Never return prose.
 - Your **prior file** `{area}/84_raci.md` (preserve unaffected rows).
 
 Read:
-1. The bundle's **`raci_inputs`** — per procedure: its `B. Quick Reference`
+1. The bundle's **`raci_inputs`** — per procedure: its `B. At a Glance`
    **Preparer / Reviewer** lines, its `consult-meta` `roles:` slugs, and its
-   `E. Step-by-Step` text (owner mentions live there). This is **prose + a role
+   `D. Procedure` text (owner mentions live there). This is **prose + a role
    slug list**, not a pre-classified grid — *you* infer capacity from it. You do
    not open the procedure files.
 2. `{area}/_reference/roles.yaml` — the canonical role names + reports-to (your
