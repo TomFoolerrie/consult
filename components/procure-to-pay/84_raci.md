@@ -2,25 +2,25 @@
 
 <!-- derived: raci; writer: agent -->
 
-_R = Responsible (does the work) · A = Accountable (answerable for the outcome) · C = Consulted (two-way input) · I = Informed (told after). An asterisk (*) marks an assumed assignment not confirmed in the source._
+_Responsible = does the work · Accountable = answerable for the outcome (exactly one per activity) · Consulted = two-way input · Informed = told after. An asterisk (*) marks an assumed assignment not confirmed in the source._
 
-| Activity | Requester | Cost Center Owner | Functional Vice President | Chief Financial Officer | Buyer | Procurement Lead | Plant Manager | Receiver | Receiving Supervisor | Accounts Payable Clerk | Senior Accounts Payable Specialist | Accounts Payable Manager | Corporate Controller | Assistant Controller | Treasury Analyst | IT Manager | Supplier | Carrier |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [[requisition-and-approval]] | R | A | C | C |  | C |  |  |  |  |  |  |  |  |  |  |  |  |
-| [[po-issuance-and-change-orders]] | R | C |  |  | R, A* | C |  |  | C |  |  |  |  |  |  |  | I |  |
-| [[confirming-po]] | C |  |  |  | R | R, A* | C |  | C |  |  | I |  |  |  |  |  |  |
-| [[new-vendor-onboarding]] | R |  |  |  | R | R, A |  |  |  | R |  |  | C |  |  |  | R |  |
-| [[vendor-banking-change]] |  |  |  |  |  | C |  |  |  | R |  | I | A* |  |  |  | C |  |
-| [[vendor-master-data-maintenance]] |  |  |  |  |  |  |  |  |  | R |  | R, A* | I |  |  |  |  |  |
-| [[goods-receipt]] | R |  |  |  | C |  |  | R | A* |  | C |  |  |  |  |  | C | C |
-| [[return-to-vendor]] |  |  |  |  | R |  |  |  | R, A* |  |  | I |  |  |  |  | C |  |
-| [[invoice-intake-and-capture]] |  |  |  |  |  |  |  |  |  | R | R | A* |  |  |  | C | I |  |
-| [[po-invoice-entry-and-three-way-match]] |  |  |  |  | C |  |  |  | C |  | R, A* |  |  |  |  |  | C |  |
-| [[non-po-invoice-entry-and-approval]] |  | A | C | C |  |  |  |  |  | R |  |  | C |  |  |  |  |  |
-| [[vendor-statement-reconciliation]] |  |  |  |  |  |  |  |  |  |  | R, A* | C | C |  |  |  | C |  |
-| [[weekly-payment-run]] |  |  |  |  |  |  |  |  |  |  |  | R | A | I | C |  |  |  |
-| [[wire-and-manual-payment]] | R |  | C | C |  |  |  |  |  |  |  | C | A | I | R |  |  |  |
-| [[positive-pay-exception-handling]] |  |  |  |  |  |  |  |  |  |  |  | R, A* | C |  |  |  |  |  |
+| Activity | Responsible | Accountable | Consulted | Informed |
+|---|---|---|---|---|
+| [[requisition-and-approval]] | Requester | Cost Center Owner | Functional Vice President; Chief Financial Officer; Procurement Lead | — |
+| [[po-issuance-and-change-orders]] | Requester; Buyer | Buyer* | Cost Center Owner; Procurement Lead; Receiving Supervisor | Supplier |
+| [[confirming-po]] | Buyer; Procurement Lead | Procurement Lead* | Requester; Plant Manager; Receiving Supervisor | Accounts Payable Manager |
+| [[new-vendor-onboarding]] | Requester; Buyer; Procurement Lead; Accounts Payable Clerk; Supplier | Procurement Lead | Corporate Controller | — |
+| [[vendor-banking-change]] | Accounts Payable Clerk | Corporate Controller* | Procurement Lead; Supplier | Accounts Payable Manager |
+| [[vendor-master-data-maintenance]] | Accounts Payable Clerk; Accounts Payable Manager | Accounts Payable Manager* | — | Corporate Controller |
+| [[goods-receipt]] | Requester; Receiver | Receiving Supervisor* | Buyer; Senior Accounts Payable Specialist; Supplier; Carrier | — |
+| [[return-to-vendor]] | Buyer; Receiving Supervisor | Receiving Supervisor* | Supplier | Accounts Payable Manager |
+| [[invoice-intake-and-capture]] | Accounts Payable Clerk; Senior Accounts Payable Specialist | Accounts Payable Manager* | IT Manager | Supplier |
+| [[po-invoice-entry-and-three-way-match]] | Senior Accounts Payable Specialist | Senior Accounts Payable Specialist* | Buyer; Receiving Supervisor; Supplier | — |
+| [[non-po-invoice-entry-and-approval]] | Accounts Payable Clerk | Cost Center Owner | Functional Vice President; Chief Financial Officer; Corporate Controller | — |
+| [[vendor-statement-reconciliation]] | Senior Accounts Payable Specialist | Senior Accounts Payable Specialist* | Accounts Payable Manager; Corporate Controller; Supplier | — |
+| [[weekly-payment-run]] | Accounts Payable Manager | Corporate Controller | Treasury Analyst | Assistant Controller |
+| [[wire-and-manual-payment]] | Requester; Treasury Analyst | Corporate Controller | Functional Vice President; Chief Financial Officer; Accounts Payable Manager | Assistant Controller |
+| [[positive-pay-exception-handling]] | Accounts Payable Manager | Accounts Payable Manager* | Corporate Controller | — |
 
 \* Assumed accountability, pending confirmation with the process owner:
 
