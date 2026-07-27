@@ -32,7 +32,7 @@ The steps below reflect the documented walkthrough of the Plant 2 receiving dock
 
 #### Step 1: Unload and verify the delivery against the bill of lading
 
-The Receiver counts pieces against the bill of lading and inspects the shipment for visible damage before acceptance. Shortages or damage are noted on the bill of lading and the carrier's driver signs the notation; receiving keeps a copy, which is scanned afterwards (SRC-004).
+Pieces are counted against the bill of lading and inspects the shipment for visible damage before acceptance. Shortages or damage are noted on the bill of lading and the carrier's driver signs the notation; receiving keeps a copy, which is scanned afterwards (SRC-004).
 
 - **Evidence Required:** Annotated bill of lading copy, signed by the driver, for any shortage or damage exception.
 
@@ -40,9 +40,7 @@ The Receiver counts pieces against the bill of lading and inspects the shipment 
 
 Locate the purchase order number, normally shown on the packing slip. If the packing slip does not carry it, search NetSuite for an open purchase order by supplier and by item, matching the delivered quantity (SRC-004).
 
-- **System / Tool:** NetSuite
 - **Navigation Path:** Transactions > Purchases > Receive Orders
-- **Expected Result:** An open purchase order matching the delivery is identified.
 
 If no open purchase order can be found, the goods are not received into the system. They are moved to the cage — the fenced holding area at the back corner of the Plant 2 dock — until the ordering party is identified; such deliveries typically trace to goods ordered directly from a vendor without a requisition, and resolution runs through an after-the-fact purchase order under [[confirming-po]] (SRC-004, SRC-005).
 
@@ -50,7 +48,6 @@ If no open purchase order can be found, the goods are not received into the syst
 
 On the Receive Orders screen, pull up the purchase order, key the quantity received on each line, enter the packing slip number in the Memo field, and save; saving creates the item receipt. For goods going to inventory, print a label and put the items away by location. The stated target is to enter receipts on the day of delivery (SRC-004).
 
-- **System / Tool:** NetSuite
 - **Navigation Path:** Transactions > Purchases > Receive Orders
 - **Fields / Parameters:** Quantity received per line; packing slip number in the Memo field.
 - **Expected Result:** An item receipt is posted against the purchase order and the received quantities update the open purchase order balance.
@@ -60,9 +57,13 @@ On the Receive Orders screen, pull up the purchase order, key the quantity recei
 
 #### Step 4: Handle partial shipments and over-shipments
 
-For a partial shipment, receive the quantity actually delivered; the purchase order remains open for the balance (SRC-004). For an over-shipment, NetSuite accepts a receipt above the ordered quantity only up to a configured over-receipt tolerance; above the tolerance the system blocks the receipt, and the Receiver contacts the Buyer to process a change order under [[po-issuance-and-change-orders]] before the excess can be received (SRC-004). The tolerance in force is unconfirmed [[GAP-01 — OVER-RECEIPT TOLERANCE]].
+- **Condition:** the delivered quantity differs from the ordered quantity
 
-> **VALIDATION REQUIRED — GAP-01:** The over-receipt tolerance configured in NetSuite. The Receiving Supervisor recalls approximately ten percent over the ordered quantity plus a dollar cap of possibly five hundred dollars, but is not certain (SRC-004); the consultant working notes flag that the five-hundred-dollar figure may be conflated with the (itself contested) three-way match tolerance, and the prior SOP excerpt does not address over-receipt at all (SRC-005, SRC-006). Pull the NetSuite configuration to confirm both the percentage and any dollar cap.
+For a partial shipment, receive the quantity actually delivered; the purchase order remains open for the balance (SRC-004). For an over-shipment, NetSuite accepts a receipt above the ordered quantity only up to a configured over-receipt tolerance; above the tolerance the system blocks the receipt, and the Buyer is contacted to process a change order under [[po-issuance-and-change-orders]] before the excess can be received (SRC-004). The tolerance in force is unconfirmed [[GAP-01 — OVER-RECEIPT TOLERANCE]].
+
+> **VALIDATION REQUIRED — GAP-01:** The over-receipt tolerance configured in NetSuite.
+> - **Note:** The over-receipt tolerance is unconfirmed — do not operate to a specific percentage or dollar cap; see GAP-01.
+> - **Detail:** The Receiving Supervisor recalls approximately ten percent over the ordered quantity plus a dollar cap of possibly five hundred dollars, but is not certain (SRC-004); the consultant working notes flag that the five-hundred-dollar figure may be conflated with the (itself contested) three-way match tolerance, and the prior SOP excerpt does not address over-receipt at all (SRC-005, SRC-006). Pull the NetSuite configuration to confirm both the percentage and any dollar cap.
 > - **Nature:** unknown
 > - **Owner to confirm:** Buyer
 
@@ -80,6 +81,8 @@ When the Senior Accounts Payable Specialist raises a quantity match exception fr
 
 #### Step 6: Record receipts for services and non-inventory purchases
 
+- **Condition:** the purchase is a service or non-inventory item (no dock delivery)
+
 Service and non-inventory purchases involve no dock delivery. The Requester's department is expected to record a receipt against the service purchase order in NetSuite to confirm the work or item was delivered (SRC-004). No owner of this receipting could be identified, and no interviewee could describe it operating in practice (SRC-005) — the working process is TBD — confirm with process owner [[GAP-03 — SERVICES RECEIPTING]].
 
 > **VALIDATION REQUIRED — GAP-03:** How receipts against service and non-inventory purchase orders are actually recorded, by whom, and how reliably. The Receiving Supervisor states that departments enter these in NetSuite but does not observe the practice (SRC-004); the consultant working notes record that no one interviewed owns or could describe the process (SRC-005). Walk a services purchase order end to end and identify an owner.
@@ -87,6 +90,8 @@ Service and non-inventory purchases involve no dock delivery. The Requester's de
 > - **Owner to confirm:** TBD
 
 #### Step 7: Plant variations — consumption-based receipts at Plant 3
+
+- **Condition:** Plant 3 only (Kanban items from the two steel suppliers)
 
 Plant 1 follows the same dock process as Plant 2 (SRC-004). Plant 3 operates a Kanban arrangement with two steel suppliers under which the item receipt posts automatically from consumption rather than at the dock; interviewees could not describe the arrangement in detail and it remains undocumented [[GAP-04 — PLANT 3 AUTO-RECEIPT]] (SRC-004, SRC-005).
 

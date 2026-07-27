@@ -56,22 +56,20 @@ second-person approval. No monitoring or alerting exists on the sync, so how
 mis-synced records come to the Accounts Payable Clerk's attention is
 unconfirmed [[GAP-01 — SYNC-FALLOUT DETECTION]] (SRC-005).
 
-- **System / Tool:** NetSuite (vendor master); Coupa-to-NetSuite nightly supplier sync.
-- **Expected Result:** The record requiring correction or change is identified; banking-detail requests are routed out of this procedure.
-
 > **VALIDATION REQUIRED — GAP-01:** How records damaged by the nightly Coupa-to-NetSuite supplier sync are detected for correction. The sync has no monitoring, alerting, or named owner, and no source describes how the Accounts Payable Clerk learns that a record has landed with a blank payment term (SRC-002, SRC-005).
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
 #### Step 2: Correct sync-fallout records
 
-The Accounts Payable Clerk corrects by hand records that synced from Coupa
-with a blank payment term, entering the payment term on the NetSuite vendor
-record (SRC-002, SRC-005). The terms entered should reflect what was agreed
-with the supplier — payment terms are initially set during NetSuite
-activation under [[new-vendor-onboarding]] (SRC-002).
+- **Condition:** a record has synced from Coupa with incomplete data (typically a blank payment term)
 
-- **System / Tool:** NetSuite (vendor master).
+Records that synced from Coupa with a blank payment term are corrected by
+hand, entering the payment term on the NetSuite vendor record (SRC-002,
+SRC-005). The terms entered should reflect what was agreed with the supplier
+— payment terms are initially set during NetSuite activation under
+[[new-vendor-onboarding]] (SRC-002).
+
 - **Fields / Parameters:** Payment terms (blank on arrival).
 - **Expected Result:** The vendor record carries a valid payment term before transactions process against it.
 
@@ -79,7 +77,9 @@ activation under [[new-vendor-onboarding]] (SRC-002).
 
 #### Step 3: Enter non-banking changes to an existing vendor record
 
-The Accounts Payable Clerk enters the requested change on the vendor's
+- **Condition:** a non-banking change to an existing vendor record has been requested
+
+The requested change is entered on the vendor's
 NetSuite record. Additions and modifications to the supplier master record
 are restricted to holders of the Vendor Maintenance role — the
 segregation-of-duties control described in F — and the role carries no
@@ -89,7 +89,6 @@ established in fieldwork; the documented verification-and-approval regime
 applies only to banking changes
 [[GAP-02 — NON-BANKING CHANGE WORKFLOW]] (SRC-002, SRC-003).
 
-- **System / Tool:** NetSuite (vendor master).
 - **Evidence Required:** TBD — confirm with process owner (see GAP-02).
 
 > **VALIDATION REQUIRED — GAP-02:** The workflow for non-banking changes to existing vendor records: how requests arrive, whether any approval is required before or after entry, what evidence of the change is retained, and whether the corresponding Coupa supplier record is also updated. Sources describe a verification-and-approval regime only for banking-detail changes (SRC-002, SRC-003).
@@ -100,6 +99,8 @@ applies only to banking changes
 
 #### Step 4: Perform the semi-annual supplier master file review
 
+- **Condition:** the semi-annual master file review falls due (per the prior SOP; operation unconfirmed, see GAP-03)
+
 Per §9.5 of the prior AP SOP, the Accounts Payable Manager reviews the
 supplier master file semi-annually for inactive, duplicate and incomplete
 records and reports the results to the Corporate Controller (SRC-006).
@@ -108,8 +109,6 @@ interviewee described it — and the state of the record population (see PP-001
 in H) indicates it has not been effective
 [[GAP-03 — SEMI-ANNUAL REVIEW]] (SRC-005).
 
-- **System / Tool:** NetSuite (vendor master).
-- **Expected Result:** Review results reported to the Corporate Controller (§9.5 of the prior AP SOP).
 - **Evidence Required:** TBD — no reporting format or retention location is described (see GAP-03).
 
 > **VALIDATION REQUIRED — GAP-03:** Whether the semi-annual supplier master file review required by §9.5 of the prior AP SOP is performed at all — and if so, by whom, in what form its results are reported to the Corporate Controller, and what remediation (deactivation, merge, completion of records) follows. No evidence of the review was identified in fieldwork and no interviewee confirmed it (SRC-005, SRC-006).

@@ -29,9 +29,11 @@ This procedure covers the periodic reconciliation of supplier statements of acco
 
 #### Step 1: Confirm the vendor population to reconcile
 
-The Senior Accounts Payable Specialist works from a top-vendor list provided by the Accounts Payable Manager in approximately 2024 — understood to be the top fifty vendors by spend, though the list has not been refreshed since it was issued (SRC-001). The prior SOP defines the population and cadence differently: every supplier with annual spend in excess of fifty thousand dollars ($50,000), reconciled monthly (§9.1 of the prior SOP, SRC-006). The live standard is contested across the sources [[GAP-01 — RECONCILIATION CADENCE AND POPULATION]].
+The reconciliation works from a top-vendor list provided by the Accounts Payable Manager in approximately 2024 — understood to be the top fifty vendors by spend, though the list has not been refreshed since it was issued (SRC-001). The prior SOP defines the population and cadence differently: every supplier with annual spend in excess of fifty thousand dollars ($50,000), reconciled monthly (§9.1 of the prior SOP, SRC-006). The live standard is contested across the sources [[GAP-01 — RECONCILIATION CADENCE AND POPULATION]].
 
-> **VALIDATION REQUIRED — GAP-01:** The reconciliation cadence and vendor population are contested: the prior SOP requires a monthly reconciliation of all suppliers with annual spend above $50,000 (§9.1 of the prior SOP, SRC-006); the Accounts Payable Manager describes a quarterly reconciliation of top vendors on the quarter-end close calendar (SRC-001); the Senior Accounts Payable Specialist works from an unrefreshed circa-2024 list understood to be the top fifty by spend (SRC-001); the Corporate Controller has accepted the quarterly cadence for headcount reasons (SRC-003); and actual performance meets neither standard — worksheets exist for only three of the last twelve months (Accounts Payable Manager, gap-workbook response). Confirm the cadence and population standard the Company intends to operate.
+> **VALIDATION REQUIRED — GAP-01:** The reconciliation cadence and vendor population are contested across the sources.
+> - **Note:** The cadence and population standard are contested — do not operate to any one standard as authoritative until confirmed; see GAP-01.
+> - **Detail:** The prior SOP requires a monthly reconciliation of all suppliers with annual spend above $50,000 (§9.1 of the prior SOP, SRC-006); the Accounts Payable Manager describes a quarterly reconciliation of top vendors on the quarter-end close calendar (SRC-001); the Senior Accounts Payable Specialist works from an unrefreshed circa-2024 list understood to be the top fifty by spend (SRC-001); the Corporate Controller has accepted the quarterly cadence for headcount reasons (SRC-003); and actual performance meets neither standard — worksheets exist for only three of the last twelve months (Accounts Payable Manager, gap-workbook response). Confirm the cadence and population standard the Company intends to operate.
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
@@ -47,9 +49,6 @@ A statement of account is obtained from each Supplier in the population for the 
 
 Each statement is reconciled against the vendor's account activity recorded in NetSuite, and the reconciliation is documented on a reconciliation worksheet (§9.1 and §9.2 of the prior SOP, SRC-006). Differences between the statement and the recorded activity are captured as reconciling items on the worksheet. Because the working method is undocumented (GAP-02 at Step 2), the comparison and the worksheet format are described here only at the level the prior SOP requires.
 
-- **System / Tool:** NetSuite; reconciliation worksheet
-- **Expected Result:** A completed worksheet for each vendor in the population, with all differences identified and documented as reconciling items
-
 > **SCREENSHOT PLACEHOLDER — SC-01:** A completed reconciliation worksheet for one top vendor from a recent quarter — validates that the reconciliation is performed and captures the worksheet's actual format and content.
 
 #### Step 4: Document and clear reconciling items
@@ -62,7 +61,6 @@ Reconciling items are documented and cleared within thirty (30) days (§9.1 of t
 
 The completed reconciliation worksheet is retained on the Finance Shared Drive in the folder designated for that purpose (§9.2 of the prior SOP, SRC-006). Completed worksheets exist on the drive for only three of the last twelve months: the reconciliation is performed when statement volume is low, not on the documented cycle (Accounts Payable Manager, gap-workbook response; see PP-001 in H). No review or sign-off of the completed reconciliation was identified in any source [[GAP-04 — REVIEW AND SIGN-OFF]].
 
-- **System / Tool:** Finance Shared Drive
 - **Evidence Required:** Completed reconciliation worksheet, one per vendor per cycle (§9.2 of the prior SOP, SRC-006)
 
 > **VALIDATION REQUIRED — GAP-04:** No source identifies a reviewer or sign-off for completed statement reconciliations, and the prior SOP excerpt assigns none (SRC-006). Confirm whether completed reconciliations are reviewed, and by whom.

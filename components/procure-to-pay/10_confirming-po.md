@@ -43,7 +43,7 @@ A related symptom surfaces at the receiving dock: a delivery that cannot be tied
 
 #### Step 2: Obtain justification for the purchase
 
-The Buyer or Procurement Lead obtains written justification for the off-process purchase. The stated requirement is a written justification from the Plant Manager; in current practice an emailed justification from any requesting party is accepted (SRC-002; the enforcement drift is documented at PP-002 in H).
+Written justification for the off-process purchase is obtained. The stated requirement is a written justification from the Plant Manager; in current practice an emailed justification from any requesting party is accepted (SRC-002; the enforcement drift is documented at PP-002 in H).
 
 - **Evidence Required:** Written justification (in practice, an email); retention location TBD — confirm with process owner.
 
@@ -53,10 +53,7 @@ The Buyer or Procurement Lead obtains written justification for the off-process 
 
 #### Step 3: Create the confirming PO in Coupa
 
-The Buyer or Procurement Lead creates a purchase order in Coupa after the fact, covering the goods or services already supplied. Whether the confirming PO routes through the standard approval chain applied to requisitions (see [[requisition-and-approval]]) or is issued outside it is TBD — confirm with process owner [[GAP-04 — APPROVAL ROUTING]].
-
-- **System / Tool:** Coupa
-- **Expected Result:** A purchase order exists in Coupa for the goods or services already supplied.
+A purchase order is created in Coupa after the fact, covering the goods or services already supplied. Whether the confirming PO routes through the standard approval chain applied to requisitions (see [[requisition-and-approval]]) or is issued outside it is TBD — confirm with process owner [[GAP-04 — APPROVAL ROUTING]].
 
 > **VALIDATION REQUIRED — GAP-04:** Whether a confirming PO routes through the standard Coupa approval chain used for requisitions, follows a separate path, or is issued without system approval.
 > - **Nature:** unknown
@@ -69,7 +66,6 @@ The Buyer or Procurement Lead creates a purchase order in Coupa after the fact, 
 The purchase order syncs from Coupa into NetSuite, giving Accounts Payable a purchase order to match the returned invoice against. The invoice cannot be processed until the sync has completed.
 
 - **System / Tool:** Coupa → NetSuite sync
-- **Expected Result:** The confirming PO is visible in NetSuite.
 
 #### Step 5: Complete receipt and invoice matching
 

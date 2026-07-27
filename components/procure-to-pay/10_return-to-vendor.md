@@ -29,19 +29,16 @@ Return to Vendor covers the return of damaged or incorrect goods to the supplier
 
 #### Step 1: Identify the goods to be returned and notify the Buyer
 
-When goods are found to be damaged or incorrect, the Receiving Supervisor emails the Buyer to request a return (SRC-004). Damage or shortage visible at unloading is annotated on the bill of lading under [[goods-receipt]]; this procedure applies to goods that have been received and must now go back.
+When goods are found to be damaged or incorrect, the Buyer is emailed to request a return (SRC-004). Damage or shortage visible at unloading is annotated on the bill of lading under [[goods-receipt]]; this procedure applies to goods that have been received and must now go back.
 
 #### Step 2: Obtain the RMA number from the supplier
 
 The Buyer contacts the supplier and obtains an RMA number authorizing the return (SRC-004). No documented criteria for when a supplier may refuse a return, and no timing expectation for the RMA, were described.
 
-- **Expected Result:** A supplier-issued RMA number is available to reference on the return.
-
 #### Step 3: Enter the Return Authorization in NetSuite
 
 The Receiving Supervisor's team enters a Return Authorization in NetSuite against the original item receipt (SRC-004). The specific navigation path and required fields were not demonstrated during the walkthrough — TBD — confirm with process owner [[GAP-01 — RETURN AUTHORIZATION ENTRY]].
 
-- **System / Tool:** NetSuite
 - **Navigation Path:** TBD — confirm with process owner
 - **Expected Result:** A Return Authorization exists in NetSuite, tied to the original receipt, relieving the returned quantity.
 
@@ -53,9 +50,7 @@ The Receiving Supervisor's team enters a Return Authorization in NetSuite agains
 
 #### Step 4: Ship the goods back on the supplier's account
 
-Receiving ships the returned goods back to the supplier on the supplier's freight account (SRC-004). What shipping documentation is retained for the return was not described — TBD — confirm with process owner.
-
-- **Expected Result:** The goods leave the facility with freight charged to the supplier, referencing the RMA number.
+The returned goods are shipped back to the supplier on the supplier's freight account, referencing the RMA number (SRC-004). What shipping documentation is retained for the return was not described — TBD — confirm with process owner.
 
 #### Step 5: Obtain and apply the vendor credit memo
 

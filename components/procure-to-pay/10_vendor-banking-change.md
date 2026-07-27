@@ -41,16 +41,15 @@ The supplier submits a request to change its remittance banking details — typi
 
 Open the supplier's record on the NetSuite vendor master and obtain the contact telephone number already held on file. The callback number must come from the vendor record, not from the change request (SRC-003; §9.4 of the prior AP SOP, SRC-006).
 
-- **System / Tool:** NetSuite (vendor master).
-- **Expected Result:** A callback number sourced entirely independently of the change request.
-
 #### Step 3: Perform the callback verification
 
 Call the number on file and confirm the requested change directly with the supplier: that the request is genuine and that the new banking details are as stated. Capture the date and time of the call, the person spoken to, and what was confirmed (SRC-003). Which role performs this callback is contested across the sources — [[GAP-01 — CALLBACK OWNER]].
 
 - **Evidence Required:** Date and time of the call, person spoken to, and details confirmed — recorded on the vendor record in Step 4.
 
-> **VALIDATION REQUIRED — GAP-01:** Who performs the banking-change callback. The Corporate Controller states the policy assigns it to the Procurement Lead's team, which holds the genuine supplier contacts (SRC-003); the Procurement Lead believes the Accounts Payable Clerk performs it in current practice (SRC-002); §9.4 of the prior AP SOP assigns it to the Senior Accounts Payable Specialist (SRC-006). The Corporate Controller was surprised by the discrepancy and acknowledged the written policy may never have been operationalized (SRC-003, SRC-005).
+> **VALIDATION REQUIRED — GAP-01:** Who performs the banking-change callback.
+> - **Note:** Which role performs the callback is contested across the sources — confirm the owner before relying on the callback being performed; see GAP-01.
+> - **Detail:** The Corporate Controller states the policy assigns it to the Procurement Lead's team, which holds the genuine supplier contacts (SRC-003); the Procurement Lead believes the Accounts Payable Clerk performs it in current practice (SRC-002); §9.4 of the prior AP SOP assigns it to the Senior Accounts Payable Specialist (SRC-006). The Corporate Controller was surprised by the discrepancy and acknowledged the written policy may never have been operationalized (SRC-003, SRC-005).
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
@@ -58,7 +57,6 @@ Call the number on file and confirm the requested change directly with the suppl
 
 Record the callback on the supplier's NetSuite vendor record as a note, and attach the supporting documentation, so that the verification is retrievable from the record itself (SRC-003, SRC-005).
 
-- **System / Tool:** NetSuite (vendor master).
 - **Evidence Required:** Callback note plus attachment on the vendor record.
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The NetSuite vendor record showing the callback note and attachment; must validate that the verification (date, time, person spoken to, details confirmed) is documented on the record itself.
@@ -67,7 +65,6 @@ Record the callback on the supplier's NetSuite vendor record as a note, and atta
 
 Update the remit-to banking details on the supplier's NetSuite vendor record. Entry is restricted to holders of the Vendor Maintenance role — held by the Accounts Payable Clerk, who has no payment permissions (SRC-003) — and under §9.3 of the prior AP SOP the role must not carry payment preparation, payment approval, or banking portal entitlements (SRC-006). The change does not take effect until the approval in Step 6.
 
-- **System / Tool:** NetSuite (vendor master).
 - **Fields / Parameters:** Remit-to banking details on the vendor record; specific field names TBD — confirm with process owner.
 
 > **VALIDATION REQUIRED — GAP-04:** Whether the Coupa supplier record is updated to reflect the banking change. Suppliers enter their own banking details in Coupa at onboarding, and Coupa is the sourcing-side system of record with a nightly supplier sync into NetSuite (SRC-002); no source describes whether or how a post-onboarding banking change is reflected in Coupa, or whether the change is made in NetSuite only.
@@ -77,8 +74,6 @@ Update the remit-to banking details on the supplier's NetSuite vendor record. En
 #### Step 6: Obtain second-person approval before the change goes active
 
 A second person approves the banking change before it becomes active on the vendor record (SRC-003). The approver's identity and the way the approval is recorded are unconfirmed — [[GAP-02 — SECOND APPROVER]].
-
-- **Expected Result:** The new remit-to banking details are active only after the second-person approval.
 
 > **VALIDATION REQUIRED — GAP-02:** The identity of the second approver and how the approval is evidenced. The Corporate Controller requires a second person to approve the change before it goes active, and speculated — without confirming — that the second approver in current practice is the Corporate Controller (SRC-003, SRC-005). The mechanism by which the approval is recorded or enforced in NetSuite was not described.
 > - **Nature:** unknown

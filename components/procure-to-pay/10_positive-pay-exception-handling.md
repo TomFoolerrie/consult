@@ -27,29 +27,25 @@ This procedure covers the review and disposition of positive pay exception items
 
 #### Step 1: Receive and review exception items
 
-The Accounts Payable Manager reviews exception items in Chase Connect. Exceptions post the next business morning after checks are issued; following the weekly Thursday check run they are available by 10 AM Friday (SRC-001, SRC-003).
-
-- **System / Tool:** Chase Connect
-- **Expected Result:** All exception items for the cycle identified before the disposition deadline
+Exception items are reviewed in Chase Connect. Exceptions post the next business morning after checks are issued; following the weekly Thursday check run they are available by 10 AM Friday (SRC-001, SRC-003).
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The Chase Connect positive pay exception queue showing a pending exception item with its pay/return options and the disposition deadline — validates where exceptions present and how the decision is recorded.
 
 #### Step 2: Investigate each exception item
 
-The Accounts Payable Manager works each item directly from the Chase Connect exception queue the same morning it presents, determining whether the presented check is a legitimate Company check by reference to the check issue records in NetSuite (SRC-001, SRC-003; process owner confirmation via the gap workbook).
+Each item is worked directly from the Chase Connect exception queue the same morning it presents, determining whether the presented check is a legitimate Company check by reference to the check issue records in NetSuite (SRC-001, SRC-003; process owner confirmation via the gap workbook).
 
-- **System / Tool:** Chase Connect; NetSuite
 - **Evidence Required:** Chase Connect decision log entry (the sole record of the disposition — see PP-003 in H)
 
 #### Step 3: Disposition pay or return by the bank deadline
 
-The Accounts Payable Manager records a pay or return decision on each item in Chase Connect not later than the deadline established by the depository institution — 1 PM on the day the exceptions post, in practice 1 PM Friday for the weekly cycle (SRC-001, SRC-005; §7.6 of the prior SOP, SRC-006) (CTRL-001).
+A pay or return decision is recorded on each item in Chase Connect not later than the deadline established by the depository institution — 1 PM on the day the exceptions post, in practice 1 PM Friday for the weekly cycle (SRC-001, SRC-005; §7.6 of the prior SOP, SRC-006) (CTRL-001).
 
-- **System / Tool:** Chase Connect
 - **Fields / Parameters:** Pay or return decision per exception item
-- **Expected Result:** Every exception item carries a recorded decision before the deadline
 
 #### Step 4: Default handling of undecided items
+
+- **Condition:** an exception item has no decision recorded by the bank's disposition deadline
 
 Any exception item with no decision recorded by the deadline is returned by the bank. This default was set deliberately (SRC-003) (CTRL-002). It has operated once, when the deadline was missed (SRC-001). What follow-up occurs after a default return — for example, reissue of a legitimate check returned in error — was not described by any source [[GAP-02 — POST-RETURN FOLLOW-UP AND BACKUP]].
 

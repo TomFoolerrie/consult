@@ -46,37 +46,34 @@ and transmits the purchase order.
 
 #### Step 1: Initiate the requisition and select the request path
 
-The Requester — for example a plant maintenance planner, an engineer, or a
-marketing staff member — opens Coupa and raises the requisition through one of
-three paths (SRC-002):
+The requisition is raised in Coupa through one of three paths — Requesters
+range from plant maintenance planners and engineers to marketing staff
+(SRC-002):
 
 - **Catalog / punchout:** hosted catalogs and punchout sites are available for
   MRO items through the industrial distributor, and for IT purchases. The
-  Requester shops the hosted catalog, or punches out to the Supplier's own
-  site and returns to Coupa with a cart, which becomes the requisition.
-- **Non-catalog:** a free-text request — the Requester types a description of
-  what is needed and selects the Supplier.
+  hosted catalog is shopped, or a punchout to the Supplier's own site returns
+  to Coupa with a cart, which becomes the requisition.
+- **Non-catalog:** a free-text request — a description of what is needed is
+  typed and the Supplier selected.
 - **Services:** a separate services request form, used because a statement of
   work must be attached.
-
-- **System / Tool:** Coupa
-- **Expected Result:** A draft requisition with lines populated from the returned cart, the free-text description, or the services request form.
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The Coupa requisition entry screen showing the three request paths (hosted catalog / punchout, non-catalog free text, services request form); validates that all three intake paths exist as described.
 
 #### Step 2: Complete variant-specific requirements
 
-For a services requisition, the Requester attaches the statement of work — the
+- **Condition:** the requisition is a services requisition (statement of work required) or a capital purchase (AFE number required)
+
+For a services requisition, the statement of work is attached — the
 services form exists specifically because this attachment is required
-(SRC-002). For any capital purchase, regardless of path, the Requester enters
-the approved AFE number in the dedicated Coupa custom field; a capital
+(SRC-002). For any capital purchase, regardless of path, the approved AFE
+number is entered in the dedicated Coupa custom field; a capital
 requisition will not route for approval at all until the field is populated —
 the AFE gate described at CTRL-002 in F (SRC-002). How the gate is
 administered is unconfirmed [[GAP-01 — AFE GATE ADMINISTRATION]].
 
-- **System / Tool:** Coupa
 - **Fields / Parameters:** AFE number (custom field, capital requisitions); statement of work attachment (services requisitions).
-- **Expected Result:** A requisition that is complete enough for Coupa to route it for approval.
 
 > **VALIDATION REQUIRED — GAP-01:** Whether the Coupa AFE custom field validates the entered number against approved AFEs or only requires that the field be populated, and which role administers the gate, were not established (SRC-002).
 > - **Nature:** unknown
@@ -97,9 +94,6 @@ the non-PO invoice approval ladder used in
 [[non-po-invoice-entry-and-approval]]; whether that divergence is deliberate
 is itself contested [[GAP-03 — REQUISITION VS NON-PO LADDER]].
 
-- **System / Tool:** Coupa
-- **Expected Result:** The requisition is routed to the approver chain matching its total value, with the Cost Center Owner first in every case.
-
 > **VALIDATION REQUIRED — GAP-02:** The dollar threshold at which a requisition routes to the Chief Financial Officer is contested: the Procurement Lead states $25,000 (SRC-002), the Corporate Controller implied $50,000 in passing, and the Accounts Payable Manager could not say (SRC-005). No one has verified the live approval chain configuration in Coupa — pull the Coupa approval chain export to confirm the full ladder.
 > - **Nature:** conflict
 > - **Owner to confirm:** Procurement Lead
@@ -115,12 +109,9 @@ is itself contested [[GAP-03 — REQUISITION VS NON-PO LADDER]].
 Each approver in the chain reviews and approves the requisition within Coupa.
 Approvals frequently dwell in approver queues — the dominant share of the
 requisition-to-PO cycle time, detailed in H. Handling of a rejected or
-returned requisition — whether the Requester edits and resubmits, and whether
+returned requisition — whether it is edited and resubmitted, and whether
 a resubmission re-routes the full chain — was not described in the sources:
 TBD — confirm with process owner [[GAP-04 — REJECTED REQUISITION HANDLING]].
-
-- **System / Tool:** Coupa
-- **Expected Result:** All required approvals are recorded and the requisition reaches fully approved status.
 
 > **VALIDATION REQUIRED — GAP-04:** How a rejected or returned requisition is handled (edit and resubmit path, and whether resubmission re-routes the full approval chain) was not described by any source.
 > - **Nature:** unknown
@@ -132,8 +123,6 @@ Once the final approver has actioned the requisition, it is fully approved in
 Coupa, and Coupa generates and transmits the purchase order. Purchase order
 generation, transmission, and subsequent change orders are documented under
 [[po-issuance-and-change-orders]] (SRC-002).
-
-- **Expected Result:** A fully approved requisition from which Coupa automatically cuts the purchase order.
 
 ### F. Key Controls
 

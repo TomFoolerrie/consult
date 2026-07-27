@@ -29,10 +29,7 @@ This procedure covers the receipt and digital capture of supplier invoices — f
 
 #### Step 1: Triage the AP Inbox
 
-The Accounts Payable Clerk triages the AP Inbox (ap-invoices@) daily, separating supplier invoices from other correspondence. Roughly ninety percent or more of supplier invoices arrive through this mailbox, to which suppliers are directed by the purchase order terms and conditions (SRC-001; §4.1 of the prior SOP, SRC-006). Total volume is approximately 4,800 invoices per month, of which roughly a quarter are non-PO [[GAP-01 — MONTHLY INVOICE VOLUME]]. Invoice documents identified in triage are passed into Ephesoft for capture.
-
-- **System / Tool:** AP Inbox (ap-invoices@); Ephesoft
-- **Expected Result:** All invoice documents received by email are queued for Ephesoft capture
+The AP Inbox (ap-invoices@) is triaged daily, separating supplier invoices from other correspondence. Roughly ninety percent or more of supplier invoices arrive through this mailbox, to which suppliers are directed by the purchase order terms and conditions (SRC-001; §4.1 of the prior SOP, SRC-006). Total volume is approximately 4,800 invoices per month, of which roughly a quarter are non-PO [[GAP-01 — MONTHLY INVOICE VOLUME]]. Invoice documents identified in triage are passed into Ephesoft for capture.
 
 > **VALIDATION REQUIRED — GAP-01:** The monthly invoice volume (approximately 4,800, about one quarter non-PO) was stated by the Accounts Payable Manager but never validated against NetSuite (SRC-005). Confirm the actual volume from a NetSuite transaction count.
 > - **Nature:** unsupported-assumption
@@ -40,9 +37,10 @@ The Accounts Payable Clerk triages the AP Inbox (ap-invoices@) daily, separating
 
 #### Step 2: Date-stamp and scan paper invoices
 
-Invoices received in physical form at the Company's post office box — approximately forty to fifty pieces per week — are scanned into Ephesoft by the Accounts Payable Clerk (SRC-001). The prior SOP requires each physical invoice to be date-stamped upon receipt and scanned not later than one business day following receipt (§4.2 of the prior SOP, SRC-006).
+- **Condition:** the invoice is received in paper form at the Company's post office box
 
-- **System / Tool:** Ephesoft
+Invoices received in physical form — approximately forty to fifty pieces per week — are scanned into Ephesoft (SRC-001). The prior SOP requires each physical invoice to be date-stamped upon receipt and scanned not later than one business day following receipt (§4.2 of the prior SOP, SRC-006).
+
 - **Evidence Required:** Date stamp on the original paper invoice (prior SOP requirement)
 
 > **VALIDATION REQUIRED — GAP-02:** Fieldwork confirmed that the Accounts Payable Clerk scans incoming paper invoices, but did not verify that the date-stamp and one-business-day scanning standard in §4.2 of the prior SOP is followed in current practice. Confirm current-state practice against that standard.
@@ -53,29 +51,26 @@ Invoices received in physical form at the Company's post office box — approxim
 
 All invoice images, whether received electronically or scanned, are processed through Ephesoft, which extracts the header data: supplier name, supplier invoice number, invoice date, invoice total, currency, and the purchase order reference where one appears on the face of the invoice (SRC-001; §4.3 of the prior SOP, SRC-006). Purchase order extraction is dependable when the supplier places the PO reference in a standard position and unreliable when it is embedded in body text (SRC-001). Documents scoring below the configured extraction confidence threshold [[GAP-03 — EXTRACTION CONFIDENCE THRESHOLD]] are routed to the manual validation queue rather than auto-posting (CTRL-001).
 
-- **System / Tool:** Ephesoft
 - **Fields / Parameters:** Supplier name; supplier invoice number; invoice date; invoice total; currency; purchase order reference
 - **Expected Result:** Documents at or above the confidence threshold pass to NetSuite; documents below it appear in the validation queue
 
-> **VALIDATION REQUIRED — GAP-03:** The extraction confidence threshold that routes documents to the manual validation queue is contested: the prior SOP states ninety percent (§4.4 of the prior SOP, SRC-006), while the Accounts Payable Manager recalled approximately seventy-five percent and asked not to be quoted on it (SRC-001). The Ephesoft configuration has never been pulled to confirm the live value (SRC-005). Obtain the configured threshold from Ephesoft.
+> **VALIDATION REQUIRED — GAP-03:** The extraction confidence threshold that routes documents to the manual validation queue is contested.
+> - **Note:** The live threshold is unconfirmed — do not operate to a figure; see GAP-03.
+> - **Detail:** The prior SOP states ninety percent (§4.4 of the prior SOP, SRC-006), while the Accounts Payable Manager recalled approximately seventy-five percent and asked not to be quoted on it (SRC-001). The Ephesoft configuration has never been pulled to confirm the live value (SRC-005). Obtain the configured threshold from Ephesoft.
 > - **Nature:** conflict
 > - **Owner to confirm:** IT Manager
 
 #### Step 4: Key below-threshold documents in the validation queue
 
-The Accounts Payable Clerk performs a first pass of the manual validation queue each morning; the Senior Accounts Payable Specialist works the remainder (SRC-001). Header data for each queued document is keyed by hand, after which the document proceeds to NetSuite in the same manner as auto-extracted documents.
+- **Condition:** the document scored below the extraction confidence threshold and routed to the manual validation queue
 
-- **System / Tool:** Ephesoft (validation queue)
-- **Expected Result:** Queue cleared; keyed documents post to NetSuite as pending bills
+The Accounts Payable Clerk performs a first pass of the manual validation queue each morning; the Senior Accounts Payable Specialist works the remainder (SRC-001). Header data for each queued document is keyed by hand, after which the document proceeds to NetSuite in the same manner as auto-extracted documents.
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The Ephesoft manual validation queue showing documents pending keying — validates that below-threshold documents route to the queue for human entry.
 
 #### Step 5: Captured invoices post to NetSuite as pending bills
 
 Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state, with the original invoice image attached to the bill record (SRC-001; SRC-005). Pending bills appear on the "AP - Bills Pending Review" saved search, from which they are picked up for entry and matching in [[po-invoice-entry-and-three-way-match]] or for coding and approval in [[non-po-invoice-entry-and-approval]].
-
-- **System / Tool:** NetSuite
-- **Expected Result:** One pending bill per captured invoice, with the invoice image attached
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A captured bill in NetSuite in a pending state with the invoice image attached — validates the Ephesoft-to-NetSuite hand-off and the image attachment.
 

@@ -50,9 +50,6 @@ manual preparation step sits between final approval and issuance (SRC-002).
 The purchase order number is the NIG- prefix followed by a sequential number
 (SRC-002).
 
-- **System / Tool:** Coupa
-- **Expected Result:** An issued purchase order carrying an NIG- sequential number.
-
 > **SCREENSHOT PLACEHOLDER — SC-01:** An issued purchase order in Coupa showing the NIG- sequential number and issued status; validates automatic generation from an approved requisition and the numbering format.
 
 #### Step 2: Transmit the purchase order to the Supplier
@@ -63,9 +60,7 @@ by email (SRC-002). How a failed or unconfirmed transmission (a cXML error or
 a bounced email) is detected and remediated was not described by any source:
 TBD — confirm with process owner [[GAP-01 — PO TRANSMISSION FAILURE HANDLING]].
 
-- **System / Tool:** Coupa
 - **Fields / Parameters:** Transmission method (cXML or email PDF), determined by the Supplier's enablement on the Coupa supplier record (SRC-002).
-- **Expected Result:** The purchase order is delivered to the Supplier by cXML or as an emailed PDF.
 
 > **VALIDATION REQUIRED — GAP-01:** How a failed cXML transmission or a bounced PDF email is detected, who is alerted, and how the purchase order is re-sent were not described in the sources (SRC-002).
 > - **Nature:** unknown
@@ -82,7 +77,6 @@ Coupa-to-NetSuite sync failures today are resolved ad hoc, at material effort
 (see PP-002 in H) [[GAP-02 — PO SYNC CADENCE AND FAILURE OWNERSHIP]].
 
 - **System / Tool:** Coupa → NetSuite interface
-- **Expected Result:** The purchase order is visible in NetSuite as an open purchase order.
 
 > **VALIDATION REQUIRED — GAP-02:** The cadence of the Coupa-to-NetSuite purchase order sync, and the owner and resolution path when a record fails to sync, were not established — the related supplier-record sync is described as having no monitoring, alerting, or named owner (SRC-002, SRC-005).
 > - **Nature:** unknown
@@ -90,20 +84,21 @@ Coupa-to-NetSuite sync failures today are resolved ad hoc, at material effort
 
 #### Step 4: Change order — initiate a purchase order revision
 
-*Variant branch — applies when an issued purchase order must change.* Common
+- **Condition:** an issued purchase order must change
+
+Common
 triggers are revised quantities or values from the business, and over-shipment
 blocks: when a delivery exceeds what receiving is permitted to accept against
 the purchase order, the receipt blocks and the Receiving Supervisor asks the
 Buyer to raise a change order (the receiving tolerance itself is documented in
-[[goods-receipt]]) (SRC-004). The Requester or Buyer edits the purchase order
+[[goods-receipt]]) (SRC-004). The purchase order is edited
 in Coupa, which creates a new version of the purchase order (SRC-002).
-
-- **System / Tool:** Coupa
-- **Expected Result:** A new purchase order version recorded in the version history.
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** The version history of a revised purchase order in Coupa showing the original and revised versions and the associated approval routing; validates that revisions are versioned rather than overwritten.
 
 #### Step 5: Change order — re-approval routing by value change
+
+- **Condition:** a purchase order revision changes the purchase order value
 
 A revision that increases the purchase order value re-routes for approval; a
 revision that decreases the value does not re-route (SRC-002). Per the Buyer's
@@ -115,16 +110,17 @@ Owner, then withdrew that account in the same interview. Neither account has
 been verified against the Coupa configuration
 [[GAP-03 — CHANGE-ORDER RE-APPROVAL ROUTING]].
 
-- **System / Tool:** Coupa
-- **Expected Result:** Value increases re-enter approval routing; value decreases take effect without re-approval (SRC-002).
-
-> **VALIDATION REQUIRED — GAP-03:** The re-approval routing for value-increasing change orders is contested: the Buyer states the revision re-routes to whichever approvers the new total value requires, with no grace band — at roughly eighty percent confidence, never having read the configuration — while the Procurement Lead initially described a sub-ten-percent grace band routing only to the Cost Center Owner before deferring to the Buyer (SRC-002, SRC-005). Pull the Coupa approval chain configuration to confirm the live routing rule.
+> **VALIDATION REQUIRED — GAP-03:** The re-approval routing for value-increasing change orders is contested.
+> - **Note:** Do not document a grace band for small increases — the routing rule for value-increasing revisions is contested; see GAP-03.
+> - **Detail:** The Buyer states the revision re-routes to whichever approvers the new total value requires, with no grace band — at roughly eighty percent confidence, never having read the configuration — while the Procurement Lead initially described a sub-ten-percent grace band routing only to the Cost Center Owner before deferring to the Buyer (SRC-002, SRC-005). Pull the Coupa approval chain configuration to confirm the live routing rule.
 > - **Nature:** conflict
 > - **Owner to confirm:** Procurement Lead
 
 #### Step 6: Blanket purchase order — establish and release against an annual NTE
 
-*Variant branch — recurring spend.* Recurring spend categories — janitorial,
+- **Condition:** recurring spend covered by a blanket purchase order
+
+Recurring spend categories — janitorial,
 the gas supplier, tooling consignment — are covered by blanket purchase orders
 carrying an annual not-to-exceed value and released against by receipt
 (SRC-002). When cumulative releases reach the NTE, further releases block
@@ -135,9 +131,6 @@ Who establishes a blanket purchase order, and how a blocked blanket is
 unblocked — the NTE increase path and the approval it requires — were not
 described: TBD — confirm with process owner
 [[GAP-04 — BLANKET PO ADMINISTRATION]].
-
-- **System / Tool:** Coupa
-- **Expected Result:** Releases post against the blanket purchase order while cumulative value remains under the annual NTE; releases block at the ceiling.
 
 > **VALIDATION REQUIRED — GAP-04:** Who sets up a blanket purchase order, who approves the annual NTE, and the procedure for increasing the NTE when releases block at the ceiling were not described by any source (SRC-002, SRC-005).
 > - **Nature:** unknown

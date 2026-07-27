@@ -53,9 +53,7 @@ form is an internally built Coupa form and captures the supplier's legal name,
 DBA, remit-to address, an attached W-9, a supplier contact, and a mandatory
 question on whether the supplier is a related party (SRC-002).
 
-- **System / Tool:** Coupa
 - **Fields / Parameters:** Supplier legal name; DBA; remit-to address; W-9 attachment; supplier contact; related-party disclosure (mandatory).
-- **Expected Result:** A submitted New Supplier Request routed to Procurement.
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The Coupa New Supplier Request form, showing the required fields including the mandatory related-party question.
 
@@ -69,7 +67,7 @@ invited to register (SRC-002):
 2. **OFAC SDN screening** — run the supplier against the OFAC Specially Designated Nationals list via a manual lookup on the U.S. Treasury website; screenshot the result and attach it to the Coupa supplier record.
 3. **Duplicate check** — check the prospective supplier against the existing supplier list. Note that the current supplier population is heavily polluted (roughly 11,000 records with only about 4,000 active in the last 24 months, including vendors present multiple times under different spellings), which limits the reliability of this check (SRC-002, SRC-005).
 
-- **System / Tool:** Coupa; IRS TIN match; U.S. Treasury OFAC SDN search.
+- **System / Tool:** IRS TIN match; U.S. Treasury OFAC SDN search (manual, outside Coupa).
 - **Evidence Required:** OFAC search-result screenshot and TIN match result attached to the Coupa supplier record (SRC-005).
 
 > **VALIDATION REQUIRED — GAP-01:** What happens when the mandatory related-party question is answered "yes" — no source describes how a related-party disclosure is reviewed, escalated, or approved.
@@ -89,9 +87,7 @@ a deliberate control feature of the design (SRC-002). Any later change to the
 supplier's remit-to banking details is handled under [[vendor-banking-change]],
 not through re-registration.
 
-- **System / Tool:** Coupa SIM portal
 - **Fields / Parameters:** Banking details; W-9; insurance certificates; diversity classification (supplier-entered).
-- **Expected Result:** A completed supplier self-registration attached to the Coupa supplier record.
 
 #### Step 4: Approve the supplier in Coupa
 
@@ -100,7 +96,6 @@ expects annual spend with the supplier to exceed $250,000, the Corporate
 Controller must also approve (SRC-002). The threshold value is unconfirmed
 [[GAP-02 — co-approval threshold]].
 
-- **System / Tool:** Coupa
 - **Expected Result:** Supplier approved in Coupa and queued for the nightly sync to NetSuite.
 
 > **VALIDATION REQUIRED — GAP-02:** The expected-annual-spend threshold above which the Corporate Controller must co-approve a new supplier — stated tentatively as $250,000 by the Procurement Lead ("I think it's two-fifty"), and the Coupa approval chain configuration was not verified against the system during fieldwork (SRC-002, SRC-005).
@@ -115,7 +110,6 @@ sometimes land with a blank payment term, which the Accounts Payable Clerk
 corrects by hand. No monitoring, alerting, or named owner for the sync could be
 identified during fieldwork (SRC-005) [[GAP-03 — sync ownership]].
 
-- **System / Tool:** Coupa → NetSuite nightly supplier sync
 - **Expected Result:** The new supplier record present in NetSuite the following business day.
 
 > **VALIDATION REQUIRED — GAP-03:** Whether any monitoring or alerting exists for the nightly Coupa-to-NetSuite supplier sync, and who owns the interface — no owner could be named by any interviewee (SRC-005).
@@ -133,7 +127,6 @@ in F.
 
 - **System / Tool:** NetSuite
 - **Fields / Parameters:** Vendor status (active); payment terms (standard net 45; net 60 targeted for new suppliers); default GL coding.
-- **Expected Result:** An active NetSuite vendor master record ready for PO transmission, invoice matching, and payment.
 
 > **SCREENSHOT PLACEHOLDER — SC-03:** An activated NetSuite vendor record showing vendor status, payment terms, and default GL coding as set by the Accounts Payable Clerk.
 

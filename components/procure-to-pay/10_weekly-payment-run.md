@@ -32,22 +32,21 @@ This procedure covers the Company's weekly disbursement cycle: the Accounts Paya
 
 #### Step 1: Build the payment proposal
 
-The Accounts Payable Manager builds the payment proposal in NetSuite on Wednesday afternoon, filtering on bills with a due date through the following Friday plus anything with an early-payment discount about to expire. A normal week's proposal runs four to six hundred lines and roughly $2,000,000 to $2,500,000 (SRC-001, SRC-005). The remainder of the run executes Thursday: the Corporate Controller's review Thursday morning, the ACH upload and release Thursday ahead of the bank's 2:00 pm cutoff, and check printing Thursday afternoon (SRC-001; calendar confirmed with the AP team during gap review).
+The payment proposal is built in NetSuite on Wednesday afternoon, filtering on bills with a due date through the following Friday plus anything with an early-payment discount about to expire. A normal week's proposal runs four to six hundred lines and roughly $2,000,000 to $2,500,000 (SRC-001, SRC-005). The remainder of the run executes Thursday: the Corporate Controller's review Thursday morning, the ACH upload and release Thursday ahead of the bank's 2:00 pm cutoff, and check printing Thursday afternoon (SRC-001; calendar confirmed with the AP team during gap review).
 
-- **System / Tool:** NetSuite
 - **Navigation Path:** Transactions > Payables > Pay Bills
 - **Fields / Parameters:** Due date filter through the following Friday; bills with expiring early-payment discounts
-- **Expected Result:** A proposed payment list of all bills due for the cycle
 
 #### Step 2: Scrub the proposal
 
-The Accounts Payable Manager exports the proposal to Excel, reviews it, and pulls anything that looks wrong before it goes to review (SRC-001).
+The proposal is exported to Excel and scrubbed, and anything that looks wrong is pulled before it goes to review (SRC-001).
 
-- **System / Tool:** NetSuite export; Excel
-- **Expected Result:** A scrubbed proposal ready for the Corporate Controller's review
+- **System / Tool:** Excel (proposal export)
 - **Evidence Required:** The proposal export — its retention location is unconfirmed [[GAP-02 — PROPOSAL APPROVAL EVIDENCE LOCATION]]
 
-> **VALIDATION REQUIRED — GAP-02:** Where the payment proposal export and the evidence of the Corporate Controller's approval are retained. The prior SOP requires that evidence of approval be retained (§7.2 of the prior SOP, SRC-006) and the Corporate Controller confirmed it is retained, but no source stated where, and the question was not asked during fieldwork (SRC-005). Confirm the retention location and form of the approval evidence.
+> **VALIDATION REQUIRED — GAP-02:** Where the payment proposal export and the evidence of the Corporate Controller's approval are retained.
+> - **Note:** Approval evidence is retained, but its location and form are unconfirmed — confirm the retention location before relying on it.
+> - **Detail:** The prior SOP requires that evidence of approval be retained (§7.2 of the prior SOP, SRC-006) and the Corporate Controller confirmed it is retained, but no source stated where, and the question was not asked during fieldwork (SRC-005). Confirm the retention location and form of the approval evidence.
 > - **Nature:** unknown
 > - **Owner to confirm:** Corporate Controller
 
@@ -57,19 +56,20 @@ The Accounts Payable Manager exports the proposal to Excel, reviews it, and pull
 
 The Corporate Controller reviews and approves the run Thursday morning, before any file is generated. The Accounts Payable Manager cannot release their own proposal (SRC-001; §7.2 of the prior SOP, SRC-006) (CTRL-001).
 
-- **Expected Result:** An approved payment run, cleared for file generation
-
 #### Step 4: ACH variant — generate, upload and release the NACHA file
 
-Following the Thursday-morning approval, the Accounts Payable Manager generates the ACH file — a NACHA file — from NetSuite and uploads it to Chase Connect; the batch is released ahead of the bank's 2:00 pm cutoff. The uploader does not release: the Accounts Payable Manager holds no release entitlement, and the file is released by the Corporate Controller or, in the Controller's absence, the Treasury Analyst, under separate Chase Connect user IDs with separate tokens (SRC-001; §7.3 of the prior SOP, SRC-006) (CTRL-002).
+- **Condition:** ACH variant — payments disbursed electronically
+
+Following the Thursday-morning approval, the ACH file — a NACHA file — is generated from NetSuite and uploaded to Chase Connect; the batch is released ahead of the bank's 2:00 pm cutoff. The uploader does not release: the Accounts Payable Manager holds no release entitlement, and the file is released by the Corporate Controller or, in the Controller's absence, the Treasury Analyst, under separate Chase Connect user IDs with separate tokens (SRC-001; §7.3 of the prior SOP, SRC-006) (CTRL-002).
 
 Whether a second approver is required on every batch or only above a dollar floor is contested [[GAP-03 — ACH SECOND-APPROVER FLOOR]].
 
-- **System / Tool:** NetSuite (file generation); Chase Connect (upload and release)
+- **System / Tool:** Chase Connect (upload and release)
 - **Fields / Parameters:** NACHA-format ACH file for the approved batch
-- **Expected Result:** ACH batch uploaded by the Accounts Payable Manager and released by a separately entitled user
 
-> **VALIDATION REQUIRED — GAP-03:** The ACH second-approver requirement. The Accounts Payable Manager states a second approver is required on every batch, without exception, a configuration in place since a 2022 phishing incident (SRC-001). The Corporate Controller states the entitlement as configured requires a second approver only above $100,000, with single release permitted below that — noting that practice is stricter only because the weekly batch always exceeds the floor, and asking that the control be documented as configured (SRC-003). The open question is whether "dual on every batch" is system-enforced or merely conventional. Obtain the Chase Connect entitlement report to establish the configured floor (SRC-005).
+> **VALIDATION REQUIRED — GAP-03:** The ACH second-approver requirement.
+> - **Note:** Whether a second approver is system-enforced on every batch or only above a $100,000 floor is contested — do not document a floor until the Chase Connect entitlement report is obtained.
+> - **Detail:** The Accounts Payable Manager states a second approver is required on every batch, without exception, a configuration in place since a 2022 phishing incident (SRC-001). The Corporate Controller states the entitlement as configured requires a second approver only above $100,000, with single release permitted below that — noting that practice is stricter only because the weekly batch always exceeds the floor, and asking that the control be documented as configured (SRC-003). The open question is whether "dual on every batch" is system-enforced or merely conventional. Obtain the Chase Connect entitlement report to establish the configured floor (SRC-005).
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
@@ -77,12 +77,13 @@ Whether a second approver is required on every batch or only above a dollar floo
 
 #### Step 5: Check variant — print checks and transmit the positive pay issue file
 
+- **Condition:** Check variant — payments disbursed by check
+
 For payments made by check — roughly thirty per week — checks are printed on the MICR printer in the AP room on Thursday afternoon, the same day as the ACH release. Blank check stock is held in a locked drawer; the signature plate is kept in the safe, whose combination is held only by the Accounts Payable Manager and the Corporate Controller (SRC-001) (CTRL-003). The positive pay issue file transmits to Chase from NetSuite at check print, the same day (SRC-001, SRC-003) (CTRL-004). Exception items returned by the bank are dispositioned under [[positive-pay-exception-handling]].
 
 Manual checks outside this run are issued only in exceptional circumstances with the written authorization of the Corporate Controller (§7.5 of the prior SOP, SRC-006) and are covered in [[wire-and-manual-payment]].
 
-- **System / Tool:** NetSuite (check print, positive pay issue file); MICR printer
-- **Expected Result:** Checks printed and the positive pay issue file transmitted to the bank the same day
+- **System / Tool:** MICR printer (check print)
 - **Evidence Required:** Positive pay issue file transmission
 
 ### F. Key Controls

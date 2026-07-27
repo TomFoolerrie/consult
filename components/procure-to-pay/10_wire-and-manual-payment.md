@@ -47,10 +47,10 @@ For a **manual / emergency check**, issuance is permitted only in exceptional ci
 
 #### Step 2: Key the wire in Chase Connect (wire variant)
 
-The Treasury Analyst keys the wire in Chase Connect from the signed Wire Transfer Request Form (SRC-001). The cutoff for same-day execution is 2:00 PM Eastern (SRC-001). The source of the beneficiary banking details keyed into the portal was not described — [[GAP-01 — WIRE BENEFICIARY DETAILS]].
+- **Condition:** wire transfer variant
 
-- **System / Tool:** Chase Connect.
-- **Expected Result:** A wire entry pending approval in the portal.
+The wire is keyed in Chase Connect from the signed Wire Transfer Request Form (SRC-001). The cutoff for same-day execution is 2:00 PM Eastern (SRC-001). The source of the beneficiary banking details keyed into the portal was not described — [[GAP-01 — WIRE BENEFICIARY DETAILS]].
+
 - **Evidence Required:** The completed, signed Wire Transfer Request Form supporting the entry.
 
 > **VALIDATION REQUIRED — GAP-01:** Where the beneficiary banking details keyed into Chase Connect come from — the Wire Transfer Request Form itself or the supplier's NetSuite vendor master record (maintained through [[vendor-banking-change]]). No source describes this, and the answer determines whether the banking-change callback control protects wire disbursements.
@@ -61,18 +61,23 @@ The Treasury Analyst keys the wire in Chase Connect from the signed Wire Transfe
 
 #### Step 3: Approve the wire in Chase Connect (wire variant)
 
+- **Condition:** wire transfer variant
+
 The wire is subject to dual authorization within Chase Connect without regard to value — there is no dollar floor and no exception (SRC-003; §7.4 of the prior AP SOP, SRC-006). The Accounts Payable Manager describes the Corporate Controller or the Chief Financial Officer approving the keyed wire in the portal (SRC-001). The exact approval configuration is contested — [[GAP-02 — WIRE APPROVER CONFIGURATION]].
 
-- **System / Tool:** Chase Connect.
 - **Expected Result:** The wire is released for execution; same-day value where keyed and approved before the 2:00 PM Eastern cutoff (SRC-001).
 
-> **VALIDATION REQUIRED — GAP-02:** The wire approval configuration in Chase Connect. The Accounts Payable Manager describes the Treasury Analyst keying the wire and the Corporate Controller or Chief Financial Officer approving it — dual authorization read as initiator plus one approver (SRC-001). The Corporate Controller describes "two approvers" in Chase Connect on every wire (SRC-003), which may mean two approvers in addition to the initiator. §7.4 of the prior AP SOP requires dual authorization without defining the approver count (SRC-006). Obtain the Chase Connect entitlement report to confirm the configured approval flow (SRC-005).
+> **VALIDATION REQUIRED — GAP-02:** The wire approval configuration in Chase Connect.
+> - **Note:** Whether dual authorization means the initiator plus one approver or two approvers on top of the initiator is contested — do not represent the approval flow as confirmed; see GAP-02.
+> - **Detail:** The Accounts Payable Manager describes the Treasury Analyst keying the wire and the Corporate Controller or Chief Financial Officer approving it — dual authorization read as initiator plus one approver (SRC-001). The Corporate Controller describes "two approvers" in Chase Connect on every wire (SRC-003), which may mean two approvers in addition to the initiator. §7.4 of the prior AP SOP requires dual authorization without defining the approver count (SRC-006). Obtain the Chase Connect entitlement report to confirm the configured approval flow (SRC-005).
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
 > **SCREENSHOT PLACEHOLDER — SC-03:** The Chase Connect approval screen for a pending wire, validating the required approval action and the enforced dual-authorization workflow.
 
 #### Step 4: Prepare and sign the manual check (manual check variant)
+
+- **Condition:** manual / emergency check variant
 
 Manual checks are issued only in exceptional circumstances with the Corporate Controller's written authorization, per the trigger in Step 1 (§7.5 of the prior AP SOP, SRC-006). Blank check stock is held in a locked drawer in the AP room, and the check signature plate is kept in the safe, whose combination is held only by the Accounts Payable Manager and the Corporate Controller (SRC-001, SRC-005). Who prepares and prints a manual check, how it is signed and dispatched, and how the written authorization is evidenced were not described by any interviewee — no manual check issuance was recounted during fieldwork — [[GAP-03 — MANUAL CHECK PRACTICE]].
 
@@ -84,9 +89,11 @@ Manual checks are issued only in exceptional circumstances with the Corporate Co
 
 #### Step 5: Transmit the positive pay issue file (manual check variant)
 
+- **Condition:** manual / emergency check variant — a manual check has been issued
+
 A positive pay issue file must transmit to the depository institution on each date on which checks are issued — including a manual check issued outside the weekly run (§7.6 of the prior AP SOP, SRC-006). The issue file transmits to Chase Connect from NetSuite at check print (SRC-003). Exception items returned by the bank are dispositioned under [[positive-pay-exception-handling]].
 
-- **System / Tool:** NetSuite; Chase Connect.
+- **System / Tool:** NetSuite (issue file transmission at check print).
 - **Expected Result:** The manual check appears in the positive pay issue file for its issuance date.
 
 #### Step 6: Record the disbursement and retain evidence

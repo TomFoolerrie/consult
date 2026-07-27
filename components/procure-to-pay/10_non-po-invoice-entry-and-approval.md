@@ -30,10 +30,7 @@ This procedure covers the entry, coding, and approval of supplier invoices that 
 
 #### Step 1: Identify the bill as non-PO
 
-The Accounts Payable Clerk works captured bills from the pending queue in NetSuite and identifies those without a purchase order reference. Typical non-PO invoices are utilities, legal, insurance, freight bills that do not tie to a PO, and anything under the PO threshold (SRC-001). Where a valid purchase order reference exists, the bill is not processed here — payable lines are never created manually against an existing PO (§5.1 of the prior SOP, SRC-006).
-
-- **System / Tool:** NetSuite
-- **Expected Result:** The bill is confirmed as non-PO and ready for manual coding
+Captured bills are worked from the pending queue in NetSuite and those without a purchase order reference are identified. Typical non-PO invoices are utilities, legal, insurance, freight bills that do not tie to a PO, and anything under the PO threshold (SRC-001). Where a valid purchase order reference exists, the bill is not processed here — payable lines are never created manually against an existing PO (§5.1 of the prior SOP, SRC-006).
 
 Freight bills arrive at Accounts Payable directly from carriers and do not pass through the receiving dock (SRC-004). Their routing is unconfirmed [[GAP-03 — FREIGHT AND COLLECT SHIPMENT HANDLING]].
 
@@ -43,12 +40,10 @@ Freight bills arrive at Accounts Payable directly from carriers and do not pass 
 
 #### Step 2: Code the bill manually
 
-The Accounts Payable Clerk enters the bill through the same Enter Bills screen used for PO invoices, but with no purchase order reference to populate the lines, coding is manual: general ledger account, department, and Class, which the Company uses to designate plant (SRC-001). Coding follows the Company chart of accounts (§5.5 of the prior SOP, SRC-006). NetSuite enforces a unique constraint on the combination of supplier identifier and supplier invoice number, so an attempted duplicate entry is rejected by the system (CTRL-002; §5.6 of the prior SOP, SRC-006).
+The bill is entered through the same Enter Bills screen used for PO invoices, but with no purchase order reference to populate the lines, coding is manual: general ledger account, department, and Class, which the Company uses to designate plant (SRC-001). Coding follows the Company chart of accounts (§5.5 of the prior SOP, SRC-006). NetSuite enforces a unique constraint on the combination of supplier identifier and supplier invoice number, so an attempted duplicate entry is rejected by the system (CTRL-002; §5.6 of the prior SOP, SRC-006).
 
-- **System / Tool:** NetSuite
 - **Navigation Path:** Transactions > Payables > Enter Bills
 - **Fields / Parameters:** General ledger account; Department; Class (plant)
-- **Expected Result:** A fully coded non-PO bill saved in NetSuite
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The NetSuite Enter Bills screen showing a non-PO bill with manual GL account, department, and Class coding — validates the manual coding fields and the absence of a PO reference.
 
@@ -63,19 +58,17 @@ The two accounts differ in both the breakpoints and the approver set — the pri
 
 Approvals are recorded within NetSuite; approval by email is not acceptable evidence of approval (§6.2 of the prior SOP, SRC-006). An approver may not approve an invoice for which that approver is the requester or the beneficiary (§6.3 of the prior SOP, SRC-006).
 
-- **System / Tool:** NetSuite (approval workflow)
 - **Expected Result:** The bill enters the approval queue of each required approver in sequence
 
-> **VALIDATION REQUIRED — GAP-01:** The live non-PO approval ladder is contested. The Accounts Payable Manager described tiers of $5,000 / $25,000 / $100,000 with no Functional Vice President layer (SRC-001); the prior SOP prescribes $2,500 / $10,000 / $50,000 including a Functional Vice President layer (§6.1 of the prior SOP, SRC-006). The breakpoints and the approver set both differ, and the configured NetSuite approval workflow has not been examined (SRC-005). Pull the NetSuite workflow configuration to establish the operating ladder.
+> **VALIDATION REQUIRED — GAP-01:** The live non-PO approval ladder is contested.
+> - **Note:** The ladder is contested between the sources — do not treat either set of breakpoints as authoritative; see GAP-01.
+> - **Detail:** The Accounts Payable Manager described tiers of $5,000 / $25,000 / $100,000 with no Functional Vice President layer (SRC-001); the prior SOP prescribes $2,500 / $10,000 / $50,000 including a Functional Vice President layer (§6.1 of the prior SOP, SRC-006). The breakpoints and the approver set both differ, and the configured NetSuite approval workflow has not been examined (SRC-005). Pull the NetSuite workflow configuration to establish the operating ladder.
 > - **Nature:** conflict
 > - **Owner to confirm:** Corporate Controller
 
 #### Step 4: Monitor pending approvals and follow up
 
-The Accounts Payable Clerk monitors bills awaiting approval. The prior SOP requires approvals not actioned within three business days to escalate automatically to the approver's supervisor (§6.4 of the prior SOP, SRC-006), but in practice non-PO approvals are described as sitting in approvers' NetSuite queues for up to two weeks with no escalation — "it just sits there until someone yells" (SRC-001) [[GAP-02 — APPROVAL ESCALATION]]. Follow-up is manual and reactive.
-
-- **System / Tool:** NetSuite
-- **Expected Result:** All required approvals recorded on the bill
+Bills awaiting approval are monitored. The prior SOP requires approvals not actioned within three business days to escalate automatically to the approver's supervisor (§6.4 of the prior SOP, SRC-006), but in practice non-PO approvals are described as sitting in approvers' NetSuite queues for up to two weeks with no escalation — "it just sits there until someone yells" (SRC-001) [[GAP-02 — APPROVAL ESCALATION]]. Follow-up is manual and reactive.
 
 > **VALIDATION REQUIRED — GAP-02:** The prior SOP's three-business-day automatic escalation (§6.4 of the prior SOP, SRC-006) contradicts fieldwork accounts that approvals sit for up to two weeks with no escalation (SRC-001; SRC-005). Determine whether the escalation is not configured in NetSuite or configured but not operating, and confirm the intended escalation path.
 > - **Nature:** conflict
@@ -84,9 +77,6 @@ The Accounts Payable Clerk monitors bills awaiting approval. The prior SOP requi
 #### Step 5: Release the approved bill to the payment cycle
 
 Once all required approvals are recorded, the bill is fully approved in NetSuite and becomes eligible for selection in the weekly disbursement cycle in [[weekly-payment-run]] (SRC-001).
-
-- **System / Tool:** NetSuite
-- **Expected Result:** An approved non-PO bill available to the payment proposal
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A non-PO bill in NetSuite showing the completed approval history — validates that approvals are recorded in the system rather than by email.
 
