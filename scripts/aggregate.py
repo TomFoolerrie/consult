@@ -505,45 +505,66 @@ def build_appendix_a(ctx) -> str:
     # (`body_omit: [issues]`), leaving the reference pointing at nothing.
     lines = [f"_Pain points and improvement opportunities observed in the "
              f"current-state walkthroughs, with the impact and severity "
-             f"recorded for each. IDs are numbered sequentially through the "
-             f"document; items are grouped by sub-process._", ""]
+             f"recorded for each. Each pain point is shown alongside the "
+             f"improvement opportunities that address it. IDs are numbered "
+             f"sequentially through the document; items are grouped by "
+             f"sub-process._", ""]
 
-    lines.append("### Pain Points")
+    # Reviewer ask: an improvement sits RIGHT BESIDE the pain point it
+    # addresses — one row tells the whole story, no comparing across tables.
+    # Collect every IO once, resolving its `Addresses:` field (local sibling
+    # PP ids, comma-separated by contract) to display ids for the pairing.
+    ios = []
+    for _l2_title, rows in _grouped_by_l2(ctx, "IO"):
+        for p, c in rows:
+            addresses = _disp_text(ctx, p, _pick(c["fields"], "Addresses"))
+            ios.append({"p": p, "c": c, "disp": _disp(ctx, p, c),
+                        "targets": _ID_MENTION_RE.findall(addresses),
+                        "used": False})
+
     any_pp = False
     for l2_title, rows in _grouped_by_l2(ctx, "PP"):
         any_pp = True
         lines += ["", f"#### {l2_title}", "",
-                  "| ID | Observation | Impact | Severity |",
+                  "| Pain Point | Impact | Severity | "
+                  "Improvement Opportunity |",
                   "|---|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
+            disp = _disp(ctx, p, c)
+            matched = [io for io in ios if disp in io["targets"]]
+            parts = []
+            for io in matched:
+                io["used"] = True
+                # An IO addressing several PPs repeats on each row — every
+                # row stands alone — with its other targets named.
+                others = [t for t in io["targets"] if t != disp]
+                also = (f" *(also addresses {', '.join(others)})*"
+                        if others else "")
+                parts.append(f"**{io['disp']}** — "
+                             f"{cell(_body(ctx, io['p'], io['c']))}{also}")
+            io_cell = "  ".join(parts) if parts else "—"
             lines.append(
-                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_body(ctx, p, c))} | "
-                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} |"
+                f"| {disp} ([[#{p['slug']}]]) — {cell(_body(ctx, p, c))} | "
+                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
+                f"{io_cell} |"
             )
     if not any_pp:
         lines += ["", "_No pain points recorded._"]
-    lines.append("")
 
-    lines.append("### Improvement Opportunities")
-    any_io = False
-    for l2_title, rows in _grouped_by_l2(ctx, "IO"):
-        any_io = True
-        lines += ["", f"#### {l2_title}", "",
-                  "| ID | Recommendation | Addresses |",
-                  "|---|---|---|"]
-        for p, c in rows:
-            f = c["fields"]
-            # `Addresses:` names sibling PPs by LOCAL id (possibly a comma-
-            # separated list) — same procedure by contract — translate each.
-            addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
+    # An IO whose `Addresses:` resolves to no recorded pain point still needs
+    # a home — silently dropping a finding is never an option.
+    stray = [io for io in ios if not io["used"]]
+    if stray:
+        lines += ["", "### Improvement Opportunities — general", "",
+                  "_Recommendations not tied to a single recorded pain "
+                  "point._", "",
+                  "| ID | Recommendation |",
+                  "|---|---|"]
+        for io in stray:
             lines.append(
-                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_body(ctx, p, c))} | {cell(addresses)} |"
-            )
-    if not any_io:
-        lines += ["", "_No improvement opportunities recorded._"]
+                f"| {io['disp']} ([[#{io['p']['slug']}]]) | "
+                f"{cell(_body(ctx, io['p'], io['c']))} |")
     return "\n".join(lines)
 
 

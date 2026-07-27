@@ -340,3 +340,30 @@ def test_run_missing_procedure_file_fails(tmp_path, capsys):
 def test_run_bad_usage(tmp_path, capsys):
     """A non-directory argument exits 2."""
     assert aggregate.run(str(tmp_path / "nope")) == 2
+
+
+def test_appendix_a_pairs_each_improvement_with_its_pain_point(tmp_path):
+    """Reviewer ask: the improvement sits in the SAME ROW as the pain point it
+    addresses — no comparing across two tables. An IO addressing no recorded
+    PP still lands (general section); nothing is silently dropped."""
+    io_stray = ("> **IMPROVEMENT OPPORTUNITY — IO-002:** Move sign-off into "
+                "the close checklist tool.\n"
+                "> - **Addresses:** —\n")
+    area = make_area(tmp_path, {
+        "bank-rec": fragment("Bank Rec", GOOD_CALLOUTS + "\n" + io_stray)})
+    assert aggregate.run(str(area)) == 0
+    appendix = (area / "88_appendix-a.md").read_text(encoding="utf-8")
+
+    paired = [ln for ln in appendix.splitlines()
+              if "PP-01 ([[#bank-rec]])" in ln]
+    assert len(paired) == 1
+    row = paired[0]
+    assert "Matching transactions is fully manual" in row
+    assert "IO-01" in row and "Automate matching via bank rules" in row
+    assert "| High |" in row
+
+    # the addressed IO appears ONLY beside its pain point; the stray one gets
+    # the general section with a first-cell id reconcile can verify
+    assert "### Improvement Opportunities — general" in appendix
+    assert "| IO-02 ([[#bank-rec]]) | Move sign-off into" in appendix
+    assert "IO-02" not in row
