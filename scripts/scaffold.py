@@ -146,8 +146,13 @@ DERIVED_FILES = [
      "heading": "Key Dependencies", "order": 8200},
     {"file": "84_raci.md", "kind": "raci", "writer": "agent",
      "heading": "RACI Matrix", "order": 8400},
+    # Appendix headings carry NO letters — "Appendix — <what it shows>".
+    # Letters forced renumbering whenever a profile added or dropped a
+    # register (the controls register was given a letterless heading for
+    # exactly that reason), and nothing in the document cites an appendix by
+    # letter: prose references go to procedures ([[slug]]) and callout ids.
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
-     "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
+     "heading": "Appendix — Risks, Pain Points & Improvement Opportunities",
      "order": 8800},
     # M14: the destination F never had. OPT-IN — absent from the default derived
     # set, so an area with no profile is byte-identical to pre-M14. Sits right
@@ -157,9 +162,9 @@ DERIVED_FILES = [
      "writer": "python", "heading": "Appendix — Key Controls Register",
      "order": 8900},
     {"file": "90_appendix-b-gaps.md", "kind": "gap-log", "writer": "python",
-     "heading": "Appendix B — Gap / Validation Log", "order": 9000},
+     "heading": "Appendix — Gap / Validation Log", "order": 9000},
     {"file": "91_appendix-c-screens.md", "kind": "screenshot-index", "writer": "python",
-     "heading": "Appendix C — Screenshot / Evidence Index", "order": 9100},
+     "heading": "Appendix — Screenshot / Evidence Index", "order": 9100},
 ]
 
 PROC_BASE = 10   # first procedure order

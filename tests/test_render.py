@@ -572,6 +572,11 @@ def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
     assert [p.text for p in h1] == ["1. Invoices", "2. Payments",
                                     "Reference & Appendices"]
     assert all(p.paragraph_format.page_break_before for p in h1)
+    # Chapter weight must reach the RUNS: styled_run stamps body-default
+    # direct formatting that overrides the paragraph style, so a style-table
+    # change alone renders 10pt black (the "flat H1" review note).
+    run = h1[0].runs[0]
+    assert run.font.size.pt == 20 and run.font.bold
 
     # With the cover off the profile renders inline as front matter, and the
     # Introduction chapter appears above it.

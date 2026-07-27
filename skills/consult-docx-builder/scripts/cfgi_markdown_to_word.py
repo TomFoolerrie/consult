@@ -400,6 +400,7 @@ def styled_run(p, sg: Seg, color: str = PALETTE["black"], size: int = BODY_SIZE)
 # italic=False) from styled_run, which overrides the Heading 2/3 paragraph
 # STYLES in Word. Direct-format the runs to match the style instead.
 HEADING_RUN_FMT = {
+    "Heading 1": (20, PALETTE["dark_green"], True, False),  # chapter dividers
     "Heading 2": (13, PALETTE["green"], True, False),   # size, color, bold, italic
     "Heading 3": (12, PALETTE["green"], False, True),
 }
