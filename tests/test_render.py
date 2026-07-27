@@ -334,6 +334,36 @@ def test_final_mode_reports_dangling_prose_gap_references(tmp_path):
     assert "VALIDATION REQUIRED" not in text
 
 
+def test_final_mode_scrubs_unambiguous_citations(tmp_path):
+    """Final mode removes the two mechanically-safe citation shapes — a
+    parenthetical containing nothing but SRC/GAP ids, and a pure-citation
+    "See GAP-##." sentence — and leaves ids woven into sentence meaning for
+    the dangling-reference warning (now covering SRC too). Working mode is
+    untouched: citations are the drafters' provenance."""
+    area = make_area(tmp_path)
+    pay = area / "20_payment-run.md"
+    pay.write_text(pay.read_text(encoding="utf-8").replace(
+        "- Payment file",
+        "- The run is cut Thursday (SRC-002, SRC-005). See GAP-01.\n"
+        "- Approver disputed (SRC-004; see GAP-01, which is unresolved)\n"
+        "- Payment file"), encoding="utf-8")
+
+    working = render.render_folder(area, tmp_path / "w.docx",
+                                   emit_signal=False)
+    assert working["citations_scrubbed"] == 0
+    wtext = doc_text(Document(str(tmp_path / "w.docx")))
+    assert "(SRC-002, SRC-005)" in wtext
+
+    stats = render.render_folder(area, tmp_path / "f.docx", mode="final",
+                                 emit_signal=False)
+    assert stats["citations_scrubbed"] == 2
+    text = doc_text(Document(str(tmp_path / "f.docx")))
+    assert "SRC-002" not in text and "See GAP" not in text
+    assert "The run is cut Thursday." in text     # clean seam, no double space
+    assert "SRC-004" in text                      # woven — left for a human
+    assert "SRC-004" in stats["dangling_gap_refs"]["payment-run"]
+
+
 def test_final_mode_placeholder_kept_when_no_image(tmp_path):
     """Final mode keeps the SCREENSHOT PLACEHOLDER callout when no captured
     image exists under _assets/screens/<slug>/."""
