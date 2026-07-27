@@ -10,3 +10,4 @@ __pycache__/
 .aggregate.json
 .reconcile.json
 .render.json
+.claude/
