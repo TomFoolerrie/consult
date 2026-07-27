@@ -354,16 +354,18 @@ def test_appendix_a_pairs_each_improvement_with_its_pain_point(tmp_path):
     assert aggregate.run(str(area)) == 0
     appendix = (area / "88_appendix-a.md").read_text(encoding="utf-8")
 
-    paired = [ln for ln in appendix.splitlines()
-              if "PP-01 ([[#bank-rec]])" in ln]
-    assert len(paired) == 1
-    row = paired[0]
-    assert "Matching transactions is fully manual" in row
-    assert "IO-01" in row and "Automate matching via bank rules" in row
-    assert "| High |" in row
+    # stacked block: lead line with severity, observation, then the
+    # improvement DIRECTLY below its pain point
+    assert "**PP-01 ([[#bank-rec]]) — Severity: High**" in appendix
+    lines = appendix.splitlines()
+    i = lines.index("**PP-01 ([[#bank-rec]]) — Severity: High**")
+    block = "\n".join(lines[i:i + 7])
+    assert "Matching transactions is fully manual" in block
+    assert "**Improvement IO-01:** Automate matching via bank rules" in block
+    assert "*Impact:* Two extra days per close" in block
 
-    # the addressed IO appears ONLY beside its pain point; the stray one gets
+    # the addressed IO appears ONLY under its pain point; the stray one gets
     # the general section with a first-cell id reconcile can verify
     assert "### Improvement Opportunities — general" in appendix
     assert "| IO-02 ([[#bank-rec]]) | Move sign-off into" in appendix
-    assert "IO-02" not in row
+    assert "IO-02" not in block

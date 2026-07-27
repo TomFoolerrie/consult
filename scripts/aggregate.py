@@ -522,33 +522,37 @@ def build_appendix_a(ctx) -> str:
                         "targets": _ID_MENTION_RE.findall(addresses),
                         "used": False})
 
+    # Stacked blocks, not a table: observation, impact and recommendation are
+    # PARAGRAPHS, and a four-column grid squeezes them into unreadable strips
+    # (reviewer feedback on the table attempt). Full page width for every
+    # sentence; the improvement sits directly below its pain point.
     any_pp = False
     for l2_title, rows in _grouped_by_l2(ctx, "PP"):
         any_pp = True
-        lines += ["", f"#### {l2_title}", "",
-                  "| Pain Point | Impact | Severity | "
-                  "Improvement Opportunity |",
-                  "|---|---|---|---|"]
+        lines += ["", f"#### {l2_title}"]
         for p, c in rows:
             f = c["fields"]
             disp = _disp(ctx, p, c)
+            sev = (_pick(f, "Severity") or "").strip()
+            head = f"**{disp} ([[#{p['slug']}]])"
+            head += f" — Severity: {sev}**" if sev else "**"
+            lines += ["", head, "", _body(ctx, p, c)]
+            impact = (_pick(f, "Impact") or "").strip()
+            if impact:
+                lines += ["", f"*Impact:* {impact}"]
             matched = [io for io in ios if disp in io["targets"]]
-            parts = []
             for io in matched:
                 io["used"] = True
-                # An IO addressing several PPs repeats on each row — every
-                # row stands alone — with its other targets named.
+                # An IO addressing several PPs repeats under each — every
+                # block stands alone — naming its other targets.
                 others = [t for t in io["targets"] if t != disp]
                 also = (f" *(also addresses {', '.join(others)})*"
                         if others else "")
-                parts.append(f"**{io['disp']}** — "
-                             f"{cell(_body(ctx, io['p'], io['c']))}{also}")
-            io_cell = "  ".join(parts) if parts else "—"
-            lines.append(
-                f"| {disp} ([[#{p['slug']}]]) — {cell(_body(ctx, p, c))} | "
-                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
-                f"{io_cell} |"
-            )
+                lines += ["", f"**Improvement {io['disp']}:** "
+                              f"{_body(ctx, io['p'], io['c'])}{also}"]
+            if not matched:
+                lines += ["", "_No improvement opportunity recorded for "
+                              "this pain point._"]
     if not any_pp:
         lines += ["", "_No pain points recorded._"]
 
