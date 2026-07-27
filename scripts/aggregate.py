@@ -13,6 +13,7 @@ area folder. Reads `manifest.json`, every `role: procedure` fragment, and the
         07_role-dictionary   (role-dictionary)
         08_systems           (systems)
         88_appendix-a        (appendix-a; typed PP / IO rows)
+        89_appendix-controls (appendix-controls; CTRL rows — M14, opt-in)
         90_appendix-b-gaps   (gap-log)
         91_appendix-c-screens(screenshot-index)
   (b) writes a `> _Pending synthesis (M5)._` placeholder (+ marker) into the
@@ -477,6 +478,44 @@ def build_appendix_a(ctx) -> str:
     return "\n".join(lines)
 
 
+def build_appendix_controls(ctx) -> str:
+    """The M14 controls register — `appendix-controls`.
+
+    Pain points have had a register since M3 (Appendix A, built from the `H`
+    callouts); controls had none, because `F. Key Controls` is a SECTION. So an
+    engagement that moves F out of the procedure body (`body_omit: [F]`) needs
+    this destination, or the controls simply vanish — which is why the profile
+    validator refuses that combination.
+
+    No new machinery: the callout parser, the ID scheme, the display-ID map and
+    the by-L2 grouping are exactly what Appendix A uses, pointed at CTRL. Only
+    emitted when the profile asks for it (the manifest is the authority: this
+    builder runs iff an `appendix-controls` component is listed).
+    """
+    lines = ["_Key controls, aggregated mechanically from the `F` section "
+             "callouts (statement, type, frequency and owner authored in the "
+             "callout). IDs are numbered sequentially through the document; "
+             "rows are grouped by sub-process._"]
+    any_row = False
+    for l2_title, rows in _grouped_by_l2(ctx, "CTRL"):
+        any_row = True
+        lines += ["", f"#### {l2_title}", "",
+                  "| Control ID | Control | Type | Frequency | Owner |",
+                  "|---|---|---|---|---|"]
+        for p, c in rows:
+            f = c["fields"]
+            lines.append(
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_pick(f, 'Type'))} | "
+                f"{cell(_pick(f, 'Frequency'))} | "
+                f"{cell(_pick(f, 'Owner'))} |"
+            )
+    if not any_row:
+        lines += ["", "_No controls recorded._"]
+    return "\n".join(lines)
+
+
 def build_gap_log(ctx) -> str:
     lines = ["_Validation gaps aggregated from the `VALIDATION REQUIRED` "
              "callouts. IDs are numbered sequentially through the document; "
@@ -525,6 +564,7 @@ PY_BUILDERS = {
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,
     "appendix-a": build_appendix_a,
+    "appendix-controls": build_appendix_controls,
     "gap-log": build_gap_log,
     "screenshot-index": build_screenshot_index,
 }

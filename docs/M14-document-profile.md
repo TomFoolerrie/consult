@@ -1,6 +1,40 @@
 # M14 — Document profile (which sections exist, changeable mid-engagement)
 
-> **Status: DESIGNED.**
+> **Status: BUILT.** Deltas from this design: the profile accessor lives in
+> `scripts/client_config.py` (`profile(area) -> Profile`, `parse_profile`,
+> `ProfileError`) rather than in a module of its own — it is engagement config
+> resolved by M13's rule, and all three consumers (scaffold, render, the
+> advisor) can import it without importing each other; `derived:` is stored in
+> the manifest's `derived_kind` vocabulary, with this ticket's reader shorthand
+> accepted as **aliases** (`index`→`procedure-index`, `roles`→`role-dictionary`,
+> `appendix-b`→`gap-log`, `appendix-c`→`screenshot-index`), so one profile
+> cannot mean two things; `appendix-controls` lands as
+> `89_appendix-controls.md` (order 8900, beside Appendix A, the other
+> mechanically-built register) headed **"Appendix — Key Controls Register"**
+> with **no letter**, because taking `D` would be fine but taking a letter at
+> all invites re-lettering B and C later; validation is wider than the two
+> rules listed here — A/B/E mandatory, `sections` outside A–H, unknown callout
+> kinds, unknown `derived` components and unknown profile fields all fail loud
+> and named, and `sections:` is canonicalized to document order (reordering is
+> out of scope, so a profile listing them shuffled means document order);
+> render's strips **blank** rather than delete, which generalizes the
+> final-mode machinery instead of reusing it verbatim — `body_omit` is an
+> ordinary WORKING render, so the line-for-line provenance the M10 review-apply
+> pipeline depends on has to survive it, while scaffold's skeleton filter really
+> does delete (nothing maps provenance onto a fresh skeleton, and a drafter
+> handed a blank hole would fill it in); both strips short-circuit to the
+> UNCHANGED text when the profile excludes nothing, which is how "byte-identical
+> to today" is guaranteed rather than merely intended; the `reprofile` guard is
+> **inert unless a layer actually supplies a `profile:` key** — with no profile
+> there is no recorded requirement to drift from — and its details carry
+> `sections` alongside the specified `missing` / `dispatches`; `aggregate.py`
+> needed no profile awareness at all (it is manifest-driven, and the manifest is
+> already the profile's footprint); `derived` without `raci` is implemented as
+> `AreaState.agent_derived_kinds`, read from the manifest, so absent-from-manifest
+> means absent-from-signal — which **changes** three existing test expectations
+> that pinned `stale_kinds == ["dependencies", "raci"]` on fixtures whose
+> manifests declared no agent-owned views at all; every stage that reads the
+> profile prints one line, `document profile: …`, from `Profile.report_line()`.
 
 ## Goal
 

@@ -27,6 +27,14 @@ assembly glue and delegates styling to the bundled CFGI converter:
      `document-profile` static section; single-file -> the converter's legacy
      H1/tagline scan.
 
+M14 — THIS IS ENFORCEMENT POINT 2 FOR THE DOCUMENT PROFILE. Before any other
+body cleaning, each procedure body loses the sections the engagement's profile
+does not have, the sections its `body_omit` keeps out of the procedure body, and
+the callout kinds it does not carry. All three are BLANKED, not deleted, so the
+line-for-line provenance mapping survives; with no profile in play they are
+no-ops and the output is byte-identical to pre-M14. Fragments are never
+rewritten: turning a section back on restores text that was always there.
+
 Modes (M9):
   --mode working (default)  everything visible (gaps, pain points); emits
                             provenance bookmarks + a sidecar review map under
@@ -74,6 +82,7 @@ for _p in (_SCRIPTS_DIR, _SKILL_SCRIPTS):
         sys.path.insert(0, str(_p))
 
 import doc_model  # noqa: E402  (M2-owned shared spine)
+import client_config  # noqa: E402  (M13 resolver / M14 document profile)
 import cfgi_markdown_to_word as cfgi  # noqa: E402  (bundled converter)
 
 from docx.oxml import OxmlElement  # noqa: E402
@@ -199,6 +208,89 @@ def _clean_body(text: str, numbers) -> str:
     text = _resolve_tokens(text, numbers)
     text = _flag_gap_tags(text)
     return text
+
+
+# --------------------------------------------------------------------------- #
+# M14 profile enforcement (enforcement point 2) — LINE-COUNT-PRESERVING
+#
+# Sections the profile does not have, sections `body_omit` keeps out of the
+# procedure body, and callout kinds the profile does not carry are BLANKED, not
+# deleted: exactly the discipline the comment/consult-meta strippers above
+# follow. Blank lines produce no Word output, so the reader sees the section
+# gone, while assembled body line k still maps to fragment line k — the
+# provenance the M10 review-apply pipeline depends on. (The final-mode
+# transforms below may drop lines because final mode has no review round; a
+# `body_omit` render is an ordinary WORKING render and does.)
+#
+# Both are no-ops that return the text UNCHANGED when the profile excludes
+# nothing, so an engagement with no `profile.yaml` renders byte-identically.
+# --------------------------------------------------------------------------- #
+_SECTION_LINE_RE = re.compile(r"^###\s+(?P<letter>[A-Z])\.\s")
+_META_FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.IGNORECASE)
+
+# A callout label line, loose enough to catch every kind in the LABEL map:
+# `> **<LABEL> — <ID>:** text`. The grammar itself is callouts.py's; this only
+# needs the label to decide whether the block stays.
+_CALLOUT_LABEL_RE = re.compile(
+    r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]*?)\s*[-–—]\s*[A-Za-z]+-[A-Za-z0-9\-]+\s*:"
+)
+
+
+def _blank_sections(text: str, letters) -> str:
+    """Blank the `### X.` blocks of every section in `letters`.
+
+    The `consult-meta` end matter belongs to no section, so it survives even
+    when the section it trails is hidden — otherwise hiding `H` would strip a
+    procedure's system/role bindings out of the assembled body.
+    """
+    if not letters:
+        return text
+    out: list[str] = []
+    dropping = False
+    for ln in text.split("\n"):
+        if _META_FENCE_RE.match(ln):
+            dropping = False
+        else:
+            m = _SECTION_LINE_RE.match(ln)
+            if m:
+                dropping = m.group("letter") in letters
+        out.append("" if dropping else ln)
+    return "\n".join(out)
+
+
+def _blank_callouts(text: str, labels) -> str:
+    """Blank every callout block whose LABEL is in `labels`.
+
+    A callout is its label line plus the contiguous `>` blockquote under it —
+    the same block shape `_final_transform` consumes for VALIDATION REQUIRED,
+    which is that stripper generalized to any kind the profile drops.
+    """
+    if not labels:
+        return text
+    lines = text.split("\n")
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        m = _CALLOUT_LABEL_RE.match(lines[i])
+        label = re.sub(r"\s+", " ", m.group("label")).strip() if m else None
+        if label in labels:
+            out.append("")
+            i += 1
+            while i < len(lines) and lines[i].lstrip().startswith(">"):
+                if _CALLOUT_LABEL_RE.match(lines[i]):
+                    break      # a new callout starts its own block
+                out.append("")
+                i += 1
+            continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
+def _apply_profile(text: str, profile) -> str:
+    """Strip everything the document profile excludes from one procedure body."""
+    text = _blank_sections(text, profile.hidden_sections())
+    return _blank_callouts(text, profile.dropped_callouts())
 
 
 # --------------------------------------------------------------------------- #
@@ -353,6 +445,9 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
                   track_changes: bool = False, emit_signal: bool = True) -> dict:
     """Render an area folder. Returns a stats dict (counts + doc_id/map)."""
     folder = Path(folder)
+    # M14 enforcement point 2. Resolved before any body is touched so a
+    # malformed profile fails the render rather than shipping a wrong shape.
+    profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
     numbers = doc_model.display_numbers(manifest)
@@ -384,7 +479,8 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
-             "screens_embedded": 0, "screens_placeholder": 0}
+             "screens_embedded": 0, "screens_placeholder": 0,
+             "profile": profile.report_line()}
 
     subset = slugs is not None
     if subset:
@@ -417,6 +513,9 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             submap = ids_by_slug.get(slug, {})
             if submap:
                 raw_body = _rewrite_callout_ids(raw_body, submap)
+            # The profile decides shape BEFORE final mode counts what it
+            # strips, so a hidden section's gaps are never double-reported.
+            raw_body = _apply_profile(raw_body, profile)
         if mode == "final" and role == "procedure":
             raw_body = _final_transform(
                 raw_body, slug, folder,
@@ -535,6 +634,7 @@ def main(argv=None) -> int:
             do_cover=do_cover, mode=a.mode, slugs=slugs,
             track_changes=a.track_changes)
         print("Wrote " + str(out))
+        print(stats["profile"])
         if a.mode == "final":
             print(f"final mode: stripped {stats['gaps_stripped']} open gap callout(s) "
                   f"+ {stats['gap_tags_stripped']} inline tag(s); "

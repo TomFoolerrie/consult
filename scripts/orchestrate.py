@@ -21,6 +21,7 @@ Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
  2b  review_triage    notes naming no live slug / _unassigned  (HUMAN GATE)
   3  taxonomy         no manifest.json AND _sources/new/*     (mode=initial)
   4  fill             manifest AND any procedure `unfilled`
+4.5  reprofile        profile section(s) absent from N fragments (HUMAN GATE)
   5  taxonomy         manifest AND UNASSESSED _sources/new/*  (mode=incremental)
  5a  unresolvable     every source in new/ assessed + unconsumable (HUMAN GATE)
  5b  unresolvable     manifest slug whose fragment is absent   (HUMAN GATE)
@@ -63,6 +64,12 @@ The M18/M6 partitions, all of them pure reads:
            guards above have already ruled out the two things that could consume
            them (a pending note, an ``unfilled`` skeleton), so they are stranded:
            ``unresolvable`` naming the ``SRC-`` ids (audit F7 / M6).
+  guard 4.5 the DOCUMENT PROFILE (M14) is a pure read too, and so is its drift
+           signal: a fragment missing a `### X.` heading the profile requires
+           predates the profile change. No `profile_hash` in the manifest —
+           nothing to keep in sync, it survives hand edits, and it is
+           per-procedure rather than all-or-nothing. Inert when no layer
+           supplies a `profile:` key (there is no requirement to drift from).
   guard 8  when reconcile's recorded failures (``.reconcile.json``
            ``failing_files``) are confined to agent-owned derived views the
            change signal already marks stale, ``synthesize`` takes precedence:
@@ -145,6 +152,14 @@ try:
 except Exception:  # pragma: no cover - sources.py ships beside us
     _assess_new_sources = None
 
+# The DOCUMENT PROFILE is owned by client_config (M13 resolution, M14 profile).
+# Borrowed for guard 4.5 only: the advisor reads the profile to see which
+# fragments predate a profile change, and never decides shape itself.
+try:
+    import client_config  # type: ignore
+except Exception:  # pragma: no cover - client_config ships beside us
+    client_config = None
+
 
 # --------------------------------------------------------------------------- #
 # Small filesystem / hashing helpers (deterministic, read-only)
@@ -209,6 +224,11 @@ def resolve_area(area: str) -> str:
 
 UNFILLED_RE = re.compile(r"(<!--\s*unfilled\s*-->)|(status\s*:\s*unfilled)", re.I)
 PENDING_RE = re.compile(r"_Pending synthesis", re.I)
+# A `### X.` sub-section heading inside a procedure fragment (M14 guard 4.5).
+# The HEADING IS THE SIGNAL: scaffold always writes one per profile section, so
+# a fragment missing one predates the profile change. No state file, nothing to
+# keep in sync, and it survives hand edits.
+SECTION_HEADING_RE = re.compile(r"^###\s+([A-Z])\.\s", re.MULTILINE)
 
 
 class AreaState:
@@ -226,6 +246,14 @@ class AreaState:
         self.upstream = {}     # slug -> [upstream slugs] (M11 ordering hints)
         self.agent_derived = []  # abspaths of writer==agent derived files
         self.derived_files = []  # all derived abspaths
+        # M14: the agent-owned derived KINDS this manifest actually lists. The
+        # manifest is the profile's footprint (scaffold lists only what the
+        # profile asks for), so a `derived:` set without `raci` yields no raci
+        # kind here — and guard 9 therefore never dispatches that agent. Read
+        # from the manifest rather than a constant so absent-from-manifest means
+        # absent-from-signal, which is the fail-safe direction: an unlisted view
+        # has no file, no writer and nothing to be stale against.
+        self.agent_derived_kinds = []
         # M18: who owns each manifest file, keyed by the area-relative path
         # reconcile names in its error messages ("procedure" | "agent-derived" |
         # "python-derived"). The guard-8 partition reads nothing else.
@@ -245,6 +273,9 @@ class AreaState:
                     if c.get("writer") == "agent":
                         self.agent_derived.append(path)
                         self.owner_of[c["file"]] = "agent-derived"
+                        kind = c.get("derived_kind")
+                        if kind and kind not in self.agent_derived_kinds:
+                            self.agent_derived_kinds.append(kind)
                     else:
                         self.owner_of[c["file"]] = "python-derived"
 
@@ -327,6 +358,44 @@ class AreaState:
         for slug, path in self.procedures:
             if os.path.isfile(path) and UNFILLED_RE.search(_read_text(path)):
                 out.append(slug)
+        return out
+
+    def profile(self):
+        """The resolved document profile, or None when M14 is not in play.
+
+        None means BOTH "client_config is unimportable" and "no layer supplied a
+        `profile:` key" — in either case there is no recorded requirement to
+        drift from, so guard 4.5 is inert and the ladder behaves exactly as it
+        did pre-M14. A MALFORMED profile is not silence: `client_config` raises,
+        and the run stops with the file named."""
+        if client_config is None:  # pragma: no cover - ships beside us
+            return None
+        prof = client_config.profile(self.folder)
+        return prof if prof.configured else None
+
+    def profile_drift(self):
+        """{slug: [sections]} — profile sections whose heading is missing from a
+        fragment (M14 guard 4.5).
+
+        The drift signal is the missing heading ITSELF: scaffold writes one
+        `### X.` per profile section, so a fragment lacking one predates the
+        profile change and needs a drafter update pass. Nothing to reconcile
+        against a state file, and per-procedure rather than all-or-nothing.
+
+        `body_omit` can never appear here — its sections are in `sections:` and
+        their headings are present, which is exactly why omitting one is free
+        and reversible. Missing FILES are guard 5b's business, not ours."""
+        prof = self.profile()
+        if prof is None:
+            return {}
+        out = {}
+        for slug, path in self.procedures:
+            if not os.path.isfile(path):
+                continue
+            present = set(SECTION_HEADING_RE.findall(_read_text(path)))
+            absent = [s for s in prof.sections if s not in present]
+            if absent:
+                out[slug] = absent
         return out
 
     def proc_hashes(self):
@@ -447,6 +516,13 @@ def _synthesis_signal(folder: str, st: "AreaState"):
     Staleness is accumulated PER KIND (M18/F6): a kind whose delta computation
     raises is skipped, never allowed to discard a kind already found stale. An
     unimportable scope_delta degrades to "synthesize only if pending".
+
+    The KINDS come from the manifest (M14): the document profile decides which
+    derived views exist, and a view the profile dropped has no component, no
+    file and no writer — so it must not appear in the work order either. Both
+    inputs are now manifest-driven, `pending` through the component list and
+    `stale_kinds` through `agent_derived_kinds`, which is the fail-safe
+    direction: nothing can be dispatched for a view that is not in the document.
     """
     pending = st.pending_placeholders()
     stale_kinds = []
@@ -456,7 +532,7 @@ def _synthesis_signal(folder: str, st: "AreaState"):
         except Exception:  # pragma: no cover - scope_delta ships beside us
             scope_delta = None
         if scope_delta is not None:
-            for kind in ("dependencies", "raci"):
+            for kind in st.agent_derived_kinds:
                 try:
                     if scope_delta.changed_procedure_slugs(folder, kind):
                         stale_kinds.append(kind)
@@ -636,6 +712,40 @@ def decide(folder: str) -> dict:
         if upstream_files:
             details["upstream_files"] = upstream_files
         return result("fill", reason, **details)
+
+    # 4.5 — reprofile (M14): the profile requires section(s) a fragment does not
+    #       have. Same family as `fill` — both are "fragments aren't in their
+    #       target shape yet" — so it sits immediately below it, and above
+    #       `aggregate`, because building derived views from a shape that is
+    #       about to change wastes the pass.
+    #
+    #       A COST GATE, so human_gate is true: the handler reports the dispatch
+    #       COUNT first ("12 drafter dispatches to add F. Key Controls —
+    #       proceed?") and only dispatches on the go-ahead. Partial acceptance
+    #       is fine: the guard is per-procedure, so an area can sit half-migrated
+    #       indefinitely without wedging the loop.
+    #
+    #       Only the EXPENSIVE direction fires. Removing a section from the
+    #       profile needs no action at all — render omits it and the fragments
+    #       keep their text — and `body_omit` never fires here at all, because
+    #       its sections' headings are present by construction.
+    #
+    #       Termination: the drafter contract has it write the heading even when
+    #       the answer is "no controls identified in the current state", so the
+    #       heading appears, the guard clears, and it cannot re-fire forever.
+    drift = st.profile_drift()
+    if drift:
+        wanted = sorted({s for secs in drift.values() for s in secs})
+        return result(
+            "reprofile",
+            "the document profile requires section(s) %s that %d fragment(s) do "
+            "not have — %d drafter dispatch(es) to add them"
+            % (", ".join(wanted), len(drift), len(drift)),
+            gate=True,
+            missing={slug: list(secs) for slug, secs in sorted(drift.items())},
+            dispatches=len(drift),
+            sections=wanted,
+        )
 
     # 5 — incremental scope: new sources arrived after scaffolding.
     #     M6/F7: only sources the taxonomy agent has NOT yet assessed are work

@@ -26,6 +26,12 @@ Malformed YAML anywhere in the walk is fatal (`ClientConfigError`, naming the
 file). There is no schema validator — these are small hand-written files, so
 the contract is "parse or stop".
 
+`profile(area) -> Profile` (M14) is the one typed accessor built on top of this
+resolution: the DOCUMENT PROFILE is engagement config like any other, so it is
+one top-level `profile:` key in `_client/profile.yaml` and gets merging,
+shadowing and provenance for free. It is validated fail-loud (see `ProfileError`)
+because it decides the shape of the client deliverable.
+
 `_reference/` is deliberately NOT part of this: it is agent-proposed and
 human-confirmed per area, and sharing it would let one area's low-confidence
 guess become another area's fact.
@@ -35,6 +41,7 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from pathlib import Path
 
 try:
@@ -193,3 +200,280 @@ def conventions(area) -> list[Path]:
 def report_line(area, prefix: str = "client config") -> str:
     """Convenience: the resolution line for `area`, without keeping the dict."""
     return load(area).report_line(prefix)
+
+
+# --------------------------------------------------------------------- M14
+# The DOCUMENT PROFILE — which sections exist, which are hidden from the
+# procedure body, which callout kinds and derived views are in play.
+#
+# It lives here because it is engagement config resolved by exactly the rule
+# above: `profile:` is one top-level key in `_client/profile.yaml`, so
+# `load(area)` merges and shadows it for free, and `.layers["profile"]` says
+# which layer answered. Its THREE consumers — scaffold (enforcement point 1),
+# render (enforcement point 2) and the advisor's `reprofile` guard — can all
+# import this module without importing each other.
+#
+# ABSENT PROFILE = TODAY. `profile(area)` with no `profile:` key anywhere
+# returns the full A–H set, an EMPTY `body_omit`, today's derived set (which
+# does NOT include `appendix-controls`), and `configured = False`; every
+# consumer short-circuits on that, so the manifest, the skeletons and the
+# render stay byte-identical to pre-M14 output.
+# ---------------------------------------------------------------------------
+
+PROFILE_KEY = "profile"
+
+#: A–H is the heading contract (M14 out of scope: reordering / renaming).
+ALL_SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"]
+#: Sections no engagement may drop: scope, card, steps.
+MANDATORY_SECTIONS = ["A", "B", "E"]
+#: The section whose callouts would vanish if it left the body with no register.
+CONTROLS_SECTION = "F"
+#: The register that catches them (M14 `appendix-controls`).
+CONTROLS_REGISTER = "appendix-controls"
+
+#: Today's callout kinds — the `callouts.py` LABEL→prefix map, in reading order.
+ALL_CALLOUTS = ["CONTROL", "VALIDATION REQUIRED", "PAIN POINT",
+                "IMPROVEMENT OPPORTUNITY", "SCREENSHOT PLACEHOLDER"]
+
+#: Today's derived set, as `derived_kind` values (the manifest's vocabulary).
+DEFAULT_DERIVED = ["procedure-index", "role-dictionary", "systems",
+                   "dependencies", "raci", "appendix-a", "gap-log",
+                   "screenshot-index"]
+#: Every derived kind a profile may name — today's set plus M14's new register.
+ALL_DERIVED = DEFAULT_DERIVED + [CONTROLS_REGISTER]
+
+#: The spec writes the derived set in READER shorthand (`index`, `appendix-b`);
+#: the manifest speaks `derived_kind`. Accept both and canonicalize to the
+#: manifest's vocabulary, so one profile cannot mean two things.
+DERIVED_ALIASES = {
+    "index": "procedure-index",
+    "procedure-index": "procedure-index",
+    "roles": "role-dictionary",
+    "role-dictionary": "role-dictionary",
+    "appendix-b": "gap-log",
+    "gap-log": "gap-log",
+    "appendix-c": "screenshot-index",
+    "screenshot-index": "screenshot-index",
+    "controls": CONTROLS_REGISTER,
+}
+
+#: Inline step tags. Python never enforces these — they are the drafter's
+#: vocabulary — but the profile is their one home, so they resolve here.
+DEFAULT_INLINE_TAGS = ["System / Tool", "Navigation Path", "Fields / Parameters",
+                       "Expected Result", "Evidence Required"]
+
+PROFILE_FIELDS = ("sections", "body_omit", "callouts", "derived", "inline_tags")
+
+
+class ProfileError(ClientConfigError):
+    """A malformed document profile. Fail-loud and NAMED: the profile decides
+    document shape, so a typo in it must stop the run, never quietly reshape
+    the deliverable."""
+
+
+@dataclass
+class Profile:
+    """The resolved document profile for one area.
+
+    `configured` is False when no layer supplied a `profile:` key at all — the
+    "absent file → today's behavior" case every consumer short-circuits on.
+    """
+
+    sections: list[str] = field(default_factory=lambda: list(ALL_SECTIONS))
+    body_omit: list[str] = field(default_factory=list)
+    callouts: list[str] = field(default_factory=lambda: list(ALL_CALLOUTS))
+    derived: list[str] = field(default_factory=lambda: list(DEFAULT_DERIVED))
+    inline_tags: list[str] = field(default_factory=lambda: list(DEFAULT_INLINE_TAGS))
+    configured: bool = False
+    layer: str | None = None
+
+    # ---- what the two enforcement points ask ------------------------------
+    def dropped_sections(self) -> set[str]:
+        """Sections that do not exist at all (scaffold omits, render strips)."""
+        return set(ALL_SECTIONS) - set(self.sections)
+
+    def hidden_sections(self) -> set[str]:
+        """Sections absent from the rendered procedure BODY: the ones that do
+        not exist, plus the ones `body_omit` keeps out of it. Render's one
+        question; scaffold must never ask it (a `body_omit` section is
+        scaffolded, drafted and aggregated exactly as now)."""
+        return self.dropped_sections() | set(self.body_omit)
+
+    def dropped_callouts(self) -> set[str]:
+        return set(ALL_CALLOUTS) - set(self.callouts)
+
+    def wants(self, derived_kind: str) -> bool:
+        return derived_kind in self.derived
+
+    def layer_label(self) -> str:
+        return LAYER_LABELS[self.layer]
+
+    def report_line(self, prefix: str = "document profile") -> str:
+        """The one line every stage that reads the profile prints.
+
+        Layer provenance first (the M13 reporting shape), then the shape facts
+        a surprised reader needs — but only when a profile is actually in play.
+        """
+        if not self.configured:
+            return f"{prefix}: none (full A–H, nothing omitted)"
+        line = f"{prefix}: {self.layer_label()} — sections {''.join(self.sections)}"
+        if self.body_omit:
+            line += f", body_omit {''.join(self.body_omit)}"
+        return line
+
+
+def _string_list(raw, key: str, where: str) -> list[str]:
+    """A profile field as a list of non-empty strings. Scalars are accepted as
+    a one-item list (the same tolerance `touches` has); anything else stops."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        raise ProfileError(
+            f"{where}: `{key}:` must be a list of strings (got "
+            f"{type(raw).__name__})"
+        )
+    out: list[str] = []
+    for item in raw:
+        if not isinstance(item, (str, int)):
+            raise ProfileError(
+                f"{where}: `{key}:` entries must be strings (got "
+                f"{type(item).__name__})"
+            )
+        text = str(item).strip()
+        if text:
+            out.append(text)
+    return out
+
+
+def _dedupe(items: list[str]) -> list[str]:
+    return list(dict.fromkeys(items))
+
+
+def parse_profile(raw, where: str = "_client/profile.yaml",
+                  layer: str | None = None) -> Profile:
+    """Validate one `profile:` mapping into a `Profile`. Fail-loud and named.
+
+    Every error names the offending value and why it cannot stand, because the
+    person reading it is hand-editing a five-line YAML file and the failure
+    mode this replaces is a silently reshaped client deliverable.
+    """
+    if raw is None:
+        return Profile()
+    if not isinstance(raw, dict):
+        raise ProfileError(
+            f"{where}: `profile:` must be a mapping of "
+            f"{', '.join(PROFILE_FIELDS)} (got {type(raw).__name__})"
+        )
+    unknown = sorted(k for k in raw if k not in PROFILE_FIELDS)
+    if unknown:
+        raise ProfileError(
+            f"{where}: unknown profile field(s) {', '.join(unknown)} "
+            f"(allowed: {', '.join(PROFILE_FIELDS)})"
+        )
+
+    # ---- sections -------------------------------------------------------
+    if "sections" in raw:
+        sections = _dedupe(s.upper() for s in _string_list(raw["sections"],
+                                                           "sections", where))
+        bad = [s for s in sections if s not in ALL_SECTIONS]
+        if bad:
+            raise ProfileError(
+                f"{where}: `sections:` names {', '.join(bad)}, which is not a "
+                f"section — A–H is the heading contract (renaming and "
+                f"reordering are out of scope)"
+            )
+        missing = [s for s in MANDATORY_SECTIONS if s not in sections]
+        if missing:
+            raise ProfileError(
+                f"{where}: `sections:` omits mandatory section(s) "
+                f"{', '.join(missing)} — A (scope), B (quick reference) and "
+                f"E (the steps) are what makes a procedure a procedure"
+            )
+        # Canonical document order, whatever order the human typed.
+        sections = [s for s in ALL_SECTIONS if s in sections]
+    else:
+        sections = list(ALL_SECTIONS)
+
+    # ---- body_omit ------------------------------------------------------
+    body_omit = _dedupe(s.upper() for s in _string_list(raw.get("body_omit"),
+                                                        "body_omit", where))
+    absent = [s for s in body_omit if s not in sections]
+    if absent:
+        raise ProfileError(
+            f"{where}: `body_omit:` names section(s) {', '.join(absent)} "
+            f"absent from `sections:` ({''.join(sections)}) — omitting "
+            f"something that does not exist is a profile error, not a no-op"
+        )
+    body_omit = [s for s in ALL_SECTIONS if s in body_omit]
+
+    # ---- callouts -------------------------------------------------------
+    if "callouts" in raw:
+        callouts = _dedupe(c.upper() for c in _string_list(raw["callouts"],
+                                                           "callouts", where))
+        bad = [c for c in callouts if c not in ALL_CALLOUTS]
+        if bad:
+            raise ProfileError(
+                f"{where}: `callouts:` names unknown callout kind(s) "
+                f"{', '.join(repr(b) for b in bad)} (known: "
+                f"{', '.join(ALL_CALLOUTS)})"
+            )
+        callouts = [c for c in ALL_CALLOUTS if c in callouts]
+    else:
+        callouts = list(ALL_CALLOUTS)
+
+    # ---- derived --------------------------------------------------------
+    if "derived" in raw:
+        named = _string_list(raw["derived"], "derived", where)
+        derived: list[str] = []
+        for item in named:
+            key = item.strip().lower()
+            kind = DERIVED_ALIASES.get(key, key)
+            if kind not in ALL_DERIVED:
+                raise ProfileError(
+                    f"{where}: `derived:` names unknown component {item!r} "
+                    f"(known: {', '.join(ALL_DERIVED)})"
+                )
+            derived.append(kind)
+        derived = _dedupe(derived)
+        derived = [k for k in ALL_DERIVED if k in derived]
+    else:
+        derived = list(DEFAULT_DERIVED)
+
+    # ---- the one cross-field rule that protects the deliverable ---------
+    # `F` out of the body with no register means the controls are simply gone
+    # from the document: F is a SECTION, so unlike H (Appendix A) it has no
+    # destination unless the profile asks for one.
+    if CONTROLS_SECTION in body_omit and CONTROLS_REGISTER not in derived:
+        raise ProfileError(
+            f"{where}: `body_omit:` hides section {CONTROLS_SECTION} from the "
+            f"procedure body but `derived:` does not include "
+            f"`{CONTROLS_REGISTER}` — the controls would vanish from the "
+            f"document entirely. Add `{CONTROLS_REGISTER}` to `derived:` (the "
+            f"register that collects the CONTROL callouts), or stop omitting "
+            f"{CONTROLS_SECTION}."
+        )
+
+    inline_tags = (_string_list(raw["inline_tags"], "inline_tags", where)
+                   if "inline_tags" in raw else list(DEFAULT_INLINE_TAGS))
+
+    return Profile(sections=sections, body_omit=body_omit, callouts=callouts,
+                   derived=derived, inline_tags=_dedupe(inline_tags),
+                   configured=True, layer=layer)
+
+
+def profile(area) -> Profile:
+    """Resolve the document profile for one area folder (M14).
+
+    Reads the `profile:` key through `load(area)`, so an engagement-wide
+    `components/_client/profile.yaml` covers every area and an area's own
+    `_client/profile.yaml` shadows it whole. No `profile:` key anywhere →
+    today's shape, `configured = False`.
+    """
+    cfg = load(area)
+    if PROFILE_KEY not in cfg:
+        return Profile()
+    layer = cfg.layers.get(PROFILE_KEY)
+    where = f"{LAYER_LABELS[layer]} profile.yaml" if layer else "profile.yaml"
+    return parse_profile(cfg[PROFILE_KEY], where, layer)
