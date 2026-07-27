@@ -75,6 +75,7 @@ import doc_model  # noqa: E402  (M2 deliverable)
 from callouts import (  # noqa: E402
     LABEL_TO_PREFIX, SEVERITY_ENUM, DELIM as _DELIM, ID_STRICT_RE,
     BODY_GAP_RE, BARE_GAP_RE, FragmentError, blank_fences as _blank_fences,
+    DETAIL_FIELD,
 )
 
 # Callout label line: `> **<LABEL> — <ID>:** <text>` (colon INSIDE the bold).
@@ -433,6 +434,24 @@ def _disp_text(ctx, p, text: str) -> str:
     )
 
 
+def _body(ctx, p, c) -> str:
+    """The register's view of a callout body — M16 move 3, the appendix half.
+
+    The label-line text is the short headline the drafter also shows in the
+    step; a `detail:` sub-field is the FULL account, authored once and rendered
+    ONLY here (render blanks it out of the procedure body). Appending rather
+    than replacing keeps the headline in front of the dossier and means a
+    callout with no `detail:` produces exactly the cell it produced before M16.
+
+    This reads the FRAGMENT, so a detail whose home section is `body_omit`ed —
+    or hidden by the profile entirely — still lands in its register. Not being
+    in the body is precisely why the register exists.
+    """
+    text = _disp_text(ctx, p, c["text"])
+    detail = _disp_text(ctx, p, _pick(c["fields"], DETAIL_FIELD))
+    return f"{text} {detail}".strip() if detail else text
+
+
 def build_appendix_a(ctx) -> str:
     lines = ["_Pain Points and Improvement Opportunities, aggregated mechanically "
              "from the `H` section callouts (observation, impact, severity authored "
@@ -450,7 +469,7 @@ def build_appendix_a(ctx) -> str:
             f = c["fields"]
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} |"
             )
     if not any_pp:
@@ -471,7 +490,7 @@ def build_appendix_a(ctx) -> str:
             addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} |"
+                f"{cell(_body(ctx, p, c))} | {cell(addresses)} |"
             )
     if not any_io:
         lines += ["", "_No improvement opportunities recorded._"]
@@ -506,7 +525,7 @@ def build_appendix_controls(ctx) -> str:
             f = c["fields"]
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Type'))} | "
                 f"{cell(_pick(f, 'Frequency'))} | "
                 f"{cell(_pick(f, 'Owner'))} |"
@@ -530,7 +549,7 @@ def build_gap_log(ctx) -> str:
             f = c["fields"]
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Nature'))} | "
                 f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} |"
             )
@@ -552,7 +571,7 @@ def build_screenshot_index(ctx) -> str:
         for p, c in rows:
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | Pending user input |"
+                f"{cell(_body(ctx, p, c))} | Pending user input |"
             )
     if not any_row:
         lines += ["", "_No screenshot placeholders recorded._"]

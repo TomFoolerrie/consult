@@ -263,9 +263,18 @@ DERIVED_ALIASES = {
     "controls": CONTROLS_REGISTER,
 }
 
+#: M16 move 4 — the step-condition tag. The one place its spelling is written:
+#: render builds its recognizer from this name, so the rendered lead-in and the
+#: profile vocabulary below cannot drift apart.
+CONDITION_TAG = "Condition"
+
 #: Inline step tags. Python never enforces these — they are the drafter's
 #: vocabulary — but the profile is their one home, so they resolve here.
-DEFAULT_INLINE_TAGS = ["System / Tool", "Navigation Path", "Fields / Parameters",
+#: `Condition` is FIRST because that is where it renders: a conditional step
+#: declares its condition before the prose, so the reader never has to do the
+#: branch analysis (M16 move 4). A step with no `Condition` is main path.
+DEFAULT_INLINE_TAGS = [CONDITION_TAG,
+                       "System / Tool", "Navigation Path", "Fields / Parameters",
                        "Expected Result", "Evidence Required"]
 
 PROFILE_FIELDS = ("sections", "body_omit", "callouts", "derived", "inline_tags")

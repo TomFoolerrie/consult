@@ -108,18 +108,66 @@ pass. Heading, then the one-line finding under it; never blank, never `TBD`.
   Points & Improvement Opportunities") — it is assembled mechanically from these
   callouts, so fill every field. It is not free narrative to be ignored.
 
-### Inline step tags (E) — by judgment
+### Inline step tags (E) — declare once, tag on change
 
 Within a step, add these **bolded tags** only where the detail helps execution,
 review, or auditability — not mechanically on every step:
 
 ```
+- **Condition:** ...
 - **System / Tool:** ...
 - **Navigation Path:** ...
 - **Fields / Parameters:** ...
 - **Expected Result:** ...
 - **Evidence Required:** ...
 ```
+
+A tag is a **signal, not a form field**. It earns its place by saying something
+the surrounding text does not already say, which makes the rule *declare once,
+tag on change*:
+
+- **`System / Tool` — only on DEPARTURE.** `B. Quick Reference` declares the
+  procedure's default system under `Primary systems / tools:` — that is the
+  fact's one home. Tag a step **only where it leaves that default** (to Coupa, to
+  Chase Connect, to paper). A procedure operating entirely in one system carries
+  **zero** `System / Tool` tags in its steps.
+- **`Expected Result` — only where the outcome is non-obvious, or is a decision
+  point.** Never restate the step title: *"Select the pending PO invoice from the
+  review queue"* → *"A pending PO bill is open for entry"* is the same sentence
+  twice.
+- **The performing role — name it only where it CHANGES.** B names who performs
+  the procedure; naming the role in all eight steps is one fact eight times and
+  it camouflages the **handoff**. Name it where the role becomes the Buyer, the
+  Receiving Supervisor, the Controller — nowhere else. (Prose, not a tag; same
+  test.)
+
+`Navigation Path` and `Fields / Parameters` are **unaffected**: step-specific by
+nature, and under-used rather than over-used — where a source supports a
+navigation path, write it. `Evidence Required` keeps its own judgment test.
+
+### `Condition:` — a conditional step declares itself
+
+A step that does not run every time carries a `Condition:` tag; **a step with no
+`Condition:` is main path.** That is what lets a reader follow the normal path
+without re-deriving the branches every read.
+
+Author it as the **first line of the step body, under the heading, before the
+prose** — the condition must be read before the step, not after it:
+
+```
+#### Step 5: Place an out-of-tolerance bill on hold and identify the broken leg
+
+- **Condition:** the variance exceeds the matching tolerance
+
+The bill is placed on hold and the broken leg of the match is identified …
+```
+
+Tag exactly the steps that do not always run (in a three-way match: the
+out-of-tolerance hold, the quantity exception, the price exception — the rest is
+main path). Never renumber or reorder to group branches: each branch stays next to
+the step that triggers it. A "step" that is really a **variant of the whole
+procedure for one site** gets `Condition: Plant 3 only` — honest about what it is;
+if it is genuinely a separate procedure, report it, don't reshape scope.
 
 ## Callouts — each in its home section
 
@@ -159,6 +207,66 @@ ranking (you only see this procedure).
 ```
 A body gap reference in a step's prose is `[[GAP-01 — SHORT LABEL]]` (never a bare
 `[[GAP — …]]`) and must match a VALIDATION REQUIRED callout in that step.
+
+### A long callout splits — `Note:` inline, `Detail:` in the appendix
+
+One body, two audiences, two fields:
+
+- `- **Note:**` — one or two sentences: what the reader **at this step** must do
+  or avoid. Renders in the section.
+- `- **Detail:**` — the full account (conflicting sources, evidence, resolution
+  path). Renders **only** in that callout's appendix register row.
+
+One source of truth, two views: nothing is lost (the register row carries the
+label line plus the whole `Detail:`) and `E` stops being interrupted by research
+memos.
+
+```
+> **VALIDATION REQUIRED — GAP-01:** The three-way-match tolerance is unconfirmed.
+> - **Note:** The tolerance is unconfirmed — do not operate to a figure; see GAP-01.
+> - **Detail:** The prior SOP states 5%; the AP Supervisor recalls $50 per line;
+>   the NetSuite configuration shows no tolerance set; and the AP Clerk describes
+>   escalating anything "obviously off". Resolution sits with the Controller, who
+>   owns the tolerance policy.
+> - **Nature:** conflict
+> - **Owner to confirm:** Controller
+```
+
+- **`Detail:` requires `Note:`** — a detail does not render inline, so a detail
+  without a note leaves an empty callout at the step. Reconcile fails the area.
+- **No `Detail:` → today's behavior** (whole body inline). **Don't split a callout
+  that is already short** — three sentences is not a dossier.
+- Split `VALIDATION REQUIRED`, `PAIN POINT`, `IMPROVEMENT OPPORTUNITY`. `CONTROL`
+  and `SCREENSHOT PLACEHOLDER` are short by nature: `Note:` only.
+- A section under `body_omit` still aggregates, so a `Detail:` there still reaches
+  its register. Draft it exactly as normal.
+
+### Applying the tag + callout rules to an existing draft (update pass)
+
+Mechanical, with judgment at the edges. Top to bottom through your fragment:
+
+1. Read B. If `Primary systems / tools:` does not name the default system, fix
+   that first — the deletions below depend on B holding the fact.
+2. **Delete** every step `System / Tool` tag naming the default system; keep the
+   departures.
+3. **Delete** every `Expected Result` that restates its step title; keep the
+   non-obvious outcomes and decision points.
+4. Cut the performing role out of step prose wherever it is the role B names,
+   leaving it where the role genuinely changes. **Rephrase, don't strike a noun**
+   ("The AP Clerk enters the invoice" → "The invoice is entered") — passive
+   current-state voice is unchanged.
+5. Add `Condition:` to every step that does not always run, as the first line of
+   its body. No renumbering, no reordering.
+6. For each GAP / PP / IO callout longer than ~3 sentences: write a `Note:` (the
+   actionable core, 1–2 sentences) and move the remainder into `Detail:`
+   **verbatim where you can** — a split, not a re-draft. Never invent a note the
+   body does not support; never lose a sentence in the move.
+7. Re-read the steps. If a fact now seems missing, it lived only in a tag you
+   deleted — put it in its **home section** (B, F, or the step), not back in the
+   tag.
+
+The pass adds no content and removes no fact; it removes restatement. Report
+`tags_removed`, `conditions_added`, `callouts_split`.
 
 ## Nouns — canonical prose + consult-meta slugs
 
@@ -255,6 +363,8 @@ procedure bodies.
   resolved each to
 - `conflicts`: source conflicts logged as GAPs (id + one line each)
 - on update: `gaps_closed`, `tbds_filled`, `revised` (one line)
+- when you applied the tag / callout rules to an existing draft: `tags_removed`,
+  `conditions_added`, `callouts_split`
 - `reconcile`: pass / the ERRORS you couldn't resolve
 
 Do not return the procedure prose. The file is the deliverable.

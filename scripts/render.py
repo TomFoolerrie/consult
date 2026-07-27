@@ -35,6 +35,15 @@ line-for-line provenance mapping survives; with no profile in play they are
 no-ops and the output is byte-identical to pre-M14. Fragments are never
 rewritten: turning a section back on restores text that was always there.
 
+M16 (moves 3 + 4) — two BODY-VIEW projections applied to each procedure body
+right after the profile, both line-count-preserving and both no-ops on a
+fragment that uses neither field, so pre-M16 content renders byte-identically:
+a callout's `detail:` sub-field is blanked here and rendered only in its
+appendix register row (aggregate reads the FRAGMENT, so the detail still reaches
+the register when `body_omit` hides its home section), and a step's
+`Condition:` tag is hoisted to lead the step body when it was not authored
+there.
+
 Modes (M9):
   --mode working (default)  everything visible (gaps, pain points); emits
                             provenance bookmarks + a sidecar review map under
@@ -83,6 +92,7 @@ for _p in (_SCRIPTS_DIR, _SKILL_SCRIPTS):
 
 import doc_model  # noqa: E402  (M2-owned shared spine)
 import client_config  # noqa: E402  (M13 resolver / M14 document profile)
+import callouts  # noqa: E402  (shared callout grammar — M16 note/detail fields)
 import cfgi_markdown_to_word as cfgi  # noqa: E402  (bundled converter)
 
 from docx.oxml import OxmlElement  # noqa: E402
@@ -291,6 +301,111 @@ def _apply_profile(text: str, profile) -> str:
     """Strip everything the document profile excludes from one procedure body."""
     text = _blank_sections(text, profile.hidden_sections())
     return _blank_callouts(text, profile.dropped_callouts())
+
+
+# --------------------------------------------------------------------------- #
+# M16 move 3 — callout `detail:` is appendix-only  (LINE-COUNT-PRESERVING)
+#
+# One source of truth, two views: the fragment holds the whole callout, the
+# STEP shows `note:` (one or two sentences) and the appendix register row shows
+# `detail:` (the full account). This is the projection half — blanking the
+# `detail:` bullet and its wrapped continuation lines out of the procedure body.
+# aggregate.py is the other half and reads the FRAGMENT, so a detail still
+# reaches its register when the profile has body_omit'ed its home section: the
+# two features compose without knowing about each other.
+#
+# A callout with no `detail:` is untouched, so a fragment using none of this
+# grammar renders byte-identically to pre-M16.
+# --------------------------------------------------------------------------- #
+def _hide_callout_details(text: str) -> str:
+    """Blank the `> - **Detail:** …` bullet of every callout (body view only)."""
+    lines = text.split("\n")
+    out = list(lines)
+    in_callout = False
+    i = 0
+    while i < len(lines):
+        ln = lines[i]
+        if _CALLOUT_LABEL_RE.match(ln):
+            in_callout = True
+            i += 1
+            continue
+        if not ln.lstrip().startswith(">"):
+            in_callout = False
+            i += 1
+            continue
+        if in_callout and callouts.is_callout_field(ln, callouts.DETAIL_FIELD):
+            out[i] = ""
+            i += 1
+            # A wrapped value continues over plain `>` lines until the next
+            # sub-field bullet, the next callout, or the end of the block —
+            # the same continuation rule aggregate's parser applies.
+            while i < len(lines):
+                nxt = lines[i]
+                if (not nxt.lstrip().startswith(">")
+                        or _CALLOUT_LABEL_RE.match(nxt)
+                        or callouts.callout_field(nxt)):
+                    break
+                out[i] = ""
+                i += 1
+            continue
+        i += 1
+    return "\n".join(out)
+
+
+# --------------------------------------------------------------------------- #
+# M16 move 4 — a step's `Condition:` LEADS its body  (LINE-COUNT-PRESERVING)
+#
+# The contract asks drafters to author the `Condition:` tag as the first line of
+# the step body, directly under the heading, because that is where it must be
+# read: "Step 5" that reads as "next, do this" is the defect. This transform is
+# the guarantee for a fragment authored the other way round (the tag sitting
+# with its sibling inline tags below the prose) — it ROTATES the tag up to the
+# head of the step body, which keeps the line COUNT identical.
+#
+# It fires only when the tag is not already leading, so a contract-compliant
+# fragment is passed through untouched and its M10 line-for-line provenance is
+# exact. When it does fire, provenance shifts by one line inside that one step —
+# the price of rendering a mis-ordered fragment correctly, paid nowhere else.
+# --------------------------------------------------------------------------- #
+_STEP_HEADING_RE = re.compile(r"^\s{0,3}#{4,6}\s+\S")
+_ANY_HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
+_CONDITION_RE = re.compile(
+    r"^\s*[-*+]\s*\*\*\s*" + re.escape(client_config.CONDITION_TAG)
+    + r"\s*:\s*\*\*", re.IGNORECASE)
+
+
+def _lead_conditions(text: str) -> str:
+    """Hoist each step's `- **Condition:** …` tag to the head of its body."""
+    lines = text.split("\n")
+    n = len(lines)
+    starts = [i for i, ln in enumerate(lines) if _STEP_HEADING_RE.match(ln)]
+    for h in starts:
+        # The step body runs to the next heading of any level.
+        end = n
+        for j in range(h + 1, n):
+            if _ANY_HEADING_RE.match(lines[j]):
+                end = j
+                break
+        cond = None
+        for j in range(h + 1, end):
+            if lines[j].lstrip().startswith(">"):
+                continue          # a callout's own bullets are not step tags
+            if _CONDITION_RE.match(lines[j]):
+                cond = j
+                break
+        if cond is None:
+            continue
+        first = next((j for j in range(h + 1, end) if lines[j].strip()), None)
+        if first is None or first == cond:
+            continue              # already leading — nothing to do
+        if lines[h + 1].strip():
+            # No blank line under the heading to rotate into: hoisting here
+            # would let the prose be absorbed into the tag's own bullet
+            # paragraph. Leave it in place rather than corrupt the step.
+            continue
+        rotated = [lines[cond]] + lines[h + 1:cond]
+        lines[h + 1:cond + 1] = rotated
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------- #
@@ -516,6 +631,11 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             # The profile decides shape BEFORE final mode counts what it
             # strips, so a hidden section's gaps are never double-reported.
             raw_body = _apply_profile(raw_body, profile)
+            # M16: the two body-view projections. Both are no-ops on a fragment
+            # that uses none of the new grammar, and both run AFTER the profile
+            # so a hidden section's callouts are already blank.
+            raw_body = _hide_callout_details(raw_body)
+            raw_body = _lead_conditions(raw_body)
         if mode == "final" and role == "procedure":
             raw_body = _final_transform(
                 raw_body, slug, folder,

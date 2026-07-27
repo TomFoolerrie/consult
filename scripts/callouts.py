@@ -64,6 +64,47 @@ def blank_fences(text: str) -> str:
 strip_fences = blank_fences
 
 
+# --------------------------------------------------------------------------- #
+# M16 move 3 — the two-view callout body (`note` inline, `detail` in the
+# appendix). Both are ORDINARY callout sub-fields: the `> - **Field:** value`
+# bullet grammar already parses them and a missing optional field already parses
+# as blank, so nothing about the callout shape changes. What is new is that two
+# field NAMES are load-bearing at render/aggregate time, so their spelling and
+# the "which kinds may carry a detail" set live here — the one home the three
+# engines (render blanks it, aggregate carries it, reconcile validates it) read
+# from, exactly like the LABEL→prefix map above.
+# --------------------------------------------------------------------------- #
+
+#: The one-or-two-sentence view; renders IN the step / home section.
+NOTE_FIELD = "Note"
+#: The full account; renders ONLY in the callout's appendix register row.
+DETAIL_FIELD = "Detail"
+
+#: Kinds whose bodies run long, and which therefore have a reason to split.
+#: CONTROL and SCREENSHOT PLACEHOLDER are already short and take `note` only —
+#: a `detail:` on one of them is a WARNING (reconcile), never dropped content:
+#: every register carries the detail if it is there.
+DETAIL_KINDS = {"VALIDATION REQUIRED", "PAIN POINT", "IMPROVEMENT OPPORTUNITY"}
+
+# A callout sub-field bullet, NAME only: `> - **<Field>:** …`. aggregate's
+# SUBFIELD_RE is the extract-strict twin that also captures the value; render
+# and reconcile only ever ask "which field does this line open?", so they ask
+# here instead of re-deriving the bullet grammar.
+CALLOUT_FIELD_RE = re.compile(r"^\s*>\s*-\s*\*\*\s*(?P<field>[^:*]+?)\s*:\s*\*\*")
+
+
+def callout_field(line: str) -> str | None:
+    """Return the sub-field name this line opens, or None if it opens none."""
+    m = CALLOUT_FIELD_RE.match(line)
+    return re.sub(r"\s+", " ", m.group("field")).strip() if m else None
+
+
+def is_callout_field(line: str, name: str) -> bool:
+    """True when `line` opens the named sub-field (case-insensitive)."""
+    f = callout_field(line)
+    return f is not None and f.lower() == name.lower()
+
+
 # A callout DEFINITION line: `> **<LABEL> — <ID>:**` (loose id; validation is
 # the parsers' job). Used by iter_defined_ids for display-numbering walks.
 _DEF_LINE_RE = re.compile(

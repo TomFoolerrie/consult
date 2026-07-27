@@ -36,6 +36,9 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
       agent-derived prose; the sanctioned cross-reference form is `[[slug]]`
     - M22.6 — a callout ID quoted in agent-owned derived prose (82/84) outside a
       derived-table row (render display-transforms IDs only inside procedures)
+    - M16.3 — a callout carrying `detail:` with no `note:`. The two are two views
+      of one body; `detail` renders only in the appendix, so the inline view at
+      the step would be empty (see `check_note_detail`)
 
   WARNING (exit stays 0):
     - a `consult-meta` systems:/roles: slug absent from `_reference/*.yaml`
@@ -43,6 +46,8 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
       prose (possible leak — could be a coincidence, so the human judges)
     - fragments cite `SRC-` ids but `_reference/sources.yaml` holds none (the
       citation checks are skipped — see the documented boundaries below)
+    - M16.3 — a `detail:` on a CONTROL / SCREENSHOT PLACEHOLDER: those kinds are
+      short by nature and take `note` only. The register still carries it
 
 Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
@@ -107,6 +112,7 @@ import client_config  # noqa: E402
 from callouts import (  # noqa: E402
     LABEL_PREFIX, PREFIXES, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
     BODY_GAP_RE, BARE_GAP_RE, XREF_RE, blank_fences as strip_fences,
+    NOTE_FIELD, DETAIL_FIELD, DETAIL_KINDS, callout_field,
 )
 
 # A callout label line inside a blockquote (loose id capture so a malformed id
@@ -550,6 +556,63 @@ class Frag:
         self.dup: list[tuple[str, int]] = []     # (id, line) conflicting redefs
         self.referenced: dict[str, list[int]] = {}  # id -> ref lines
         self.errors: list[str] = []
+        self.warnings: list[str] = []
+
+
+def check_note_detail(file: str, lines: list[str], frag: Frag) -> None:
+    """M16 move 3 — validate the two-view callout body.
+
+    `note:` and `detail:` are ordinary sub-fields, so the only thing to check is
+    that the split is coherent:
+
+    - `detail:` with no `note:` is an **ERROR**. The two fields are two views of
+      one source; `detail` renders only in the appendix, so the step would show
+      a callout with an empty body — the reader at the step loses the finding
+      entirely. Either add the note or drop the field name and let the whole
+      body render inline (the pre-M16 behavior).
+    - `detail:` on a CONTROL or SCREENSHOT PLACEHOLDER is a **WARNING**: those
+      kinds are short by nature and take `note` only. Nothing is dropped — the
+      register carries the detail either way — so this is a style signal, not a
+      broken document.
+    """
+    label: str | None = None
+    fields: dict[str, int] = {}
+
+    def close() -> None:
+        if label is None:
+            return
+        d = fields.get(DETAIL_FIELD.lower())
+        if d and NOTE_FIELD.lower() not in fields:
+            frag.errors.append(
+                f"{file}:{d}: CALLOUT `{DETAIL_FIELD}:` WITHOUT `{NOTE_FIELD}:` "
+                f"on {label!r} — `{DETAIL_FIELD}` renders only in the appendix, "
+                f"so the inline view would be empty"
+            )
+        if d and label not in DETAIL_KINDS:
+            frag.warnings.append(
+                f"{file}:{d}: {label} takes `{NOTE_FIELD}` only — a "
+                f"`{DETAIL_FIELD}:` here is carried to the register but the "
+                f"kind is short by nature (M16 move 3)"
+            )
+
+    for n, line in enumerate(lines, start=1):
+        m = CALLOUT_RE.match(line)
+        if m:
+            close()
+            label = re.sub(r"\s+", " ", m.group("label")).strip()
+            label = label if label in LABEL_PREFIX else None
+            fields = {}
+            continue
+        if label is None:
+            continue
+        if not line.lstrip().startswith(">"):
+            close()
+            label = None
+            continue
+        f = callout_field(line)
+        if f:
+            fields.setdefault(f.lower(), n)
+    close()
 
 
 def parse_procedure(slug: str, file: str, text: str) -> Frag:
@@ -606,6 +669,8 @@ def parse_procedure(slug: str, file: str, text: str) -> Frag:
         for m in BODY_GAP_RE.finditer(line):
             _id = f"GAP-{m.group(1)}"
             frag.referenced.setdefault(_id, []).append(n)
+
+    check_note_detail(file, lines, frag)
 
     # per-fragment dangling: every referenced id defined in THIS procedure
     for _id, ref_lines in frag.referenced.items():
@@ -722,6 +787,7 @@ def reconcile(folder: str) -> int:
         text = fpath.read_text(encoding="utf-8")
         frag = parse_procedure(slug, file, text)
         errors.extend(frag.errors)
+        warnings.extend(frag.warnings)
         frags[slug] = frag
 
     # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files
