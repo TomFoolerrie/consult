@@ -173,6 +173,9 @@ def _strip_consult_meta(text: str) -> str:
 
 _CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
 
+#: A gap id anywhere in text — the final-mode dangling-reference detector.
+_GAP_ID_RE = re.compile(r"\bGAP-\d+\b")
+
 
 def _rewrite_callout_ids(text: str, submap: dict) -> str:
     """Rewrite one procedure's local callout IDs to their global display IDs.
@@ -671,6 +674,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
+             "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
              "screens_embedded": 0, "screens_placeholder": 0,
              "profile": profile.report_line()}
 
@@ -717,6 +721,21 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             raw_body = _final_transform(
                 raw_body, slug, folder,
                 disp_to_local_by_slug.get(slug, {}), stats)
+            # What the strip above cannot reach: a free-prose mention of a gap
+            # id ("... see GAP-37") in Scope, At a Glance or Outputs. Its
+            # DEFINITION — the callout and the gap-log row — is exactly what
+            # final mode removes, so the reference now points at nothing the
+            # reader has. Reconcile cannot flag these (in the FRAGMENTS the
+            # ids are still defined), and prose cannot be rewritten
+            # mechanically without risking the deliverable's wording — so they
+            # are counted and enumerated for the human running the export.
+            # They clean themselves up through the review round: closing a gap
+            # deletes its callout, at which point the same prose mention DOES
+            # dangle at reconcile and the drafter must remove it.
+            refs = _GAP_ID_RE.findall(raw_body)
+            if refs:
+                stats["dangling_gap_refs"][slug] = sorted(set(refs))
+                stats["dangling_gap_ref_count"] += len(refs)
         body = _clean_body(raw_body, labels)
         if mode == "final":
             body = body.strip("\n")
@@ -837,6 +856,17 @@ def main(argv=None) -> int:
                   f"+ {stats['gap_tags_stripped']} inline tag(s); "
                   f"{stats['screens_embedded']} screenshot(s) embedded, "
                   f"{stats['screens_placeholder']} placeholder(s) remain")
+            if stats["dangling_gap_ref_count"]:
+                print(f"WARNING: {stats['dangling_gap_ref_count']} dangling gap "
+                      f"reference(s) survive in ordinary prose — the callouts "
+                      f"and gap-log rows they point at were stripped by this "
+                      f"final render:")
+                for pslug, ids in sorted(stats["dangling_gap_refs"].items()):
+                    print(f"  {pslug}: " + ", ".join(ids))
+                print("  close these gaps through the review round (once a gap "
+                      "closes, its leftover prose reference fails reconcile "
+                      "until the drafter removes it), or hand-edit the prose "
+                      "before shipping this export")
     else:
         if a.mode != "working" or a.slugs or a.track_changes:
             raise SystemExit("error: --mode/--slugs/--track-changes require an area folder")

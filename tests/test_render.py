@@ -304,6 +304,36 @@ def test_final_mode_strips_gaps_and_reports_counts(tmp_path):
     assert "CTRL-01" in text                        # controls survive
 
 
+def test_final_mode_reports_dangling_prose_gap_references(tmp_path):
+    """A free-prose mention of a gap id ("... see GAP-01") survives the final
+    strip — its definition (the callout and the gap-log row) is exactly what
+    final mode removes — so the render counts and enumerates it per procedure
+    instead of shipping the dangling reference silently. The prose itself is
+    left untouched (no mechanical rewriting of deliverable wording), and
+    working mode reports nothing: there the reference points at a callout the
+    reader still has."""
+    area = make_area(tmp_path)
+    pay = area / "20_payment-run.md"
+    pay.write_text(pay.read_text(encoding="utf-8").replace(
+        "- Payment file",
+        "- Payment file (cut-off unconfirmed - see GAP-01)"), encoding="utf-8")
+
+    working = render.render_folder(area, tmp_path / "working.docx",
+                                   emit_signal=False)
+    assert working["dangling_gap_refs"] == {}
+    assert working["dangling_gap_ref_count"] == 0
+
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    # payment-run's local GAP-01 is display GAP-02 (vendor-onboarding's gap
+    # takes GAP-01): the detector sees what the READER sees.
+    assert stats["dangling_gap_refs"] == {"payment-run": ["GAP-02"]}
+    assert stats["dangling_gap_ref_count"] == 1
+    text = doc_text(Document(str(out)))
+    assert "see GAP-02" in text
+    assert "VALIDATION REQUIRED" not in text
+
+
 def test_final_mode_placeholder_kept_when_no_image(tmp_path):
     """Final mode keeps the SCREENSHOT PLACEHOLDER callout when no captured
     image exists under _assets/screens/<slug>/."""
