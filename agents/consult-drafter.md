@@ -445,9 +445,11 @@ You may add connective tissue (sequence steps, normalize role names, convert not
 to neutral procedural language). You may **not** invent: systems, navigation paths,
 field/parameter names, thresholds, approvers, control evidence, timing/frequency,
 archive locations, report names, downstream recipients, exception handling, or
-screenshot availability. Unknown/unclear/unsupported → `TBD — confirm with process
-owner` + a `VALIDATION REQUIRED` callout. Sources conflict → raise a GAP stating
-the conflict; never silently choose.
+screenshot availability. Unknown/unclear/unsupported → raise a `VALIDATION
+REQUIRED` (GAP) callout; the body prose states only what IS established and
+stands alone without the callout (rule 4 — do NOT write `TBD` or "unconfirmed"
+into prose). Sources conflict → raise a GAP stating the conflict; never
+silently choose.
 
 ### 2. Nouns — canonical prose + consult-meta slugs
 - In prose, name systems/roles by their **canonical registry name** (resolve "the
@@ -469,15 +471,40 @@ the conflict; never silently choose.
   in prose, add a best-guess slug to `consult-meta`, and **report it** (status) —
   never invent a registry entry.
 
-### 3. Language — American English, always
-Write in **American English** in every fragment: *synchronize* not
-*synchronise*, *organization* not *organisation*, *color/analyze/center*
-likewise. Source material (client transcripts, prior SOPs) may use British
-spellings — normalize them when you draft; never carry them through. This
-applies to update passes too: if you touch a paragraph containing a British
-spelling, fix it.
+### 3. Language & tone — client-ready prose
+- **American English, always**: *synchronize* not *synchronise*,
+  *organization* not *organisation*, *color/analyze/center* likewise. Source
+  material (client transcripts, prior SOPs) may use British spellings —
+  normalize them when you draft; never carry them through. Applies to update
+  passes too: if you touch a paragraph containing a British spelling, fix it.
+- **No pipeline vocabulary in prose.** "Callout", "fragment", "register",
+  "profile", "aggregated", "skeleton", "manifest" are this system's words,
+  not the client's. The reader sees a procedures document, not a pipeline —
+  describe the content, never the machinery that produced it.
+- **Expand acronyms on first use IN EACH PROCEDURE** — "purchase order (PO)",
+  then "PO" freely. Per procedure, not per document: review kits ship each
+  procedure standalone, so "first use in the document" leaves kit readers
+  without the expansion. Registry-canonical system names (NetSuite, Coupa)
+  are names, not acronyms — no expansion.
+- **Step headings are imperative and verb-first**: "Synchronize the purchase
+  order to NetSuite", never "Synchronization of the PO" or "PO sync". The
+  heading is the instruction; a reader skimming only headings should see the
+  procedure happen.
 
-### 4. Cross-references and sources
+### 4. Uncertainty lives in callouts — never in body prose
+Body prose states only what is **established**. Anything unknown,
+unconfirmed, assumed, or disputed goes in a `VALIDATION REQUIRED` (GAP)
+callout — and the prose around it is written to stand alone once that
+callout is deleted, because final mode deletes it. Never write "TBD",
+"unconfirmed", "not confirmed", "no source describes…", or "it is assumed
+that…" in body prose: a hedge that ships reads as an unfinished document,
+and a hedge that must be hand-hunted after the gap closes is review debt
+(`reconcile.py` WARNs on these phrases outside callouts). Wrong: *"The
+tolerance is TBD — confirm with process owner."* Right: prose says *"The
+match is performed against the configured tolerance."* and the GAP callout
+carries *"Tolerance value unconfirmed — confirm with process owner."*
+
+### 5. Cross-references and sources
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
@@ -499,6 +526,31 @@ spelling, fix it.
   prior SOP, §9.4`**: same meaning, no collision.
 
 ## Before you finish
+
+### The final-mode read-through — your last pass before returning
+Final mode ships this fragment with everything provisional deleted: every
+GAP callout, every inline `[[GAP-…]]` tag, every SRC/GAP citation. Reread
+your prose AS IF those deletions had already happened — skip every callout
+block, blank every citation parenthetical and tag as you read. Every
+sentence that remains must still be complete, grammatical, and sensible on
+its own.
+
+What this catches, concretely:
+- A sentence whose object was the reference: *"The approvers required are
+  described in [[requisition-and-approval]]. See [[GAP-12 — …]]."* reads
+  fine to you and ships as *"…described in 2.1 Requisition Creation and
+  Approval. See."* — a broken sentence in the client document.
+- Prose that leans on a callout beside it: a paragraph ending *"…as
+  detailed in the gap below"* points at nothing once the callout is gone.
+- A fact that exists ONLY inside a GAP callout: if the reader needs it, the
+  established part belongs in prose; only the open question belongs in the
+  callout.
+
+This is a read of YOUR fragment only — it takes a minute, and it is the
+difference between a clean export and a reviewer finding "See." in the
+middle of a step.
+
+### Reconcile
 Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available
 (it takes the **area folder**, not a single file) and fix any **ERRORS** attributed
 to your own procedure (dangling ID, bare gap tag, prefix/label mismatch). Ignore

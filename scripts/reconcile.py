@@ -431,6 +431,39 @@ def check_src_citations(folder: Path, manifest: dict, errors: list[str],
             )
 
 
+#: Hedge phrases that mark uncertainty. The drafter contract routes
+#: uncertainty into GAP callouts (which final mode strips); a hedge in body
+#: prose ships to the client, so it is flagged — WARNING, not ERROR, because
+#: fragments drafted under the older contract are full of them and the fix
+#: is editorial, not blocking.
+HEDGE_RE = re.compile(
+    r"\bTBD\b|\bunconfirmed\b|\bnot\s+confirmed\b|\bno\s+source\b",
+    re.IGNORECASE)
+
+
+def check_hedge_prose(folder: Path, manifest: dict,
+                      warnings: list[str]) -> None:
+    """Uncertainty lives in callouts, never in body prose (drafter contract).
+    A hedge phrase on a non-callout line of a filled procedure fragment would
+    survive into the client export — callouts strip, prose does not."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            if line.lstrip().startswith(">"):
+                continue
+            m = HEDGE_RE.search(line)
+            if m:
+                warnings.append(
+                    f"{file}:{n}: HEDGE IN PROSE ('{m.group(0)}') — "
+                    f"uncertainty belongs in a GAP callout (strippable), not "
+                    f"body prose; state what is established and raise a gap "
+                    f"for the rest"
+                )
+
+
 def check_touches(folder: Path, errors: list[str]) -> None:
     """M22 check 2 — `sources.yaml` `touches` ⊆ manifest procedure slugs.
 
@@ -873,6 +906,10 @@ def reconcile(folder: str) -> int:
     check_heading_contract(folder, manifest, errors)
     check_baked_numbers(folder, manifest, errors)
     check_quoted_callout_ids(folder, manifest, errors)
+
+    # 14. hedge phrases in body prose (drafter contract: uncertainty lives in
+    # callouts) — advisory only, exit stays 0.
+    check_hedge_prose(folder, manifest, warnings)
 
     # report
     if errors:

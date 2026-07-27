@@ -401,3 +401,30 @@ def test_callout_id_in_python_derived_prose_is_not_this_check(tmp_path, capsys):
                                "Open gaps: GAP-01 remains unconfirmed.\n"))
     rc, out = run(area, capsys)
     assert rc == 0, out
+
+
+# --------------------------------------------------------------------------- #
+# 14. hedge phrases in body prose (drafter contract: uncertainty in callouts)
+# --------------------------------------------------------------------------- #
+
+def test_hedge_phrase_in_body_prose_warns(tmp_path, capsys):
+    """'TBD' in body prose is review debt that would ship in a final export —
+    WARNING (exit 0), naming file, line and the phrase."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe match tolerance is TBD - confirm with owner.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "HEDGE IN PROSE" in out
+    assert "'TBD'" in out and "10_bank-rec.md" in out
+
+
+def test_hedge_inside_callout_is_not_flagged(tmp_path, capsys):
+    """A GAP callout is exactly where uncertainty belongs — hedge words on
+    `>` lines are the contract being followed, not broken."""
+    area = make_area(tmp_path, {"bank-rec": fragment(callouts=(
+        "> **CONTROL — CTRL-001:** Controller reviews the rec.\n\n"
+        "> **VALIDATION REQUIRED — GAP-001:** Tolerance value unconfirmed —\n"
+        "> confirm with process owner.\n"))})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "HEDGE IN PROSE" not in out
