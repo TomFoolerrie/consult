@@ -175,8 +175,6 @@ _CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b
 
 #: A gap id anywhere in text — the final-mode dangling-reference detector.
 _GAP_ID_RE = re.compile(r"\bGAP-\d+\b")
-#: A control id anywhere in text — the controls-homeless dangling detector.
-_CTRL_ID_RE = re.compile(r"\bCTRL-\d+\b")
 
 
 def _rewrite_callout_ids(text: str, submap: dict) -> str:
@@ -633,39 +631,46 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
-    # The profile validator's cross-field rule refuses `body_omit: [controls]`
-    # unless `derived:` carries the controls register — but it can only vouch
-    # for the PROFILE. The register is a manifest component, written at the
-    # confirm gate (enforcement point 1); a profile that acquired the omission
-    # after that gate ran would blank the controls section from every body
-    # below while the manifest lists no register to catch the callouts, and
-    # every control would silently leave the document. Same rule, re-checked
-    # here against what this render actually builds from.
-    if (client_config.CONTROLS_SECTION in profile.body_omit
-            and not any(c.get("derived_kind") == client_config.CONTROLS_REGISTER
-                        for c in manifest.get("components", []))):
-        raise SystemExit(
-            f"error: the profile's `body_omit:` hides the "
-            f"`{client_config.CONTROLS_SECTION}` section from the procedure "
-            f"body, but this manifest lists no `{client_config.CONTROLS_REGISTER}` "
-            f"component to catch the CONTROL callouts — rendering would drop "
-            f"every control from the document. The manifest predates the "
-            f"profile change: run `python3 scripts/scaffold.py --sync-profile "
-            f"--area {folder}` to add the register, re-aggregate, then re-render."
-        )
-    # Controls with no HOME at all — the profile deliberately drops the
-    # `controls` section from `sections:` (or the CONTROL callout kind from
+    # The profile validator's cross-field rule refuses a `body_omit:` section
+    # whose register is not in `derived:` — but it can only vouch for the
+    # PROFILE. Registers are manifest components, written at the confirm gate
+    # (enforcement point 1); a profile that acquired the omission after that
+    # gate ran would blank the section from every body below while the
+    # manifest lists no register to catch the callouts, and they would
+    # silently leave the document. Same table, same rule, re-checked here
+    # against what this render actually builds from.
+    manifest_registers = {c.get("derived_kind")
+                          for c in manifest.get("components", [])}
+    for section, (register, what) in client_config.BODY_OMIT_REGISTERS.items():
+        if section in profile.body_omit and register not in manifest_registers:
+            raise SystemExit(
+                f"error: the profile's `body_omit:` hides the `{section}` "
+                f"section from the procedure body, but this manifest lists no "
+                f"`{register}` component to catch the {what} — rendering "
+                f"would drop them from the document. The manifest predates "
+                f"the profile change: run `python3 scripts/scaffold.py "
+                f"--sync-profile --area {folder}` to add the register, "
+                f"re-aggregate, then re-render."
+            )
+    # Callout kinds with no HOME at all — the profile deliberately drops the
+    # kind's home section from `sections:` (or the kind itself from
     # `callouts:`) with no register in the manifest. Sanctioned, unlike the
     # body_omit trap refused above: it declares "this document carries no
-    # controls". But a prose mention of a control id ("...the assurance
-    # provided by CTRL-31") then dangles for the reader exactly like a
-    # final-mode gap reference — and in EVERY mode, because the hole is
-    # profile-shaped, not export-shaped. The same detector below covers it.
-    controls_homeless = (
-        (client_config.CONTROLS_SECTION in profile.dropped_sections()
-         or "CONTROL" in profile.dropped_callouts())
-        and not any(c.get("derived_kind") == client_config.CONTROLS_REGISTER
-                    for c in manifest.get("components", [])))
+    # controls / pain points". But a prose mention of such an id ("...the
+    # assurance provided by CTRL-31") then dangles for the reader exactly
+    # like a final-mode gap reference — and in EVERY mode, because the hole
+    # is profile-shaped, not export-shaped. Driven entirely by the shared
+    # registries (label -> home section -> register), so a new kind or
+    # register is covered by its table rows.
+    homeless_prefixes = sorted(
+        callouts.LABEL_TO_PREFIX[label]
+        for label, home in callouts.LABEL_TO_HOME_SECTION.items()
+        if home in client_config.BODY_OMIT_REGISTERS
+        and client_config.BODY_OMIT_REGISTERS[home][0] not in manifest_registers
+        and (home in profile.dropped_sections()
+             or label in profile.dropped_callouts()))
+    homeless_re = (re.compile(r"\b(?:%s)-\d+\b" % "|".join(homeless_prefixes))
+                   if homeless_prefixes else None)
     numbers = doc_model.display_numbers(manifest)
     # Token resolution map: [[slug]] -> "1.1 Vendor Onboarding". Bare numbers
     # are correct for section headings, but in prose and derived tables (where
@@ -696,7 +701,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
              "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
-             "dangling_ctrl_refs": {}, "dangling_ctrl_ref_count": 0,
+             "dangling_refs": {}, "dangling_ref_count": 0,
              "screens_embedded": 0, "screens_placeholder": 0,
              "profile": profile.report_line()}
 
@@ -798,14 +803,14 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             if refs:
                 stats["dangling_gap_refs"][slug] = sorted(set(refs))
                 stats["dangling_gap_ref_count"] += len(refs)
-        if controls_homeless and role == "procedure":
+        if homeless_re is not None and role == "procedure":
             # Scanned AFTER every body transform, so it counts what the
             # reader of THIS mode actually sees (a final-mode strip can
             # remove a gap callout whose note cited a control).
-            refs = _CTRL_ID_RE.findall(raw_body)
+            refs = homeless_re.findall(raw_body)
             if refs:
-                stats["dangling_ctrl_refs"][slug] = sorted(set(refs))
-                stats["dangling_ctrl_ref_count"] += len(refs)
+                stats["dangling_refs"][slug] = sorted(set(refs))
+                stats["dangling_ref_count"] += len(refs)
         body = _clean_body(raw_body, labels)
         if mode == "final":
             body = body.strip("\n")
@@ -938,19 +943,18 @@ def main(argv=None) -> int:
                       "closes, its leftover prose reference fails reconcile "
                       "until the drafter removes it), or hand-edit the prose "
                       "before shipping this export")
-        # Profile-shaped, so it applies in EVERY mode — a controls-less
-        # working draft has the same holes its final export would.
-        if stats["dangling_ctrl_ref_count"]:
-            print(f"WARNING: {stats['dangling_ctrl_ref_count']} dangling "
-                  f"control reference(s) survive in prose — this profile "
-                  f"gives the controls no home (no controls section in the "
-                  f"body, no register in the manifest):")
-            for pslug, ids in sorted(stats["dangling_ctrl_refs"].items()):
+        # Profile-shaped, so it applies in EVERY mode — a working draft
+        # without a home for these kinds has the same holes its final would.
+        if stats["dangling_ref_count"]:
+            print(f"WARNING: {stats['dangling_ref_count']} dangling callout "
+                  f"reference(s) survive in prose — this profile gives their "
+                  f"kind no home (no section in the body, no register in the "
+                  f"manifest):")
+            for pslug, ids in sorted(stats["dangling_refs"].items()):
                 print(f"  {pslug}: " + ", ".join(ids))
-            print("  keep the `controls` section, or hide it with `body_omit` "
-                  "plus the `appendix-controls` register (scaffold.py "
-                  "--sync-profile adds it to a scaffolded area), or reword "
-                  "the prose before shipping")
+            print("  keep the section, or hide it with `body_omit` plus its "
+                  "register (scaffold.py --sync-profile adds a register to a "
+                  "scaffolded area), or reword the prose before shipping")
     else:
         if a.mode != "working" or a.slugs or a.track_changes:
             raise SystemExit("error: --mode/--slugs/--track-changes require an area folder")

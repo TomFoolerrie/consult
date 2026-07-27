@@ -600,7 +600,7 @@ def test_render_refuses_a_manifest_missing_the_controls_register(tmp_path):
     with pytest.raises(SystemExit) as exc:
         render.render_folder(area, area / "draft.docx", emit_signal=False)
     message = str(exc.value)
-    assert "appendix-controls" in message and "drop every control" in message
+    assert "appendix-controls" in message and "drop them" in message
     assert "--sync-profile" in message
     assert not (area / "draft.docx").exists()
 
@@ -661,8 +661,8 @@ def test_controls_homeless_render_reports_dangling_control_references(tmp_path):
         encoding="utf-8")
 
     stats = render.render_folder(area, area / "d.docx", emit_signal=False)
-    assert stats["dangling_ctrl_refs"] == {"bank-rec": ["CTRL-01"]}
-    assert stats["dangling_ctrl_ref_count"] == 1
+    assert stats["dangling_refs"] == {"bank-rec": ["CTRL-01"]}
+    assert stats["dangling_ref_count"] == 1
     text = rendered_text(area, "d2.docx")
     assert "Key Controls" not in text          # the section really is gone
     assert "CTRL-01" in text                   # ...and the prose ref dangles
@@ -683,8 +683,69 @@ def test_controls_in_the_register_do_not_dangle(tmp_path):
         encoding="utf-8")
 
     stats = render.render_folder(area, area / "d.docx", emit_signal=False)
-    assert stats["dangling_ctrl_refs"] == {}
-    assert stats["dangling_ctrl_ref_count"] == 0
+    assert stats["dangling_refs"] == {}
+    assert stats["dangling_ref_count"] == 0
+
+
+def test_body_omit_issues_without_appendix_a_is_a_named_error(tmp_path):
+    """The cross-field rule covers the pain-point register too: hiding
+    `issues` from the body while removing `appendix-a` from `derived:` would
+    make every PAIN POINT / IMPROVEMENT OPPORTUNITY vanish — refused, named,
+    exactly like the controls rule."""
+    root = engagement(tmp_path)
+    write_profile(root, body_omit=["issues"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "appendix-a"])
+    with pytest.raises(ProfileError) as exc:
+        client_config.profile(root / "treasury")
+    message = str(exc.value)
+    assert "body_omit" in message and "appendix-a" in message
+    assert "vanish" in message and "PAIN POINT" in message
+
+
+def test_render_refuses_a_manifest_missing_the_pain_point_register(tmp_path):
+    """Manifest drift, issues flavor: the manifest was built without
+    appendix-a (a profile that dropped it), then the profile switched to
+    body_omit issues WITH the register — valid profile, stale manifest.
+    Render refuses and names --sync-profile, exactly like the controls case."""
+    root = engagement(tmp_path)
+    area = drafted_area(root, profile=client_config.Profile(
+        derived=[k for k in client_config.DEFAULT_DERIVED
+                 if k != "appendix-a"]))
+    write_profile(root, body_omit=["issues"],
+                  derived=client_config.DEFAULT_DERIVED)
+    assert "appendix-a" not in derived_kinds(area)
+
+    with pytest.raises(SystemExit) as exc:
+        render.render_folder(area, area / "d.docx", emit_signal=False)
+    message = str(exc.value)
+    assert "appendix-a" in message and "--sync-profile" in message
+
+    assert scaffold.sync_profile(area) == 0
+    assert "appendix-a" in derived_kinds(area)
+    assert aggregate.run(str(area)) == 0
+    render.render_folder(area, area / "d.docx", emit_signal=False)
+
+
+def test_issues_homeless_render_reports_dangling_pp_references(tmp_path):
+    """`issues` dropped from `sections:` with no appendix-a register: a prose
+    mention of a pain-point id dangles and is reported, same as controls."""
+    root = engagement(tmp_path)
+    write_profile(root,
+                  sections=[s for s in client_config.ALL_SECTIONS
+                            if s != "issues"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "appendix-a"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; the export burden is "
+        "recorded as PP-001."), encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_refs"] == {"bank-rec": ["PP-01"]}
+    assert stats["dangling_ref_count"] == 1
 
 
 def test_sync_profile_refuses_an_unscaffolded_area(tmp_path):
@@ -916,7 +977,8 @@ def test_render_strips_are_line_count_preserving(tmp_path):
     text = fragment("Bank Reconciliation", "bank-rec", "CTRL-001", "PP-001")
     prof = client_config.parse_profile({"sections": list("ABCDEFGH"),
                                         "body_omit": ["F", "H"],
-                                        "derived": ["appendix-controls"]})
+                                        "derived": ["appendix-controls",
+                                                    "appendix-a"]})
     stripped = render._apply_profile(text, prof)
     assert stripped.count("\n") == text.count("\n")
     assert "Key Controls" not in stripped and "Known Issues" not in stripped
