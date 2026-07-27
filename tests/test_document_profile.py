@@ -569,6 +569,94 @@ def test_a_profile_error_stops_the_confirm_before_it_touches_the_folder(tmp_path
 
 
 # --------------------------------------------------------------------------- #
+# Manifest drift — the trap the profile validator cannot see
+#
+# The validator vouches for the PROFILE (`body_omit: [controls]` requires the
+# register in `derived:`), but render builds from the MANIFEST, written at the
+# confirm gate. A profile that acquires the omission AFTER scaffolding leaves
+# a manifest with no register component: render must refuse (or every control
+# silently leaves the document), and `scaffold.sync_profile` is the supported
+# proposal-free path that reconciles the manifest.
+# --------------------------------------------------------------------------- #
+
+def drifted_area(root):
+    """An area scaffolded BEFORE the profile existed (default derived set, no
+    controls register), whose engagement then adopted `body_omit: [F]` with
+    the register in `derived:` — a profile the validator accepts."""
+    area = drafted_area(root, profile=client_config.Profile())
+    write_profile(root, body_omit=["F"],
+                  derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
+    return area
+
+
+def test_render_refuses_a_manifest_missing_the_controls_register(tmp_path):
+    """The valid-profile / stale-manifest combination fails the render loudly,
+    naming the register, the loss, and the sync command — never a document
+    with the controls silently gone."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+    assert "appendix-controls" not in derived_kinds(area)
+
+    with pytest.raises(SystemExit) as exc:
+        render.render_folder(area, area / "draft.docx", emit_signal=False)
+    message = str(exc.value)
+    assert "appendix-controls" in message and "drop every control" in message
+    assert "--sync-profile" in message
+    assert not (area / "draft.docx").exists()
+
+
+def test_sync_profile_adds_the_register_and_render_recovers(tmp_path):
+    """`sync_profile` adds the register component + stub without a `.proposed/`
+    round; after aggregate the render succeeds and collects every control —
+    the same end state a fresh confirm would have produced."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+
+    assert scaffold.sync_profile(area) == 0
+    assert "appendix-controls" in derived_kinds(area)
+    assert (area / "89_appendix-controls.md").is_file()
+    # non-derived components survived byte-for-byte
+    assert [c["slug"] for c in manifest_of(area)["components"]
+            if c.get("role") == "procedure"] == ["bank-rec", "payment-run"]
+
+    assert aggregate.run(str(area)) == 0
+    text = rendered_text(area)
+    assert "CONTROL —" not in text             # still out of the body...
+    assert "Key Controls Register" in text     # ...but the register caught them
+    assert "CTRL-01" in text and "CTRL-02" in text
+
+
+def test_sync_profile_is_idempotent_and_only_touches_the_derived_set(tmp_path):
+    """A second sync is a byte-level no-op; dropping a kind from `derived:`
+    removes only the manifest entry — the file stays on disk, exactly the
+    removal semantics a fresh confirm has."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+    assert scaffold.sync_profile(area) == 0
+    before = (area / "manifest.json").read_bytes()
+    assert scaffold.sync_profile(area) == 0
+    assert (area / "manifest.json").read_bytes() == before
+
+    write_profile(root, body_omit=["F"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "raci"] + ["appendix-controls"])
+    assert scaffold.sync_profile(area) == 0
+    assert "raci" not in derived_kinds(area)
+    assert (area / "84_raci.md").is_file()     # scaffold never deletes
+
+
+def test_sync_profile_refuses_an_unscaffolded_area(tmp_path):
+    """A fresh area has no manifest to reconcile — that is the confirm gate's
+    job, and the refusal says so."""
+    root = engagement(tmp_path)
+    area = root / "treasury"
+    area.mkdir()
+    with pytest.raises(SystemExit) as exc:
+        scaffold.sync_profile(area)
+    assert "confirm" in str(exc.value)
+
+
+# --------------------------------------------------------------------------- #
 # Bullet 10 — `body_omit` never causes `reprofile`
 # --------------------------------------------------------------------------- #
 
