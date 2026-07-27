@@ -32,6 +32,12 @@ one top-level `profile:` key in `_client/profile.yaml` and gets merging,
 shadowing and provenance for free. It is validated fail-loud (see `ProfileError`)
 because it decides the shape of the client deliverable.
 
+`holds(area, holdable, gates) -> Holds` (M17) is the second typed accessor, and
+the same story: STICKY HOLDS are engagement policy, so they are one top-level
+`hold:` key (conventionally `_client/consult.yaml`) and an area list shadows the
+engagement's whole. Validated fail-loud (see `HoldError`) — a typo'd action name
+that read as "nothing held" would spend the agents the hold exists to stop.
+
 `_reference/` is deliberately NOT part of this: it is agent-proposed and
 human-confirmed per area, and sharing it would let one area's low-confidence
 guess become another area's fact.
@@ -477,3 +483,123 @@ def profile(area) -> Profile:
     layer = cfg.layers.get(PROFILE_KEY)
     where = f"{LAYER_LABELS[layer]} profile.yaml" if layer else "profile.yaml"
     return parse_profile(cfg[PROFILE_KEY], where, layer)
+
+
+# --------------------------------------------------------------------------- #
+# M17 — STICKY HOLDS
+#
+# `hold:` is engagement config resolved by exactly the same rule as `profile:`
+# — one top-level key (conventionally `_client/consult.yaml`), so `load(area)`
+# merges it and an area's own list SHADOWS the engagement's whole (a list is one
+# key; there is no per-item merge, for the same reason nothing else deep-merges
+# here). Provenance is therefore per-LIST, which is what `held_by` reports.
+#
+# The ACTION VOCABULARY lives in the caller (orchestrate.py owns the ladder), so
+# it is passed in: this module must never import the advisor, and a hold list is
+# only meaningful against the ladder that would honour it.
+# --------------------------------------------------------------------------- #
+
+HOLD_KEY = "hold"
+
+
+class HoldError(ClientConfigError):
+    """A malformed `hold:` list. Fail-loud and NAMED: a typo'd action name that
+    parsed as "nothing held" would silently spend the very agents the hold was
+    written to stop."""
+
+
+@dataclass
+class Holds:
+    """Resolved sticky holds for one area.
+
+    `actions` is the held action names in the order the human wrote them;
+    `layer` is the layer whose list answered ("area" | "engagement" | None).
+    """
+
+    actions: list[str] = field(default_factory=list)
+    layer: str | None = None
+
+    def __contains__(self, action: str) -> bool:
+        return action in self.actions
+
+    def __bool__(self) -> bool:
+        return bool(self.actions)
+
+    def held_by(self, action: str) -> str | None:
+        """The layer holding `action`, or None when it is not held. One list
+        answers, so every held action shares its provenance."""
+        return self.layer if action in self.actions else None
+
+    def layer_label(self) -> str:
+        return LAYER_LABELS[self.layer]
+
+    def report_line(self, prefix: str = "holds") -> str:
+        if not self.actions:
+            return f"{prefix}: none"
+        return f"{prefix}: {', '.join(self.actions)} ({self.layer_label()})"
+
+
+def parse_holds(raw, holdable, gates=(), where: str = "_client/consult.yaml",
+                layer: str | None = None) -> Holds:
+    """Validate one `hold:` list against the caller's action vocabulary.
+
+    `holdable` is every action a hold may name; `gates` is the actions that are
+    ALREADY a stop. Naming a gate is a VALIDATION ERROR, not a silent no-op:
+    docs/M17 puts "holding a gate" out of scope, and of the two readings the
+    spec allows, a fail-loud one is the only one that tells the author their
+    line does nothing — a no-op hold on `review` reads, forever, as a policy
+    that is in force.
+    """
+    holdable = list(holdable)
+    gates = set(gates)
+    if raw is None:
+        return Holds(layer=layer)
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        raise HoldError(
+            f"{where}: `hold:` must be a list of action names (got "
+            f"{type(raw).__name__})"
+        )
+    actions: list[str] = []
+    for item in raw:
+        if not isinstance(item, str):
+            raise HoldError(
+                f"{where}: `hold:` entries must be action names as strings "
+                f"(got {type(item).__name__})"
+            )
+        name = item.strip()
+        if not name:
+            continue
+        if name in gates:
+            raise HoldError(
+                f"{where}: `hold:` names {name!r}, which is already a stop (a "
+                f"human gate, or a terminal state that spends nothing) — "
+                f"holding it would be a no-op, and a no-op line in "
+                f"this file reads as a policy that is in force (docs/"
+                f"M17-stage-gates.md, Out of scope). Remove it."
+            )
+        if name not in holdable:
+            raise HoldError(
+                f"{where}: `hold:` names unknown action {name!r} — a typo must "
+                f"never read as \"nothing held\" (holdable: "
+                f"{', '.join(holdable)})"
+            )
+        actions.append(name)
+    return Holds(actions=_dedupe(actions), layer=layer)
+
+
+def holds(area, holdable, gates=()) -> Holds:
+    """Resolve sticky holds for one area folder (M17 build item 3).
+
+    Reads the `hold:` key through `load(area)`, so an engagement-wide
+    `components/_client/consult.yaml` covers every area and an area's own list
+    shadows it whole. No `hold:` key anywhere → nothing held, and the advisor
+    behaves exactly as it did pre-M17.
+    """
+    cfg = load(area)
+    if HOLD_KEY not in cfg:
+        return Holds()
+    layer = cfg.layers.get(HOLD_KEY)
+    where = f"{LAYER_LABELS[layer]} consult.yaml" if layer else "consult.yaml"
+    return parse_holds(cfg[HOLD_KEY], holdable, gates, where, layer)

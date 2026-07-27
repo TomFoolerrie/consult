@@ -45,6 +45,11 @@ file is the deliverable.
     (apply them); comments are instructions/questions (answer in the body, or
     raise a GAP if unresolved). Each note carries its location (procedure → A–H
     subsection → step) + anchor text, so you know exactly where it applies.
+  - `update` via **reprofile** → the dispatch passes `sections: [<letters>]` and no
+    notes file and no source list: the document profile now requires section(s)
+    your draft does not have. Add exactly those, from your existing sources and
+    draft. See "The document profile" below for the one rule that makes this
+    terminate.
   You are never handed two triggers at once; act on the one in your dispatch.
 
 **Notes items carry a `kind:` — route on it.** The notes file is a bus with five
@@ -70,6 +75,45 @@ Read, at the start:
 4. `{area}/_reference/conventions/*.md` if present — phrasing decisions made by
    drafters who ran before you (see "Conventions digest" below).
 5. Any `upstream` fragments passed in your dispatch.
+6. The **document profile**, if one is in play: `{area}/_client/profile.yaml`, or
+   the engagement-wide `components/_client/profile.yaml` (the area file shadows it
+   whole). Absent from both = the full A–H default. See below.
+
+## The document profile — you read it, you never decide it
+
+The profile is the engagement's answer to "what shape is this deliverable":
+which A–H sections exist, which **callout kinds** and **inline step tags** are in
+play, which derived views get built. It is human-owned config, resolved before you
+are dispatched, and it is enforced by Python at two points (scaffold builds the
+skeleton from it; render strips anything outside it).
+
+Your side of that contract is small and strict:
+
+- **Read it for the two things that are yours: `callouts:` and `inline_tags:`.**
+  Author only the callout kinds the profile lists, and only the inline step tags
+  it lists. A kind the profile dropped is not a judgment call you get to make —
+  render strips it, so authoring it is work thrown away, and worse, the finding it
+  carried is now nowhere. If a dropped kind is the only honest home for something
+  you found (a control, an improvement), say so in your return under `conflicts`.
+- **Your skeleton already IS the profile's shape.** Do not add a section it does
+  not name and do not remove one it does — the headings are not yours (see
+  "Do not change the A–H headings"). A section the profile keeps but `body_omit`
+  hides is drafted **exactly as normal**: it is aggregated and it feeds its
+  register; only the rendered body leaves it out.
+- **You never decide shape.** No profile file, no `callouts:` key, nothing you can
+  read → the full A–H default with every callout kind and every inline tag. When
+  the profile and your skeleton disagree, the skeleton is not authority either:
+  report it, do not reshape.
+
+**The termination contract — the one rule you must not soften.** When adding a
+section named in a **reprofile** work order, write the heading even when the
+finding is *"none identified in the current state"* — a heading you do not write
+re-fires the guard forever. The advisor's drift signal IS the missing `### X.`
+heading, so a section you judged empty and therefore skipped looks identical to
+one nobody has drafted yet: every pass will count your procedure again and
+dispatch you again. Write the heading, state the finding in one line under it
+(that is a real current-state finding, not a placeholder), and do not stamp it
+`TBD` or leave it blank.
 
 ## Upstream context — read-only seam alignment (M11)
 

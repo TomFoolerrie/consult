@@ -34,6 +34,14 @@ Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
  11  review           rendered, awaiting human review           (HUMAN GATE)
  12  done             nothing outstanding
 
+STICKY HOLDS (M17) sit OUTSIDE that table: `hold:` in `_client/consult.yaml`
+(area list shadows engagement) turns any of HOLDABLE_ACTIONS into a human gate —
+the SAME action, with `human_gate: true` and `details.held_by`. It never skips,
+never reorders and never forces, so the ladder above is untouched: the hold only
+decides whether a human sees the next action before it runs. Holding something
+that is already a stop (a gate, `done`, `error`) is a load-time validation error,
+and so is an unknown name — see client_config.parse_holds.
+
 The overlap between guards is real (e.g. after scaffold `_sources/new/` is still
 full because sources move only after fill) — precedence is what makes the walk
 deterministic and non-looping. See M7 "Why the order matters".
@@ -541,10 +549,47 @@ def _synthesis_signal(folder: str, st: "AreaState"):
     return pending, stale_kinds
 
 
+#: Every action `decide()` can return that is NOT already a stop — the M17
+#: `hold:` vocabulary. A hold turns one of these into a gate without changing it.
+HOLDABLE_ACTIONS = ("ingest_returns", "apply_review", "taxonomy", "fill",
+                    "aggregate", "reconcile", "synthesize", "render")
+
+#: The actions that are already a stop. Naming one in `hold:` is a validation
+#: error, not a no-op — docs/M17-stage-gates.md puts "holding a gate" out of
+#: scope, and a silently inert line in a policy file reads as policy in force.
+#: `done` and `error` are here too: neither spends anything and neither is a
+#: stage, so there is nothing a hold could stop.
+GATE_ACTIONS = ("confirm", "review_triage", "reprofile", "registry_topup",
+                "draft_ready", "review", "unresolvable", "done", "error")
+
+
+def _holds(folder: str):
+    """The area's resolved sticky holds (M17). Empty when client_config is
+    unimportable or no layer supplies a `hold:` key — pre-M17 behaviour. A
+    MALFORMED or typo'd hold list is not silence: client_config raises."""
+    if client_config is None:  # pragma: no cover - ships beside us
+        return None
+    return client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
+
+
 def decide(folder: str) -> dict:
+    # Resolved after the folder-existence check below, so a typo'd --area still
+    # reports `error` rather than failing on a config read. The closure reads it
+    # at call time, which is what lets ONE place apply every hold.
+    held = {"holds": None}
+
     def result(action, reason, gate=False, **details):
         d = {"area": folder, "action": action, "reason": reason,
              "human_gate": gate}
+        # M17 sticky holds: a held action comes back UNCHANGED except that it is
+        # now a gate. Never skipped, never reordered, never forced — the ladder
+        # above has already decided what is next, and the hold only decides
+        # whether a human sees it first. Applied here, at the single exit point,
+        # so no guard can forget it and no guard can be reordered by it.
+        holds = held["holds"]
+        if holds is not None and action in holds:
+            d["human_gate"] = True
+            details["held_by"] = holds.held_by(action)
         if details:
             d["details"] = details
         return d
@@ -571,6 +616,11 @@ def decide(folder: str) -> dict:
         )
 
     st = AreaState(folder)
+    # A pure read, like the profile: `hold:` is a file in the tree, so the
+    # advisor stays a pure function of folder state. Read BEFORE the ladder so a
+    # typo'd action name fails loud on every call, not only on the lap that would
+    # have returned the held action.
+    held["holds"] = _holds(folder)
 
     # 1 — pending proposal outranks everything (never re-scope an edited proposal)
     if _dir_has_files(st.proposed_dir):

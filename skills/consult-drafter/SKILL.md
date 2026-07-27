@@ -31,7 +31,10 @@ present (phrasing decisions by earlier drafters — match them; you may write
 facts/nouns); and any `upstream` fragment paths in your dispatch — **read-only
 seam context** (align how the handoff artifact is named/arrives; never edit
 those files; facts still come from your own sources — an upstream conflict
-becomes a GAP naming the mismatch, never a silent harmonization).
+becomes a GAP naming the mismatch, never a silent harmonization); and the
+**document profile** if one is present (`_client/profile.yaml`, or the
+engagement-wide `components/_client/profile.yaml`) — it tells you which callout
+kinds and inline tags are in play (see below).
 
 ## The procedure heading — plain title only
 
@@ -58,6 +61,35 @@ report names, downstream recipients, exception handling, or screenshot
 availability. Anything unknown/unclear/unsupported → `TBD — confirm with process
 owner` plus a `VALIDATION REQUIRED` callout at the point it matters. When sources
 **conflict**, do not choose silently — raise a GAP stating the conflict.
+
+## The document profile — which kinds are in play
+
+An engagement may carry a **document profile** (`{area}/_client/profile.yaml`, or
+engagement-wide at `components/_client/profile.yaml`; the area file shadows it
+whole). Read it if it is there. It is human-owned config that decides the shape of
+the deliverable, and two of its keys are directly yours:
+
+- `callouts:` — the callout kinds in play. **Never author a kind the profile
+  dropped.** Render strips it, so it is work thrown away and the finding it carried
+  ends up nowhere; if a dropped kind was the only honest home for something you
+  found, report that in `conflicts` instead of writing it anyway.
+- `inline_tags:` — the bolded step tags in play (the list under "Inline step tags"
+  below is the default set). Same rule: author only what is listed.
+
+The other keys are not yours to act on. `sections:` is already baked into the
+skeleton you were handed, and a section under `body_omit:` is drafted, aggregated
+and registered **exactly as normal** — only the rendered body leaves it out. **You
+never decide shape**: no profile anywhere means the full A–H default with every
+kind and tag below, and a profile that disagrees with your skeleton is something
+you report, not something you reshape.
+
+**Reprofile passes — write the heading.** When your dispatch names `sections:`
+(the profile now requires a section your draft lacks), write the heading **even
+when the finding is "none identified in the current state" — a heading you do not
+write re-fires the guard forever.** The advisor detects drift by the missing
+`### X.` heading itself, so a section you judged empty and skipped is
+indistinguishable from one never drafted, and you will be dispatched for it every
+pass. Heading, then the one-line finding under it; never blank, never `TBD`.
 
 ## The A–H sections
 
@@ -162,8 +194,11 @@ A body gap reference in a step's prose is `[[GAP-01 — SHORT LABEL]]` (never a 
 
 ## Updates — leave no iteration artifacts
 
-Update passes arrive with ONE trigger: new source(s), or `review_notes`
-(`_review/{slug}.notes.yaml`). In a notes file, tracked changes are
+Update passes arrive with ONE trigger: new source(s), `review_notes`
+(`_review/{slug}.notes.yaml`), or a `sections:` list (a **reprofile** pass — add
+those sections and nothing else; see "The document profile" above for why the
+heading must be written even when the finding is "none"). In a notes file, tracked
+changes are
 high-authority SME input — apply them; comments are instructions/questions —
 answer in the body or raise a GAP if unresolved.
 
