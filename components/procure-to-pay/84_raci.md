@@ -7,7 +7,7 @@ _R = Responsible (does the work) · A = Accountable (answerable for the outcome)
 | Activity | Requester | Cost Center Owner | Functional Vice President | Chief Financial Officer | Buyer | Procurement Lead | Plant Manager | Receiver | Receiving Supervisor | Accounts Payable Clerk | Senior Accounts Payable Specialist | Accounts Payable Manager | Corporate Controller | Assistant Controller | Treasury Analyst | IT Manager | Supplier | Carrier |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | [[requisition-and-approval]] | R | A | C | C |  | C |  |  |  |  |  |  |  |  |  |  |  |  |
-| [[po-issuance-and-change-orders]] | R |  C |  |  | R, A* | C |  |  | C |  |  |  |  |  |  |  | I |  |
+| [[po-issuance-and-change-orders]] | R | C |  |  | R, A* | C |  |  | C |  |  |  |  |  |  |  | I |  |
 | [[confirming-po]] | C |  |  |  | R | R, A* | C |  | C |  |  | I |  |  |  |  |  |  |
 | [[new-vendor-onboarding]] | R |  |  |  | R | R, A |  |  |  | R |  |  | C |  |  |  | R |  |
 | [[vendor-banking-change]] |  |  |  |  |  | C |  |  |  | R |  | I | A* |  |  |  | C |  |
@@ -19,7 +19,7 @@ _R = Responsible (does the work) · A = Accountable (answerable for the outcome)
 | [[non-po-invoice-entry-and-approval]] |  | A | C | C |  |  |  |  |  | R |  |  | C |  |  |  |  |  |
 | [[vendor-statement-reconciliation]] |  |  |  |  |  |  |  |  |  |  | R, A* | C | C |  |  |  | C |  |
 | [[weekly-payment-run]] |  |  |  |  |  |  |  |  |  |  |  | R | A | I | C |  |  |  |
-| [[wire-and-manual-payment]] | R |  | C | C |  |  |  |  |  |  |  | C | A |  I | R |  |  |  |
+| [[wire-and-manual-payment]] | R |  | C | C |  |  |  |  |  |  |  | C | A | I | R |  |  |  |
 | [[positive-pay-exception-handling]] |  |  |  |  |  |  |  |  |  |  |  | R, A* | C |  |  |  |  |  |
 
 \* Assumed accountability, pending confirmation with the process owner:
@@ -35,4 +35,4 @@ _R = Responsible (does the work) · A = Accountable (answerable for the outcome)
 - For [[vendor-statement-reconciliation]], no reviewer or sign-off was identified in any source; accountability is assumed to sit with the Senior Accounts Payable Specialist, who prepares the reconciliations.
 - For [[positive-pay-exception-handling]], disposition is a single-person decision with no secondary review or backup described; accountability is assumed to sit with the Accounts Payable Manager, who makes the pay-or-return decision.
 
-For [[wire-and-manual-payment]], the manual-check preparer is unidentified in the sources; the Corporate Controller is accountable via the required written authorization for manual checks and the wire approval role. For [[non-po-invoice-entry-and-approval]] and [[requisition-and-approval]], the Cost Center Owner is accountable as the first and universal approver; higher-tier approvers whose thresholds are contested between the sources are shown as consulted.
+For [[wire-and-manual-payment]], the manual-check preparer is unidentified in the sources; the Corporate Controller is accountable via the required written authorization for manual checks and the wire approval role, with the Chief Financial Officer shown as consulted as the alternate wire approver. For [[non-po-invoice-entry-and-approval]] and [[requisition-and-approval]], the Cost Center Owner is accountable as the first and universal approver; higher-tier approvers whose thresholds are contested between the sources are shown as consulted.
