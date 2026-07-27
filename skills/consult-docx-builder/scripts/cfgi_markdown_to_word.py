@@ -925,13 +925,16 @@ def _emit_toc(doc) -> None:
     doc.add_page_break()
 
 
-def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None:
+def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
+                h1_page_break: bool = False) -> None:
     """Render assembled Markdown body lines into `doc`.
 
     Shared by the single-file `convert` and the pre-assembled folder
     `convert_assembled` paths. `do_cover` only governs inline suppression of
     the title H1 and lifted cover sections; the cover itself is built by the
-    caller.
+    caller. `h1_page_break` (the folder path sets it) opens every body H1 —
+    the L2 chapter dividers, the only H1s an assembled doc carries — on a
+    fresh page; single-file docs keep their legacy flow.
 
     `prov` (optional) is a provenance collector with a
     `mark(paras, i_start, i_end, kind)` method — called with the emitted
@@ -1008,6 +1011,8 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
             ctx.append(txt)
             style = f"Heading {min(level, 4)}"      # straight-through: #->H1 ... ####->H4
             p = para(doc, txt, style)
+            if level == 1 and h1_page_break:
+                p.paragraph_format.page_break_before = True
             # H1->H2 weight remap: under the flat-H2 template the section
             # weight formerly carried by H1 moves to H2, so the green rule is
             # drawn under both. (Single-file docs still have one inline H1;
@@ -1156,7 +1161,8 @@ def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
         build_cover(doc, title, subtitle, rows)
     if include_toc:
         _emit_toc(doc)
-    render_body(doc, body_md.split("\n"), do_cover=False, prov=prov)
+    render_body(doc, body_md.split("\n"), do_cover=False, prov=prov,
+                h1_page_break=True)
     if track_changes:
         enable_track_changes(doc)
     doc.save(str(out))
