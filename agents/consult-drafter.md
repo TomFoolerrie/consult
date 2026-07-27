@@ -338,7 +338,7 @@ numbers, which is correct). Fixed structures:
 ```
 
 **In `Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
-callouts (this section IS the structured source for Appendix A — Risks, Pain Points &
+callouts (this section IS the structured source for the register "Appendix — Pain Points &
 Improvement Opportunities, which is assembled **mechanically** from these
 callouts, so fill every field):
 ```

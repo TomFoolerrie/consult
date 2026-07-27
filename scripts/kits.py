@@ -1,28 +1,33 @@
 #!/usr/bin/env python3
 """
-kits.py — per-owner review kit emitter (M9).
+kits.py — per-procedure (L3) review kit emitter (M9).
 
     python3 scripts/kits.py <area> [-o {area}/_review/kits]
 
-After a working-mode render, this builds one folder per process owner:
+After a working-mode render, this builds ONE FOLDER PER PROCEDURE — review
+travels by topic, and an L3 usually goes to a single person (when several
+people are involved they share the same kit; every ask names its contact):
 
     _review/kits/
-      index.md                       who got what (the send checklist)
-      <person-slug>/
+      index.md                       kit -> send-to checklist, grouped by person
+      <num>_<slug>/
         README.md                    instructions (usable as the email body)
-        <num>_<slug>.docx            per-L3 renders, tracked changes ON
-        gaps_<person-slug>.xlsx      their gap rows (blank Answer/Status cols)
-        screenshots_<person-slug>.docx  their SC items + paste boxes
+        <num>_<slug>.docx            the procedure render, tracked changes ON
+        gaps_<slug>.xlsx             ALL of this procedure's gap rows; the
+                                     Contact column names who each row is for
+        screenshots_<slug>.docx      its SC items + paste boxes
 
-Ownership is deterministic string-work over data the pipeline already has:
-  - procedure owner  = the At a Glance card "Preparer" row → roles.yaml
+Contacts are deterministic string-work over data the pipeline already has:
+  - procedure contact = the At a Glance card "Preparer" row → roles.yaml
     `people:` → LOWEST org-chart rank (deepest reports_to = closest to the
     work); their manager is listed as the escalation.
-  - gap row owner    = the gap's "Owner to confirm" role, same resolution;
-    falls back to the procedure owner. A gap can land in someone's workbook
-    even if they don't own the procedure — intended.
-  - screenshot owner = the procedure owner (SC callouts carry no owner field).
-Anything unresolvable lands in an `unassigned/` kit for human triage.
+  - gap row contact   = the gap's "Owner to confirm" role, same resolution;
+    falls back to the procedure contact. A row can name someone other than
+    the procedure contact — intended: the kit stays whole and the reader
+    forwards that one ask instead of the ask living in another kit.
+  - screenshot contact = the procedure contact (SC callouts carry no owner).
+A procedure whose preparer resolves to nobody gets a kit with an
+"(unassigned)" contact, flagged in index.md for human triage.
 
 Consistency guarantees: kit docs use the SAME display numbers and global
 callout display IDs as the full draft (computed from the full manifest), so
@@ -48,7 +53,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
 import doc_model  # noqa: E402
 import render as render_mod  # noqa: E402
 from aggregate import parse_callouts, parse_bullets, split_subsections, _pick  # noqa: E402
-from people import People, person_slug  # noqa: E402
+from people import People  # noqa: E402
 from xlsx_min import write_xlsx  # noqa: E402
 
 from docx import Document  # noqa: E402
@@ -176,8 +181,8 @@ def _cell_border(cell, color: str = "BFBFBF") -> None:
     tcPr.append(borders)
 
 
-def write_screenshot_template(path: Path, person: str, items: list[dict],
-                              area_title: str) -> dict:
+def write_screenshot_template(path: Path, label: str, contact: str,
+                              items: list[dict], area_title: str) -> dict:
     """One entry per SC item: heading, italic what-to-capture, a dashed paste
     box anchored with a bookmark (screens_ingest keys extraction on it).
     Returns the anchor map {bookmark: {slug, local, disp}}."""
@@ -187,7 +192,7 @@ def write_screenshot_template(path: Path, person: str, items: list[dict],
     st.font.size = Pt(10)
 
     h = doc.add_paragraph()
-    r = h.add_run(f"Screenshot Collection — {person}")
+    r = h.add_run(f"Screenshot Collection — {label}")
     r.bold = True
     r.font.size = Pt(16)
     r.font.color.rgb = DARK
@@ -195,6 +200,9 @@ def write_screenshot_template(path: Path, person: str, items: list[dict],
     r = sub.add_run(area_title)
     r.italic = True
     r.font.color.rgb = GREEN
+    cp = doc.add_paragraph()
+    r = cp.add_run(f"Contact: {contact}")
+    r.font.color.rgb = GRAY
 
     intro = doc.add_paragraph()
     r = intro.add_run(
@@ -247,31 +255,36 @@ def write_screenshot_template(path: Path, person: str, items: list[dict],
 # kit assembly
 # --------------------------------------------------------------------------- #
 
-def _readme(person: str, kit: dict, area_title: str) -> str:
-    doc_lines = "\n".join(f"- `{f}`" for f in kit["docs"])
+def _readme(kit: dict, area_title: str) -> str:
+    extra = kit["extra_contacts"]
     parts = [
-        f"# Review kit — {person}",
+        f"# Review kit — {kit['label']}",
         "",
         f"_{area_title}_",
         "",
-        "Hi — you own the procedures below in the current-state process",
+        f"**Send to: {kit['contact']}**"
+        + (f" · also involves: {', '.join(extra)}" if extra else ""),
+        "",
+        "Hi — this folder covers one procedure in the current-state process",
         "documentation. Three quick asks, all in this folder:",
         "",
-        "1. **Review your procedure document(s)** and correct anything that is",
+        "1. **Review the procedure document** and correct anything that is",
         "   wrong or missing — edit directly in Word. The document opens locked",
         "   in *Reviewing* mode: every edit is recorded automatically, even if",
         "   it displays as normal text (Word's *Simple Markup* view). Just",
         "   type — nothing extra to turn on. To see your edits as redlines,",
         "   pick **All Markup** in the Review ribbon. Add comments for anything",
         "   you want to explain rather than fix.",
-        doc_lines,
+        f"- `{kit['doc']}`",
     ]
     if kit["gaps"]:
         parts += [
             "",
             f"2. **Answer the open questions** in `{kit['xlsx']}` — fill the",
-            "   *Answer* column (and *Status* if you like). \"I don't know\" or",
-            "   \"ask X instead\" are useful answers too.",
+            "   *Answer* column (and *Status* if you like). The *Contact*",
+            "   column names who each question is for — usually you; if a row",
+            "   names someone else, forward it or answer together. \"I don't",
+            "   know\" or \"ask X instead\" are useful answers too.",
         ]
     if kit["screens"]:
         parts += [
@@ -301,89 +314,97 @@ def build_kits(area: str, out_dir: str | None = None) -> int:
         shutil.rmtree(out)   # kits are derived artifacts; regenerate whole
     out.mkdir(parents=True)
 
-    # group work by person (fallback: role-<slug>, then unassigned)
-    def key_of(owner: str, role: str) -> str:
-        if owner:
-            return person_slug(owner)
-        if role:
-            return f"role-{role}"
-        return "unassigned"
+    # One kit per PROCEDURE (L3): review travels by topic. Contacts are
+    # annotations inside the kit, not the grouping key.
+    def _numkey(n: str):
+        try:
+            return tuple(int(x) for x in n.split("."))
+        except ValueError:
+            return (99,)
 
     kits: dict[str, dict] = {}
-
-    def kit_for(owner: str, role: str) -> dict:
-        k = key_of(owner, role)
-        return kits.setdefault(k, {
-            "key": k, "person": owner or (role and f"({role} — no person mapped)")
-            or "(unassigned)",
-            "procs": [], "gap_rows": [], "screen_items": [],
-            "docs": [], "xlsx": "", "screens_doc": "", "gaps": 0, "screens": 0,
-        })
-
-    for p in procs.values():
-        kit_for(p["owner"], p["role"])["procs"].append(p)
+    for slug, p in procs.items():
+        contact = (p["owner"]
+                   or (p["role"] and f"({p['role']} — no person mapped)")
+                   or "(unassigned)")
+        kits[slug] = {
+            "key": f"{p['number'].replace('.', '-')}_{slug}" if p["number"] else slug,
+            "slug": slug, "label": p["label"], "number": p["number"],
+            "contact": contact, "assigned": bool(p["owner"]),
+            "extra_contacts": [],
+            "proc": p, "gap_rows": [], "screen_items": [],
+            "doc": "", "xlsx": "", "screens_doc": "", "gaps": 0, "screens": 0,
+        }
     for g in gaps:
-        kit_for(g["owner"], procs.get(g["slug"], {}).get("role", ""))[
-            "gap_rows"].append(g)
+        kits[g["slug"]]["gap_rows"].append(g)
     for s in screens:
-        kit_for(s["owner"], procs.get(s["slug"], {}).get("role", ""))[
-            "screen_items"].append(s)
+        kits[s["slug"]]["screen_items"].append(s)
+    for kit in kits.values():
+        kit["extra_contacts"] = sorted(
+            {g["owner"] for g in kit["gap_rows"]
+             if g["owner"] and g["owner"] != kit["proc"]["owner"]})
 
     maps_dir = folder / "_review" / ".maps"
     maps_dir.mkdir(parents=True, exist_ok=True)
 
-    for k, kit in sorted(kits.items()):
-        kdir = out / k
+    ordered = sorted(kits.values(), key=lambda k: (_numkey(k["number"]), k["slug"]))
+    for kit in ordered:
+        kdir = out / kit["key"]
         kdir.mkdir(parents=True)
+        slug = kit["slug"]
 
-        for p in sorted(kit["procs"], key=lambda x: x["number"]):
-            fname = f"{p['number']}_{p['slug']}.docx"
-            render_mod.render_folder(
-                folder, kdir / fname, mode="working", slugs=[p["slug"]],
-                track_changes=True, emit_signal=False)
-            kit["docs"].append(fname)
+        kit["doc"] = f"{kit['number']}_{slug}.docx"
+        render_mod.render_folder(
+            folder, kdir / kit["doc"], mode="working", slugs=[slug],
+            track_changes=True, emit_signal=False)
 
         if kit["gap_rows"]:
             kit["gaps"] = len(kit["gap_rows"])
-            kit["xlsx"] = f"gaps_{k}.xlsx"
+            kit["xlsx"] = f"gaps_{slug}.xlsx"
             rows = [[g["disp"], g["proc_label"], g["text"], g["nature"],
                      g["owner"], g["escalation"], "", "",
                      f"{g['slug']}#{g['local']}"]
-                    for g in sorted(kit["gap_rows"],
-                                    key=lambda g: (g["proc_label"], g["disp"]))]
+                    for g in sorted(kit["gap_rows"], key=lambda g: g["disp"])]
             write_xlsx(kdir / kit["xlsx"], GAP_HEADER, rows,
                        sheet_name="Open Questions", widths=GAP_WIDTHS)
 
         if kit["screen_items"]:
             kit["screens"] = len(kit["screen_items"])
-            kit["screens_doc"] = f"screenshots_{k}.docx"
-            items = sorted(kit["screen_items"],
-                           key=lambda s: (s["proc_label"], s["disp"]))
+            kit["screens_doc"] = f"screenshots_{slug}.docx"
+            items = sorted(kit["screen_items"], key=lambda s: s["disp"])
             smap = write_screenshot_template(
-                kdir / kit["screens_doc"], kit["person"], items, area_title)
+                kdir / kit["screens_doc"], kit["label"], kit["contact"],
+                items, area_title)
             (maps_dir / f"{smap['doc_id']}.json").write_text(
                 json.dumps(smap, indent=1, ensure_ascii=False) + "\n",
                 encoding="utf-8")
 
-        (kdir / "README.md").write_text(_readme(kit["person"], kit, area_title),
+        (kdir / "README.md").write_text(_readme(kit, area_title),
                                         encoding="utf-8")
 
-    # index
+    # index — the send checklist, kit per row plus a by-person rollup
     lines = [f"# Review kits — {area_title}", "",
-             "| Kit | Person | Procedures | Gaps | Screenshots |",
+             "| Kit | Procedure | Send to | Gaps | Screenshots |",
              "|---|---|---|---|---|"]
-    for k, kit in sorted(kits.items()):
-        pl = ", ".join(p["number"] for p in
-                       sorted(kit["procs"], key=lambda x: x["number"])) or "—"
-        lines.append(f"| `{k}/` | {kit['person']} | {pl} | "
-                     f"{kit['gaps']} | {kit['screens']} |")
-    lines += ["", "Send each folder to its person; returned files go to "
-              "`_review/returned/`.", ""]
+    for kit in ordered:
+        extra = (" (+ " + ", ".join(kit["extra_contacts"]) + ")"
+                 if kit["extra_contacts"] else "")
+        lines.append(f"| `{kit['key']}/` | {kit['label']} | "
+                     f"{kit['contact']}{extra} | {kit['gaps']} | {kit['screens']} |")
+    by_person: dict[str, list[str]] = {}
+    for kit in ordered:
+        by_person.setdefault(kit["contact"], []).append(kit["key"])
+    lines += ["", "## By person", ""]
+    for person in sorted(by_person):
+        lines.append(f"- **{person}**: " +
+                     ", ".join(f"`{k}/`" for k in by_person[person]))
+    lines += ["", "Send each kit folder to its person (one person may get "
+              "several); returned files go to `_review/returned/`.", ""]
     (out / "index.md").write_text("\n".join(lines), encoding="utf-8")
 
     print(f"kits: {len(kits)} kit(s) under {out}")
-    for k, kit in sorted(kits.items()):
-        print(f"  {k}: {len(kit['procs'])} doc(s), {kit['gaps']} gap(s), "
+    for kit in ordered:
+        print(f"  {kit['key']}: -> {kit['contact']}, {kit['gaps']} gap(s), "
               f"{kit['screens']} screenshot item(s)")
     return 0
 

@@ -152,7 +152,7 @@ DERIVED_FILES = [
     # exactly that reason), and nothing in the document cites an appendix by
     # letter: prose references go to procedures ([[slug]]) and callout ids.
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
-     "heading": "Appendix — Risks, Pain Points & Improvement Opportunities",
+     "heading": "Appendix — Pain Points & Improvement Opportunities",
      "order": 8800},
     # M14: the destination F never had. OPT-IN — absent from the default derived
     # set, so an area with no profile is byte-identical to pre-M14. Sits right
