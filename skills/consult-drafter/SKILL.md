@@ -64,9 +64,13 @@ registry names, convert notes to neutral procedural language.
 You may **not** invent: systems, navigation paths, field/parameter names,
 thresholds, approvers, control evidence, timing/frequency, archive locations,
 report names, downstream recipients, exception handling, or screenshot
-availability. Anything unknown/unclear/unsupported → `TBD — confirm with process
-owner` plus a `VALIDATION REQUIRED` callout at the point it matters. When sources
-**conflict**, do not choose silently — raise a GAP stating the conflict.
+availability. Anything unknown/unclear/unsupported → a `VALIDATION REQUIRED`
+callout at the point it matters; the body prose states only what IS established
+and stands alone once the callout is stripped — never write `TBD`,
+"unconfirmed" or "no source describes…" into prose (the agent contract's
+uncertainty rule; `reconcile.py` WARNs on hedge phrases outside callouts).
+When sources **conflict**, do not choose silently — raise a GAP stating the
+conflict.
 
 ## The document profile — which kinds are in play
 
