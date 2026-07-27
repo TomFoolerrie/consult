@@ -441,6 +441,37 @@ HEDGE_RE = re.compile(
     re.IGNORECASE)
 
 
+#: Common British business spellings (drafter contract: American English,
+#: always). A targeted word list, NOT a general -ise detector — "advise",
+#: "premise", "raise", "analysis" and "analyst" are shared spellings and must
+#: never flag.
+BRITISH_RE = re.compile(
+    r"\b\w*(?:synchronis|organis|standardis|authoris|finalis|prioritis"
+    r"|recognis|categoris|centralis|formalis|normalis|utilis|minimis"
+    r"|maximis|itemis|capitalis|operationalis|analys(?:e|ed|ing)"
+    r"|colour|behaviour|favour|licenc|programme)\w*\b"
+    r"|\bcentre\b|\bwhilst\b|\bamongst\b",
+    re.IGNORECASE)
+
+
+def check_british_spellings(folder: Path, manifest: dict,
+                            warnings: list[str]) -> None:
+    """American English, always (drafter contract). Sources may speak British;
+    the fragment must not. WARNING — editorial, not blocking."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            m = BRITISH_RE.search(line)
+            if m:
+                warnings.append(
+                    f"{file}:{n}: BRITISH SPELLING ('{m.group(0)}') — the "
+                    f"drafter contract requires American English"
+                )
+
+
 def check_hedge_prose(folder: Path, manifest: dict,
                       warnings: list[str]) -> None:
     """Uncertainty lives in callouts, never in body prose (drafter contract).
@@ -907,9 +938,10 @@ def reconcile(folder: str) -> int:
     check_baked_numbers(folder, manifest, errors)
     check_quoted_callout_ids(folder, manifest, errors)
 
-    # 14. hedge phrases in body prose (drafter contract: uncertainty lives in
-    # callouts) — advisory only, exit stays 0.
+    # 14-15. drafter-contract language rules (advisory only, exit stays 0):
+    # hedge phrases in body prose; British spellings anywhere in a fragment.
     check_hedge_prose(folder, manifest, warnings)
+    check_british_spellings(folder, manifest, warnings)
 
     # report
     if errors:
