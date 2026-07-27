@@ -645,6 +645,48 @@ def test_sync_profile_is_idempotent_and_only_touches_the_derived_set(tmp_path):
     assert (area / "84_raci.md").is_file()     # scaffold never deletes
 
 
+def test_controls_homeless_render_reports_dangling_control_references(tmp_path):
+    """A profile may deliberately drop `controls` from `sections:` (the "this
+    document carries no controls" shape — sanctioned, unlike the body_omit
+    trap). A prose mention of a control id then dangles for the reader, in
+    EVERY mode, so render counts and enumerates it like final-mode gap refs."""
+    root = engagement(tmp_path)
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS
+                                  if s != "controls"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; constrained by CTRL-001."),
+        encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_ctrl_refs"] == {"bank-rec": ["CTRL-01"]}
+    assert stats["dangling_ctrl_ref_count"] == 1
+    text = rendered_text(area, "d2.docx")
+    assert "Key Controls" not in text          # the section really is gone
+    assert "CTRL-01" in text                   # ...and the prose ref dangles
+
+
+def test_controls_in_the_register_do_not_dangle(tmp_path):
+    """The register shape (body_omit + appendix-controls) gives every control
+    id a home the reader can look up, so the same prose reference is NOT
+    reported."""
+    root = engagement(tmp_path)
+    write_profile(root, body_omit=["F"],
+                  derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; constrained by CTRL-001."),
+        encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_ctrl_refs"] == {}
+    assert stats["dangling_ctrl_ref_count"] == 0
+
+
 def test_sync_profile_refuses_an_unscaffolded_area(tmp_path):
     """A fresh area has no manifest to reconcile — that is the confirm gate's
     job, and the refusal says so."""
