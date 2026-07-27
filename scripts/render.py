@@ -620,7 +620,7 @@ def _heading_for(section, numbers) -> str:
     return heading
 
 
-def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
+def render_folder(folder: Path, out: Path, *,
                   landscape: bool = False, do_cover: bool = True,
                   mode: str = "working", slugs: list[str] | None = None,
                   track_changes: bool = False, emit_signal: bool = True) -> dict:
@@ -841,7 +841,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     doc_id = uuid.uuid4().hex[:12]
     cfgi.convert_assembled(
         body_md, out, title=title, subtitle=subtitle, profile_md=profile_md,
-        include_toc=include_toc, landscape=landscape, do_cover=do_cover,
+        include_toc=not subset, landscape=landscape, do_cover=do_cover,
         prov=prov, track_changes=track_changes,
     )
     stats["docx"] = str(out)
@@ -911,7 +911,10 @@ def main(argv=None) -> int:
                     help="comma-separated procedure slugs — subset (kit) render")
     ap.add_argument("--track-changes", action="store_true",
                     help="emit the docx with tracked changes on by default")
-    ap.add_argument("--include-toc", action="store_true", help="Insert a generated Table of Contents")
+    ap.add_argument("--include-toc", action="store_true",
+                    help="single-file input only: insert a Table of Contents "
+                         "(folder renders ALWAYS carry one; kit/subset "
+                         "renders never do)")
     ap.add_argument("--landscape", action="store_true", help="Use landscape orientation")
     ap.add_argument("--no-cover", action="store_true", help="Skip the generated cover page")
     a = ap.parse_args(argv)
@@ -922,7 +925,7 @@ def main(argv=None) -> int:
     if kind == "folder":
         slugs = [s.strip() for s in a.slugs.split(",") if s.strip()] if a.slugs else None
         stats = render_folder(
-            path, out, include_toc=a.include_toc, landscape=a.landscape,
+            path, out, landscape=a.landscape,
             do_cover=do_cover, mode=a.mode, slugs=slugs,
             track_changes=a.track_changes)
         print("Wrote " + str(out))
