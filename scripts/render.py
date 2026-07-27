@@ -394,7 +394,13 @@ def _hide_callout_details(text: str) -> str:
             i += 1
             continue
         if in_callout and callouts.is_callout_field(ln, callouts.DETAIL_FIELD):
-            out[i] = ""
+            # Blank to a bare `>` — NOT to an empty line. The line count is
+            # preserved either way (provenance), but a fully blank line ends
+            # the blockquote, so the converter would split one callout into
+            # two boxes around the hidden detail (label + note above, the
+            # remaining sub-fields below, a page gap between). A bare quote
+            # marker keeps the block contiguous and renders nothing.
+            out[i] = ">"
             i += 1
             # A wrapped value continues over plain `>` lines until the next
             # sub-field bullet, the next callout, or the end of the block —
@@ -405,7 +411,7 @@ def _hide_callout_details(text: str) -> str:
                         or _CALLOUT_LABEL_RE.match(nxt)
                         or callouts.callout_field(nxt)):
                     break
-                out[i] = ""
+                out[i] = ">"
                 i += 1
             continue
         i += 1

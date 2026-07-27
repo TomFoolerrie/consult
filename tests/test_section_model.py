@@ -159,6 +159,24 @@ def test_detail_renders_only_in_the_appendix(tmp_path):
     assert "do not operate to a figure" not in log
 
 
+def test_hidden_detail_does_not_split_the_callout_box(tmp_path):
+    """Blanking `detail:` must not break the blockquote in two. Blank LINES end
+    a quote block, so blanking the detail bullet to "" rendered one callout as
+    TWO boxes — label + note above, the trailing sub-fields (Nature / Owner to
+    confirm) in a second box below, a gap between. The detail lines are blanked
+    to a bare `>` instead, and the whole callout stays one box."""
+    from docx import Document
+    a = area(tmp_path, fragment(step_body=PLAIN_STEP, gap_fields=NOTE + DETAIL))
+    out = a / "draft.docx"
+    render.render_folder(a, out, emit_signal=False)
+    boxes = [t.cell(0, 0).text for t in Document(str(out)).tables
+             if len(t.columns) == 1 and "GAP-01" in t.cell(0, 0).text]
+    assert len(boxes) == 1
+    assert "do not operate to a figure" in boxes[0]     # the note…
+    assert "Owner to confirm" in boxes[0]               # …and the tail fields
+    assert "Four accounts" not in boxes[0]              # detail still hidden
+
+
 def test_detail_absent_leaves_the_whole_body_inline(tmp_path):
     """No `detail:` → today's behavior: the register cell is the label-line text
     and nothing is withheld from the step."""
