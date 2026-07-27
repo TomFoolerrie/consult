@@ -476,11 +476,7 @@ M11 (dependency-ordered drafting waves + upstream context) — BUILT, off unless
 | M20 | Canonical rename propagation — registry `name` change → notes → drafters | M12 cannot own it: its majority rule favours the old name and its alias rule proposes no dispatch |
 | M21 | Render signal — `--mode final` stops writing `.render.json` | **BUILT.** producing the client deliverable currently re-opens the review gate and discards an `accept` |
 | M22 | **Enforce the constitution** — reconcile polices SRC- citation existence, `touches` membership, ownership markers, the H1 rule, baked display numbers, quoted callout IDs | **BUILT — all six checks.** the core invariants are currently prompt prose (audit Part 3, F12–F18); traceability is the headline claim and F14 is a live livelock. Build early — every later drafter pass gets policed by it |
-<<<<<<< HEAD
-| M23 | **Section identity by slug** — letters become a render-time display transform (registry + letterless headings + slug-keyed profiles + mechanical migration) | the thesis review's drift fix: makes M16 move 1 (and every future reshape) a registry edit + content wave instead of a recurring 15-pass re-letter |
-=======
 | M23 | **Section identity by slug** — letters become a render-time display transform (registry + letterless headings + slug-keyed profiles + mechanical migration) | **BUILT.** registry in `doc_model.py` (slug → title, frozen A–H letter aliases, one heading parser); letters stamped at render from the profile's `sections:` order; profiles/`body_omit`/home-section rules re-keyed to slugs; `scripts/migrate_sections.py` is the mechanical letter-strip. Both heading forms parse, so an unmigrated area is unaffected and the migration is never a prerequisite. the thesis review's drift fix: makes M16 move 1 (and every future reshape) a registry edit + content wave instead of a recurring 15-pass re-letter |
->>>>>>> main
 
 **Two "new input" folders, routed by folder (deterministic):** `_sources/new/`
 (raw docs) → `consult-taxonomy` (it reads them to tag `touches` + detect scope

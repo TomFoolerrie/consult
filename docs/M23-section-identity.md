@@ -1,9 +1,5 @@
 # M23 — Section identity by slug (letters become display)
 
-<<<<<<< HEAD
-> **Status: DESIGNED.** Prep for M16 move 1; makes it the LAST section
-> migration that ever costs drafter passes.
-=======
 > **Status: BUILT.** All five design points; prep for M16 move 1, which is now
 > the LAST section migration that ever costs drafter passes. Deltas from this
 > design:
@@ -52,7 +48,6 @@
 >   cannot migrate safely alone.
 >
 > Tests: `tests/test_section_identity.py` (47). Suite 555 → 602.
->>>>>>> main
 
 ## Goal
 
@@ -118,8 +113,6 @@ sections are identified by their letter — display position baked into every
   that follows this ticket.
 - Changing any section's title or count (this ticket is identity plumbing;
   the current A–H maps 1:1).
-<<<<<<< HEAD
-=======
 
 ## Transition contract (as built)
 
@@ -139,4 +132,3 @@ So migration is a tidy-up, not a gate. Run it per area when convenient:
 
 It is idempotent, touches only `role: procedure` fragments, changes nothing but
 the `X. ` prefix, and preserves line count (so M10 provenance stays aligned).
->>>>>>> main
