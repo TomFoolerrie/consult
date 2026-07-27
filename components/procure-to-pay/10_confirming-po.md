@@ -42,7 +42,7 @@ A related symptom surfaces at the receiving dock: a delivery that cannot be tied
 
 #### Step 2: Obtain justification for the purchase
 
-Written justification for the off-process purchase is obtained. The stated requirement is a written justification from the Plant Manager; in current practice an emailed justification from any requesting party is accepted (SRC-002; the enforcement drift is documented at PP-002 in H).
+Written justification for the off-process purchase is obtained. The stated requirement is a written justification from the Plant Manager; in current practice an emailed justification from any requesting party is accepted (SRC-002; the enforcement drift is documented at PP-002 in Known Issues).
 
 - **Evidence Required:** Written justification (in practice, an email); retention location TBD — confirm with process owner.
 
@@ -76,7 +76,7 @@ Once the confirming PO is available in NetSuite, the returned invoice is process
 
 #### Step 6: Log the confirming PO
 
-The Procurement Lead records the confirming PO in an informal spreadsheet. No formal metric or management reporting on confirming PO volume exists (see PP-003 in H).
+The Procurement Lead records the confirming PO in an informal spreadsheet. No formal metric or management reporting on confirming PO volume exists (see PP-003 in Known Issues).
 
 - **System / Tool:** Spreadsheet maintained by the Procurement Lead (location TBD — confirm with process owner).
 
@@ -96,7 +96,7 @@ The Procurement Lead records the confirming PO in an informal spreadsheet. No fo
 > - **Frequency:** Each confirming PO
 > - **Owner:** Procurement Lead
 
-CTRL-001 does not operate as designed in practice; see PP-002 in H.
+CTRL-001 does not operate as designed in practice; see PP-002 in Known Issues.
 
 > **CONTROL — CTRL-002:** Invoices that reference no purchase order are not processed for payment; Accounts Payable returns them to Procurement until a valid purchase order exists.
 > - **Type:** Detective

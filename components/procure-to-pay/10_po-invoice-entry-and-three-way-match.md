@@ -85,7 +85,7 @@ A bill that fails the match is flagged by NetSuite to a status of "Match Excepti
 
 ### Key Controls
 
-> **CONTROL — CTRL-001:** Three-way match: the approved purchase order, the recorded goods receipt and the supplier invoice must all be present, and agree within tolerance, before the payable is eligible for release; failed matches hold in "Match Exception - Hold" status (SRC-001; §5.2–§5.3 of the prior SOP, SRC-006). One of the three procure-to-pay controls in scope for the external audit (SRC-003). The tolerance value is contested — a validation gap is raised at Step 4 in E.
+> **CONTROL — CTRL-001:** Three-way match: the approved purchase order, the recorded goods receipt and the supplier invoice must all be present, and agree within tolerance, before the payable is eligible for release; failed matches hold in "Match Exception - Hold" status (SRC-001; §5.2–§5.3 of the prior SOP, SRC-006). One of the three procure-to-pay controls in scope for the external audit (SRC-003). The tolerance value is contested — a validation gap is raised at Step 4 in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each PO bill (system-enforced)
 > - **Owner:** Senior Accounts Payable Specialist
@@ -98,7 +98,7 @@ A bill that fails the match is flagged by NetSuite to a status of "Match Excepti
 > **CONTROL — CTRL-003:** NetSuite rejects entry of a duplicate invoice through a unique constraint on the combination of supplier identifier and supplier invoice number (§5.6 of the prior SOP, SRC-006; SRC-005).
 > - **Type:** Preventive
 > - **Frequency:** Each bill entry (system-enforced)
-> - **Owner:** TBD — confirm with process owner (a validation gap is raised at Step 2 in E)
+> - **Owner:** TBD — confirm with process owner (a validation gap is raised at Step 2 in the Procedure section)
 
 ### Known Issues & Improvement Opportunities
 

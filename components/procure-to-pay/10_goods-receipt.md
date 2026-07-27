@@ -109,7 +109,7 @@ Plant 1 follows the same dock process as Plant 2 (SRC-004). Plant 3 operates a K
 > - **Frequency:** Each delivery
 > - **Owner:** Receiver
 
-> **CONTROL — CTRL-003:** NetSuite blocks receipt of quantities above the configured over-receipt tolerance; the excess can be received only after the Buyer processes a change order (SRC-004). The tolerance values are unconfirmed — see the validation raised at the over-shipment step in E.
+> **CONTROL — CTRL-003:** NetSuite blocks receipt of quantities above the configured over-receipt tolerance; the excess can be received only after the Buyer processes a change order (SRC-004). The tolerance values are unconfirmed — see the validation raised at the over-shipment step in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each receipt (system-enforced)
 > - **Owner:** Buyer

@@ -81,12 +81,12 @@ Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state
 
 ### Key Controls
 
-> **CONTROL — CTRL-001:** Documents whose Ephesoft extraction confidence score falls below the configured threshold are routed to the manual validation queue and keyed by hand rather than auto-posting, preventing low-confidence OCR data from entering NetSuite unreviewed. The live threshold value is unconfirmed — a validation gap is raised at Step 3 in E.
+> **CONTROL — CTRL-001:** Documents whose Ephesoft extraction confidence score falls below the configured threshold are routed to the manual validation queue and keyed by hand rather than auto-posting, preventing low-confidence OCR data from entering NetSuite unreviewed. The live threshold value is unconfirmed — a validation gap is raised at Step 3 in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each document (continuous)
 > - **Owner:** Senior Accounts Payable Specialist
 
-> **CONTROL — CTRL-002:** Physical invoices received at the Company's post office box are date-stamped upon receipt and scanned to Ephesoft not later than one business day following receipt, ensuring paper invoices enter the same capture and retention path as electronic ones (§4.2 of the prior SOP, SRC-006). Current-state adherence is unverified — a validation gap is raised at Step 2 in E.
+> **CONTROL — CTRL-002:** Physical invoices received at the Company's post office box are date-stamped upon receipt and scanned to Ephesoft not later than one business day following receipt, ensuring paper invoices enter the same capture and retention path as electronic ones (§4.2 of the prior SOP, SRC-006). Current-state adherence is unverified — a validation gap is raised at Step 2 in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each paper receipt (daily mail cycle)
 > - **Owner:** Accounts Payable Clerk

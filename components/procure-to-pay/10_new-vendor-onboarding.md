@@ -113,7 +113,7 @@ sets the payment terms, and assigns the default GL coding (SRC-002). Standard
 payment terms are net 45; the Company pushes for net 60 on new suppliers
 (SRC-002). Activation is performed under the Vendor Maintenance role, which
 carries no payment permissions — the segregation-of-duties control described
-in F.
+in Key Controls.
 
 - **System / Tool:** NetSuite
 - **Fields / Parameters:** Vendor status (active); payment terms (standard net 45; net 60 targeted for new suppliers); default GL coding.
@@ -138,7 +138,7 @@ in F.
 > - **Frequency:** Each supplier onboarding
 > - **Owner:** Procurement Lead
 
-> **CONTROL — CTRL-003:** New supplier approval — every new supplier is approved in Coupa by the Procurement Lead; where expected annual spend exceeds $250,000 the Corporate Controller must co-approve (threshold unconfirmed — validation raised at the approval step in E) (SRC-002).
+> **CONTROL — CTRL-003:** New supplier approval — every new supplier is approved in Coupa by the Procurement Lead; where expected annual spend exceeds $250,000 the Corporate Controller must co-approve (threshold unconfirmed — validation raised at the approval step in the Procedure section) (SRC-002).
 > - **Type:** Preventive
 > - **Frequency:** Each new supplier
 > - **Owner:** Procurement Lead

@@ -67,7 +67,7 @@ to match invoices against — consumed downstream by [[goods-receipt]] and
 [[po-invoice-entry-and-three-way-match]] (SRC-002). The sync cadence for
 purchase orders and the failure-handling ownership were not established;
 Coupa-to-NetSuite sync failures today are resolved ad hoc, at material effort
-(see PP-002 in H) [[GAP-02 — PO SYNC CADENCE AND FAILURE OWNERSHIP]].
+(see PP-002 in Known Issues) [[GAP-02 — PO SYNC CADENCE AND FAILURE OWNERSHIP]].
 
 - **System / Tool:** Coupa → NetSuite interface
 
@@ -119,7 +119,7 @@ carrying an annual not-to-exceed value and released against by receipt
 (SRC-002). When cumulative releases reach the NTE, further releases block
 (SRC-002). A Coupa burn-down report exists for monitoring NTE consumption, but
 no one runs it on a schedule and no owner or cadence is defined — releases
-routinely block mid-year with no warning (see PP-001 in H) (SRC-002, SRC-005).
+routinely block mid-year with no warning (see PP-001 in Known Issues) (SRC-002, SRC-005).
 Who establishes a blanket purchase order, and how a blocked blanket is
 unblocked — the NTE increase path and the approval it requires — were not
 described: TBD — confirm with process owner
@@ -146,7 +146,7 @@ described: TBD — confirm with process owner
 > - **Frequency:** Each purchase order
 > - **Owner:** System-enforced in Coupa; Procurement Lead owns the process
 
-> **CONTROL — CTRL-002:** Change-order re-approval — a revision that increases the purchase order value re-routes for approval before taking effect; decreases do not re-route (routing detail contested — GAP-03 in E) (SRC-002).
+> **CONTROL — CTRL-002:** Change-order re-approval — a revision that increases the purchase order value re-routes for approval before taking effect; decreases do not re-route (routing detail contested — GAP-03 in the Procedure section) (SRC-002).
 > - **Type:** Preventive
 > - **Frequency:** Each value-increasing change order
 > - **Owner:** Requisition-chain approvers per [[requisition-and-approval]]
@@ -154,7 +154,7 @@ described: TBD — confirm with process owner
 > **CONTROL — CTRL-003:** Blanket purchase order NTE ceiling — Coupa blocks further releases once cumulative releases reach the annual not-to-exceed value (SRC-002).
 > - **Type:** Preventive
 > - **Frequency:** Each release against a blanket purchase order
-> - **Owner:** System-enforced in Coupa; monitoring owner undefined (GAP-04 in E)
+> - **Owner:** System-enforced in Coupa; monitoring owner undefined (GAP-04 in the Procedure section)
 
 ### Known Issues & Improvement Opportunities
 

@@ -85,7 +85,7 @@ Once all required approvals are recorded, the bill is fully approved in NetSuite
 
 ### Key Controls
 
-> **CONTROL — CTRL-001:** Every non-PO invoice is approved through the dollar-tiered NetSuite approval workflow before it becomes eligible for payment, beginning with the Cost Center Owner and adding senior approvers as value increases. The live tier breakpoints and approver set are contested — see GAP-01 at Step 3 in E.
+> **CONTROL — CTRL-001:** Every non-PO invoice is approved through the dollar-tiered NetSuite approval workflow before it becomes eligible for payment, beginning with the Cost Center Owner and adding senior approvers as value increases. The live tier breakpoints and approver set are contested — see GAP-01 at Step 3 in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each non-PO invoice
 > - **Owner:** Cost Center Owner (first tier); higher tiers per the configured ladder (TBD — see GAP-01)

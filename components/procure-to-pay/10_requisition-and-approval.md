@@ -66,7 +66,7 @@ services form exists specifically because this attachment is required
 (SRC-002). For any capital purchase, regardless of path, the approved AFE
 number is entered in the dedicated Coupa custom field; a capital
 requisition will not route for approval at all until the field is populated —
-the AFE gate described at CTRL-002 in F (SRC-002). How the gate is
+the AFE gate described at CTRL-002 in Key Controls (SRC-002). How the gate is
 administered is unconfirmed [[GAP-01 — AFE GATE ADMINISTRATION]].
 
 - **Fields / Parameters:** AFE number (custom field, capital requisitions); statement of work attachment (services requisitions).
@@ -80,7 +80,7 @@ administered is unconfirmed [[GAP-01 — AFE GATE ADMINISTRATION]].
 #### Step 3: Submit the requisition for approval routing
 
 On submission, Coupa builds the approval chain — the tiered requisition
-approval control described at CTRL-001 in F. The Cost Center Owner approves
+approval control described at CTRL-001 in Key Controls. The Cost Center Owner approves
 every requisition. Below $2,000, the Cost Center Owner is the only approver;
 from $2,000 to $25,000 the chain adds the Functional Vice President; above
 $25,000 it extends to the Chief Financial Officer (SRC-002). The upper
@@ -104,7 +104,7 @@ is itself contested [[GAP-03 — REQUISITION VS NON-PO LADDER]].
 
 Each approver in the chain reviews and approves the requisition within Coupa.
 Approvals frequently dwell in approver queues — the dominant share of the
-requisition-to-PO cycle time, detailed in H. Handling of a rejected or
+requisition-to-PO cycle time, detailed in Known Issues. Handling of a rejected or
 returned requisition — whether it is edited and resubmitted, and whether
 a resubmission re-routes the full chain — was not described in the sources:
 TBD — confirm with process owner [[GAP-04 — REJECTED REQUISITION HANDLING]].
@@ -127,7 +127,7 @@ generation, transmission, and subsequent change orders are documented under
 
 ### Key Controls
 
-> **CONTROL — CTRL-001:** Tiered requisition approval chain in Coupa: every requisition requires Cost Center Owner approval, with the Functional Vice President added from $2,000 and the Chief Financial Officer above $25,000 (upper threshold contested — see GAP-02 in E) (SRC-002).
+> **CONTROL — CTRL-001:** Tiered requisition approval chain in Coupa: every requisition requires Cost Center Owner approval, with the Functional Vice President added from $2,000 and the Chief Financial Officer above $25,000 (upper threshold contested — see GAP-02 in the Procedure section) (SRC-002).
 > - **Type:** Preventive
 > - **Frequency:** Each requisition
 > - **Owner:** Cost Center Owner / Functional Vice President / Chief Financial Officer, by threshold
@@ -135,7 +135,7 @@ generation, transmission, and subsequent change orders are documented under
 > **CONTROL — CTRL-002:** AFE gate on capital requisitions: Coupa will not route a capital requisition for approval unless an approved AFE number is present in the dedicated custom field (SRC-002).
 > - **Type:** Preventive
 > - **Frequency:** Each capital requisition
-> - **Owner:** System-enforced in Coupa; administering role TBD — confirm with process owner (see GAP-01 in E)
+> - **Owner:** System-enforced in Coupa; administering role TBD — confirm with process owner (see GAP-01 in the Procedure section)
 
 ### Known Issues & Improvement Opportunities
 

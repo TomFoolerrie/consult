@@ -75,7 +75,7 @@ SRC-005). The terms entered should reflect what was agreed with the supplier
 The requested change is entered on the vendor's
 NetSuite record. Additions and modifications to the supplier master record
 are restricted to holders of the Vendor Maintenance role — the
-segregation-of-duties control described in F — and the role carries no
+segregation-of-duties control described in Key Controls — and the role carries no
 payment permissions (SRC-003; §9.3 of the prior AP SOP, SRC-006). The intake,
 approval, and evidence requirements for non-banking changes were not
 established in fieldwork; the documented verification-and-approval regime
@@ -99,7 +99,7 @@ supplier master file semi-annually for inactive, duplicate and incomplete
 records and reports the results to the Corporate Controller (SRC-006).
 Fieldwork found no evidence that this review currently operates — no
 interviewee described it — and the state of the record population (see PP-001
-in H) indicates it has not been effective
+in Known Issues) indicates it has not been effective
 [[GAP-03 — SEMI-ANNUAL REVIEW]] (SRC-005).
 
 - **Evidence Required:** TBD — no reporting format or retention location is described (see GAP-03).
@@ -110,12 +110,12 @@ in H) indicates it has not been effective
 
 ### Key Controls
 
-> **CONTROL — CTRL-001:** Segregation of duties over the vendor master — additions and modifications to the supplier master record are performed only by personnel holding the Vendor Maintenance role, which must not carry payment preparation, payment approval, or banking portal entitlements (§9.3 of the prior AP SOP, SRC-006). In the current state the role is held by the Accounts Payable Clerk, who has no payment permissions in NetSuite — cannot approve a bill and cannot access the Pay Bills screen — while payment-run preparation sits with the Accounts Payable Manager and run approval and bank release with the Corporate Controller (SRC-003). This segregation is one of the three procure-to-pay controls in the external auditors' scope; known deviations from the role restriction are recorded in H (SRC-003).
+> **CONTROL — CTRL-001:** Segregation of duties over the vendor master — additions and modifications to the supplier master record are performed only by personnel holding the Vendor Maintenance role, which must not carry payment preparation, payment approval, or banking portal entitlements (§9.3 of the prior AP SOP, SRC-006). In the current state the role is held by the Accounts Payable Clerk, who has no payment permissions in NetSuite — cannot approve a bill and cannot access the Pay Bills screen — while payment-run preparation sits with the Accounts Payable Manager and run approval and bank release with the Corporate Controller (SRC-003). This segregation is one of the three procure-to-pay controls in the external auditors' scope; known deviations from the role restriction are recorded in Known Issues (SRC-003).
 > - **Type:** Preventive
 > - **Frequency:** Continuous (role-based)
 > - **Owner:** Corporate Controller
 
-> **CONTROL — CTRL-002:** Semi-annual supplier master file review — the Accounts Payable Manager reviews the supplier master file for inactive, duplicate and incomplete records and reports the results to the Corporate Controller (§9.5 of the prior AP SOP, SRC-006). No evidence that the review currently operates was identified in fieldwork; the validation is raised at Step 4 in E (SRC-005).
+> **CONTROL — CTRL-002:** Semi-annual supplier master file review — the Accounts Payable Manager reviews the supplier master file for inactive, duplicate and incomplete records and reports the results to the Corporate Controller (§9.5 of the prior AP SOP, SRC-006). No evidence that the review currently operates was identified in fieldwork; the validation is raised at Step 4 in the Procedure section (SRC-005).
 > - **Type:** Detective
 > - **Frequency:** Semi-annual (per the prior SOP; operation unconfirmed)
 > - **Owner:** Accounts Payable Manager

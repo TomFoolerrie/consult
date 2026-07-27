@@ -92,7 +92,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 > - **Frequency:** Each weekly run
 > - **Owner:** Corporate Controller
 
-> **CONTROL — CTRL-002:** ACH upload and release are segregated: the individual transmitting the file is not the individual releasing it. The Accounts Payable Manager uploads with no release entitlement; the Corporate Controller (or the Treasury Analyst as backup) releases, under separate Chase Connect user IDs with separate tokens (SRC-001; §7.3 of the prior SOP, SRC-006). The second-approver floor on the batch is contested — see GAP-03 at Step 4 in E.
+> **CONTROL — CTRL-002:** ACH upload and release are segregated: the individual transmitting the file is not the individual releasing it. The Accounts Payable Manager uploads with no release entitlement; the Corporate Controller (or the Treasury Analyst as backup) releases, under separate Chase Connect user IDs with separate tokens (SRC-001; §7.3 of the prior SOP, SRC-006). The second-approver floor on the batch is contested — see GAP-03 at Step 4 in the Procedure section.
 > - **Type:** Preventive
 > - **Frequency:** Each ACH batch
 > - **Owner:** Corporate Controller
@@ -113,7 +113,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 - **Printed checks:** roughly thirty per week, mailed to suppliers (SRC-001).
 - **Positive pay issue file:** transmitted to Chase at check print, consumed by [[positive-pay-exception-handling]] (SRC-001, SRC-003).
 - **Payment register in NetSuite:** matched against the daily Chase bank feed in the monthly bank reconciliation performed by the Assistant Controller's team (SRC-003).
-- **Evidence retained:** the approved payment proposal — evidence of approval is retained per the prior SOP (§7.2 of the prior SOP, SRC-006), but its location is unconfirmed (see GAP-02 at Step 2 in E).
+- **Evidence retained:** the approved payment proposal — evidence of approval is retained per the prior SOP (§7.2 of the prior SOP, SRC-006), but its location is unconfirmed (see GAP-02 at Step 2 in the Procedure section).
 
 ### Known Issues & Improvement Opportunities
 

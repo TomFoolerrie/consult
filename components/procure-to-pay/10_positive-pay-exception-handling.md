@@ -34,7 +34,7 @@ Exception items are reviewed in Chase Connect. Exceptions post the next business
 
 Each item is worked directly from the Chase Connect exception queue the same morning it presents, determining whether the presented check is a legitimate Company check by reference to the check issue records in NetSuite (SRC-001, SRC-003; process owner confirmation via the gap workbook).
 
-- **Evidence Required:** Chase Connect decision log entry (the sole record of the disposition — see PP-003 in H)
+- **Evidence Required:** Chase Connect decision log entry (the sole record of the disposition — see PP-003 in Known Issues)
 
 #### Step 3: Disposition pay or return by the bank deadline
 
