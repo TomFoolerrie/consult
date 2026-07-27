@@ -236,7 +236,7 @@ def define_styles(doc) -> None:
         "Heading 1": (20, PALETTE["dark_green"], True, False),
         "Heading 2": (13, PALETTE["green"], True, False),
         "Heading 3": (12, PALETTE["green"], False, True),
-        "Heading 4": (11, PALETTE["black"], True, False),
+        "Heading 4": (11, PALETTE["green"], True, False),
     }
     for name, (sz, col, b, it) in specs.items():
         st = doc.styles[name]
@@ -403,6 +403,9 @@ HEADING_RUN_FMT = {
     "Heading 1": (20, PALETTE["dark_green"], True, False),  # chapter dividers
     "Heading 2": (13, PALETTE["green"], True, False),   # size, color, bold, italic
     "Heading 3": (12, PALETTE["green"], False, True),
+    # H4 (procedure steps; appendix process buckets) was absent from this
+    # table, so its runs got the 10pt/black body default and rendered flat.
+    "Heading 4": (11, PALETTE["green"], True, False),
 }
 
 

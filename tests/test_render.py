@@ -607,6 +607,14 @@ def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
     # change alone renders 10pt black (the "flat H1" review note).
     run = h1[0].runs[0]
     assert run.font.size.pt == 20 and run.font.bold
+    # Same trap one level down: H4 (procedure steps, appendix process
+    # buckets) was absent from HEADING_RUN_FMT and rendered as flat body
+    # text (the "sub-heading visibility" review note).
+    h4 = [p for p in Document(str(out)).paragraphs
+          if p.style.name == "Heading 4"]
+    assert h4, "fixture has #### step headings"
+    run4 = h4[0].runs[0]
+    assert run4.font.size.pt == 11 and run4.font.bold
 
     # With the cover off the profile renders inline as front matter, and the
     # Introduction chapter appears above it.
