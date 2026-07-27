@@ -450,3 +450,46 @@ def test_cli_with_nothing_returned(area, capsys):
     rc = review_apply.main([str(area)])
     assert rc == 0
     assert "no reviewed documents" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- #
+# untracked edits — enforcement was lost, the sweep still catches the work
+# --------------------------------------------------------------------------- #
+
+def test_untracked_edit_is_detected_and_noted(area, returned):
+    """A reviewer whose Word was not recording (Word on the web ignores the
+    unsalted protection lock) leaves no revision marks — invisible to the
+    apply loop. The sweep compares every anchored, mark-free paragraph
+    against its map hash and preserves the edit as a note instead of letting
+    it vanish silently. Nothing is applied: with no revision marks there is
+    no reviewer-accepted text to verify against."""
+    doc = Document(str(returned))
+    untracked_replace(doc, "Download the bank statement",
+                      "from the portal", "from the treasury portal")
+    doc.save(str(returned))
+    before = (area / "bank-rec.md").read_text(encoding="utf-8")
+
+    report = apply_run(area, returned)
+    assert (area / "bank-rec.md").read_text(encoding="utf-8") == before
+    assert report["files"][0]["applied"] == 0
+    assert report["files"][0]["untracked"] == 1
+    items = load_notes(area, "bank-rec")
+    assert items[0]["type"] == "untracked-edit"
+    assert "treasury portal" in items[0]["note"]
+
+
+def test_untracked_paragraph_deletion_is_detected(area, returned):
+    """A whole anchored paragraph deleted with tracking off: its bookmark
+    vanishes from the doc while the map still lists it — reported as an
+    untracked deletion pointing back at the fragment lines that still hold
+    the text."""
+    doc = Document(str(returned))
+    p_el = find_para(doc, "Compare balances and investigate")
+    p_el.getparent().remove(p_el)
+    doc.save(str(returned))
+
+    report = apply_run(area, returned)
+    assert report["files"][0]["untracked"] == 1
+    items = load_notes(area, "bank-rec")
+    assert items[0]["type"] == "untracked-deletion"
+    assert "bank-rec.md" in items[0]["note"]
