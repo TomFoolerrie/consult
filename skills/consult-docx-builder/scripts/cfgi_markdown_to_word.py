@@ -632,6 +632,33 @@ def add_table(doc, tb: TableBlock, ctx: str = "") -> None:
 # Callouts
 # --------------------------------------------------------------------------- #
 def callout_style(text: str) -> Tuple[str, str]:
+    """Fill/text colors for one callout box, decided by its LABEL.
+
+    Only the block's first non-empty line votes, and only via the kind label
+    it OPENS with. The old whole-body keyword scan made the color depend on
+    what the prose happened to mention — a CONTROL whose owner field says
+    "see GAP-01" turned gap-yellow, because GAP outranks CONTROL in the
+    cascade — which read as random recoloring in the document. A block whose
+    head carries no known label (a free-form quote) falls back to the
+    keyword scan of the whole text, then to the green default, as before.
+    """
+    head = next((ln for ln in text.split("\n") if ln.strip()), "")
+    h = head.strip().upper().lstrip(">").strip().strip("*_ ")
+    for prefix, key in (("PAIN POINT", "pain"),
+                        ("IMPROVEMENT OPPORTUNITY", "io"),
+                        ("VALIDATION REQUIRED", "gap"),
+                        ("DECISION REQUIRED", "gap"),
+                        ("SCREENSHOT PLACEHOLDER", "screen"),
+                        ("CONTROL", "control")):
+        if h.startswith(prefix) and (len(h) == len(prefix)
+                                     or not h[len(prefix)].isalpha()):
+            return {
+                "pain": (PALETTE["light_red"], PALETTE["red"]),
+                "io": (PALETTE["io_fill"], PALETTE["io_text"]),
+                "gap": (PALETTE["light_yellow"], PALETTE["dark_green"]),
+                "screen": (PALETTE["label_gray"], PALETTE["gray_text"]),
+                "control": (PALETTE["light_green"], PALETTE["dark_green"]),
+            }[key]
     u = text.upper()
     if "PAIN POINT" in u:
         return PALETTE["light_red"], PALETTE["red"]
@@ -641,8 +668,6 @@ def callout_style(text: str) -> Tuple[str, str]:
         return PALETTE["light_yellow"], PALETTE["dark_green"]
     if "SCREENSHOT" in u or "SC-" in u:
         return PALETTE["label_gray"], PALETTE["gray_text"]
-    if "CONTROL" in u or "FUTURE" in u:
-        return PALETTE["light_green"], PALETTE["dark_green"]
     return PALETTE["light_green"], PALETTE["dark_green"]
 
 

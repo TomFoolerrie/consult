@@ -556,6 +556,29 @@ def test_column_widths_stay_positive_and_fill_usable(n):
     assert sum(widths) == usable
 
 
+def test_callout_color_comes_from_the_label_not_the_prose(tmp_path):
+    """A CONTROL whose prose cites a gap ("see GAP-07") stays control-green,
+    and a VALIDATION REQUIRED stays gap-yellow. The old whole-text keyword
+    scan recolored boxes by whatever their prose happened to mention — GAP
+    outranks CONTROL in the cascade, so control boxes turned yellow."""
+    md = tmp_path / "c.md"
+    md.write_text(
+        "# T\n\n## Key Controls\n\n"
+        "> **CONTROL — CTRL-001:** Dual approval of banking changes.\n"
+        "> - **Owner:** TBD — the performing role is contested; see GAP-07\n"
+        "\n"
+        "> **VALIDATION REQUIRED — GAP-07:** Who performs the callback.\n"
+        "> - **Owner to confirm:** Controller\n",
+        encoding="utf-8")
+    out = tmp_path / "c.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    fills = []
+    for t in Document(str(out)).tables:
+        shd = t.cell(0, 0)._tc.get_or_add_tcPr().find(qn("w:shd"))
+        fills.append(shd.get(qn("w:fill")))
+    assert fills == ["F3F8F4", "FCF7CC"]   # control green, then gap yellow
+
+
 def test_wide_raci_table_renders(tmp_path):
     """A 17-column RACI matrix converts without a width error."""
     md = tmp_path / "wide.md"
