@@ -11,7 +11,7 @@ description: >-
   (never leaving resolved-gap artifacts), producing a clean finished document each time.
   Returns a compact status; writes exactly one file (10_<slug>.md). Dispatched
   one-per-procedure, in parallel, by consult-orchestrate.
-tools: Read, Write, Bash(python3:*)
+tools: Read, Write, Grep, Glob, Bash(python3:*)
 skills: consult-drafter
 ---
 
