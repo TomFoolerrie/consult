@@ -1,4 +1,4 @@
-## Appendix C — Screenshot / Evidence Index
+## Appendix — Screenshot / Evidence Index
 
 <!-- derived: screenshot-index; writer: python -->
 

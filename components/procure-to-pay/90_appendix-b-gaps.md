@@ -1,4 +1,4 @@
-## Appendix B — Gap / Validation Log
+## Appendix — Gap / Validation Log
 
 <!-- derived: gap-log; writer: python -->
 
