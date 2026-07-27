@@ -556,6 +556,31 @@ def test_column_widths_stay_positive_and_fill_usable(n):
     assert sum(widths) == usable
 
 
+def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
+    """A folder render emits one `# {ordinal}. {Title}` divider before the
+    first procedure of each L2 bucket, plus `Reference & Appendices` before
+    the back matter — each a Heading 1 with page-break-before. Display glue
+    only: no fragment, manifest, or provenance change."""
+    area = make_area(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    h1 = [p for p in Document(str(out)).paragraphs
+          if p.style.name == "Heading 1"]
+    assert [p.text for p in h1] == ["1. Invoices", "2. Payments",
+                                    "Reference & Appendices"]
+    assert all(p.paragraph_format.page_break_before for p in h1)
+
+
+def test_subset_kit_render_has_no_dividers(tmp_path):
+    """Kit docs are lean per-owner excerpts: a chapter head over a single
+    excerpted procedure is noise, so subset renders carry no H1 at all."""
+    area = make_area(tmp_path)
+    out = tmp_path / "k.docx"
+    render.render_folder(area, out, slugs=["payment-run"], emit_signal=False)
+    assert not [p for p in Document(str(out)).paragraphs
+                if p.style.name == "Heading 1"]
+
+
 def test_callout_color_comes_from_the_label_not_the_prose(tmp_path):
     """A CONTROL whose prose cites a gap ("see GAP-07") stays control-green,
     and a VALIDATION REQUIRED stays gap-yellow. The old whole-text keyword

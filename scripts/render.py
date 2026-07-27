@@ -702,6 +702,37 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
         body_lines.append(line)
         origins.append(origin)
 
+    # L2 chapter dividers — display glue, exactly like the numbers themselves.
+    # The body gives sub-process boundaries no signal (1.3 is followed by 2.1
+    # with nothing between) while the appendix registers already group their
+    # rows by L2: the body claims a hierarchy it never shows. Before the first
+    # procedure of each bucket this emits `# {ordinal}. {Title}` — ordinal from
+    # the same l2_order index display_numbers uses, title by the same titleize
+    # rule aggregate's l2_titles applies — and one `# Reference & Appendices`
+    # before the back matter, so the TOC does not nest the registers under the
+    # last sub-process. H1 is otherwise unused in folder docs; the converter
+    # gives it a page break. Kit (subset) docs carry no dividers: a chapter
+    # head over a single excerpted procedure is noise.
+    l2_ordinal = {l2: i for i, l2 in
+                  enumerate(manifest.get("l2_order", []) or [], start=1)}
+    divider_state = {"l2": None, "in_procedures": False, "backmatter": False}
+
+    def emit_divider(section, role, slug):
+        if subset:
+            return
+        if role == "procedure":
+            divider_state["in_procedures"] = True
+            l2 = l2_of.get(slug, "")
+            if l2 and l2 != divider_state["l2"]:
+                divider_state["l2"] = l2
+                title = l2.replace("-", " ").title()
+                emit(f"# {l2_ordinal.get(l2, '')}. {title}".replace("# . ", "# "))
+                emit("")
+        elif divider_state["in_procedures"] and not divider_state["backmatter"]:
+            divider_state["backmatter"] = True
+            emit("# Reference & Appendices")
+            emit("")
+
     for section in _sections(assembled):
         role = _attr(section, "role")
         slug = _attr(section, "slug") or ""
@@ -753,6 +784,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             profile_md = body
             continue
 
+        emit_divider(section, role, slug)
         emit(f"## {_heading_for(section, numbers)}")
         emit("")
         if body.strip("\n"):
