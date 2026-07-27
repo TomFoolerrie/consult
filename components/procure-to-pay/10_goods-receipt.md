@@ -1,32 +1,30 @@
 ## Goods Receipt
 
-### Process Overview
+### Scope
 
-Goods Receipt records the physical arrival of purchased goods at the plant receiving docks and creates the NetSuite item receipt that forms the receiving leg of the three-way match. It runs continuously — each inbound carrier delivery — and is performed by Receivers under the Receiving Supervisor at each facility. Receipts are recorded against open purchase orders issued through [[po-issuance-and-change-orders]]; the resulting item receipt is what allows a supplier invoice to release through [[po-invoice-entry-and-three-way-match]], and open receipts with no bill feed the systematic month-end received-not-invoiced accrual (a Record to Report activity outside this process). Returns of damaged or incorrect goods are handled under [[return-to-vendor]], and deliveries that cannot be tied to a purchase order are resolved through [[confirming-po]]. Receipting of services (which involve no dock delivery) and Plant 3's consumption-based auto-receipt arrangement are treated as variants within the steps below, both pending validation.
+Goods Receipt covers the physical arrival of purchased goods at the plant receiving docks and the creation of the NetSuite item receipt that forms the receiving leg of the three-way match. Receipts are recorded against open purchase orders issued through [[po-issuance-and-change-orders]]; the resulting item receipt is what allows a supplier invoice to release through [[po-invoice-entry-and-three-way-match]], and open receipts with no bill feed the systematic month-end received-not-invoiced accrual (a Record to Report activity outside this process). Returns of damaged or incorrect goods are handled under [[return-to-vendor]], and deliveries that cannot be tied to a purchase order are resolved through [[confirming-po]]. Receipting of services (which involve no dock delivery) and Plant 3's consumption-based auto-receipt arrangement are treated as variants within the steps below, both pending validation.
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** An inbound carrier delivery at a plant receiving dock (SRC-004).
-- **Frequency:** Daily; each delivery, across two receiving shifts (SRC-004).
-- **Preparer:** Receiver.
-- **Reviewer:** No formal per-receipt review was identified; the Receiving Supervisor provides supervisory oversight and handles discrepancy resolution (SRC-004).
-- **Primary systems / tools:** NetSuite (Receive Orders).
-- **Key outputs:** NetSuite item receipt; annotated bill of lading for shortage/damage exceptions; filed packing slip.
+| Field | Value |
+|---|---|
+| Trigger | An inbound carrier delivery at a plant receiving dock (SRC-004) |
+| Frequency | Daily; each delivery, across two receiving shifts (SRC-004) |
+| Preparer | Receiver |
+| Reviewer | None per receipt; the Receiving Supervisor provides supervisory oversight and handles discrepancy resolution (SRC-004) |
+| Systems | NetSuite (Receive Orders) |
+| Key inputs | Bill of lading; packing slip; open purchase order in NetSuite |
+| Key outputs | NetSuite item receipt; annotated bill of lading for shortage/damage exceptions; filed packing slip |
 
-### Pre-Requisites
+### Before You Start
 
-- An approved, open purchase order exists in NetSuite for the goods being delivered — issued via [[po-issuance-and-change-orders]]; purchase orders originate in Coupa and reach NetSuite on the nightly sync (SRC-005).
-- Receiving staff hold NetSuite access to the Receive Orders function (SRC-004).
-- The delivery is accompanied by a bill of lading and, in most cases, a packing slip bearing the purchase order number (SRC-004).
+- **Open purchase order** — [[po-issuance-and-change-orders]]; approved and open in NetSuite for the goods being delivered (purchase orders originate in Coupa and reach NetSuite on the nightly sync) (SRC-005).
+- **Bill of lading** — presented by the carrier's driver at delivery; accompanies every delivery (SRC-004).
+- **Packing slip** — supplied with the shipment in most cases, bearing the purchase order number; the primary means of identifying the purchase order (SRC-004).
+- **NetSuite Receive Orders access** — held by receiving staff (SRC-004).
+- **Quantity-discrepancy inquiries** — raised by Accounts Payable from the match-exception queue in [[po-invoice-entry-and-three-way-match]] (SRC-001).
 
-### Inputs
-
-- **Bill of lading:** presented by the carrier's driver at delivery (SRC-004).
-- **Packing slip:** supplied with the shipment; the primary means of identifying the purchase order (SRC-004).
-- **Open purchase order:** held in NetSuite, from [[po-issuance-and-change-orders]].
-- **Quantity-discrepancy inquiries:** raised by Accounts Payable from the match-exception queue in [[po-invoice-entry-and-three-way-match]] (SRC-001).
-
-### Step-by-Step Procedure
+### Procedure
 
 The steps below reflect the documented walkthrough of the Plant 2 receiving dock (SRC-004). Plant 1 follows the same flow; Plant 3 differences are covered in Step 7.
 
@@ -121,12 +119,12 @@ Plant 1 follows the same dock process as Plant 2 (SRC-004). Plant 3 operates a K
 > - **Frequency:** Per quantity match exception
 > - **Owner:** Receiving Supervisor
 
-### Outputs
+### Outputs & Evidence
 
 - **Item receipt (NetSuite):** the receiving leg of the three-way match, consumed by [[po-invoice-entry-and-three-way-match]]; open receipts with no bill also drive the systematic month-end received-not-invoiced accrual taken from a NetSuite saved search (a Record to Report activity) (SRC-005, SRC-006).
 - **Annotated bill of lading:** documents shortage and damage exceptions, signed by the carrier's driver; a copy is retained and scanned (SRC-004).
 - **Labeled, put-away inventory:** inventory items are labeled at receipt and put away by location (SRC-004).
-- **Evidence retained:** the NetSuite item receipt; annotated bill of lading copies; paper packing slips filed by month in the receiving office (retention as described in E) (SRC-004).
+- **Evidence retained:** the NetSuite item receipt; annotated bill of lading copies; paper packing slips filed by month in the receiving office (retention as described at Step 5) (SRC-004).
 
 ### Known Issues & Improvement Opportunities
 

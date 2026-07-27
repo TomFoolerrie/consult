@@ -1,31 +1,31 @@
 ## Invoice Intake and Capture
 
-### Process Overview
+### Scope
 
-This procedure covers the receipt and digital capture of supplier invoices — from arrival in the AP Inbox (ap-invoices@) or as paper mail at the Company's post office box, through header-data extraction in Ephesoft, to the creation of a bill in a pending state in NetSuite. It runs daily: the Accounts Payable Clerk triages the mailbox and scans paper receipts, and the Senior Accounts Payable Specialist keys the documents that fail automated extraction. Suppliers are directed to the AP Inbox by the purchase order terms and conditions issued in [[po-issuance-and-change-orders]]. Captured bills flow downstream for entry and matching in [[po-invoice-entry-and-three-way-match]] and for coding and approval in [[non-po-invoice-entry-and-approval]]; this procedure ends once the pending bill exists in NetSuite. Payroll disbursements, intercompany settlements, and employee expense reimbursements (handled in Concur under a separate Travel & Expense function) are excluded (§1.2 of the prior SOP, SRC-006).
+This procedure covers the receipt and digital capture of supplier invoices — from arrival by email or as paper mail, through automated header-data extraction, to the creation of a bill in a pending state in the accounting system. Suppliers are directed to the AP Inbox by the purchase order terms and conditions issued in [[po-issuance-and-change-orders]]. Captured bills flow downstream for entry and matching in [[po-invoice-entry-and-three-way-match]] and for coding and approval in [[non-po-invoice-entry-and-approval]]; this procedure ends once the pending bill exists in NetSuite. Payroll disbursements, intercompany settlements, and employee expense reimbursements (handled in Concur under a separate Travel & Expense function) are excluded (§1.2 of the prior SOP, SRC-006).
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** Receipt of a supplier invoice — by email to the AP Inbox (ap-invoices@) or by paper mail to the Company's post office box (SRC-001)
-- **Frequency:** Daily (mailbox triaged each business day; paper mail scanned as received)
-- **Preparer:** Accounts Payable Clerk (mailbox triage, scanning, first-pass validation); Senior Accounts Payable Specialist (manual validation keying)
-- **Reviewer:** None at intake — captured bills are reviewed downstream during invoice entry
-- **Primary systems / tools:** AP Inbox (ap-invoices@); Ephesoft; NetSuite
-- **Key outputs:** NetSuite bill in a pending state with the invoice image attached, visible on the "AP - Bills Pending Review" saved search
+| Field | Value |
+|---|---|
+| Trigger | Receipt of a supplier invoice — by email to the AP Inbox (ap-invoices@) or by paper mail to the Company's post office box (SRC-001) |
+| Frequency | Daily (mailbox triaged each business day; paper mail scanned as received) |
+| Preparer | Accounts Payable Clerk (mailbox triage, scanning, first-pass validation); Senior Accounts Payable Specialist (manual validation keying) |
+| Reviewer | None at intake — captured bills are reviewed downstream during invoice entry |
+| Systems | AP Inbox (ap-invoices@); Ephesoft; NetSuite |
+| Key inputs | Supplier invoices, received by email or in paper form |
+| Key outputs | NetSuite bill in a pending state with the invoice image attached, visible on the "AP - Bills Pending Review" saved search |
 
-### Pre-Requisites
+### Before You Start
 
-- Suppliers have been directed to submit invoices to the AP Inbox through the purchase order terms and conditions (§4.1 of the prior SOP, SRC-006).
-- The Accounts Payable Clerk and Senior Accounts Payable Specialist have access to the AP Inbox and to the Ephesoft validation queue (SRC-001).
-- Scanning capability is available to digitize paper invoices (SRC-001).
-- The Ephesoft-to-NetSuite integration is operating, so captured documents post as pending bills (SRC-001).
+- **Supplier invoices received by email** — sent by the Supplier to the AP Inbox (ap-invoices@); roughly ninety percent or more of invoice volume arrives this way (SRC-001).
+- **Supplier invoices received in paper form** — sent by the Supplier to the Company's post office box; approximately forty to fifty pieces per week (SRC-001).
+- **Purchase order terms and conditions** — issued in [[po-issuance-and-change-orders]]; must direct suppliers to submit invoices to the AP Inbox (§4.1 of the prior SOP, SRC-006).
+- **AP Inbox and Ephesoft validation queue access** — held by the Accounts Payable Clerk and Senior Accounts Payable Specialist (SRC-001).
+- **Scanning capability** — available to digitize paper invoices (SRC-001).
+- **Ephesoft-to-NetSuite integration** — operating, so captured documents post as pending bills (SRC-001).
 
-### Inputs
-
-- **Supplier invoices received by email:** sent by the Supplier to the AP Inbox (ap-invoices@); roughly ninety percent or more of invoice volume arrives this way (SRC-001).
-- **Supplier invoices received in paper form:** sent by the Supplier to the Company's post office box; approximately forty to fifty pieces per week (SRC-001).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Triage the AP Inbox
 
@@ -74,6 +74,11 @@ Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** A captured bill in NetSuite in a pending state with the invoice image attached — validates the Ephesoft-to-NetSuite hand-off and the image attachment.
 
+### Outputs & Evidence
+
+- **Pending bill in NetSuite:** one bill in a pending state per captured invoice, consumed downstream through the "AP - Bills Pending Review" saved search by [[po-invoice-entry-and-three-way-match]] and [[non-po-invoice-entry-and-approval]].
+- **Evidence retained:** the original invoice image, attached to the resulting NetSuite bill and retained for not less than seven years (§4.5 of the prior SOP, SRC-006; attachment practice confirmed in fieldwork, SRC-005).
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** Documents whose Ephesoft extraction confidence score falls below the configured threshold are routed to the manual validation queue and keyed by hand rather than auto-posting, preventing low-confidence OCR data from entering NetSuite unreviewed. The live threshold value is unconfirmed — a validation gap is raised at Step 3 in E.
@@ -85,11 +90,6 @@ Ephesoft pushes each captured invoice into NetSuite as a bill in a pending state
 > - **Type:** Preventive
 > - **Frequency:** Each paper receipt (daily mail cycle)
 > - **Owner:** Accounts Payable Clerk
-
-### Outputs
-
-- **Pending bill in NetSuite:** one bill in a pending state per captured invoice, consumed downstream through the "AP - Bills Pending Review" saved search by [[po-invoice-entry-and-three-way-match]] and [[non-po-invoice-entry-and-approval]].
-- **Evidence retained:** the original invoice image, attached to the resulting NetSuite bill and retained for not less than seven years (§4.5 of the prior SOP, SRC-006; attachment practice confirmed in fieldwork, SRC-005).
 
 ### Known Issues & Improvement Opportunities
 

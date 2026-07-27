@@ -1,31 +1,29 @@
 ## Vendor Banking Change
 
-### Process Overview
+### Scope
 
-This procedure governs changes to an existing supplier's remittance (remit-to) banking details on the NetSuite vendor master — the record every subsequent disbursement pays against. It is event-driven: it runs when a supplier requests a banking change, typically by email to Accounts Payable (SRC-002). Before a change takes effect, the request must be verified by telephone callback to a contact number already held on the vendor record — never one supplied in the request — with the verification documented on the record and the change approved by a second person (SRC-003). Which role performs the callback is contested across the sources and is raised for validation at the callback step (GAP-01). Upstream, initial banking details are captured through supplier self-registration during [[new-vendor-onboarding]], and broader stewardship of the vendor record sits with [[vendor-master-data-maintenance]]; downstream, [[weekly-payment-run]] and [[wire-and-manual-payment]] disburse to whatever details this procedure has made active.
+This procedure governs changes to an existing supplier's remittance (remit-to) banking details on the NetSuite vendor master — the record every subsequent disbursement pays against (SRC-002). It covers verification, entry, and approval of a requested change; it does not cover initial capture of banking details, which happens through supplier self-registration during [[new-vendor-onboarding]]. Broader stewardship of the vendor record sits with [[vendor-master-data-maintenance]]. Downstream, [[weekly-payment-run]] and [[wire-and-manual-payment]] disburse to whatever details this procedure has made active.
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** A supplier requests a change to its remittance banking details, typically by email stating it has changed banks (SRC-002).
-- **Frequency:** Ad hoc — on supplier request; volume is not quantified in the sources.
-- **Preparer:** TBD — the sources conflict on who performs the callback and the change (see GAP-01).
-- **Reviewer:** TBD — a second person must approve the change before it goes active; the approver's identity is unconfirmed (SRC-003; see GAP-02).
-- **Primary systems / tools:** NetSuite (vendor master); telephone callback; Coupa (supplier record — see GAP-04).
-- **Key outputs:** Updated remit-to banking details on the NetSuite vendor record; documented callback verification (note plus attachment); second-person approval.
+| Field | Value |
+|---|---|
+| Trigger | A supplier requests a change to its remittance banking details, typically by email stating it has changed banks (SRC-002) |
+| Frequency | Ad hoc — on supplier request; volume is not quantified in the sources |
+| Preparer | TBD — the sources conflict on who performs the callback and the change (see GAP-01) |
+| Reviewer | TBD — a second person must approve the change before it goes active; the approver's identity is unconfirmed (SRC-003; see GAP-02) |
+| Systems | NetSuite (vendor master); telephone callback; Coupa (supplier record — see GAP-04) |
+| Key inputs | Banking-change request; callback contact number from the vendor record; confirmed banking details from the callback |
+| Key outputs | Updated remit-to banking details on the NetSuite vendor record; documented callback verification (note plus attachment); second-person approval |
 
-### Pre-Requisites
+### Before You Start
 
-- The supplier exists as an active record on the NetSuite vendor master; its initial banking details were captured through supplier self-registration in Coupa during [[new-vendor-onboarding]] (SRC-002).
-- A supplier contact telephone number, independent of the change request, is already held on the NetSuite vendor record (SRC-003).
-- The person entering the change holds the Vendor Maintenance role in NetSuite (SRC-003; §9.3 of the prior AP SOP, SRC-006).
+- **Banking-change request** — the supplier's request to change its remittance banking details, typically received by email into Accounts Payable; treated as unverified, including any contact details it offers, until the callback is complete (SRC-002).
+- **NetSuite vendor record** — the supplier exists as an active record on the NetSuite vendor master, its initial banking details captured through supplier self-registration in Coupa during [[new-vendor-onboarding]] (SRC-002); it must already hold a supplier contact telephone number independent of the change request — the callback number comes from this record, never from the request (SRC-003; §9.4 of the prior AP SOP, SRC-006).
+- **Vendor Maintenance role access** — the person entering the change holds the Vendor Maintenance role in NetSuite (SRC-003; §9.3 of the prior AP SOP, SRC-006).
+- **Confirmed banking details** — the new remittance details as confirmed directly with the supplier during the callback (SRC-003).
 
-### Inputs
-
-- **Banking-change request:** the supplier's request to change its remittance banking details, typically received by email into Accounts Payable — source: the supplier (SRC-002).
-- **Callback contact number:** the telephone number already held on the supplier's NetSuite vendor record — sourced from the vendor master record, never from the change request (SRC-003; §9.4 of the prior AP SOP, SRC-006).
-- **Confirmed banking details:** the new remittance details as confirmed directly with the supplier during the callback (SRC-003).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Receive the banking-change request
 
@@ -81,6 +79,13 @@ A second person approves the banking change before it becomes active on the vend
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** The NetSuite vendor record after approval, showing the active remit-to banking details; must validate that the active details match those confirmed on the callback.
 
+### Outputs & Evidence
+
+- **Updated remit-to banking details** on the supplier's NetSuite vendor record — consumed downstream by [[weekly-payment-run]] and [[wire-and-manual-payment]], which disburse to the details held on the record (SRC-002, SRC-003).
+- **Callback verification evidence** — note plus attachment retained on the NetSuite vendor record (SRC-003, SRC-005).
+- **Second-person approval** of the change — the form and retention location of the approval evidence are TBD (see GAP-02).
+- **Evidence retained:** the callback note and attachment on the vendor record (SRC-003, SRC-005); approval evidence TBD — confirm with process owner.
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** Callback verification of every supplier banking-change request against a contact number already held on the vendor master record — never a number supplied in the request — documented with date, time, person spoken to, and details confirmed (SRC-003; §9.4 of the prior AP SOP, SRC-006).
@@ -97,13 +102,6 @@ A second person approves the banking change before it becomes active on the vend
 > - **Type:** Preventive
 > - **Frequency:** Continuous — role-based access restriction
 > - **Owner:** Corporate Controller
-
-### Outputs
-
-- **Updated remit-to banking details** on the supplier's NetSuite vendor record — consumed downstream by [[weekly-payment-run]] and [[wire-and-manual-payment]], which disburse to the details held on the record (SRC-002, SRC-003).
-- **Callback verification evidence** — note plus attachment retained on the NetSuite vendor record (SRC-003, SRC-005).
-- **Second-person approval** of the change — the form and retention location of the approval evidence are TBD (see GAP-02).
-- **Evidence retained:** the callback note and attachment on the vendor record (SRC-003, SRC-005); approval evidence TBD — confirm with process owner.
 
 ### Known Issues & Improvement Opportunities
 

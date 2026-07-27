@@ -2,33 +2,32 @@
 
 <!-- scope note: covers variants — ACH payment run (NACHA file upload and release); Check run (MICR print and positive pay issue file). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### Process Overview
+### Scope
 
-This procedure covers the Company's weekly disbursement cycle: the Accounts Payable Manager builds a payment proposal in NetSuite from bills released through [[po-invoice-entry-and-three-way-match]] and approved through [[non-po-invoice-entry-and-approval]], the Corporate Controller reviews and approves the proposal, and payment is executed in two variants — an ACH batch (NACHA file) uploaded to and released in Chase Connect, and a check run printed on the MICR printer with a positive pay issue file transmitted to the bank. Dual authorization on outbound funds is one of the three procure-to-pay controls in scope for the external audit (SRC-003). Wire transfers and manually issued checks are excluded — see [[wire-and-manual-payment]] — as is the disposition of positive pay exceptions, handled in [[positive-pay-exception-handling]].
+This procedure covers the Company's weekly disbursement cycle, from payment proposal through review and approval to payment execution in two variants — an ACH batch (NACHA file) and a check run with a positive pay issue file transmitted to the bank. Bills enter the run released through [[po-invoice-entry-and-three-way-match]] and approved through [[non-po-invoice-entry-and-approval]]. Wire transfers and manually issued checks are excluded — see [[wire-and-manual-payment]] — as is the disposition of positive pay exceptions, handled in [[positive-pay-exception-handling]].
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** The weekly disbursement cycle — the Company executes one payment run per week (§7.1 of the prior SOP, SRC-006; SRC-001)
-- **Frequency:** Weekly — proposal built Wednesday afternoon, reviewed and released Thursday (SRC-001; calendar confirmed with the AP team during gap review)
-- **Preparer:** Accounts Payable Manager (SRC-001; §7.2 of the prior SOP, SRC-006)
-- **Reviewer:** Corporate Controller — reviews and approves the proposal prior to file generation (SRC-001, SRC-003)
-- **Primary systems / tools:** NetSuite (Pay Bills, check print, positive pay issue file); Chase Connect (ACH upload and release); Excel for the proposal review
-- **Key outputs:** Released ACH (NACHA) batch; printed checks; positive pay issue file; approved payment proposal
+| Field | Value |
+|---|---|
+| Trigger | The weekly disbursement cycle — one payment run per week (§7.1 of the prior SOP, SRC-006; SRC-001) |
+| Frequency | Weekly — proposal built Wednesday afternoon, reviewed and released Thursday (SRC-001; calendar confirmed with the AP team during gap review) |
+| Preparer | Accounts Payable Manager (SRC-001; §7.2 of the prior SOP, SRC-006) |
+| Reviewer | Corporate Controller (SRC-001, SRC-003) |
+| Systems | NetSuite (Pay Bills, check print, positive pay issue file); Chase Connect (ACH upload and release); Excel (proposal review); MICR printer (check print) |
+| Key inputs | Open payables in NetSuite; expiring early-payment discount data; payment proposal export (Excel) (SRC-001) |
+| Key outputs | Released ACH (NACHA) batch; printed checks; positive pay issue file; approved payment proposal |
 
-### Pre-Requisites
+### Before You Start
 
-- Bills eligible for payment exist in NetSuite: PO bills matched and released through [[po-invoice-entry-and-three-way-match]], and non-PO bills carrying all required approvals from [[non-po-invoice-entry-and-approval]] (SRC-001).
-- The Accounts Payable Manager holds NetSuite access to the Pay Bills function but holds no vendor edit rights and no bank release entitlement (SRC-003).
-- Release entitlement in Chase Connect is held by the Corporate Controller and, as backup, the Treasury Analyst — under separate user IDs with separate tokens from the uploading user (SRC-001).
-- For the check variant: blank check stock is available in the locked drawer in the AP room and the signature plate is in the safe, whose combination is held only by the Accounts Payable Manager and the Corporate Controller (SRC-001).
+- **Open payables in NetSuite** — PO bills matched and released through [[po-invoice-entry-and-three-way-match]] and non-PO bills carrying all required approvals from [[non-po-invoice-entry-and-approval]]; selected by due date (SRC-001).
+- **Early-payment discount data** — bills whose discount is about to expire, pulled into the proposal alongside those coming due (SRC-001).
+- **Payment proposal export (Excel)** — the working file the Accounts Payable Manager scrubs and the Corporate Controller reviews (SRC-001).
+- **NetSuite Pay Bills access** — held by the Accounts Payable Manager, with no vendor edit rights and no bank release entitlement (SRC-003).
+- **Chase Connect release entitlement** — held by the Corporate Controller and, as backup, the Treasury Analyst, under separate user IDs with separate tokens from the uploading user (SRC-001).
+- **Blank check stock and signature plate** (check variant) — stock available in the locked drawer in the AP room; signature plate in the safe, whose combination is held only by the Accounts Payable Manager and the Corporate Controller (SRC-001).
 
-### Inputs
-
-- **Open payables in NetSuite:** released PO bills and fully approved non-PO bills, selected by due date (SRC-001).
-- **Early-payment discount data:** bills whose discount is about to expire are pulled into the proposal alongside those coming due (SRC-001).
-- **Payment proposal export (Excel):** the working file the Accounts Payable Manager scrubs and the Corporate Controller reviews (SRC-001).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Build the payment proposal
 
@@ -108,7 +107,7 @@ Manual checks outside this run are issued only in exceptional circumstances with
 > - **Frequency:** Each check run
 > - **Owner:** Accounts Payable Manager
 
-### Outputs
+### Outputs & Evidence
 
 - **Released ACH (NACHA) batch in Chase Connect:** the week's electronic disbursements (SRC-001).
 - **Printed checks:** roughly thirty per week, mailed to suppliers (SRC-001).

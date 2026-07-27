@@ -2,47 +2,43 @@
 
 <!-- scope note: covers variants — Catalog / punchout requisition; Non-catalog free-text requisition; Services requisition (statement of work required). Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### Process Overview
+### Scope
 
 Requisition and Approval is the entry point for all purchase-order-backed
-spend: a Requester raises a requisition in Coupa, and the requisition routes
-through Coupa's tiered approval chains until it is fully approved (SRC-002).
-The procedure runs ad hoc, whenever goods or services are needed from a
-supplier that is already active in Coupa and NetSuite; a supplier not yet on
-file must first complete [[new-vendor-onboarding]]. Three request paths are
-covered as variants of one flow: catalog / punchout requisitions, non-catalog
-free-text requisitions, and services requisitions, which require a statement of
-work (SRC-002). Purchases made outside this procedure — vendor call-outs
-invoiced without a purchase order — are regularized after the fact under
+spend: it covers raising a requisition and carrying it through to full
+approval (SRC-002). Three request paths are covered as variants of one flow:
+catalog / punchout requisitions, non-catalog free-text requisitions, and
+services requisitions, which require a statement of work (SRC-002). It
+excludes purchases made outside this procedure — vendor call-outs invoiced
+without a purchase order are regularized after the fact under
 [[confirming-po]], and non-PO invoice spend follows a separate approval ladder
-under [[non-po-invoice-entry-and-approval]]. Downstream, the fully approved
-requisition triggers [[po-issuance-and-change-orders]], where Coupa generates
-and transmits the purchase order.
+under [[non-po-invoice-entry-and-approval]]. A supplier not yet on file must
+first complete [[new-vendor-onboarding]]. Downstream, the fully approved
+requisition triggers [[po-issuance-and-change-orders]], where the purchase
+order is generated and transmitted.
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** A Requester needs goods or services from a supplier that is active in Coupa (SRC-002).
-- **Frequency:** Ad hoc — continuous, on demand.
-- **Preparer:** Requester.
-- **Reviewer:** Cost Center Owner (every requisition); Functional Vice President and Chief Financial Officer added by dollar threshold (SRC-002).
-- **Primary systems / tools:** Coupa.
-- **Key outputs:** Fully approved requisition in Coupa, ready for purchase order generation.
+| Field | Value |
+|---|---|
+| Trigger | A Requester needs goods or services from a supplier that is active in Coupa (SRC-002). |
+| Frequency | Ad hoc — continuous, on demand. |
+| Preparer | Requester. |
+| Reviewer | Cost Center Owner (every requisition); Functional Vice President and Chief Financial Officer added by dollar threshold (SRC-002). |
+| Systems | Coupa. |
+| Key inputs | Requirement details; hosted catalog / punchout content (catalog path); statement of work (services); approved AFE number (capital). |
+| Key outputs | Fully approved requisition in Coupa, ready for purchase order generation. |
 
-### Pre-Requisites
+### Before You Start
 
-- The supplier exists and is active in Coupa and NetSuite; a supplier not on file must first complete [[new-vendor-onboarding]] (SRC-002).
-- The Requester has access to Coupa to raise the requisition.
-- For a services requisition: a statement of work is prepared and available to attach (SRC-002).
-- For a capital requisition: an approved AFE (Authorization for Expenditure) number has been issued (SRC-002).
+- **Supplier record** — active in Coupa and NetSuite; a supplier not on file must first complete [[new-vendor-onboarding]] (SRC-002).
+- **Coupa access** — the Requester has access to Coupa to raise the requisition.
+- **Requirement details** — description, quantity, and supplier for the goods or services needed; from the Requester.
+- **Hosted catalog / punchout content** — supplier-maintained catalog items and pricing; used on the catalog path (SRC-002).
+- **Statement of work** — services requisitions only; prepared and available to attach (SRC-002).
+- **Approved AFE (Authorization for Expenditure) number** — capital requisitions only; issued before the requisition is raised (SRC-002). AFE issuance itself sits outside this procedure and was not described in the sources.
 
-### Inputs
-
-- **Requirement details:** description, quantity, and supplier for the goods or services needed — from the Requester.
-- **Hosted catalog / punchout content:** supplier-maintained catalog items and pricing, used on the catalog path (SRC-002).
-- **Statement of work:** services requisitions only; attached by the Requester (SRC-002).
-- **Approved AFE number:** capital requisitions only (SRC-002). AFE issuance itself sits outside this procedure and was not described in the sources.
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Initiate the requisition and select the request path
 
@@ -124,6 +120,11 @@ Coupa, and Coupa generates and transmits the purchase order. Purchase order
 generation, transmission, and subsequent change orders are documented under
 [[po-issuance-and-change-orders]] (SRC-002).
 
+### Outputs & Evidence
+
+- **Fully approved requisition (Coupa):** consumed by [[po-issuance-and-change-orders]], where Coupa generates and transmits the purchase order (SRC-002).
+- **Evidence retained:** the requisition record and its approval history in Coupa, where all approvals are executed (SRC-002); no separate archive location was described in the sources.
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** Tiered requisition approval chain in Coupa: every requisition requires Cost Center Owner approval, with the Functional Vice President added from $2,000 and the Chief Financial Officer above $25,000 (upper threshold contested — see GAP-02 in E) (SRC-002).
@@ -135,11 +136,6 @@ generation, transmission, and subsequent change orders are documented under
 > - **Type:** Preventive
 > - **Frequency:** Each capital requisition
 > - **Owner:** System-enforced in Coupa; administering role TBD — confirm with process owner (see GAP-01 in E)
-
-### Outputs
-
-- **Fully approved requisition (Coupa):** consumed by [[po-issuance-and-change-orders]], where Coupa generates and transmits the purchase order (SRC-002).
-- **Evidence retained:** the requisition record and its approval history in Coupa, where all approvals are executed (SRC-002); no separate archive location was described in the sources.
 
 ### Known Issues & Improvement Opportunities
 

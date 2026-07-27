@@ -2,35 +2,33 @@
 
 <!-- scope note: covers variants — Wire transfer; Manual / emergency check. Document the shared flow once; branch at the step(s) where the variants diverge. -->
 
-### Process Overview
+### Scope
 
-This procedure covers the two disbursement paths that run outside the weekly ACH and check cycle documented in [[weekly-payment-run]]: wire transfers and manual (emergency) checks. Wires — approximately eight to ten per month, chiefly to overseas tooling suppliers and one German bearing supplier — are initiated by the Treasury Analyst in Chase Connect on the strength of a signed Wire Transfer Request Form and are subject to dual authorization in the portal regardless of value (SRC-001, SRC-003). Manual checks are permitted only in exceptional circumstances with the written authorization of the Corporate Controller, per §7.5 of the prior AP SOP (SRC-006); no interviewee described one being issued, and the current-state practice is raised for validation in this procedure. Upstream, the procedure disburses against supplier obligations, paying to remittance details maintained through [[vendor-banking-change]]; downstream, any check issued feeds the positive pay cycle in [[positive-pay-exception-handling]], and all disbursements clear through the monthly bank reconciliation performed by the Assistant Controller (SRC-003). It excludes the routine weekly disbursement cycle and employee expense reimbursements, which pay through the payroll ACH file from a separate bank account (SRC-003).
+This procedure covers the two disbursement paths that run outside the weekly ACH and check cycle documented in [[weekly-payment-run]]: wire transfers — chiefly to overseas tooling suppliers and one German bearing supplier, for whom wires are the standing payment method (SRC-001) — and manual (emergency) checks, a policy-defined path whose current-state operation is raised for validation in this procedure (SRC-006). It excludes the routine weekly disbursement cycle and employee expense reimbursements, which pay through the payroll ACH file from a separate bank account (SRC-003). Upstream, disbursements pay to remittance details maintained through [[vendor-banking-change]]; downstream, any check issued feeds the positive pay cycle in [[positive-pay-exception-handling]], and all disbursements clear through the monthly bank reconciliation (SRC-003).
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** Wire — receipt of a completed Wire Transfer Request Form signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006). Manual check — an exceptional circumstance authorized in writing by the Corporate Controller (§7.5 of the prior AP SOP, SRC-006).
-- **Frequency:** Wires — approximately eight to ten per month (SRC-001, SRC-005). Manual checks — TBD; no occurrence was described during fieldwork (SRC-005).
-- **Preparer:** Treasury Analyst (wire entry in Chase Connect) (SRC-001, SRC-005). Manual check — TBD; no preparer was identified (SRC-005; see GAP-03).
-- **Reviewer:** Corporate Controller or Chief Financial Officer (wire approval in Chase Connect) (SRC-001); Corporate Controller (written authorization of manual checks) (SRC-006).
-- **Primary systems / tools:** Chase Connect; Finance Shared Drive; NetSuite (positive pay issue file at check print).
-- **Key outputs:** Executed wire transfer; issued manual check; positive pay issue file on each check issuance date; retained signed Wire Transfer Request Form.
+| Field | Value |
+|---|---|
+| Trigger | Wire — receipt of a completed Wire Transfer Request Form signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006). Manual check — an exceptional circumstance authorized in writing by the Corporate Controller (§7.5 of the prior AP SOP, SRC-006). |
+| Frequency | Wires — approximately eight to ten per month (SRC-001, SRC-005). Manual checks — TBD; no occurrence was described during fieldwork (SRC-005). |
+| Preparer | Treasury Analyst (wire entry in Chase Connect) (SRC-001, SRC-005). Manual check — TBD; no preparer was identified (SRC-005; see GAP-03). |
+| Reviewer | Corporate Controller or Chief Financial Officer (wire approval in Chase Connect) (SRC-001); Corporate Controller (written authorization of manual checks) (SRC-006). |
+| Systems | Chase Connect; Finance Shared Drive; NetSuite (positive pay issue file at check print). |
+| Key inputs | Signed Wire Transfer Request Form; beneficiary banking details; written Corporate Controller authorization, blank check stock and signature plate (manual check). |
+| Key outputs | Executed wire transfer; issued manual check; positive pay issue file on each check issuance date; retained signed Wire Transfer Request Form. |
 
-### Pre-Requisites
+### Before You Start
 
-- A supplier payment is to be made outside the weekly disbursement cycle in [[weekly-payment-run]] — in practice, wires are the standing payment method for overseas suppliers (SRC-001).
-- The supplier exists on the NetSuite vendor master with remittance details maintained through [[vendor-banking-change]] (SRC-003).
-- The Wire Transfer Request Form template is available on the Finance Shared Drive under Finance/Treasury/Forms (SRC-001, SRC-005).
-- The Treasury Analyst holds wire-initiation entitlement in Chase Connect, and the Corporate Controller and Chief Financial Officer hold portal approval entitlements (SRC-001).
-- For a manual check: the written authorization of the Corporate Controller has been obtained, and access to the blank check stock (locked drawer in the AP room) and the check signature plate (safe) is available (SRC-001; §7.5 of the prior AP SOP, SRC-006).
+- **Signed Wire Transfer Request Form** — PDF template held on the Finance Shared Drive under Finance/Treasury/Forms; must be completed, signed by the requester, and countersigned by the requester's Functional Vice President (SRC-001, SRC-005; §7.4 of the prior AP SOP, SRC-006).
+- **Beneficiary banking details (wire)** — the details keyed into Chase Connect; whether these are taken from the Wire Transfer Request Form or from the NetSuite vendor master record was not established (GAP-01).
+- **NetSuite vendor master record** — the supplier must exist on the vendor master, with remittance details maintained through [[vendor-banking-change]] (SRC-003).
+- **Chase Connect entitlements** — the Treasury Analyst holds wire-initiation entitlement; the Corporate Controller and Chief Financial Officer hold portal approval entitlements (SRC-001).
+- **Written Corporate Controller authorization (manual check)** — must be obtained before any manual check is issued (§7.5 of the prior AP SOP, SRC-006).
+- **Blank check stock (manual check)** — held in a locked drawer in the AP room; access required to issue (SRC-001, SRC-005).
+- **Check signature plate (manual check)** — held in the safe; access required to issue (SRC-001, SRC-005).
 
-### Inputs
-
-- **Completed, signed Wire Transfer Request Form:** PDF template held on the Finance Shared Drive under Finance/Treasury/Forms; signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006).
-- **Beneficiary banking details for the wire:** the details keyed into Chase Connect; whether these are taken from the Wire Transfer Request Form or from the NetSuite vendor master record was not established (GAP-01).
-- **Written Corporate Controller authorization (manual check):** required before any manual check is issued — source: Corporate Controller (§7.5 of the prior AP SOP, SRC-006).
-- **Blank check stock and signature plate (manual check):** stock held in a locked drawer in the AP room; signature plate held in the safe (SRC-001, SRC-005).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Obtain documented authorization for the off-cycle disbursement
 
@@ -106,6 +104,14 @@ The signed Wire Transfer Request Form is retained on the Finance Shared Drive (S
 > - **Nature:** unknown
 > - **Owner to confirm:** Accounts Payable Manager
 
+### Outputs & Evidence
+
+- **Executed wire transfer:** to the supplier's bank; same-day value where keyed and approved before the 2:00 PM Eastern cutoff (SRC-001).
+- **Issued manual check:** to the supplier, in exceptional circumstances only (§7.5 of the prior AP SOP, SRC-006).
+- **Positive pay issue file:** transmitted from NetSuite to the depository institution on each check issuance date — downstream to [[positive-pay-exception-handling]] (SRC-003, SRC-006).
+- **Evidence retained:** the signed Wire Transfer Request Form, filed on the Finance Shared Drive (SRC-005); the Corporate Controller's written authorization for any manual check — retention location TBD — confirm with process owner (GAP-03).
+- **Downstream:** disbursements flow into the daily Chase Connect bank feed to NetSuite and clear through the monthly bank reconciliation performed by the Assistant Controller (SRC-003).
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** A wire is initiated only upon receipt of a completed Wire Transfer Request Form signed by the requester and the requester's Functional Vice President (SRC-001; §7.4 of the prior AP SOP, SRC-006).
@@ -132,14 +138,6 @@ The signed Wire Transfer Request Form is retained on the Finance Shared Drive (S
 > - **Type:** Preventive
 > - **Frequency:** Each check issuance date
 > - **Owner:** Accounts Payable Manager
-
-### Outputs
-
-- **Executed wire transfer:** to the supplier's bank; same-day value where keyed and approved before the 2:00 PM Eastern cutoff (SRC-001).
-- **Issued manual check:** to the supplier, in exceptional circumstances only (§7.5 of the prior AP SOP, SRC-006).
-- **Positive pay issue file:** transmitted from NetSuite to the depository institution on each check issuance date — downstream to [[positive-pay-exception-handling]] (SRC-003, SRC-006).
-- **Evidence retained:** the signed Wire Transfer Request Form, filed on the Finance Shared Drive (SRC-005); the Corporate Controller's written authorization for any manual check — retention location TBD — confirm with process owner (GAP-03).
-- **Downstream:** disbursements flow into the daily Chase Connect bank feed to NetSuite and clear through the monthly bank reconciliation performed by the Assistant Controller (SRC-003).
 
 ### Known Issues & Improvement Opportunities
 

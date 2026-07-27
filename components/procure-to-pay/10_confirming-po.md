@@ -1,31 +1,30 @@
 ## Confirming (After-the-Fact) PO
 
-### Process Overview
+### Scope
 
-This procedure regularizes purchases made outside the standard requisition process: a supplier has already delivered goods or performed work — typically on an emergency plant call-out — without a requisition or purchase order, and Procurement raises a purchase order after the fact (a "confirming PO") so the invoice can be matched and paid. It runs ad hoc, triggered when Accounts Payable receives a supplier invoice that references no purchase order and returns it to Procurement. The Buyer or Procurement Lead prepares the confirming PO in Coupa, nominally on the strength of a written justification from the Plant Manager. Upstream, the procedure is fed by off-process purchases that bypass [[requisition-and-approval]]; downstream, the confirming PO syncs to NetSuite so the returned invoice can be processed through [[po-invoice-entry-and-three-way-match]]. Standard purchase order issuance and change orders are excluded — see [[po-issuance-and-change-orders]].
+This procedure regularizes purchases made outside the standard requisition process: a supplier has already delivered goods or performed work — typically on an emergency plant call-out — without a requisition or purchase order, and Procurement raises a purchase order after the fact (a "confirming PO") so the invoice can be matched and paid. Upstream, the procedure is fed by off-process purchases that bypass [[requisition-and-approval]]; downstream, the confirming PO enables the returned invoice to be processed through [[po-invoice-entry-and-three-way-match]]. Standard purchase order issuance and change orders are excluded — see [[po-issuance-and-change-orders]].
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** A supplier invoice arrives for goods or services already supplied without a purchase order, and Accounts Payable returns it to Procurement.
-- **Frequency:** Ad hoc; approximately 15–20 per month, concentrated at Plant 2 (Procurement Lead estimate, SRC-002, corroborated in SRC-005; not validated against system data).
-- **Preparer:** Buyer or Procurement Lead.
-- **Reviewer:** TBD — confirm with process owner (justification is nominally provided by the Plant Manager; approval routing is unconfirmed).
-- **Primary systems / tools:** Coupa (PO creation); NetSuite (receives the PO by sync for invoice matching).
-- **Key outputs:** Confirming purchase order; justification documentation; entry in the Procurement Lead's informal log.
+| Field | Value |
+|---|---|
+| Trigger | A supplier invoice arrives for goods or services already supplied without a purchase order, and Accounts Payable returns it to Procurement. |
+| Frequency | Ad hoc; approximately 15–20 per month, concentrated at Plant 2 (Procurement Lead estimate, SRC-002, corroborated in SRC-005; not validated against system data). |
+| Preparer | Buyer or Procurement Lead. |
+| Reviewer | TBD — confirm with process owner (justification is nominally provided by the Plant Manager; approval routing is unconfirmed). |
+| Systems | Coupa (PO creation); NetSuite (receives the PO by sync for invoice matching). |
+| Key inputs | Supplier invoice with no purchase order reference; written justification for the purchase; details of the goods or services supplied. |
+| Key outputs | Confirming purchase order; justification documentation; entry in the Procurement Lead's informal log. |
 
-### Pre-Requisites
+### Before You Start
 
-- Goods have been delivered or services performed by a supplier without a requisition or purchase order in place.
-- The supplier invoice (or other evidence of the purchase) has been returned to Procurement by Accounts Payable.
-- The supplier exists in Coupa and NetSuite; a supplier not yet set up must first complete [[new-vendor-onboarding]].
-
-### Inputs
-
-- **Supplier invoice with no purchase order reference** — returned by Accounts Payable.
+- **Off-process purchase** — goods have been delivered or services performed by a supplier without a requisition or purchase order in place.
+- **Supplier invoice with no purchase order reference** — returned to Procurement by Accounts Payable (or other evidence of the purchase).
 - **Written justification for the purchase** — nominally from the Plant Manager; in current practice an email from the requesting party (Procurement Lead, SRC-002).
 - **Details of the goods or services supplied** — from the Requester who engaged the supplier and from the supplier's invoice.
+- **Supplier record** — the supplier exists in Coupa and NetSuite; a supplier not yet set up must first complete [[new-vendor-onboarding]].
 
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Identify the off-process purchase and return the invoice to Procurement
 
@@ -83,6 +82,13 @@ The Procurement Lead records the confirming PO in an informal spreadsheet. No fo
 
 > **SCREENSHOT PLACEHOLDER — SC-02:** The Procurement Lead's confirming PO spreadsheet, showing the fields tracked and recent monthly volume, to substantiate the 15–20 per month estimate.
 
+### Outputs & Evidence
+
+- **Confirming purchase order** — created in Coupa and synced to NetSuite; consumed by Accounts Payable to match and pay the previously returned invoice via [[po-invoice-entry-and-three-way-match]].
+- **Justification documentation** — the written justification obtained for the purchase (in practice, an email).
+- **Informal log entry** — a row in the Procurement Lead's confirming PO spreadsheet.
+- **Evidence retained:** TBD — where the justification and its linkage to the PO record are filed was not established during fieldwork; confirm with process owner.
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** A written justification from the Plant Manager is required before a confirming PO is raised for an off-process purchase.
@@ -96,13 +102,6 @@ CTRL-001 does not operate as designed in practice; see PP-002 in H.
 > - **Type:** Detective
 > - **Frequency:** Each occurrence
 > - **Owner:** TBD — confirm with process owner
-
-### Outputs
-
-- **Confirming purchase order** — created in Coupa and synced to NetSuite; consumed by Accounts Payable to match and pay the previously returned invoice via [[po-invoice-entry-and-three-way-match]].
-- **Justification documentation** — the written justification obtained for the purchase (in practice, an email).
-- **Informal log entry** — a row in the Procurement Lead's confirming PO spreadsheet.
-- **Evidence retained:** TBD — where the justification and its linkage to the PO record are filed was not established during fieldwork; confirm with process owner.
 
 ### Known Issues & Improvement Opportunities
 

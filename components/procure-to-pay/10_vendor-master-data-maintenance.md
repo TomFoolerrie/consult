@@ -1,48 +1,41 @@
 ## Vendor Master Data Maintenance
 
-### Process Overview
+### Scope
 
 Vendor Master Data Maintenance is the ongoing stewardship of the NetSuite
 vendor master — the system of record for the supplier from a payment
 standpoint — once a supplier has been established through
-[[new-vendor-onboarding]] (SRC-002). The Accounts Payable Clerk, as holder of
-the NetSuite Vendor Maintenance role, corrects records that arrive incomplete
-from the nightly Coupa-to-NetSuite supplier sync and enters non-banking
-changes to existing vendor records; the prior AP SOP additionally requires a
-semi-annual review of the supplier master file, performed by the Accounts
-Payable Manager and reported to the Corporate Controller (SRC-001, SRC-002,
-SRC-006). The procedure runs ad hoc, as sync fallout and change requests
-arise. Changes to a supplier's remit-to banking details are excluded — they
-follow the callback-and-approval regime under [[vendor-banking-change]].
+[[new-vendor-onboarding]] (SRC-002). It covers correcting records that arrive
+incomplete from the nightly Coupa-to-NetSuite supplier sync, entering
+non-banking changes to existing vendor records, and the semi-annual review of
+the supplier master file required by the prior AP SOP (SRC-001, SRC-002,
+SRC-006). Changes to a supplier's remit-to banking details are excluded —
+they follow the callback-and-approval regime under [[vendor-banking-change]].
 Downstream, invoice matching and every disbursement, including
 [[weekly-payment-run]], transact against the data this procedure keeps
-accurate, and the segregation between vendor-record maintenance and payment
-release is one of the three procure-to-pay controls in the external auditors'
-scope (SRC-003).
+accurate (SRC-003).
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** A supplier record lands from the nightly Coupa-to-NetSuite sync with incomplete data (typically a blank payment term); a non-banking change to an existing vendor record is requested; the semi-annual master file review falls due (SRC-002, SRC-005, SRC-006).
-- **Frequency:** Ad hoc for sync corrections and record changes; semi-annual for the master file review (per the prior SOP — operation unconfirmed, see GAP-03).
-- **Preparer:** Accounts Payable Clerk (holder of the NetSuite Vendor Maintenance role) (SRC-001, SRC-003).
-- **Reviewer:** Accounts Payable Manager (semi-annual master file review, §9.5 of the prior AP SOP, SRC-006); for individual record changes, TBD — no independent review of non-banking changes was described (see GAP-02).
-- **Primary systems / tools:** NetSuite (vendor master); Coupa (sourcing-side supplier record; nightly sync into NetSuite).
-- **Key outputs:** Corrected, complete vendor records in NetSuite; semi-annual master file review results reported to the Corporate Controller (per the prior SOP).
+| Field | Value |
+|---|---|
+| Trigger | A supplier record lands from the nightly Coupa-to-NetSuite sync with incomplete data (typically a blank payment term); a non-banking change to an existing vendor record is requested; the semi-annual master file review falls due (SRC-002, SRC-005, SRC-006). |
+| Frequency | Ad hoc for sync corrections and record changes; semi-annual for the master file review (per the prior SOP — operation unconfirmed, see GAP-03). |
+| Preparer | Accounts Payable Clerk (holder of the NetSuite Vendor Maintenance role) (SRC-001, SRC-003). |
+| Reviewer | Accounts Payable Manager (semi-annual master file review, §9.5 of the prior AP SOP, SRC-006); for individual record changes, TBD — no independent review of non-banking changes was described (see GAP-02). |
+| Systems | NetSuite (vendor master); Coupa (sourcing-side supplier record; nightly sync into NetSuite). |
+| Key inputs | Newly synced supplier records from Coupa; non-banking change requests; the NetSuite supplier master file. |
+| Key outputs | Corrected, complete vendor records in NetSuite; semi-annual master file review results reported to the Corporate Controller (per the prior SOP). |
 
-### Pre-Requisites
+### Before You Start
 
-- The supplier exists as a NetSuite vendor record, created through [[new-vendor-onboarding]] (SRC-002).
-- The person entering changes holds the NetSuite Vendor Maintenance role and holds no payment preparation, payment approval, or banking portal entitlements (SRC-003; §9.3 of the prior AP SOP, SRC-006).
-- For sync-fallout corrections: the nightly Coupa-to-NetSuite supplier sync has run (SRC-002).
-- Any request touching remit-to banking details has been separated out for processing under [[vendor-banking-change]] — it is not handled here.
+- **NetSuite vendor record** — created through [[new-vendor-onboarding]]; the supplier must already exist in the vendor master (SRC-002).
+- **NetSuite Vendor Maintenance role** — held by the person entering changes, carrying no payment preparation, payment approval, or banking portal entitlements (SRC-003; §9.3 of the prior AP SOP, SRC-006).
+- **Newly synced supplier records** — pushed from Coupa into NetSuite by the nightly supplier sync, which must have run; includes any that arrive with a blank payment term (SRC-002, SRC-005).
+- **Non-banking change requests** — requested changes to an existing vendor's master data other than remit-to banking details; how these requests arrive was not established (see GAP-02); any request touching remit-to banking details has been separated out for processing under [[vendor-banking-change]] — it is not handled here.
+- **The NetSuite supplier master file** — the population reviewed semi-annually for inactive, duplicate and incomplete records (§9.5 of the prior AP SOP, SRC-006).
 
-### Inputs
-
-- **Newly synced supplier records:** pushed from Coupa into NetSuite by the nightly supplier sync, including any that arrive with a blank payment term — source: Coupa (SRC-002, SRC-005).
-- **Non-banking change requests:** requested changes to an existing vendor's master data other than remit-to banking details; how these requests arrive was not established (see GAP-02).
-- **The NetSuite supplier master file:** the population reviewed semi-annually for inactive, duplicate and incomplete records (§9.5 of the prior AP SOP, SRC-006).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Identify the record requiring maintenance
 
@@ -127,7 +120,7 @@ in H) indicates it has not been effective
 > - **Frequency:** Semi-annual (per the prior SOP; operation unconfirmed)
 > - **Owner:** Accounts Payable Manager
 
-### Outputs
+### Outputs & Evidence
 
 - **Corrected, complete vendor master records in NetSuite** — every downstream payable and payment activity transacts against them, including invoice matching and [[weekly-payment-run]] (SRC-002, SRC-003).
 - **Semi-annual master file review results** reported to the Corporate Controller (§9.5 of the prior AP SOP, SRC-006; operation unconfirmed — see GAP-03).

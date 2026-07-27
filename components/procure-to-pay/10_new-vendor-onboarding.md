@@ -1,49 +1,39 @@
 ## New Vendor Onboarding
 
-### Process Overview
+### Scope
 
-New Vendor Onboarding establishes a new supplier in both Coupa — the system of
-record for the supplier record from a sourcing standpoint — and NetSuite — the
-system of record for the vendor master for payment purposes — so that the
-supplier can be requisitioned against and ultimately paid (SRC-002). The
-procedure runs ad hoc, whenever a Requester needs goods or services from a
-supplier that does not yet exist in the two systems; no requisition can be
-raised until the supplier record exists in both. The Procurement Lead or a
-Buyer performs the onboarding diligence and approves the supplier in Coupa, the
-Supplier self-registers its own details through the Supplier Information
-Management (SIM) portal, and the Accounts Payable Clerk activates the synced
-record in NetSuite (SRC-002, SRC-005). Downstream, the active vendor record
-enables [[requisition-and-approval]]; subsequent changes to the supplier's
-remit-to banking details are handled under [[vendor-banking-change]], and
-ongoing hygiene of the record population under
-[[vendor-master-data-maintenance]].
+New Vendor Onboarding establishes a new supplier in both Coupa and NetSuite so
+that the supplier can be requisitioned against and ultimately paid (SRC-002).
+It covers the intake request, onboarding diligence, supplier self-registration,
+Coupa approval, the overnight sync, and NetSuite activation, ending with an
+active vendor record that enables [[requisition-and-approval]]. Subsequent
+changes to the supplier's remit-to banking details are excluded and handled
+under [[vendor-banking-change]]; ongoing hygiene of the supplier record
+population is covered under [[vendor-master-data-maintenance]].
 
-### Quick Reference
+### At a Glance
 
-- **Trigger:** A Requester needs goods or services from a supplier that does not exist as an active record in Coupa and NetSuite (SRC-002).
-- **Frequency:** Ad hoc, on demand.
-- **Preparer:** Requester (request submission); Procurement Lead or Buyer (diligence and supplier invitation); Accounts Payable Clerk (NetSuite activation).
-- **Reviewer:** Procurement Lead (Coupa supplier approval); Corporate Controller (co-approval above an expected-annual-spend threshold — value unconfirmed, validation raised in E).
-- **Primary systems / tools:** Coupa (including the SIM portal), NetSuite.
-- **Key outputs:** Approved, active supplier record in Coupa with diligence evidence attached; active NetSuite vendor master record with payment terms and default GL coding.
+| Field | Value |
+|---|---|
+| Trigger | A Requester needs goods or services from a supplier that does not exist as an active record in Coupa and NetSuite (SRC-002) |
+| Frequency | Ad hoc, on demand |
+| Preparer | Requester (request submission); Procurement Lead or Buyer (diligence and supplier invitation); Supplier (SIM self-registration); Accounts Payable Clerk (NetSuite activation) (SRC-002, SRC-005) |
+| Reviewer | Procurement Lead (Coupa supplier approval); Corporate Controller (co-approval above an expected-annual-spend threshold — value unconfirmed, validation raised at the approval step in Procedure) |
+| Systems | Coupa (including the SIM portal) — system of record for the supplier record from a sourcing standpoint; NetSuite — system of record for the vendor master for payment purposes (SRC-002) |
+| Key inputs | New Supplier Request form with W-9 attached; supplier self-registration data entered through the SIM portal |
+| Key outputs | Approved, active supplier record in Coupa with diligence evidence attached; active NetSuite vendor master record with payment terms and default GL coding |
 
-### Pre-Requisites
+### Before You Start
 
-- A genuine business need from a Requester for a supplier not already active in Coupa and NetSuite (SRC-002).
-- The prospective supplier's completed W-9, available to attach to the New Supplier Request form (SRC-002).
-- Supplier contact details sufficient for Coupa to issue the SIM self-registration invitation (SRC-002).
-- Requester access to Coupa to submit the New Supplier Request form.
+- **New Supplier Request form (Coupa)** — completed by the Requester, who requires Coupa access to submit it (SRC-002).
+- **Supplier W-9** — provided by the prospective Supplier; completed and attached to the New Supplier Request form by the Requester (SRC-002).
+- **Supplier contact details** — provided by the Supplier; sufficient for Coupa to issue the SIM self-registration invitation (SRC-002).
+- **IRS TIN match result** — obtained by the Procurement Lead or Buyer during diligence (SRC-002).
+- **OFAC SDN lookup result** — manual search of the U.S. Treasury Specially Designated Nationals list by the Procurement Lead or Buyer (SRC-002, SRC-005).
+- **Existing supplier list** — the current Coupa supplier population; used for the duplicate check (SRC-002).
+- **Supplier self-registration data (SIM portal)** — banking details, W-9, insurance certificates, and diversity classification, entered by the Supplier (SRC-002, SRC-005).
 
-### Inputs
-
-- **New Supplier Request form (Coupa):** completed by the Requester (SRC-002).
-- **Supplier W-9:** provided by the Supplier; attached to the request by the Requester (SRC-002).
-- **IRS TIN match result:** obtained by the Procurement Lead or Buyer during diligence (SRC-002).
-- **OFAC SDN lookup result:** manual search of the U.S. Treasury Specially Designated Nationals list by the Procurement Lead or Buyer (SRC-002, SRC-005).
-- **Existing supplier list:** the current Coupa supplier population, used for the duplicate check (SRC-002).
-- **Supplier self-registration data (SIM portal):** banking details, W-9, insurance certificates, and diversity classification, entered by the Supplier (SRC-002, SRC-005).
-
-### Step-by-Step Procedure
+### Procedure
 
 #### Step 1: Submit the New Supplier Request form
 
@@ -130,6 +120,12 @@ in F.
 
 > **SCREENSHOT PLACEHOLDER — SC-03:** An activated NetSuite vendor record showing vendor status, payment terms, and default GL coding as set by the Accounts Payable Clerk.
 
+### Outputs & Evidence
+
+- **Approved supplier record in Coupa**, with OFAC screenshot and TIN match evidence attached, and supplier-entered W-9, insurance certificates, and banking details held in the SIM portal (SRC-002, SRC-005).
+- **Active NetSuite vendor master record** with payment terms and default GL coding — consumed downstream by [[requisition-and-approval]] and by AP for invoice matching and payment (SRC-002).
+- **Evidence retained:** OFAC SDN search-result screenshot and TIN match result on the Coupa supplier record; supplier self-registration data (W-9, insurance certificates, banking) in Coupa SIM (SRC-005).
+
 ### Key Controls
 
 > **CONTROL — CTRL-001:** Onboarding diligence — before a new supplier is invited to register, the Procurement Lead or Buyer verifies the W-9 name against the taxpayer identification number via the IRS TIN match, screens the supplier against the OFAC SDN list, and checks for duplicates against the existing supplier list; the OFAC screenshot and TIN match evidence are attached to the Coupa supplier record (SRC-002, SRC-005).
@@ -151,12 +147,6 @@ in F.
 > - **Type:** Preventive
 > - **Frequency:** Continuous (role-based)
 > - **Owner:** Corporate Controller
-
-### Outputs
-
-- **Approved supplier record in Coupa**, with OFAC screenshot and TIN match evidence attached, and supplier-entered W-9, insurance certificates, and banking details held in the SIM portal (SRC-002, SRC-005).
-- **Active NetSuite vendor master record** with payment terms and default GL coding — consumed downstream by [[requisition-and-approval]] and by AP for invoice matching and payment (SRC-002).
-- **Evidence retained:** OFAC SDN search-result screenshot and TIN match result on the Coupa supplier record; supplier self-registration data (W-9, insurance certificates, banking) in Coupa SIM (SRC-005).
 
 ### Known Issues & Improvement Opportunities
 
