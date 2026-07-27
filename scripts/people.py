@@ -3,6 +3,8 @@
 Combines the two optional people sources:
   - `_reference/roles.yaml`  — each role's `people:` list (who holds the role)
   - `_client/org-chart.yaml` — person → title (+ reports_to), the rank authority
+    (resolved through `client_config.load`: area `_client/` shadowing the
+    engagement-wide `components/_client/`, M13)
 
 Rank = depth in the org chart's `reports_to` tree (root = 0). DEEPER = LOWER
 rank = the PREFERRED contact — the person closest to the work answers process
@@ -18,7 +20,14 @@ Python 3, stdlib + pyyaml.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+import client_config  # noqa: E402
 
 try:
     import yaml
@@ -50,7 +59,13 @@ class People:
         self.role_names: dict[str, str] = {}          # role slug -> canonical name
         self.role_aliases: dict[str, list[str]] = {}  # role slug -> aliases
 
-        for entry in _load_yaml(folder / "_client" / "org-chart.yaml").get("people") or []:
+        # M13: org chart resolves through the client-config layers (area
+        # `_client/` shadowing `components/_client/`). `client_layer` /
+        # `client_config` are exposed so callers can report which layer answered.
+        self.client_config = client_config.load(folder)
+        self.client_layer: str = self.client_config.layer_label()
+
+        for entry in self.client_config.get("people") or []:
             if isinstance(entry, dict) and entry.get("name"):
                 nm = str(entry["name"]).strip()
                 self.org[nm.lower()] = {

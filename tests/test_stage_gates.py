@@ -94,11 +94,21 @@ def make_area(tmp_path, name, components=None, files=None, manifest=True):
 
 
 def simple(tmp_path, name="cash", body=FILLED):
-    """One filled procedure and a registry — the smallest area that can reach
-    the gate. No derived components, so `synthesize`'s only work is the
-    first-run delta and reconcile is driven by emit_reconcile."""
-    return make_area(tmp_path, name, [proc("bank-rec")],
+    """One filled procedure, a registry, and the two agent-owned views — the
+    smallest area that can reach the gate with a `synthesize` spend behind it.
+    The views carry real content (not the M3 placeholder), so `synthesize`'s
+    only work is the first-run delta; reconcile is driven by emit_reconcile.
+
+    M14: the views must be IN THE MANIFEST for the synthesis signal to name
+    their kinds — a document whose profile has no RACI has no RACI agent to
+    dispatch, so `stale_kinds` is manifest-driven now, not a constant."""
+    return make_area(tmp_path, name,
+                     [proc("bank-rec"), derived("82_dependencies.md",
+                                                "dependencies", 82),
+                      derived("84_raci.md", "raci", 84)],
                      {"10_bank-rec.md": body,
+                      "82_dependencies.md": f"## Dependencies\n\n{DEP_MARKER}\n\nDepends on nothing.\n",
+                      "84_raci.md": f"## Raci\n\n{RACI_MARKER}\n\nNo rows.\n",
                       "_reference/systems.yaml": SYSTEMS_YAML})
 
 

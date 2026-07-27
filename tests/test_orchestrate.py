@@ -43,6 +43,28 @@ def make_area(tmp_path, procs=None, name="treasury"):
     return str(area)
 
 
+def _declare_agent_views(area):
+    """Add the two agent-owned derived components to an area's manifest.
+
+    M14: guard 9's kinds come from the manifest — the document profile decides
+    which derived views exist — so a walk that expects `synthesize` must say
+    the judgment views are part of this document.
+    """
+    path = os.path.join(area, "manifest.json")
+    with open(path, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    manifest["components"] += [
+        {"file": "82_dependencies.md", "role": "derived", "order": 8200,
+         "derived_kind": "dependencies", "writer": "agent",
+         "heading": "Key Dependencies"},
+        {"file": "84_raci.md", "role": "derived", "order": 8400,
+         "derived_kind": "raci", "writer": "agent", "heading": "RACI Matrix"},
+    ]
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(manifest, fh)
+    return area
+
+
 def _touch(area, *rel, content="x"):
     p = os.path.join(area, *rel)
     os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -292,7 +314,7 @@ def test_reconcile_not_clean_fires_reconcile(tmp_path):
 
 def test_full_walk_to_done(tmp_path):
     """Round-trip: aggregate -> reconcile -> draft_ready -> synthesize (first-run delta) -> render -> review -> done, each emit moving decide() forward."""
-    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    area = _declare_agent_views(make_area(tmp_path, [{"slug": "a", "filled": True}]))
     orchestrate.emit_aggregate(area, warnings=[])
     assert orchestrate.decide(area)["action"] == "reconcile"
     orchestrate.emit_reconcile(area, clean=True)

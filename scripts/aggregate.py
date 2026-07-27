@@ -13,6 +13,7 @@ area folder. Reads `manifest.json`, every `role: procedure` fragment, and the
         07_role-dictionary   (role-dictionary)
         08_systems           (systems)
         88_appendix-a        (appendix-a; typed PP / IO rows)
+        89_appendix-controls (appendix-controls; CTRL rows — M14, opt-in)
         90_appendix-b-gaps   (gap-log)
         91_appendix-c-screens(screenshot-index)
   (b) writes a `> _Pending synthesis (M5)._` placeholder (+ marker) into the
@@ -74,6 +75,7 @@ import doc_model  # noqa: E402  (M2 deliverable)
 from callouts import (  # noqa: E402
     LABEL_TO_PREFIX, SEVERITY_ENUM, DELIM as _DELIM, ID_STRICT_RE,
     BODY_GAP_RE, BARE_GAP_RE, FragmentError, blank_fences as _blank_fences,
+    DETAIL_FIELD,
 )
 
 # Callout label line: `> **<LABEL> — <ID>:** <text>` (colon INSIDE the bold).
@@ -432,6 +434,24 @@ def _disp_text(ctx, p, text: str) -> str:
     )
 
 
+def _body(ctx, p, c) -> str:
+    """The register's view of a callout body — M16 move 3, the appendix half.
+
+    The label-line text is the short headline the drafter also shows in the
+    step; a `detail:` sub-field is the FULL account, authored once and rendered
+    ONLY here (render blanks it out of the procedure body). Appending rather
+    than replacing keeps the headline in front of the dossier and means a
+    callout with no `detail:` produces exactly the cell it produced before M16.
+
+    This reads the FRAGMENT, so a detail whose home section is `body_omit`ed —
+    or hidden by the profile entirely — still lands in its register. Not being
+    in the body is precisely why the register exists.
+    """
+    text = _disp_text(ctx, p, c["text"])
+    detail = _disp_text(ctx, p, _pick(c["fields"], DETAIL_FIELD))
+    return f"{text} {detail}".strip() if detail else text
+
+
 def build_appendix_a(ctx) -> str:
     lines = ["_Pain Points and Improvement Opportunities, aggregated mechanically "
              "from the `H` section callouts (observation, impact, severity authored "
@@ -449,7 +469,7 @@ def build_appendix_a(ctx) -> str:
             f = c["fields"]
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} |"
             )
     if not any_pp:
@@ -470,10 +490,48 @@ def build_appendix_a(ctx) -> str:
             addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | {cell(addresses)} |"
+                f"{cell(_body(ctx, p, c))} | {cell(addresses)} |"
             )
     if not any_io:
         lines += ["", "_No improvement opportunities recorded._"]
+    return "\n".join(lines)
+
+
+def build_appendix_controls(ctx) -> str:
+    """The M14 controls register — `appendix-controls`.
+
+    Pain points have had a register since M3 (Appendix A, built from the `H`
+    callouts); controls had none, because `F. Key Controls` is a SECTION. So an
+    engagement that moves F out of the procedure body (`body_omit: [F]`) needs
+    this destination, or the controls simply vanish — which is why the profile
+    validator refuses that combination.
+
+    No new machinery: the callout parser, the ID scheme, the display-ID map and
+    the by-L2 grouping are exactly what Appendix A uses, pointed at CTRL. Only
+    emitted when the profile asks for it (the manifest is the authority: this
+    builder runs iff an `appendix-controls` component is listed).
+    """
+    lines = ["_Key controls, aggregated mechanically from the `F` section "
+             "callouts (statement, type, frequency and owner authored in the "
+             "callout). IDs are numbered sequentially through the document; "
+             "rows are grouped by sub-process._"]
+    any_row = False
+    for l2_title, rows in _grouped_by_l2(ctx, "CTRL"):
+        any_row = True
+        lines += ["", f"#### {l2_title}", "",
+                  "| Control ID | Control | Type | Frequency | Owner |",
+                  "|---|---|---|---|---|"]
+        for p, c in rows:
+            f = c["fields"]
+            lines.append(
+                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
+                f"{cell(_body(ctx, p, c))} | "
+                f"{cell(_pick(f, 'Type'))} | "
+                f"{cell(_pick(f, 'Frequency'))} | "
+                f"{cell(_pick(f, 'Owner'))} |"
+            )
+    if not any_row:
+        lines += ["", "_No controls recorded._"]
     return "\n".join(lines)
 
 
@@ -491,7 +549,7 @@ def build_gap_log(ctx) -> str:
             f = c["fields"]
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | "
+                f"{cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Nature'))} | "
                 f"{cell(_pick(f, 'Owner to confirm', 'Owner'))} |"
             )
@@ -513,7 +571,7 @@ def build_screenshot_index(ctx) -> str:
         for p, c in rows:
             lines.append(
                 f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_disp_text(ctx, p, c['text']))} | Pending user input |"
+                f"{cell(_body(ctx, p, c))} | Pending user input |"
             )
     if not any_row:
         lines += ["", "_No screenshot placeholders recorded._"]
@@ -525,6 +583,7 @@ PY_BUILDERS = {
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,
     "appendix-a": build_appendix_a,
+    "appendix-controls": build_appendix_controls,
     "gap-log": build_gap_log,
     "screenshot-index": build_screenshot_index,
 }

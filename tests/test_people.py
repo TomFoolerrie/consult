@@ -1,6 +1,8 @@
 """Tests for scripts/people.py — rank, role→contact resolution, prose matching."""
 from pathlib import Path
 
+import pytest
+
 import people as people_mod
 from people import People, person_slug
 
@@ -146,10 +148,22 @@ def test_missing_files_degrade_gracefully(tmp_path):
     assert p.match_role("Preparer") == ""
 
 
-def test_malformed_yaml_ignored(tmp_path):
-    """Unparseable YAML is treated as absent, not raised."""
-    p = People(make_area(tmp_path, org_yaml=": [unbalanced", roles_yaml="{{{"))
+def test_malformed_roles_yaml_ignored(tmp_path):
+    """Unparseable `_reference/roles.yaml` is treated as absent, not raised."""
+    p = People(make_area(tmp_path, roles_yaml="{{{"))
     assert p.org == {} and p.role_people == {}
+
+
+def test_malformed_client_yaml_raises(tmp_path):
+    """M13: malformed client config stops the run, naming the file — client
+    context is hand-authored ground truth, so silently ignoring it would make
+    the org chart (and the name check it grounds) quietly wrong."""
+    import client_config
+
+    area = make_area(tmp_path, org_yaml=": [unbalanced")
+    with pytest.raises(client_config.ClientConfigError) as exc:
+        People(area)
+    assert "org-chart.yaml" in str(exc.value)
 
 
 def test_title_and_manager_of(tmp_path):

@@ -34,6 +34,14 @@ hands the drafter its whole tagged source list. Retirement notes (F8's workflow
 half) ride the same file, `kind: retirement`, one per procedure citing the retired
 slug. `.proposed/notes.yaml` is CONSUMED here, never promoted.
 
+M14 — THIS IS ENFORCEMENT POINT 1 FOR THE DOCUMENT PROFILE. The engagement's
+`_client/profile.yaml` (resolved via `client_config.profile`) decides which A–H
+sections the skeletons carry and which derived components the manifest lists.
+Nothing else in the pipeline gets to decide shape: the drafter fills what it is
+handed, and render (enforcement point 2) strips what a later profile change
+removed. A `body_omit` section is scaffolded exactly as if it were not listed —
+it is authored and aggregated, and only the RENDER hides it.
+
 Nothing touches the live folder until `--confirm` is passed. The step is
 idempotent: re-running with the same confirmed set is a no-op; adding one
 procedure creates only its file and a manifest entry with a sparse `order`
@@ -69,6 +77,12 @@ except Exception:  # pragma: no cover - doc_model is a hard dependency in practi
 # notes_util owns the `_review/{slug}.notes.yaml` bus shape (M6): we are one of
 # its five producers (source notes + retirement notes, written at confirm).
 import notes_util  # noqa: E402
+
+# client_config owns config resolution (M13) and the document profile built on
+# it (M14). This is ENFORCEMENT POINT 1: the skeletons carry only the profile's
+# sections and the manifest lists only the profile's derived components. The
+# drafter is told what the callout/tag vocabulary is; it never decides shape.
+import client_config  # noqa: E402
 
 # The `unfilled` sentinel grammar is OWNED BY the advisor (orchestrate.py guard
 # 4). Borrowed, never restated, so "is this procedure already drafted?" is
@@ -127,6 +141,13 @@ DERIVED_FILES = [
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
      "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
      "order": 8800},
+    # M14: the destination F never had. OPT-IN — absent from the default derived
+    # set, so an area with no profile is byte-identical to pre-M14. Sits right
+    # after Appendix A (the other mechanically-built register) and takes no
+    # letter, so adding it never re-letters B and C.
+    {"file": "89_appendix-controls.md", "kind": "appendix-controls",
+     "writer": "python", "heading": "Appendix — Key Controls Register",
+     "order": 8900},
     {"file": "90_appendix-b-gaps.md", "kind": "gap-log", "writer": "python",
      "heading": "Appendix B — Gap / Validation Log", "order": 9000},
     {"file": "91_appendix-c-screens.md", "kind": "screenshot-index", "writer": "python",
@@ -135,6 +156,17 @@ DERIVED_FILES = [
 
 PROC_BASE = 10   # first procedure order
 PROC_GAP = 10    # sparse gap between procedure orders
+
+
+def profile_derived_files(profile=None) -> list[dict]:
+    """The DERIVED_FILES entries this engagement's profile asks for (M14).
+
+    `None` means "no profile resolved" and yields the default set — today's
+    eight views, WITHOUT `appendix-controls` — so a manifest scaffolded in an
+    engagement with no `profile.yaml` is byte-identical to pre-M14.
+    """
+    prof = profile if profile is not None else client_config.Profile()
+    return [d for d in DERIVED_FILES if prof.wants(d["kind"])]
 
 
 # --------------------------------------------------------------------------- #
@@ -370,14 +402,61 @@ roles:   []
 """
 
 
-def render_skeleton(heading: str) -> str:
+# A `### X. Heading` sub-section line in the skeleton, and the end-matter fence
+# that terminates the last one (the `consult-meta` block belongs to no section,
+# so it must survive even when the section it trails is dropped).
+_SKEL_SECTION_RE = re.compile(r"^###\s+(?P<letter>[A-Z])\.\s")
+_END_MATTER_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.I)
+
+
+def keep_sections(text: str, sections) -> str:
+    """Drop the `### X.` blocks of every section NOT in `sections` (M14).
+
+    Byte-identical short circuit: if the skeleton names no section the profile
+    excludes, the text is returned UNCHANGED — an engagement with no
+    `profile.yaml` gets exactly today's skeleton, byte for byte.
+
+    Deletion (not blanking) is right here, unlike render: nothing maps
+    provenance lines onto a freshly stamped skeleton, and a drafter handed a
+    blank hole would fill it in.
+    """
+    wanted = set(sections)
+    lines = text.splitlines(keepends=True)
+    present = {m.group("letter") for ln in lines
+               if (m := _SKEL_SECTION_RE.match(ln))}
+    if not present - wanted:
+        return text
+
+    out: list[str] = []
+    dropping = False
+    for ln in lines:
+        if _END_MATTER_RE.match(ln):
+            dropping = False       # end matter belongs to no section
+        else:
+            m = _SKEL_SECTION_RE.match(ln)
+            if m:
+                dropping = m.group("letter") not in wanted
+        if not dropping:
+            out.append(ln)
+    # Dropping whole blocks leaves runs of blank lines behind; collapse them so
+    # the drafter reads a skeleton, not a gap map.
+    text = "".join(out)
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
+def render_skeleton(heading: str, sections=None) -> str:
     """Stamp one A–H skeleton for a procedure.
 
     Prefers M1's `procedure_skeleton.md` (the single definition of procedure
     SHAPE): take from its first `##` line onward (dropping the doc-comment header)
     and substitute the title. Falls back to a minimal A–H shell if M1's file is
     absent. Either way the `<!-- unfilled -->` sentinel is present.
+
+    `sections` (M14) restricts the stamped skeleton to the profile's sections;
+    `None` stamps the full shape. M1 still owns the SHAPE of each section — this
+    only decides which of them exist.
     """
+    letters = (client_config.ALL_SECTIONS if sections is None else sections)
     if PROCEDURE_SKELETON.is_file():
         raw = PROCEDURE_SKELETON.read_text(encoding="utf-8")
         lines = raw.splitlines(keepends=True)
@@ -392,8 +471,8 @@ def render_skeleton(heading: str) -> str:
                 body = body.replace(
                     f"## {heading}\n", f"## {heading}\n\n<!-- unfilled -->\n", 1
                 )
-            return body
-    return _FALLBACK_SKELETON.format(heading=heading)
+            return keep_sections(body, letters)
+    return keep_sections(_FALLBACK_SKELETON.format(heading=heading), letters)
 
 
 def render_static(heading: str) -> str:
@@ -661,7 +740,9 @@ def write_promoted_notes(area: Path, slug_files: dict[str, str],
 
 def build_manifest(area: Path, l1: str, title: str, subtitle: str,
                    procedures: list[dict], l2_order: list[str],
-                   proc_orders: dict[str, int]) -> dict:
+                   proc_orders: dict[str, int], profile=None) -> dict:
+    """Build the v1 manifest. `profile` (M14) decides WHICH derived components
+    are listed; `None` means today's default set."""
     components: list[dict] = []
 
     for sf in STATIC_FILES:
@@ -690,7 +771,7 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
             comp["upstream"] = valid
         components.append(comp)
 
-    for d in DERIVED_FILES:
+    for d in profile_derived_files(profile):
         components.append({
             "file": d["file"], "role": "derived", "derived_kind": d["kind"],
             "writer": d["writer"], "heading": d["heading"], "order": d["order"],
@@ -802,6 +883,12 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
 
     l1 = resolve_l1(area, l1_arg)
 
+    # M14 enforcement point 1. Resolved BEFORE anything is promoted so a
+    # malformed profile (a `body_omit` naming a section that does not exist,
+    # `body_omit: [F]` with no controls register) stops the run with the live
+    # folder untouched — same discipline as the notes shape-check above.
+    profile = client_config.profile(area)
+
     # 1) Promote (MERGE) the registry, then stamp deterministic byte-work.
     promote_reference(area)
     stamp_sources(area)
@@ -825,7 +912,8 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
                 else existing_manifest.get("subtitle", "Current-state desktop procedures"))
 
     # 4) Build + validate the manifest.
-    manifest = build_manifest(area, l1, title, subtitle, procedures, l2_order, proc_orders)
+    manifest = build_manifest(area, l1, title, subtitle, procedures, l2_order,
+                              proc_orders, profile)
     if doc_model is not None:
         errors = doc_model.validate_manifest(manifest)
         if errors:
@@ -851,7 +939,7 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     for sf in STATIC_FILES:
         _write_if_absent(sf["file"], render_static(sf["heading"]))
     for p in procedures:
-        content = render_skeleton(p["title"])
+        content = render_skeleton(p["title"], profile.sections)
         # A merged near-duplicate pair carries `variants:` in procedures.yaml.
         # Stamp the coverage into the skeleton so the drafter documents the
         # shared flow once and branches where the variants diverge. HTML
@@ -867,7 +955,7 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
                 "<!-- unfilled -->", "<!-- unfilled -->\n\n" + note, 1
             )
         _write_if_absent(f"10_{p['slug']}.md", content)
-    for d in DERIVED_FILES:
+    for d in profile_derived_files(profile):
         _write_if_absent(d["file"], render_derived(d["kind"], d["writer"], d["heading"]))
 
     # 5b) Re-dispatch rides the notes queue (M6/F7). Written AFTER the skeletons
@@ -888,6 +976,7 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     shutil.rmtree(proposed, ignore_errors=True)
 
     print(f"scaffolded {area}")
+    print(f"  {profile.report_line()}")
     print(f"  l1={l1}  l2_order={l2_order}")
     print(f"  procedures={len(procedures)} (proposal delta={len(proposed_procs)})  "
           f"created={len(created)}  skipped(existing)={len(skipped)}")

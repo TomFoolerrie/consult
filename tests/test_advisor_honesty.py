@@ -43,6 +43,20 @@ def proc(slug, fname=None, order=10):
             "heading": slug.title(), "l2": "ops", "order": order}
 
 
+def _dep_view(fname="82_dependencies.md"):
+    """A manifest entry for the agent-owned dependencies view (M14: guard 9's
+    kinds come from the manifest, so a signal test must declare them)."""
+    return {"file": fname, "role": "derived", "order": 82,
+            "derived_kind": "dependencies", "writer": "agent",
+            "heading": "Dependencies"}
+
+
+def _raci_view(fname="84_raci.md"):
+    """A manifest entry for the agent-owned RACI view."""
+    return {"file": fname, "role": "derived", "order": 84,
+            "derived_kind": "raci", "writer": "agent", "heading": "RACI"}
+
+
 def make_area(tmp_path, name, components=None, files=None, manifest=True):
     """A synthetic area: manifest.json plus whatever `files` names."""
     folder = tmp_path / name
@@ -204,7 +218,9 @@ def test_retirement_in_agent_view_synthesizes_then_reconciles_clean(tmp_path):
     d = orchestrate.decide(area)
     assert d["action"] == "synthesize"
     assert d["details"]["failing_files"] == ["82_dependencies.md"]
-    assert sorted(d["details"]["stale_kinds"]) == ["dependencies", "raci"]
+    # M14: only the kinds the MANIFEST lists — this area declares the
+    # dependencies view and no RACI, so no RACI agent can be dispatched.
+    assert sorted(d["details"]["stale_kinds"]) == ["dependencies"]
 
     # the synthesis agent regenerates the view; the driver rebaselines the kinds
     with open(os.path.join(area, "82_dependencies.md"), "w",
@@ -370,7 +386,9 @@ def test_one_kind_raising_does_not_erase_another(tmp_path, monkeypatch,
     """`stale_kinds = []` inside the old `except` discarded kinds already found
     stale (and abandoned the loop). Each kind is now independent, in either
     order."""
-    area = make_area(tmp_path, "a", [proc("alpha")], {"10_alpha.md": FILLED})
+    # M14: the two kinds must be IN THE MANIFEST to be in the signal at all.
+    area = make_area(tmp_path, "a", [proc("alpha"), _dep_view(), _raci_view()],
+                     {"10_alpha.md": FILLED})
     orchestrate.emit_aggregate(area, warnings=[])
     orchestrate.emit_reconcile(area, clean=True)
 

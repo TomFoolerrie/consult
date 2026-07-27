@@ -1,7 +1,38 @@
 # M16 — Section model: one home per fact
 
-> **Status: DESIGNED.** Supersedes M15, which is retired into this ticket
-> (see "What M15 contributed" below).
+> **Status: BUILT — moves 3, 4 and 2.** Move 1 (the seven-section model) is
+> **PENDING the section-slug decision**: A–H stays exactly as it is until then,
+> so nothing below about re-lettering has been applied. Supersedes M15, which is
+> retired into this ticket (see "What M15 contributed" below).
+>
+> What shipped, in the recommended order:
+>
+> - **Move 3 — callout `note:` / `detail:`.** Both are ordinary callout
+>   sub-fields (`callouts.py` owns the two field names and the set of kinds that
+>   may carry a detail). `render.py` blanks `detail:` out of the procedure body,
+>   line-count-preserving like every other body transform; `aggregate.py`'s
+>   register builders append it to the row's description cell, reading the
+>   FRAGMENT so a detail still reaches its register when `body_omit` hides its
+>   home section. `reconcile.py` fails a `detail:` with no `note:` (the inline
+>   view would be empty) and warns on a `detail:` on CONTROL / SCREENSHOT
+>   PLACEHOLDER. Absent `detail:`, every transform is the identity.
+> - **Move 4 — the `Condition:` step tag.** `Condition` heads
+>   `client_config.DEFAULT_INLINE_TAGS`, and render hoists the tag to the head of
+>   the step body when a fragment authored it below the prose. The drafter
+>   contract asks for it to be authored there in the first place, which keeps the
+>   hoist a no-op and M10's line-for-line provenance exact.
+> - **Move 2 — tag on change.** Contract-only, as designed: no code. The rules
+>   live in `agents/consult-drafter.md` and `skills/consult-drafter/SKILL.md`,
+>   written as a pass an UPDATE-mode drafter can run against an existing
+>   fragment. Python still never enforces the tag vocabulary.
+>
+> **Why move 1 waits.** Re-lettering is a full re-draft (~15 passes) and the
+> migration is dispatched by M14's drift detector — a fragment missing a heading
+> the profile requires is exactly the state a re-lettered area is in, so the
+> `reprofile` guard reports the dispatch count before it is spent (see
+> "Interaction with M14" below and `docs/M14-document-profile.md`). Deciding the
+> section slugs after moves 3/4/2 are visible in the document is the whole point
+> of the recommended order.
 
 ## Goal
 

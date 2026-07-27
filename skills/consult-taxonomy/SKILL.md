@@ -60,6 +60,9 @@ bucket silently.
 
 The human may drop client-supplied reference files at `{area}/_client/` — read
 them when present, never write to that folder, never invent their contents.
+**M13:** the same file names may live once per engagement at
+`components/_client/`; read that layer too, with `{area}/_client/` shadowing it
+per file (an area `org-chart.yaml` replaces the engagement one entirely).
 Schema examples live beside this skill:
 `reference/org_chart.example.yaml` and `reference/client_taxonomy.example.yaml`.
 
@@ -80,7 +83,8 @@ Schema examples live beside this skill:
 ### 1. Read
 - Everything in `{area}/_sources/new/` (the unconsumed inputs).
 - The `taxonomy`: find your L1 by `slug`, read its L2 buckets and their slugs.
-- `{area}/_client/` if present (org chart + client taxonomy — see above).
+- `{area}/_client/` and `components/_client/` if present, area shadowing per
+  file (org chart + client taxonomy — see above).
 - **incremental only:** also read the live `_reference/` (systems/roles/sources)
   and the existing procedure slugs from `{area}/manifest.json`, so you propose a
   *delta* against what already exists.

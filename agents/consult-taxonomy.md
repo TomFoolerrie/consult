@@ -67,7 +67,9 @@ Read, at the start:
 2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
    buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
    your **known backbone**: the buckets L3 activities file under.
-3. `{area}/_client/`, if present — optional client-supplied context:
+3. `{area}/_client/` **and the engagement-wide `components/_client/`**, if
+   present (area files shadow same-name engagement files, M13) — optional
+   client-supplied context:
    `org-chart.yaml` (person → title) and `taxonomy.yaml` (the client's own
    L1→L2→L3 map). See "Client context" below.
 
@@ -86,8 +88,9 @@ bucket flagged `needs-approval` (see below); the human decides at the gate.
 
 ## Client context (optional — use it when present)
 
-`{area}/_client/` holds client-supplied reference files the human may or may not
-provide. Never write to this folder; never invent its contents. (Schema examples:
+`{area}/_client/` — falling back per file to the engagement-wide
+`components/_client/` (M13) — holds client-supplied reference files the human
+may or may not provide. Never write to this folder; never invent its contents. (Schema examples:
 `skills/consult-taxonomy/reference/org_chart.example.yaml` /
 `client_taxonomy.example.yaml`.)
 

@@ -27,6 +27,23 @@ assembly glue and delegates styling to the bundled CFGI converter:
      `document-profile` static section; single-file -> the converter's legacy
      H1/tagline scan.
 
+M14 — THIS IS ENFORCEMENT POINT 2 FOR THE DOCUMENT PROFILE. Before any other
+body cleaning, each procedure body loses the sections the engagement's profile
+does not have, the sections its `body_omit` keeps out of the procedure body, and
+the callout kinds it does not carry. All three are BLANKED, not deleted, so the
+line-for-line provenance mapping survives; with no profile in play they are
+no-ops and the output is byte-identical to pre-M14. Fragments are never
+rewritten: turning a section back on restores text that was always there.
+
+M16 (moves 3 + 4) — two BODY-VIEW projections applied to each procedure body
+right after the profile, both line-count-preserving and both no-ops on a
+fragment that uses neither field, so pre-M16 content renders byte-identically:
+a callout's `detail:` sub-field is blanked here and rendered only in its
+appendix register row (aggregate reads the FRAGMENT, so the detail still reaches
+the register when `body_omit` hides its home section), and a step's
+`Condition:` tag is hoisted to lead the step body when it was not authored
+there.
+
 Modes (M9):
   --mode working (default)  everything visible (gaps, pain points); emits
                             provenance bookmarks + a sidecar review map under
@@ -74,6 +91,8 @@ for _p in (_SCRIPTS_DIR, _SKILL_SCRIPTS):
         sys.path.insert(0, str(_p))
 
 import doc_model  # noqa: E402  (M2-owned shared spine)
+import client_config  # noqa: E402  (M13 resolver / M14 document profile)
+import callouts  # noqa: E402  (shared callout grammar — M16 note/detail fields)
 import cfgi_markdown_to_word as cfgi  # noqa: E402  (bundled converter)
 
 from docx.oxml import OxmlElement  # noqa: E402
@@ -199,6 +218,194 @@ def _clean_body(text: str, numbers) -> str:
     text = _resolve_tokens(text, numbers)
     text = _flag_gap_tags(text)
     return text
+
+
+# --------------------------------------------------------------------------- #
+# M14 profile enforcement (enforcement point 2) — LINE-COUNT-PRESERVING
+#
+# Sections the profile does not have, sections `body_omit` keeps out of the
+# procedure body, and callout kinds the profile does not carry are BLANKED, not
+# deleted: exactly the discipline the comment/consult-meta strippers above
+# follow. Blank lines produce no Word output, so the reader sees the section
+# gone, while assembled body line k still maps to fragment line k — the
+# provenance the M10 review-apply pipeline depends on. (The final-mode
+# transforms below may drop lines because final mode has no review round; a
+# `body_omit` render is an ordinary WORKING render and does.)
+#
+# Both are no-ops that return the text UNCHANGED when the profile excludes
+# nothing, so an engagement with no `profile.yaml` renders byte-identically.
+# --------------------------------------------------------------------------- #
+_SECTION_LINE_RE = re.compile(r"^###\s+(?P<letter>[A-Z])\.\s")
+_META_FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.IGNORECASE)
+
+# A callout label line, loose enough to catch every kind in the LABEL map:
+# `> **<LABEL> — <ID>:** text`. The grammar itself is callouts.py's; this only
+# needs the label to decide whether the block stays.
+_CALLOUT_LABEL_RE = re.compile(
+    r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]*?)\s*[-–—]\s*[A-Za-z]+-[A-Za-z0-9\-]+\s*:"
+)
+
+
+def _blank_sections(text: str, letters) -> str:
+    """Blank the `### X.` blocks of every section in `letters`.
+
+    The `consult-meta` end matter belongs to no section, so it survives even
+    when the section it trails is hidden — otherwise hiding `H` would strip a
+    procedure's system/role bindings out of the assembled body.
+    """
+    if not letters:
+        return text
+    out: list[str] = []
+    dropping = False
+    for ln in text.split("\n"):
+        if _META_FENCE_RE.match(ln):
+            dropping = False
+        else:
+            m = _SECTION_LINE_RE.match(ln)
+            if m:
+                dropping = m.group("letter") in letters
+        out.append("" if dropping else ln)
+    return "\n".join(out)
+
+
+def _blank_callouts(text: str, labels) -> str:
+    """Blank every callout block whose LABEL is in `labels`.
+
+    A callout is its label line plus the contiguous `>` blockquote under it —
+    the same block shape `_final_transform` consumes for VALIDATION REQUIRED,
+    which is that stripper generalized to any kind the profile drops.
+    """
+    if not labels:
+        return text
+    lines = text.split("\n")
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        m = _CALLOUT_LABEL_RE.match(lines[i])
+        label = re.sub(r"\s+", " ", m.group("label")).strip() if m else None
+        if label in labels:
+            out.append("")
+            i += 1
+            while i < len(lines) and lines[i].lstrip().startswith(">"):
+                if _CALLOUT_LABEL_RE.match(lines[i]):
+                    break      # a new callout starts its own block
+                out.append("")
+                i += 1
+            continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
+def _apply_profile(text: str, profile) -> str:
+    """Strip everything the document profile excludes from one procedure body."""
+    text = _blank_sections(text, profile.hidden_sections())
+    return _blank_callouts(text, profile.dropped_callouts())
+
+
+# --------------------------------------------------------------------------- #
+# M16 move 3 — callout `detail:` is appendix-only  (LINE-COUNT-PRESERVING)
+#
+# One source of truth, two views: the fragment holds the whole callout, the
+# STEP shows `note:` (one or two sentences) and the appendix register row shows
+# `detail:` (the full account). This is the projection half — blanking the
+# `detail:` bullet and its wrapped continuation lines out of the procedure body.
+# aggregate.py is the other half and reads the FRAGMENT, so a detail still
+# reaches its register when the profile has body_omit'ed its home section: the
+# two features compose without knowing about each other.
+#
+# A callout with no `detail:` is untouched, so a fragment using none of this
+# grammar renders byte-identically to pre-M16.
+# --------------------------------------------------------------------------- #
+def _hide_callout_details(text: str) -> str:
+    """Blank the `> - **Detail:** …` bullet of every callout (body view only)."""
+    lines = text.split("\n")
+    out = list(lines)
+    in_callout = False
+    i = 0
+    while i < len(lines):
+        ln = lines[i]
+        if _CALLOUT_LABEL_RE.match(ln):
+            in_callout = True
+            i += 1
+            continue
+        if not ln.lstrip().startswith(">"):
+            in_callout = False
+            i += 1
+            continue
+        if in_callout and callouts.is_callout_field(ln, callouts.DETAIL_FIELD):
+            out[i] = ""
+            i += 1
+            # A wrapped value continues over plain `>` lines until the next
+            # sub-field bullet, the next callout, or the end of the block —
+            # the same continuation rule aggregate's parser applies.
+            while i < len(lines):
+                nxt = lines[i]
+                if (not nxt.lstrip().startswith(">")
+                        or _CALLOUT_LABEL_RE.match(nxt)
+                        or callouts.callout_field(nxt)):
+                    break
+                out[i] = ""
+                i += 1
+            continue
+        i += 1
+    return "\n".join(out)
+
+
+# --------------------------------------------------------------------------- #
+# M16 move 4 — a step's `Condition:` LEADS its body  (LINE-COUNT-PRESERVING)
+#
+# The contract asks drafters to author the `Condition:` tag as the first line of
+# the step body, directly under the heading, because that is where it must be
+# read: "Step 5" that reads as "next, do this" is the defect. This transform is
+# the guarantee for a fragment authored the other way round (the tag sitting
+# with its sibling inline tags below the prose) — it ROTATES the tag up to the
+# head of the step body, which keeps the line COUNT identical.
+#
+# It fires only when the tag is not already leading, so a contract-compliant
+# fragment is passed through untouched and its M10 line-for-line provenance is
+# exact. When it does fire, provenance shifts by one line inside that one step —
+# the price of rendering a mis-ordered fragment correctly, paid nowhere else.
+# --------------------------------------------------------------------------- #
+_STEP_HEADING_RE = re.compile(r"^\s{0,3}#{4,6}\s+\S")
+_ANY_HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
+_CONDITION_RE = re.compile(
+    r"^\s*[-*+]\s*\*\*\s*" + re.escape(client_config.CONDITION_TAG)
+    + r"\s*:\s*\*\*", re.IGNORECASE)
+
+
+def _lead_conditions(text: str) -> str:
+    """Hoist each step's `- **Condition:** …` tag to the head of its body."""
+    lines = text.split("\n")
+    n = len(lines)
+    starts = [i for i, ln in enumerate(lines) if _STEP_HEADING_RE.match(ln)]
+    for h in starts:
+        # The step body runs to the next heading of any level.
+        end = n
+        for j in range(h + 1, n):
+            if _ANY_HEADING_RE.match(lines[j]):
+                end = j
+                break
+        cond = None
+        for j in range(h + 1, end):
+            if lines[j].lstrip().startswith(">"):
+                continue          # a callout's own bullets are not step tags
+            if _CONDITION_RE.match(lines[j]):
+                cond = j
+                break
+        if cond is None:
+            continue
+        first = next((j for j in range(h + 1, end) if lines[j].strip()), None)
+        if first is None or first == cond:
+            continue              # already leading — nothing to do
+        if lines[h + 1].strip():
+            # No blank line under the heading to rotate into: hoisting here
+            # would let the prose be absorbed into the tag's own bullet
+            # paragraph. Leave it in place rather than corrupt the step.
+            continue
+        rotated = [lines[cond]] + lines[h + 1:cond]
+        lines[h + 1:cond + 1] = rotated
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------- #
@@ -353,6 +560,9 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
                   track_changes: bool = False, emit_signal: bool = True) -> dict:
     """Render an area folder. Returns a stats dict (counts + doc_id/map)."""
     folder = Path(folder)
+    # M14 enforcement point 2. Resolved before any body is touched so a
+    # malformed profile fails the render rather than shipping a wrong shape.
+    profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
     numbers = doc_model.display_numbers(manifest)
@@ -384,7 +594,8 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
-             "screens_embedded": 0, "screens_placeholder": 0}
+             "screens_embedded": 0, "screens_placeholder": 0,
+             "profile": profile.report_line()}
 
     subset = slugs is not None
     if subset:
@@ -417,6 +628,14 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             submap = ids_by_slug.get(slug, {})
             if submap:
                 raw_body = _rewrite_callout_ids(raw_body, submap)
+            # The profile decides shape BEFORE final mode counts what it
+            # strips, so a hidden section's gaps are never double-reported.
+            raw_body = _apply_profile(raw_body, profile)
+            # M16: the two body-view projections. Both are no-ops on a fragment
+            # that uses none of the new grammar, and both run AFTER the profile
+            # so a hidden section's callouts are already blank.
+            raw_body = _hide_callout_details(raw_body)
+            raw_body = _lead_conditions(raw_body)
         if mode == "final" and role == "procedure":
             raw_body = _final_transform(
                 raw_body, slug, folder,
@@ -535,6 +754,7 @@ def main(argv=None) -> int:
             do_cover=do_cover, mode=a.mode, slugs=slugs,
             track_changes=a.track_changes)
         print("Wrote " + str(out))
+        print(stats["profile"])
         if a.mode == "final":
             print(f"final mode: stripped {stats['gaps_stripped']} open gap callout(s) "
                   f"+ {stats['gap_tags_stripped']} inline tag(s); "

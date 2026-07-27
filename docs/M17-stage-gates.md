@@ -1,12 +1,48 @@
 # M17 — Stage gates (draft-ready boundary + sticky holds)
 
-> **Status: BUILT — build order item 1 only** (`scripts/orchestrate.py`; tests in
-> `tests/test_stage_gates.py`): guard 8.5, the `accept-draft` subcommand, and the
-> `AREA_GITIGNORE` entry. Item 2 (`consolidate` visibility) still waits on M12 —
-> the gate carries the slot with `consolidated_at_basis: null` so its shape is
-> stable, and `checkpoint --stage consolidate` is NOT yet a validated name. Item 3
-> (sticky holds) still waits on M13 (`_client/` resolution). Deltas from this
-> design:
+> **Status: BUILT — build order items 1 and 3** (`scripts/orchestrate.py` +
+> `scripts/client_config.py`; tests in `tests/test_stage_gates.py` and
+> `tests/test_sticky_holds.py`): guard 8.5, the `accept-draft` subcommand, the
+> `AREA_GITIGNORE` entry, and the sticky `hold:` list. Item 2 (`consolidate`
+> visibility) still waits on M12 — the gate carries the slot with
+> `consolidated_at_basis: null` so its shape is stable, and `checkpoint --stage
+> consolidate` is NOT yet a validated name.
+>
+> **Sticky holds (item 3) — deltas from this design:**
+>
+> - **`hold:` resolves through M13's `client_config`** as one top-level key, so it
+>   is `_client/consult.yaml` at the area or engagement layer and gets merging,
+>   shadowing and provenance for free. Shadowing is therefore per-LIST, not
+>   per-item: an area `hold:` replaces the engagement list **whole**, exactly like
+>   every other top-level key (no deep merge). `held_by` is consequently one layer
+>   for the whole list, which is all the driver reports.
+> - **One enforcement point.** The hold is applied in `decide()`'s single `result()`
+>   exit rather than at each guard: the ladder decides what is next, and the hold
+>   only decides whether a human sees it first. No guard can forget it, and no
+>   guard can be reordered by it. The held result is byte-identical to the unheld
+>   one except `human_gate: true` and `details.held_by` — same action, same reason,
+>   same work order.
+> - **The vocabulary lives in the advisor** (`orchestrate.HOLDABLE_ACTIONS` /
+>   `GATE_ACTIONS`) and is passed into `client_config.parse_holds`, because
+>   `client_config` must never import the advisor and a hold list is meaningless
+>   against anything but the ladder that would honour it. A test pins the two sets
+>   against every action name `decide()` can actually return, so a new action
+>   cannot become silently unholdable.
+> - **Holding a gate is a VALIDATION ERROR**, the choice this ticket's out-of-scope
+>   note leaves open (`done` and `error` are treated the same way — neither spends
+>   anything). A no-op line in a policy file reads, forever, as a policy in force;
+>   failing loud is the only reading that tells the author their line does nothing.
+>   Unknown names fail loud for the same reason, per the ticket.
+> - **Resolved before the ladder walks**, so a typo'd list stops an area that is
+>   nowhere near the held action — a hold that only validates on the lap it would
+>   have fired is a hold that validates when it is too late to matter. (After the
+>   folder-existence check, so a typo'd `--area` still reports `error`.)
+> - **Not done here: no stage prints a `holds:` line.** `Holds.report_line()`
+>   exists and is tested, but the stage scripts that would print it
+>   (`reconcile.py`) are outside this pass's file ownership, and the advisor's
+>   output is JSON, where `details.held_by` already carries it.
+>
+> **Deltas from this design (item 1, the gate):**
 >
 > - **The gate fires only when a spend is actually outstanding** — `synthesize`
 >   (stale kinds or a pending placeholder) or `render` (no `.docx` at the current
@@ -36,11 +72,13 @@
 >   `tests/test_decide_states.py` (1), `tests/test_render_signal.py` (the shared
 >   `_walk_to_render_guard` helper). The ladder change is the ticket; the pins were
 >   correct before it.
-> - **Not done here: the orchestrator's prompt.** "What the orchestrator's prompt
->   must gain" (cost column, the three answers, the dispatch-count line) is
->   untouched — `skills/consult-orchestrate/SKILL.md` was outside this pass's file
->   ownership. Until it lands, a driver following the skill has no `draft_ready`
->   handler and will stop at the gate without knowing `accept-draft` exists.
+> - **The orchestrator's prompt is now current** (it was deferred by the pass that
+>   built the gate, which did not own `skills/consult-orchestrate/SKILL.md`).
+>   "What the orchestrator's prompt must gain" is in: the cost topology as a column
+>   on the dispatch table, a `draft_ready` handler that reads the three answers out
+>   of the JSON rather than reciting them, a `hold` row, and the replacement for
+>   "count the drafter dispatches, everything else is zero" — `synthesize` now costs
+>   one agent per stale kind and `reprofile` is a second way to spend N drafters.
 
 ## Goal
 
