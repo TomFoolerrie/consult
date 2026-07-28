@@ -472,6 +472,51 @@ def check_british_spellings(folder: Path, manifest: dict,
                 )
 
 
+_TABLE_SEP_ROW_RE = re.compile(r"^\s*\|?[\s|:\-]+\|?\s*$")
+
+
+def _cell_count(line: str) -> int:
+    """Cells in a markdown table row, honoring the `\\|` escape."""
+    line = line.strip()
+    if line.startswith("|"):
+        line = line[1:]
+    if line.endswith("|") and not line.endswith("\\|"):
+        line = line[:-1]
+    return len(re.split(r"(?<!\\)\|", line))
+
+
+def check_table_shape(folder: Path, manifest: dict,
+                      warnings: list[str]) -> None:
+    """A table row with MORE cells than its header is almost always a bare
+    `|` in cell text shearing the row (drafter contract: escape it `\\|`).
+    The render ships the sheared shape silently — a phantom column and every
+    later cell one over — so it is flagged here. Fewer cells than the header
+    is not flagged: writers legitimately leave trailing cells off."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        lines = strip_fences(raw).splitlines()
+        for i, line in enumerate(lines):
+            if "|" not in line or i + 1 >= len(lines):
+                continue
+            nxt = lines[i + 1]
+            if not ("-" in nxt and _TABLE_SEP_ROW_RE.match(nxt)):
+                continue
+            width = _cell_count(line)
+            j = i + 2
+            while j < len(lines) and lines[j].strip() and "|" in lines[j]:
+                extra = _cell_count(lines[j]) - width
+                if extra > 0:
+                    warnings.append(
+                        f"{file}:{j + 1}: SHEARED TABLE ROW — {extra} more "
+                        f"cell(s) than the header; a bare '|' in cell text "
+                        f"splits the row (escape it as '\\|')"
+                    )
+                j += 1
+
+
 def check_hedge_prose(folder: Path, manifest: dict,
                       warnings: list[str]) -> None:
     """Uncertainty lives in callouts, never in body prose (drafter contract).
@@ -942,6 +987,9 @@ def reconcile(folder: str) -> int:
     # hedge phrases in body prose; British spellings anywhere in a fragment.
     check_hedge_prose(folder, manifest, warnings)
     check_british_spellings(folder, manifest, warnings)
+
+    # 16. sheared table rows (bare '|' in cell text) — advisory, exit 0.
+    check_table_shape(folder, manifest, warnings)
 
     # report
     if errors:
