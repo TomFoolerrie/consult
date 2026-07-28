@@ -341,6 +341,44 @@ only via `orchestrate.py accept-draft`. `unresolvable`, `reprofile` and a sticky
 hold have no such verb by design — their crossing is a human editing the folder
 (or, for `reprofile`, a human saying "go" and you dispatching the drafters).
 
+## Engagement hygiene — the cross-area audit
+
+The per-area guards (drafter ownership map, taxonomy neighbors, reconcile
+check 17) PREVENT cross-L1 duplication going forward; the audit FINDS what
+already exists. Run it from the engagement root:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" audit components
+```
+
+Run it when the user asks ("audit the engagement", "check for duplication
+across areas"), after areas scoped in silos are first brought under one
+`components/` tree, and offer it before any final export when the engagement
+has more than one area. Read-only, advisory — it reports three shapes:
+
+1. **TWIN L3s** — the same activity scoped as a procedure in two areas.
+   **HUMAN GATE**: present the pairs and ask which area owns each; never
+   decide ownership yourself. The loser is retired (taxonomy retirement
+   flow) or reduced to a handoff (shape 3's fix).
+2. **CROSS-AREA MENTIONS** — prose naming another area's procedure. Usually
+   fine as one handoff sentence; actionable only when paired with shape 3.
+3. **SHARED PROSE** — near-identical sentences in two areas' fragments: the
+   same material drafted twice. After the human names the owner, queue the
+   fix on the OTHER procedure's notes bus:
+
+   ```
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" note \
+       components/<losing-area> --slug <slug> \
+       --note "Reduce <activity> to a one-sentence handoff; it is owned by
+               <area>/<slug>. Do not restate its steps or controls."
+   ```
+
+   then run that area's ordinary loop — the advisor routes the queued notes
+   through `apply_review`, the drafter's update pass (targeted edits, scope-
+   boundary rule) makes the reduction, and re-render/review proceeds as
+   normal. Never edit fragments yourself, and never delete a procedure
+   without the human's ownership call.
+
 ## Reporting
 
 Between steps, keep the user oriented with one-liners ("scoped 12 procedures under
