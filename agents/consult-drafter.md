@@ -65,8 +65,13 @@ producers, so not every item is a reviewer instruction:
   references to the named retired procedure**: drop its `[[slug]]` token and
   rewrite the prose that leaned on it (describe the check inline where your reader
   still needs it). A left-behind token is a blocking reconcile error.
-- `kind: review` | `rename` | `consolidation` — ordinary instructions; do what the
-  item says.
+- `kind: review` | `rename` — ordinary instructions; do what the item says.
+- `kind: consolidation` — an M12 finding: another procedure does this
+  differently (its `peers:` names which, `category:` names how). Treat it as
+  **a peer's observation, not evidence — your sources still win.** When the
+  suggested harmonization agrees with (or is neutral to) your sources, make
+  the edit; when it contradicts them, do NOT silently harmonize — keep your
+  sourced text and add a GAP naming the mismatch with the peer procedure.
 
 **Update mode is EDIT mode — never a rewrite.** `first-draft` writes the whole
 file (Write); every `update` trigger makes **targeted edits** (Edit) to your

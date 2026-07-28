@@ -76,7 +76,8 @@ topology below: **taxonomy** spends 1 agent per scope pass, the **drafters**
 spend N (one per procedure — usually the bulk of it, and `reprofile` is a second
 way to spend it), and **synthesize** spends one agent per stale judgment kind (2
 under the default profile — but the kinds come from the manifest, so a profile
-without `raci` spends 1); `consolidate` will spend 1 more once M12 lands.
+without `raci` spends 1); `consolidate` (M12, human-invoked at the draft-ready
+gate) spends 1 agent per L2 bucket + 1 cross-bucket agent.
 Everything else on the ladder is free Python or a human's time — but `render` is
 the expensive kind of free, because it starts a human review cycle, which is the
 scarcer resource.
@@ -128,6 +129,7 @@ revert); its failures degrade to notes, never to corrupted fragments.
 | `.hashes.json` | per-derived-kind procedure-hash baseline; ONLY `scope_delta.py commit` writes it — skip it after synthesize and guard 9 fires forever |
 | `.reconcile.json` | `{basis, clean}` — render is gated on clean at the current basis. May also carry `failing_files` (the area-relative files the last run's errors named): that is what lets guard 8 send a fixable failure to `synthesize` first and an unfixable one to `unresolvable`, instead of re-running the verifier forever |
 | `.draft_ready.json` | `{draft_basis, accepted}` — the M17 draft-ready accept flag, keyed to the **two databases only** (procedures + registry), so `synthesize` rewriting 82/84 cannot re-open a gate the human just cleared, while any fragment or registry edit does. ONLY `orchestrate.py accept-draft` writes it |
+| `.consolidate.json` | `{draft_basis}` — the last M12 consolidation pass, keyed like `.draft_ready.json` to the two databases. ONLY `consolidate.py mark` writes it; informational (the advisor never demands the stage), surfaced in the draft-ready gate's `consolidate` answer as `consolidated_at_basis` |
 | `.render.json` | `{basis, docx, awaiting_review}` — the review resting state. Only `--mode working` writes it; `--mode final` and `--slugs` renders are exports and leave it untouched |
 | `*.extract.json` | per-doc extraction sidecar written by aggregate (derived; git-ignored) |
 | `_review/kits/` | derived send-outs; regenerate freely with kits.py |
@@ -269,7 +271,7 @@ paths/ids — never pasted content.
 | `review_triage` | **HUMAN GATE.** Reviewer material no drafter can consume. Two shapes, told apart by which key is set (M18/F1): (a) `details.unassigned` — items `review_extract.py` couldn't attribute to a procedure; tell the user to open `_review/_unassigned.notes.yaml` and either move each item into the right `_review/{slug}.notes.yaml` or delete/archive the file. (b) `details.orphan_notes` + `details.orphan_slugs` — notes whose basename names **no live manifest procedure**, so a drafter has nothing to update and the note can never archive; relay `details.resolutions` verbatim (restore the procedure, or archive the note to `_review/processed/`). Then re-invoke. Stop. |
 | `aggregate` | Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/aggregate.py" <area folder path>` (this script does NOT resolve bare names under components/). Non-zero exit (fail-loud on a malformed callout) → surface + stop. Unmatched-mention WARNINGs → `registry_topup` gate. |
 | `registry_topup` | **HUMAN GATE.** List the flagged systems/roles (`details.warnings`); tell the user to add entries/aliases to `_reference/` and re-invoke. Stop. On re-invoke the registry edit changes `registry_hash`, so the advisor returns `aggregate` again — the top-up loop re-runs aggregate and clears (or re-flags) the warning. |
-| `draft_ready` | **HUMAN GATE (guard 8.5) — a resting gate, not a failure.** The area is fully drafted and reconciled clean, and the next move is the first one that costs something: `details.would_spend` says which (`synthesize` = 2 agents, or `render` = a human review round). Put `details.question` to the user ("am I happy with the verbs and the nouns before anything else is paid for?") and present the three options in `details.answers` — the list is the gate's stable shape, so read them from the JSON rather than reciting them: **read** (free) — the `command` field carries the real `--slugs` list for a procedures-only render; **consolidate** — `command: null` because the M12 consolidator is not built yet, so say that plainly and do not improvise a substitute; **accept** (free) — `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" accept-draft --area <area>`. Note the advisor prints repo-relative script paths in `answers[].command` (it has no `CLAUDE_PLUGIN_ROOT`), so prefix `python3 "${CLAUDE_PLUGIN_ROOT}/"` as you do everywhere else. Stop. Only on the user's explicit acceptance do you run `accept-draft` (the sole writer of `.draft_ready.json`), then re-loop. A `--slugs` read-render never writes `.render.json`, so showing the user the draft does not advance the machine and does not need a checkpoint. |
+| `draft_ready` | **HUMAN GATE (guard 8.5) — a resting gate, not a failure.** The area is fully drafted and reconciled clean, and the next move is the first one that costs something: `details.would_spend` says which (`synthesize` = 2 agents, or `render` = a human review round). Put `details.question` to the user ("am I happy with the verbs and the nouns before anything else is paid for?") and present the three options in `details.answers` — the list is the gate's stable shape, so read them from the JSON rather than reciting them: **read** (free) — the `command` field carries the real `--slugs` list for a procedures-only render; **consolidate** — the M12 cross-procedure consistency pass (see "Consolidate (M12)" below); its `command` is the free `consolidate.py plan`, its `consolidated_at_basis` says whether THIS draft already had a pass (equal to `details.draft_basis` = yes; null or different = no) — surface that so the user doesn't pay twice; **accept** (free) — `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" accept-draft --area <area>`. Note the advisor prints repo-relative script paths in `answers[].command` (it has no `CLAUDE_PLUGIN_ROOT`), so prefix `python3 "${CLAUDE_PLUGIN_ROOT}/"` as you do everywhere else. Stop. Only on the user's explicit acceptance do you run `accept-draft` (the sole writer of `.draft_ready.json`), then re-loop. A `--slugs` read-render never writes `.render.json`, so showing the user the draft does not advance the machine and does not need a checkpoint. |
 | `unresolvable` | **STOP — a resting gate (guards 5a/5b/8), `human_gate: true`, exit 0.** The folder is consistent and the ladder is simply out of moves: **no action can change the state that selected it.** So do NOT retry the action that led here, do not re-run the stage the state mentions, and do not invent a workaround. Report, verbatim and in this order: `details.state` (what was detected), `details.why_no_stage` (why no stage clears it), `details.human_action` (the specific fix — it is written to be actionable, including the exact command where one exists). Then add whatever evidence keys are present: `details.stranded_ids` (the `SRC-` ids stranded in `_sources/new/`, with `stranded_sources` carrying each one's `touches`/`consumed`), `details.missing_procedures` (manifest slugs whose fragment file is gone), `details.failing_files` + `details.dangling_refs` (reconcile failures no producer can regenerate). End the turn. |
 | `error` | **ABORT the run.** `next` exited **2** and read no state at all: the area folder does not exist (`details.missing_folder`). This is a wrong `--area` — a typo, or a bare name that resolves to `components/<name>` and was never scoped. It is deliberately not a gate, so do not checkpoint and do not re-loop. Show the path it tried, ask the user for the right area name, and stop. |
 | `synthesize` | **Iterate `details.stale_kinds` — never assume two kinds.** The judgment views are manifest-driven (M14): a document profile without `raci` has no RACI component, no RACI file and no RACI agent to dispatch, so the work order is exactly the kinds in that list (and `details.pending` names any view still carrying the pending placeholder). Dispatch **one subagent per stale kind**, mapping kind → agent: `dependencies` → `consult-dependencies`, `raci` → `consult-raci`. Batch/parallel; they self-scope to changed procedures via the delta; compact returns only. A kind in the list with no agent you know is a bug to surface, not a kind to skip silently. **Then, for each kind whose agent wrote successfully, rebaseline the change signal yourself:** `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scope_delta.py" commit --folder <area> --kind <kind>` — once per kind, using the same kind strings. This is the ONLY writer of the `.hashes.json` baseline the advisor reads — skip it and guard 9 keeps returning `synthesize` forever. Commit a kind only after its agent succeeded (a failed agent keeps its stale baseline so it re-dispatches next pass). |
@@ -340,6 +342,42 @@ cross them: `review` clears only via `orchestrate.py accept`, and `draft_ready`
 only via `orchestrate.py accept-draft`. `unresolvable`, `reprofile` and a sticky
 hold have no such verb by design — their crossing is a human editing the folder
 (or, for `reprofile`, a human saying "go" and you dispatching the drafters).
+
+## Consolidate (M12) — the within-area consistency pass
+
+Human-invoked at the **draft-ready gate only** — never before (fragments still
+churning) and never demanded by the advisor. When the user picks the gate's
+`consolidate` answer:
+
+1. Run the free plan: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py"
+   plan <area>` — it names every agent and its brief command. Relay the agent
+   count (that is the cost) and get the go-ahead if the user hasn't already
+   given it.
+2. Dispatch **one `consult-consolidator` subagent per L2 bucket, in
+   parallel**, each with `{area, bucket: <l2>}` — then, after they return,
+   **one cross-bucket agent** with `{area, cross}` (it sees the queued notes,
+   so running it after the bucket agents avoids duplicate raises; a
+   single-bucket area skips it — the plan says so). Each agent's first action
+   is its brief; each writes findings ONLY via `consolidate.py note`.
+3. Run `consolidate.py report <area>` and show it verbatim — the dispatch
+   count is the headline. **Relay the agents' conflicts, proposals and
+   no-majority items yourself**: conflicts are never notes, so the report
+   cannot carry them. Registry alias / conventions proposals are the human's
+   to confirm (the ordinary top-up loop); never apply one yourself.
+4. Tell the user they may **delete any note they disagree with** in
+   `_review/<slug>.notes.yaml` before continuing, then run
+   `consolidate.py mark <area>` (sole writer of `.consolidate.json`) and
+   checkpoint (`--stage consolidate`).
+5. Re-loop: the advisor routes the queued notes through the ordinary
+   `apply_review` path (one drafter per touched slug — per slug, not per
+   finding), then aggregate/reconcile bring you back to the draft-ready gate
+   with `consolidated_at_basis` still informative. The tail (synthesize,
+   render) has not run yet, so it runs once — that is the whole point of the
+   stage's placement.
+
+Scope note: M12 is within-area. Cross-L1 consistency is the engagement
+audit's job (next section); run consolidation per area first — the audit's
+heuristics read cleaner signals off internally-consistent areas.
 
 ## Engagement hygiene — the cross-area audit
 

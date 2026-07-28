@@ -1,6 +1,13 @@
 # M12 — Consolidator (cross-procedure consistency pass)
 
-> **Status: DESIGNED — open questions settled.** Ready to build.
+> **Status: BUILT.** `scripts/consolidate.py` (plan / brief / note / report /
+> mark), `agents/consult-consolidator.md`, the draft-ready gate's `consolidate`
+> answer wired (`consolidated_at_basis` from `.consolidate.json`), notes bus
+> extended with `category`/`peers` (consolidation items require both). One
+> deliberate divergence from the design below: the naming-majority tally, the
+> cross-bucket digest extraction, and the finding-shape validation live in the
+> deterministic script (the brief pattern), not the agent — same behaviour,
+> enforced instead of instructed.
 
 ## Goal
 
