@@ -7,7 +7,7 @@ description: >-
   dependencies, referencing procedures by [[slug]]. Change-scoped: only re-derives rows for
   changed procedures, preserving the rest from its prior file. Writes exactly one file;
   returns a compact status. Dispatched by consult-orchestrate.
-tools: Read, Write, Grep, Glob, Bash(python3:*)
+tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 ---
 
 # consult-dependencies — Key Dependencies view (one area)
