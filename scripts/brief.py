@@ -202,10 +202,15 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
                        f"{c.get('heading', '')}  (sibling procedure: "
                        f"reference it with its [[slug]]; one linking "
                        f"sentence max)")
-    for aname, atitle in _sibling_areas(folder):
-        _line(out, f"  - area {aname} — {atitle}  (another L1: OUT OF "
-                   f"SCOPE — one handoff sentence naming the process, no "
-                   f"steps; report the overlap in your status)")
+    if folder.resolve().parent.name != "components":
+        _line(out, "  - (no sibling areas visible: this area is not under "
+                   "a components/ engagement root, so cross-L1 boundaries "
+                   "are UNAVAILABLE — mention this in your return)")
+    else:
+        for aname, atitle in _sibling_areas(folder):
+            _line(out, f"  - area {aname} — {atitle}  (another L1: OUT OF "
+                       f"SCOPE — one handoff sentence naming the process, "
+                       f"no steps; report the overlap in your status)")
     _line(out)
 
     items = notes_util.load_items(folder, slug)

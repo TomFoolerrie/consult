@@ -17,9 +17,10 @@ cross-L1 duplication:
   2. MENTIONS     — one area's prose names another area's procedure title
                     (reconcile check 17, aggregated engagement-wide with
                     both sides visible).
-  3. SHARED PROSE — near-identical sentences appearing in fragments of two
-                    different areas: the fingerprint of the same source
-                    material drafted twice by siloed runs.
+  3. SHARED PROSE — fragment pairs across areas whose prose shares long
+                    word runs (8-word shingles): the fingerprint of the
+                    same source material drafted twice, verbatim OR
+                    paraphrased around a shared skeleton.
 
 Read-only, advisory: exit 0 with findings (the human decides ownership),
 exit 2 on a missing/empty components dir. The fix path for every finding is
@@ -39,8 +40,13 @@ _WORD_RE = re.compile(r"[a-z0-9]+")
 #: Title tokens carrying no activity identity on their own.
 _STOP = {"the", "a", "an", "and", "of", "to", "for", "in", "process",
          "processing", "management", "and"}
-#: Prose lines shorter than this carry too little identity to fingerprint.
-_MIN_SENT = 60
+#: Shingle width (words) and how many shared shingles flag a fragment pair.
+#: 8-word windows survive paraphrase-with-shared-skeleton (two drafters
+#: working the same interview rarely produce IDENTICAL sentences, but their
+#: sentences share long word runs); 4 shared shingles ≈ one identical 11-word
+#: run or several shorter ones — below that is idiom, not duplication.
+_SHINGLE_K = 8
+_SHARED_SHINGLES_MIN = 4
 
 
 def _tokens(title: str) -> frozenset[str]:
@@ -76,10 +82,12 @@ def _fragment_text(root: Path, area: str, comp: dict) -> str:
         return ""
 
 
-def _prose_sentences(text: str) -> set[str]:
-    """Normalized prose lines long enough to fingerprint. Headings, tables,
-    callout lines and the consult-meta fence are structure, not prose."""
-    out = set()
+def _prose_paragraphs(text: str) -> list[str]:
+    """Prose joined back into paragraphs. Fragments hard-wrap at ~80 columns,
+    so shingling must run across line breaks; headings, tables, callout lines
+    and fenced blocks are structure, not prose, and break a paragraph."""
+    paras: list[str] = []
+    cur: list[str] = []
     fenced = False
     for ln in text.split("\n"):
         s = ln.strip()
@@ -87,11 +95,23 @@ def _prose_sentences(text: str) -> set[str]:
             fenced = not fenced
             continue
         if fenced or not s or s.startswith(("#", "|", ">", "<!--")):
+            if cur:
+                paras.append(" ".join(cur))
+                cur = []
             continue
-        s = re.sub(r"^[-*+]\s+|^\d+\.\s+", "", s)
-        s = re.sub(r"\s+", " ", s.lower())
-        if len(s) >= _MIN_SENT:
-            out.add(s)
+        cur.append(re.sub(r"^[-*+]\s+|^\d+\.\s+", "", s))
+    if cur:
+        paras.append(" ".join(cur))
+    return paras
+
+
+def _shingles(text: str) -> set[str]:
+    """All _SHINGLE_K-word windows over the fragment's prose paragraphs."""
+    out: set[str] = set()
+    for para in _prose_paragraphs(text):
+        words = _WORD_RE.findall(para.lower())
+        for i in range(len(words) - _SHINGLE_K + 1):
+            out.add(" ".join(words[i:i + _SHINGLE_K]))
     return out
 
 
@@ -140,26 +160,30 @@ def cross_mentions(root: Path, areas, out: list[str]) -> int:
 
 
 def shared_prose(root: Path, areas, out: list[str]) -> int:
-    """Near-identical long sentences in fragments of two different areas."""
-    sent_map: dict[tuple[str, str], set[str]] = {}
+    """Shared prose skeletons across areas: fragment pairs whose prose has
+    _SHARED_SHINGLES_MIN or more common _SHINGLE_K-word runs. Catches both
+    verbatim duplication AND paraphrase-with-shared-skeleton — exact-sentence
+    matching missed the latter, and paraphrase is what parallel drafters
+    working the same source actually produce."""
+    sh_map: dict[tuple[str, str], set[str]] = {}
     for a, m in areas:
         for comp in _procedures(m):
             text = _fragment_text(root, a, comp)
             if text:
-                sent_map[(a, comp.get("slug", "?"))] = _prose_sentences(text)
-    keys = sorted(sent_map)
+                sh_map[(a, comp.get("slug", "?"))] = _shingles(text)
+    keys = sorted(sh_map)
     n = 0
     for i, k1 in enumerate(keys):
         for k2 in keys[i + 1:]:
             if k1[0] == k2[0]:
                 continue
-            common = sent_map[k1] & sent_map[k2]
-            if common:
-                n += len(common)
+            common = sh_map[k1] & sh_map[k2]
+            if len(common) >= _SHARED_SHINGLES_MIN:
+                n += 1
                 sample = sorted(common, key=len, reverse=True)[0]
                 out.append(f"  - {k1[0]}/{k1[1]}  <->  {k2[0]}/{k2[1]}: "
-                           f"{len(common)} shared sentence(s), e.g. "
-                           f"\"{sample[:100]}…\"")
+                           f"{len(common)} shared {_SHINGLE_K}-word run(s), "
+                           f"e.g. \"…{sample}…\"")
     return n
 
 
@@ -195,8 +219,8 @@ def audit(root: Path) -> int:
 
     lines = []
     n3 = shared_prose(root, areas, lines)
-    print(f"\n3. SHARED PROSE — near-identical sentences across areas: "
-          f"{n3}")
+    print(f"\n3. SHARED PROSE — fragment pairs sharing {_SHINGLE_K}-word "
+          f"runs across areas (verbatim or paraphrased skeleton): {n3}")
     for ln in lines:
         print(ln)
     if n3:

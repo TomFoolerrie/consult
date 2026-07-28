@@ -48,7 +48,7 @@ def test_audit_finds_all_three_shapes(tmp_path, capsys):
     # cross mention: inventory prose names fscp's procedure title
     assert "names 'Sales Package Preparation'" in out
     # shared prose: the identical long sentence in both areas
-    assert "shared sentence(s)" in out
+    assert "8-word run(s)" in out
     assert "finding(s)." in out
 
 
@@ -104,3 +104,39 @@ def test_note_unknown_slug_exits_2(tmp_path, capsys):
     assert engagement.main(["note", str(root / "inventory"),
                             "--slug", "nope", "--note", "x"]) == 2
     assert "cycle-counts" in capsys.readouterr().err
+
+
+def test_shared_prose_catches_paraphrase_with_shared_skeleton(tmp_path,
+                                                              capsys):
+    """Exact-sentence matching missed paraphrases; shingling must not. Two
+    fragments share an 11+ word run inside otherwise different sentences."""
+    root = make_engagement(tmp_path)
+    skeleton = ("the invoice is matched against the purchase order and the "
+                "goods receipt before any payment is released")
+    (root / "fscp" / "10_close-calendar.md").write_text(
+        f"## Close Calendar Management\n\nAt period end {skeleton} by the "
+        "AP team.\n", encoding="utf-8")
+    (root / "inventory" / "10_cycle-counts.md").write_text(
+        f"## Cycle Counts\n\nFor received stock, {skeleton}, per policy.\n",
+        encoding="utf-8")
+    assert engagement.main(["audit", str(root)]) == 0
+    out = capsys.readouterr().out
+    assert "fscp/close-calendar  <->  inventory/cycle-counts" in out
+    assert "8-word run(s)" in out
+
+
+def test_shared_prose_survives_hard_wrapping(tmp_path, capsys):
+    """Fragments hard-wrap at ~80 columns — shingles must run across line
+    breaks inside a paragraph."""
+    root = make_engagement(tmp_path)
+    wrapped = ("the invoice is matched against the purchase\n"
+               "order and the goods receipt before any payment\n"
+               "is released to the supplier bank account")
+    unwrapped = wrapped.replace("\n", " ")
+    (root / "fscp" / "10_close-calendar.md").write_text(
+        f"## X\n\n{wrapped}\n", encoding="utf-8")
+    (root / "inventory" / "10_cycle-counts.md").write_text(
+        f"## Y\n\n{unwrapped}\n", encoding="utf-8")
+    assert engagement.main(["audit", str(root)]) == 0
+    assert "fscp/close-calendar  <->  inventory/cycle-counts" in \
+        capsys.readouterr().out
