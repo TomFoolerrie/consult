@@ -483,12 +483,22 @@ def html_table(block: str, context: str = "") -> TableBlock:
 def md_table(lines: List[str], i: int, context: str = "") -> Tuple[Optional[TableBlock], int]:
     if i + 1 >= len(lines) or "|" not in lines[i]:
         return None, i
-    sep = [c.strip() for c in lines[i + 1].strip().strip("|").split("|")]
+    # Cells are split on UNESCAPED pipes only: writers escape a literal pipe
+    # in cell text as `\|` (aggregate's cell() does), and splitting on it
+    # shears the row — every cell after the escape slides one column right,
+    # growing a phantom column and leaving a stray backslash behind.
+    def split(line: str) -> List[str]:
+        line = line.strip()
+        if line.startswith("|"):
+            line = line[1:]
+        if line.endswith("|") and not line.endswith("\\|"):
+            line = line[:-1]
+        return [c.strip().replace("\\|", "|")
+                for c in re.split(r"(?<!\\)\|", line)]
+
+    sep = split(lines[i + 1])
     if not sep or not all(re.fullmatch(r":?-{3,}:?", c or "") for c in sep):
         return None, i
-
-    def split(line: str) -> List[str]:
-        return [c.strip() for c in line.strip().strip("|").split("|")]
 
     header = split(lines[i])
     rows: List[List[str]] = []
