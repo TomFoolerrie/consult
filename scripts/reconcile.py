@@ -71,6 +71,7 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -469,6 +470,65 @@ def check_british_spellings(folder: Path, manifest: dict,
                 warnings.append(
                     f"{file}:{n}: BRITISH SPELLING ('{m.group(0)}') — the "
                     f"drafter contract requires American English"
+                )
+
+
+def _sibling_procedures(folder: Path) -> list[tuple[str, str, str]]:
+    """(area, slug, title) for every procedure in every SIBLING area — the
+    other manifests under the same components/ parent. Unreadable manifests
+    are skipped: this feeds an advisory check, not a gate."""
+    out: list[tuple[str, str, str]] = []
+    parent = folder.resolve().parent
+    # Only the canonical engagement layout (components/<area>) has siblings;
+    # an area parked anywhere else must not scan its unrelated neighbors.
+    if parent.name != "components" or not parent.is_dir():
+        return out
+    for sib in sorted(parent.iterdir()):
+        if not sib.is_dir() or sib.resolve() == folder.resolve() \
+                or sib.name.startswith(("_", ".")):
+            continue
+        mpath = sib / "manifest.json"
+        if not mpath.is_file():
+            continue
+        try:
+            data = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for comp in data.get("components", []):
+            if comp.get("role") == "procedure":
+                title = (comp.get("heading") or "").strip()
+                if title:
+                    out.append((sib.name, comp.get("slug", "?"), title))
+    return out
+
+
+def check_cross_area_ownership(folder: Path, manifest: dict,
+                               warnings: list[str]) -> None:
+    """One process is never documented in two L1s (the client-taxonomy
+    boundary rule) — but [[slug]] tokens only resolve within an area, so a
+    drafter describing a SIBLING AREA's activity has no reference to reach
+    for and documents it inline instead. This check makes that visible: a
+    fragment whose prose contains another area's procedure TITLE is flagged.
+    Advisory (a legitimate one-sentence handoff mention also matches); the
+    fix is the drafter's ownership rule — one handoff sentence, no steps.
+    Single-word titles are skipped (too collision-prone to be signal)."""
+    sibs = [(a, s, t) for a, s, t in _sibling_procedures(folder)
+            if len(t.split()) >= 2]
+    if not sibs:
+        return
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        text = strip_fences(raw).lower()
+        for area_name, slug, title in sibs:
+            if title.lower() in text:
+                warnings.append(
+                    f"{file}: names '{title}' — an activity owned by "
+                    f"{area_name}/{slug} (another area): describe the "
+                    f"handoff in one sentence; never document another "
+                    f"area's procedure"
                 )
 
 
@@ -990,6 +1050,10 @@ def reconcile(folder: str) -> int:
 
     # 16. sheared table rows (bare '|' in cell text) — advisory, exit 0.
     check_table_shape(folder, manifest, warnings)
+
+    # 17. cross-area ownership (a sibling area's procedure title in this
+    # area's prose) — advisory, exit 0.
+    check_cross_area_ownership(folder, manifest, warnings)
 
     # report
     if errors:

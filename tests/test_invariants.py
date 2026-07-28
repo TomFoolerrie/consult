@@ -476,3 +476,50 @@ def test_escaped_pipe_and_short_rows_are_fine(tmp_path, capsys):
     rc, out = run(area, capsys)
     assert rc == 0
     assert "SHEARED TABLE ROW" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 17. cross-area ownership (sibling area's procedure title in this prose)
+# --------------------------------------------------------------------------- #
+
+def _add_sibling_area(tmp_path, title="Sales Package Preparation"):
+    import json as _json
+    sib = tmp_path / "components" / "fscp"
+    sib.mkdir(parents=True)
+    (sib / "manifest.json").write_text(_json.dumps({
+        "area": "fscp", "title": "FSCP",
+        "components": [
+            {"file": "10_x.md", "role": "procedure",
+             "slug": "sales-package-preparation", "heading": title},
+            {"file": "10_y.md", "role": "procedure",
+             "slug": "close", "heading": "Close"},
+        ]}), encoding="utf-8")
+
+
+def test_naming_a_sibling_areas_procedure_warns(tmp_path, capsys):
+    """Prose naming another area's procedure title flags the ownership
+    boundary — the drafter's handoff sentence grew into documentation."""
+    _add_sibling_area(tmp_path)
+    (tmp_path / "components" / "cash").mkdir(parents=True)
+    area = make_area(tmp_path / "components" / "cash",
+                     {"bank-rec": fragment(
+                         body_extra="\nThe sales package preparation is "
+                                    "performed here by assembling the "
+                                    "schedules.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "owned by fscp/sales-package-preparation" in out
+
+
+def test_single_word_sibling_titles_never_flag(tmp_path, capsys):
+    """'Close' appears in ordinary prose constantly — one-word titles are
+    too collision-prone to be signal and are skipped."""
+    _add_sibling_area(tmp_path)
+    (tmp_path / "components" / "cash").mkdir(parents=True)
+    area = make_area(tmp_path / "components" / "cash",
+                     {"bank-rec": fragment(
+                         body_extra="\nPerform this at close of "
+                                    "business.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "owned by fscp/close" not in out

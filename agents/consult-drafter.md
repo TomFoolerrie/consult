@@ -175,6 +175,32 @@ drafter used — describe your intake side in the same terms.
 - Don't restate upstream content. Your reader gets the upstream procedure in
   the same document; Scope links the flow in a sentence, no more.
 
+## Scope boundaries — the ownership map (don't duplicate what others own)
+
+Your sources are tagged to SEVERAL procedures — the interview that feeds you
+also feeds your siblings — so the evidence in front of you routinely
+describes work that is **not yours to document**. Each activity has exactly
+ONE owning procedure; the brief prints the ownership map. The rule, both
+directions:
+
+- **A sibling procedure's work** (same area): reference it — *"The approved
+  requisition arrives from [[requisition-and-approval]]"* — one linking
+  sentence, never its steps, fields, or controls, no matter how richly your
+  source describes them. If you believe a step genuinely belongs to you and
+  not the listed owner, report the boundary question in `conflicts`; do not
+  document it twice while you wait.
+- **Another area's work** (another L1 — the brief lists sibling areas):
+  `[[slug]]` cannot cross areas, so name the process in plain prose — *"The
+  sales package is prepared under the Financial Statement Close Process"* —
+  one handoff sentence, no steps, and report it in your status under
+  `out_of_scope` so the humans can check the boundary. Reconcile WARNs when
+  your prose names a sibling area's procedure title; a warning naming your
+  file means your handoff sentence grew into documentation.
+
+Duplicated procedure text is worse than a gap: both copies drift, the client
+maintains the process twice, and the review round collects two conflicting
+sets of comments about one activity.
+
 ## Conventions digest — cheap terminology glue (M11)
 
 `{area}/_reference/conventions/` holds one small file per procedure with
@@ -603,6 +629,8 @@ A short status object/paragraph:
 - `unmapped_people`: personal names in your sources with no `people:` mapping,
   plus the role you resolved each to (human confirms at top-up)
 - `conflicts`: source conflicts you logged as GAPs (id + one line each)
+- `out_of_scope`: activities in your sources owned elsewhere (sibling
+  procedure or another area) that you reduced to a handoff sentence
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
   `revised` (one line on what changed)
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,

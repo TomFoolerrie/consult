@@ -107,6 +107,18 @@ may or may not provide. Never write to this folder; never invent its contents. (
   reference backbone (map client L2 names onto backbone buckets; a client L2
   with no backbone home is a new-bucket request, same needs-approval flow).
 
+**Engagement neighbors — the boundary evidence you always have.** With or
+without a client taxonomy, the engagement's OTHER areas are already scoped:
+before finalizing your L3 set, Glob `components/*/manifest.json` (excluding
+your own area) and read their procedure headings. A candidate L3 that is
+already another area's procedure — or is transparently a phase of one (your
+sources describing "sales package preparation" when a sibling area owns
+*Sales Package Preparation*) — is **not yours to scope**: report it in
+`out_of_l1` with the owning area named, exactly as the client-taxonomy rule.
+Sources routinely narrate into neighboring functions; scoping what they
+narrate (instead of what your L1 owns) is how the same process ends up
+documented twice in one engagement.
+
 ## One activity, one procedure — merge near-duplicate L3s
 
 Before finalizing the set, compare your candidate L3s pairwise. Two candidates
