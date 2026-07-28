@@ -344,6 +344,12 @@ reconcile tells you which fragments still need it:
 You are dispatched in `mode: update` for your own procedure. Read the whole
 fragment first, then perform the seven steps below **in order**.
 
+**Work by targeted edits, never full regeneration** (agent contract): change
+exactly the lines the pass requires and leave everything else byte-for-byte.
+A full rewrite silently rewords established prose — including reviewer wording
+the mechanical apply spliced in verbatim, which only an explicit note may
+change.
+
 **The one rule that governs the whole pass: no content is invented and no fact is
 lost.** Every sentence in the old draft either stays where it is, moves to its
 declared home, or is deleted **only** because it is a verbatim restatement of the

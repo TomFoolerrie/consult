@@ -9,7 +9,7 @@ description: >-
   [[slug]] and roles by canonical name. Change-scoped: only re-derives rows for changed
   procedures, preserving the rest. Writes exactly one file; returns a compact status.
   Dispatched by consult-orchestrate.
-tools: Read, Write, Grep, Glob, Bash(python3:*)
+tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 ---
 
 # consult-raci — RACI matrix (one area)

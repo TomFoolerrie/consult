@@ -11,7 +11,7 @@ description: >-
   (never leaving resolved-gap artifacts), producing a clean finished document each time.
   Returns a compact status; writes exactly one file (10_<slug>.md). Dispatched
   one-per-procedure, in parallel, by consult-orchestrate.
-tools: Read, Write, Grep, Glob, Bash(python3:*)
+tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 skills: consult-drafter
 ---
 
@@ -67,6 +67,17 @@ producers, so not every item is a reviewer instruction:
   still needs it). A left-behind token is a blocking reconcile error.
 - `kind: review` | `rename` | `consolidation` — ordinary instructions; do what the
   item says.
+
+**Update mode is EDIT mode — never a rewrite.** `first-draft` writes the whole
+file (Write); every `update` trigger makes **targeted edits** (Edit) to your
+existing draft: change exactly the paragraphs the notes, new source, or work
+order touch, and leave every other line byte-for-byte as it was. Regenerating
+the full file to make a small change silently rewords established prose — and
+worst of all can dilute reviewer wording that the mechanical apply spliced in
+verbatim (M10): SME text is high-authority input, and only an explicit note
+may change it. Full rewrite in update mode is justified only when the work
+order itself is that large (a consolidation absorbing another procedure);
+say so in your return if you did one.
 
 Read, at the start:
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
