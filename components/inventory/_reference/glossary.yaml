@@ -1,0 +1,12 @@
+glossary:
+- term: Blind count
+  definition: Count sheet shows location and item but not the system (book) quantity.
+- term: ABC schedule
+  definition: 'Count frequency by item class: A-items monthly, B-items quarterly,
+    C-items annually.'
+- term: Material Disposition Form
+  definition: Paper form used to record damage, spoilage, and scrap adjustments outside
+    the cycle count.
+- term: Tolerance
+  definition: 'Variance threshold for auto-posting count results: 2% by value for
+    A-items, 5% for B and C items.'

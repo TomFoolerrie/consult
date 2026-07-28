@@ -1,0 +1,55 @@
+roles:
+- slug: inventory-control-analyst
+  name: Inventory Control Analyst
+  aliases:
+  - the analyst
+  - inventory analyst
+  people: []
+  reports_to: ''
+  confidence: high
+- slug: warehouse-manager
+  name: Warehouse Manager
+  aliases:
+  - Warehouse Manager (Plant 2)
+  people: []
+  reports_to: ''
+  confidence: high
+- slug: plant-controller
+  name: Plant Controller
+  aliases: []
+  people: []
+  reports_to: ''
+  confidence: high
+- slug: corporate-controller
+  name: Corporate Controller
+  aliases: []
+  people: []
+  reports_to: ''
+  confidence: medium
+- slug: material-handler
+  name: Material Handler
+  aliases: []
+  people: []
+  reports_to: warehouse-manager
+  confidence: medium
+- slug: cycle-counter
+  name: Cycle Counter
+  aliases:
+  - counters
+  - counting pair
+  people: []
+  reports_to: warehouse-manager
+  confidence: medium
+- slug: area-supervisor
+  name: Area Supervisor
+  aliases:
+  - their supervisor
+  people: []
+  reports_to: ''
+  confidence: low
+- slug: procurement-lead
+  name: Procurement Lead
+  aliases: []
+  people: []
+  reports_to: ''
+  confidence: medium

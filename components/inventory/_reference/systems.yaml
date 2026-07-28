@@ -1,0 +1,23 @@
+systems:
+- slug: netsuite
+  name: NetSuite
+  aliases:
+  - NetSuite
+  - the system
+  - NetSuite count worksheet
+  - NetSuite cycle count worksheet
+  description: ''
+  limitations: Cycle-count tolerance table lives in a user-maintained saved search,
+    not approved configuration; a mis-edit would silently change tolerances (SRC-002).
+    Adjustment-log approval is a paper sign-off, not a system approval step, despite
+    an audit request to move it in-system (SRC-001).
+  confidence: high
+- slug: coupa
+  name: Coupa
+  aliases:
+  - Coupa
+  description: ''
+  limitations: Coupa-to-NetSuite sync can lag (a last-day goods receipt hits NetSuite
+    a day later) and is described as flaky in some months, distorting the in-transit
+    reconciling items (SRC-002).
+  confidence: high
