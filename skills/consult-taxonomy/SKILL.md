@@ -47,7 +47,10 @@ registry. A human reviews and confirms before anything is scaffolded.
 - **L1 (given)** — the finance function. Fixed.
 - **L2 buckets (known backbone)** — the sub-processes listed under your L1 in the
   taxonomy. Use each bucket's `slug` **verbatim** as an `l2` value; do not
-  re-slugify. This is a mostly-closed set.
+  re-slugify. This is a mostly-closed set. **The reference taxonomy is
+  advisory**: an L1 it does not list is not a refusal — the dispatched L1
+  stands; derive buckets from the client taxonomy or propose your own, all
+  flagged needs-approval (agent contract has the full rule).
 - **L3 activities (you discover)** — read from the sources. Each L3 becomes **one
   procedure**, filed under exactly one L2 bucket. This is the open set; the
   taxonomy never enumerates L3s.
