@@ -100,7 +100,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py" note {area} \
 - `--peers` names the OTHER procedures evidencing the finding — the command
   refuses a finding with none (the evidence rule is enforced, not advisory).
 - The `--anchor` must be an exact current phrase from the target fragment —
-  a stale anchor strands the drafter.
+  a stale anchor strands the drafter. Fragments are hard-wrapped at ~80
+  columns, so **keep the anchor short enough to sit inside one line** (a few
+  words); a phrase spanning a wrap will not literal-match when the drafter
+  searches for it. Verify with Grep before you write the note.
 - A rerun that re-raises an identical finding is a no-op (the bus dedupes).
 - Never edit `_review/*.notes.yaml` by hand.
 - A drafter treats your note as *a peer's observation, not evidence* — their
