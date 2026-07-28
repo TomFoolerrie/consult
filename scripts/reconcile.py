@@ -512,6 +512,15 @@ def check_cross_area_ownership(folder: Path, manifest: dict,
     Advisory (a legitimate one-sentence handoff mention also matches); the
     fix is the drafter's ownership rule — one handoff sentence, no steps.
     Single-word titles are skipped (too collision-prone to be signal)."""
+    if folder.resolve().parent.name != "components":
+        # Silent inertness is the failure mode this line exists to prevent:
+        # an area run outside the engagement layout gets NO cross-L1
+        # protection, and nothing else says so. A note, not a WARNING — a
+        # deliberately standalone area is legitimate.
+        print(f"note: cross-area ownership check inactive — {folder} is "
+              f"not under a components/ engagement root, so sibling areas "
+              f"are not visible")
+        return
     sibs = [(a, s, t) for a, s, t in _sibling_procedures(folder)
             if len(t.split()) >= 2]
     if not sibs:

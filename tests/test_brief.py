@@ -159,3 +159,11 @@ def test_ownership_map_lists_siblings_and_other_areas(tmp_path, capsys):
     assert "[[payment-run]]" in out and "sibling procedure" in out
     assert "area fscp — Financial Statement Close Process" in out
     assert "OUT OF SCOPE" in out
+
+
+def test_brief_says_when_cross_l1_boundaries_are_unavailable(tmp_path,
+                                                             capsys):
+    area = make_area(tmp_path)          # parent is not components/
+    assert brief.main([str(area), "--slug", "bank-rec"]) == 0
+    out = capsys.readouterr().out
+    assert "cross-L1 boundaries are UNAVAILABLE" in out

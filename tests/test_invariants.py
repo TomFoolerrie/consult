@@ -523,3 +523,13 @@ def test_single_word_sibling_titles_never_flag(tmp_path, capsys):
     rc, out = run(area, capsys)
     assert rc == 0
     assert "owned by fscp/close" not in out
+
+
+def test_area_outside_components_gets_a_loud_inactive_note(tmp_path, capsys):
+    """Silent inertness of the cross-area check is the failure mode the
+    note exists to prevent — an area not under components/ says so."""
+    area = make_area(tmp_path)          # tmp_path itself: not components/
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "cross-area ownership check inactive" in out
+    assert "WARNINGS" not in out        # a note, not a warning
