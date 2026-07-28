@@ -43,6 +43,8 @@ import json
 import re
 import shutil
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 import uuid
 from pathlib import Path
 

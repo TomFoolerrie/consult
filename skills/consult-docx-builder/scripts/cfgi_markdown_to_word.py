@@ -30,6 +30,15 @@ from __future__ import annotations
 import argparse
 import html
 import re
+import sys
+
+# Windows consoles default to cp1252; degrade unencodable output to '?'
+# instead of crashing a successful run (see scripts/console_compat.py).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass
 from dataclasses import dataclass, field as dc_field
 from html.parser import HTMLParser
 from pathlib import Path

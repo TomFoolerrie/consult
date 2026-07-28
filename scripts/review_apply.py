@@ -54,6 +54,8 @@ import hashlib
 import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 _SCRIPTS_DIR = Path(__file__).resolve().parent

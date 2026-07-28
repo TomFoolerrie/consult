@@ -34,6 +34,8 @@ import hashlib
 import json
 import os
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from typing import Dict, List
 
 # doc_model.py lives beside this file in scripts/ (M2-owned). Import it for
