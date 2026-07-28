@@ -751,3 +751,23 @@ def test_raci_rows_render_in_display_number_order(tmp_path):
     # authored file untouched (display-only ordering)
     assert (area / "84_raci.md").read_text(encoding="utf-8").split("\n")[4] \
         .startswith("| [[cash-application]]")
+
+
+def test_escaped_pipe_in_table_cell_does_not_shear_the_row(tmp_path):
+    """A literal pipe in cell text is written `\\|` (aggregate's cell()); the
+    converter must split on UNESCAPED pipes only. Splitting on the escape
+    slid every later cell one column right — a phantom fourth column and a
+    stray backslash in the cell (the systems-view quirk)."""
+    md = tmp_path / "t.md"
+    md.write_text(
+        "# T\n\n## Systems\n\n"
+        "| System / Tool | Role in Process | Related Procedures |\n"
+        "|---|---|---|\n"
+        "| SAP S/4HANA | ERP (SAP\\|S4 job schedule) | 1.1, 1.2 |\n",
+        encoding="utf-8")
+    out = tmp_path / "t.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    t = Document(str(out)).tables[0]
+    assert len(t.columns) == 3
+    assert t.cell(1, 1).text == "ERP (SAP|S4 job schedule)"
+    assert t.cell(1, 2).text == "1.1, 1.2"
