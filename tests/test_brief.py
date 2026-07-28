@@ -140,3 +140,22 @@ def test_missing_manifest_exits_2(tmp_path, capsys):
         brief.main([str(tmp_path), "--slug", "x"])
     assert e.value.code == 2
     assert "manifest.json" in capsys.readouterr().err
+
+
+def test_ownership_map_lists_siblings_and_other_areas(tmp_path, capsys):
+    area = make_area(tmp_path / "components")
+    fscp = tmp_path / "components" / "fscp"
+    fscp.mkdir()
+    (fscp / "manifest.json").write_text(json.dumps({
+        "area": "fscp", "title": "Financial Statement Close Process",
+        "components": [{"file": "10_sales-package-preparation.md",
+                        "role": "procedure",
+                        "slug": "sales-package-preparation",
+                        "heading": "Sales Package Preparation"}]}),
+        encoding="utf-8")
+    assert brief.main([str(area), "--slug", "bank-rec"]) == 0
+    out = capsys.readouterr().out
+    assert "OWNERSHIP MAP" in out
+    assert "[[payment-run]]" in out and "sibling procedure" in out
+    assert "area fscp — Financial Statement Close Process" in out
+    assert "OUT OF SCOPE" in out

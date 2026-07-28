@@ -27,6 +27,7 @@ that error to the orchestrator instead of drafting over it.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -111,6 +112,31 @@ def _profile_block(out: list[str], folder: Path) -> None:
     _line(out)
 
 
+def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
+    """(area-name, title) for every sibling area under the same components/
+    parent — the drafter's cross-L1 boundary list."""
+    out: list[tuple[str, str]] = []
+    parent = folder.resolve().parent
+    # Canonical engagement layout only (components/<area>) — an area parked
+    # elsewhere has no siblings to scan.
+    if parent.name != "components" or not parent.is_dir():
+        return out
+    for sib in sorted(parent.iterdir()):
+        if not sib.is_dir() or sib.resolve() == folder.resolve() \
+                or sib.name.startswith(("_", ".")):
+            continue
+        mpath = sib / "manifest.json"
+        if not mpath.is_file():
+            continue
+        try:
+            title = json.loads(mpath.read_text(encoding="utf-8")) \
+                .get("title", sib.name)
+        except (OSError, ValueError):
+            title = sib.name
+        out.append((sib.name, title))
+    return out
+
+
 def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
     procs = _procedures(manifest)
     comp = next((c for c in procs if c.get("slug") == slug), None)
@@ -164,6 +190,22 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
         if ucomp:
             _reading_item(out, folder, ucomp.get("file", ""),
                           f"upstream seam ({u}) — READ-ONLY context")
+    _line(out)
+
+    _line(out, "OWNERSHIP MAP — work owned elsewhere is NEVER documented in "
+               "your file, even when your sources describe it richly "
+               "(sources are tagged to several procedures; each activity "
+               "has ONE owner):")
+    for c in procs:
+        if c.get("slug") != slug:
+            _line(out, f"  - [[{c.get('slug', '?')}]] — "
+                       f"{c.get('heading', '')}  (sibling procedure: "
+                       f"reference it with its [[slug]]; one linking "
+                       f"sentence max)")
+    for aname, atitle in _sibling_areas(folder):
+        _line(out, f"  - area {aname} — {atitle}  (another L1: OUT OF "
+                   f"SCOPE — one handoff sentence naming the process, no "
+                   f"steps; report the overlap in your status)")
     _line(out)
 
     items = notes_util.load_items(folder, slug)
