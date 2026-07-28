@@ -95,7 +95,11 @@ one-Accountable rule is visible as exactly one name in the Accountable column.
 Re-derive rows only for `changed_procedure_slugs`; carry all other activity rows
 over verbatim from your prior file. Rows are self-contained in the long form —
 no column set to maintain — so a changed activity touches exactly its own row
-(and any footnote explaining one of its `*` marks).
+(and any footnote explaining one of its `*` marks). **Carry-over means Edit,
+not retype**: on an incremental pass, Edit exactly the changed rows/footnotes
+in place — a full re-Write that re-types "unchanged" rows from memory is how
+verbatim carry-over silently fails. Write the whole file only on first
+derivation or a layout migration.
 
 ## Before you finish
 Re-emit `<!-- derived: raci; writer: agent -->`. If available, run
