@@ -69,11 +69,15 @@ def test_unknown_kind_is_loud(tmp_path):
 
 @pytest.mark.parametrize("kind", KINDS)
 def test_every_declared_kind_round_trips(tmp_path, kind):
-    """All five kinds are accepted and survive a load — the bus is ready for the
-    producers that do not exist yet (M12 consolidation, M20 rename)."""
+    """All five kinds are accepted and survive a load, each with the extra
+    fields its own rule demands (source: `src`; consolidation: `category` +
+    `peers` — the M12 evidence rule lives at the bus)."""
     item = {"kind": kind, "note": "a finding"}
     if kind == "source":
         item["src"] = "SRC-001"
+    if kind == "consolidation":
+        item["category"] = "naming"
+        item["peers"] = "payment-run"
     assert append_items(tmp_path, "close", [item]) == 1
     assert load_items(tmp_path, "close") == [item]
 

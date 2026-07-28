@@ -47,9 +47,12 @@ except ImportError:  # pragma: no cover
 KINDS = ("review", "source", "retirement", "rename", "consolidation")
 
 # The closed field set. `kind` leads (it is what the consumer routes on) and
-# `src` follows it; the rest is M8's superset. Anything else is an error.
-_KEYS = ("kind", "src", "type", "location", "anchor", "change", "note",
-         "author", "date", "source")
+# `src` follows it; the rest is M8's superset plus M12's two fields —
+# `category` (the finding taxonomy) and `peers` (a comma-joined slug string,
+# never a YAML list: `_scalar` would emit Python list syntax otherwise).
+# Anything else is an error.
+_KEYS = ("kind", "src", "type", "category", "location", "anchor", "change",
+         "note", "peers", "author", "date", "source")
 
 NOTES_SUFFIX = ".notes.yaml"
 
@@ -111,6 +114,19 @@ def validate_item(item: dict, where: str = "notes item") -> dict:
         raise NotesError(
             "%s: `kind: source` with no `src:` — a source note that cannot name "
             "its SRC- id can never retire its source (M6 rule 3)" % where)
+    if kind == "consolidation":
+        # M12's evidence rule enforced at the bus, not just the producer: a
+        # consolidation finding is a RELATIONSHIP, so it must name its peers
+        # (the other procedure(s) that evidence it) and its category.
+        if not str(item.get("category") or "").strip():
+            raise NotesError(
+                "%s: `kind: consolidation` with no `category:` — every M12 "
+                "finding carries its taxonomy category" % where)
+        if not str(item.get("peers") or "").strip():
+            raise NotesError(
+                "%s: `kind: consolidation` with no `peers:` — a finding "
+                "visible in one procedure alone is out of bounds for the "
+                "consolidator (M12 evidence rule: >=2 procedures)" % where)
     return item
 
 
