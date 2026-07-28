@@ -65,6 +65,8 @@ import json
 import re
 import shutil
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 import yaml

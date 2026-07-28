@@ -128,6 +128,8 @@ import os
 import re
 import sys
 
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
+
 # --- doc_model is OWNED BY M2 (do not create it here) -----------------------
 # Prefer the shared spine's load_manifest. Until M2 lands, degrade to a minimal
 # json read of manifest.json so the advisor is runnable in isolation; the

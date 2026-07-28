@@ -34,6 +34,8 @@ import argparse
 import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 _WORD_RE = re.compile(r"[a-z0-9]+")

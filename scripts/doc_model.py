@@ -23,6 +23,8 @@ Python 3, stdlib only.
 
 from __future__ import annotations
 
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
+
 import json
 import re
 from dataclasses import dataclass, field

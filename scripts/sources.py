@@ -61,6 +61,8 @@ import os
 import shutil
 import sys
 
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
+
 import yaml
 
 # notes_util owns the `_review/{slug}.notes.yaml` shape (the M6 bus). The join
