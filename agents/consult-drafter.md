@@ -79,7 +79,24 @@ may change it. Full rewrite in update mode is justified only when the work
 order itself is that large (a consolidation absorbing another procedure);
 say so in your return if you did one.
 
-Read, at the start:
+**Your first action — run the brief.** It resolves your complete input set
+mechanically (which files exist, which profile layer applies, which sources
+are tagged to you, what notes are queued) from the same loaders the
+enforcement points use, so none of that is your judgment call:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}
+```
+
+Read everything its READING LIST names and treat it as complete — nothing
+else is required input, and other procedures' fragments (beyond the listed
+upstream seams) are not yours to read. The brief never decides your mode:
+your dispatch names the trigger, and if the brief's fragment-state line
+disagrees with your dispatch, report the mismatch instead of guessing. If
+the script is unavailable, fall back to the list below — it is the same set,
+resolved by hand.
+
+Read, at the start (fallback when the brief script is unavailable):
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
    not change the section headings.
 
