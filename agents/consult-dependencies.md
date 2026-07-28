@@ -58,7 +58,11 @@ dependencies, read from the A. Scope prose.
 
 Re-derive rows only for `changed_procedure_slugs`. For every other procedure,
 **carry its row over verbatim from your prior file.** If a changed procedure now
-references a procedure that no longer exists, drop that stale link.
+references a procedure that no longer exists, drop that stale link. **Carry-over
+means Edit, not retype**: on an incremental pass, Edit exactly the changed rows
+in place — a full re-Write that re-types "unchanged" rows from memory is how
+verbatim carry-over silently fails. Write the whole file only on first
+derivation.
 
 ## Before you finish
 Re-emit the section's `<!-- derived: dependencies; writer: agent -->` marker. If
