@@ -195,10 +195,13 @@ revert); its failures degrade to notes, never to corrupted fragments.
 ## How you are invoked
 
 "build <area>", "continue <area>", or `/consult-orchestrate <area>`. If the area
-is new and its **L1 function is unknown**, ask the user which L1 (from
-`skills/consult-taxonomy/reference/reference_taxonomy.yaml`) before scoping, and
-record it (area-level `l1` in the manifest once scaffolded). The L1 is what you
-pass to `consult-taxonomy`.
+is new and its **L1 function is unknown**, ask the user which L1 (the reference
+list in `skills/consult-taxonomy/reference/reference_taxonomy.yaml` is a menu of
+common functions, NOT a constraint — an L1 the user names that isn't listed is
+valid and proceeds: taxonomy proposes its own L2 buckets flagged needs-approval,
+and scaffold accepts them as new buckets). Record it (area-level `l1` in the
+manifest once scaffolded). The L1 is what you pass to `consult-taxonomy`, spelled
+exactly as the user gave it.
 
 ## The loop
 

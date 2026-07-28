@@ -248,15 +248,24 @@ def _merge_by_key(existing: list, proposed: list) -> list:
 # --------------------------------------------------------------------------- #
 
 def load_l1_buckets(taxonomy_path: Path, l1_slug: str) -> list[str]:
-    """Return the L2 bucket slugs for the given L1, in taxonomy order."""
+    """Return the L2 bucket slugs for the given L1, in taxonomy order.
+
+    The reference taxonomy is ADVISORY: an L1 it does not list is a valid
+    engagement (clients have functions the backbone never enumerated), not an
+    error. Unknown L1 → empty backbone, announced loudly: compute_l2_order
+    then treats every bucket the proposal uses as an approved new bucket in
+    first-seen order — the same path a single new bucket under a known L1
+    already takes."""
     tax = _load_yaml(taxonomy_path)
     cats = (tax.get("taxonomy") or {}).get("categories") or []
     for cat in cats:
         if cat.get("slug") == l1_slug:
             return [sc.get("slug") for sc in (cat.get("subcategories") or []) if sc.get("slug")]
-    raise SystemExit(
-        f"error: L1 slug {l1_slug!r} not found in taxonomy {taxonomy_path}"
-    )
+    print(f"note: L1 {l1_slug!r} is not in the reference taxonomy "
+          f"({taxonomy_path}) — the reference is advisory, proceeding with "
+          f"the proposal's own L2 buckets in first-seen order. If "
+          f"{l1_slug!r} is a typo, stop and re-run with the intended slug.")
+    return []
 
 
 def compute_l2_order(procedures: list[dict], tax_buckets: list[str],

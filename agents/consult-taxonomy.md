@@ -67,6 +67,16 @@ Read, at the start:
 2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
    buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
    your **known backbone**: the buckets L3 activities file under.
+
+   **The reference taxonomy is ADVISORY, never a gate.** Your L1 absent from
+   it is a valid engagement, not a refusal: the user's word (the dispatched
+   L1) outranks the reference file. Proceed with an empty backbone — take
+   your L2 buckets from the client's `taxonomy.yaml` if present, else propose
+   your own sensible sub-process buckets, **every one flagged
+   `needs-approval`** (the human rules on them at the confirm gate, and
+   scaffold accepts an unknown L1 the same way — new buckets, first-seen
+   order). Never refuse the area, and never substitute a different L1 that
+   happens to be listed.
 3. `{area}/_client/` **and the engagement-wide `components/_client/`**, if
    present (area files shadow same-name engagement files, M13) — optional
    client-supplied context:
@@ -77,7 +87,9 @@ Read, at the start:
 
 - **L2 buckets** = the sub-processes listed under your L1 in the taxonomy (e.g.
   Record to Report → Pre-Close Set-Up, Close, Consolidation, Reporting,
-  Accounting Policy). These are a mostly-closed, known set.
+  Accounting Policy). These are a mostly-closed, known set — when your L1 is
+  in the reference file. When it is not (advisory, see above), the bucket set
+  is yours to propose, all needs-approval.
 - **L3 activities** = what you **discover** from the sources. Each L3 becomes one
   **procedure**, filed under exactly one L2 bucket. This is the open set — the
   taxonomy does not enumerate L3s.
