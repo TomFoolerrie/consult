@@ -23,6 +23,13 @@ current-state, practical for a preparer to execute and a reviewer to validate. Y
 receive a fresh skeleton on the first pass, or your own prior draft on an update
 pass. Do not change the section headings.
 
+**First action of every pass**: `python3
+"${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}` — it prints
+your resolved reading list (tagged sources, registry, conventions, profile,
+queued notes) from the same loaders the enforcement points use. Read what it
+lists, treat the list as complete, and let your dispatch (not the brief)
+decide your mode.
+
 **Headings carry the TITLE ONLY — never a letter.** Write
 `### Scope`, never `### A. Scope`. The A–G letters belong to
 the rendered document: they are assigned late, from the profile's section order,

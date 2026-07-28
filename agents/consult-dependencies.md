@@ -22,6 +22,14 @@ Read your inputs, write the file, return a short status. Never return prose.
   (from the content-hash delta). First run → all procedures.
 - Your **prior file** `{area}/82_dependencies.md` (preserve unaffected rows).
 
+**Your first action — run the brief** (it resolves your input set and pass
+type mechanically; your dispatch stays authoritative for
+`changed_procedure_slugs`):
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --kind dependencies
+```
+
 Read:
 1. The bundle's **`raw_dependencies`** — each procedure's `A. Scope`
    text, tagged by slug. This is your evidence; you do **not** need to open the

@@ -282,6 +282,13 @@ paths/ids — never pasted content.
 so they run concurrently. Wait for all, collect the compact statuses, then
 continue. Never fill procedures one-at-a-time in sequence.
 
+Every subagent's contract has it run `scripts/brief.py` as its first action —
+a read-only work order that resolves its reading list (tagged sources,
+registry, conventions, resolved profile, queued notes) mechanically. Your
+dispatch therefore stays lean and stays authoritative for the TRIGGER
+(mode, notes file, changed slugs); you do not need to enumerate registry or
+convention paths in dispatch prompts.
+
 ## Moving inputs (you own this, not the subagents)
 
 - After a `fill` batch, call `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sources.py" mark-processed <area>
