@@ -490,6 +490,11 @@ silently choose.
   order to NetSuite", never "Synchronization of the PO" or "PO sync". The
   heading is the instruction; a reader skimming only headings should see the
   procedure happen.
+- **No bare `|` inside a table cell** — it is the column separator, and a
+  bare one shears the row (every later cell slides a column right). Prefer a
+  slash or "or" ("SAP/S4", "Coupa or NetSuite"); if the pipe itself is the
+  content (a menu path, a literal string), escape it as `\|`. Prose outside
+  tables is unaffected.
 
 ### 4. Uncertainty lives in callouts — never in body prose
 Body prose states only what is **established**. Anything unknown,

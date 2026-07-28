@@ -451,3 +451,28 @@ def test_shared_spellings_never_flag(tmp_path, capsys):
     rc, out = run(area, capsys)
     assert rc == 0
     assert "BRITISH SPELLING" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 16. sheared table rows (bare '|' in cell text)
+# --------------------------------------------------------------------------- #
+
+def test_bare_pipe_in_table_cell_warns_as_sheared_row(tmp_path, capsys):
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\n| Field | Value |\n|---|---|\n"
+                   "| System | SAP | S4 job schedule |\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "SHEARED TABLE ROW" in out and "1 more cell" in out
+
+
+def test_escaped_pipe_and_short_rows_are_fine(tmp_path, capsys):
+    """`\\|` is the sanctioned escape and a row with FEWER cells than the
+    header is a writer choice — neither flags."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\n| Field | Value |\n|---|---|\n"
+                   "| System | SAP \\| S4 job schedule |\n"
+                   "| Owner |\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "SHEARED TABLE ROW" not in out
