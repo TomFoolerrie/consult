@@ -129,11 +129,14 @@ def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
         if not mpath.is_file():
             continue
         try:
-            title = json.loads(mpath.read_text(encoding="utf-8")) \
-                .get("title", sib.name)
+            data = json.loads(mpath.read_text(encoding="utf-8"))
         except (OSError, ValueError):
-            title = sib.name
-        out.append((sib.name, title))
+            out.append((sib.name, sib.name, []))
+            continue
+        procs = [(c.get("heading") or "").strip()
+                 for c in data.get("components", [])
+                 if c.get("role") == "procedure" and c.get("heading")]
+        out.append((sib.name, data.get("title", sib.name), procs))
     return out
 
 
@@ -207,10 +210,14 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
                    "a components/ engagement root, so cross-L1 boundaries "
                    "are UNAVAILABLE — mention this in your return)")
     else:
-        for aname, atitle in _sibling_areas(folder):
+        for aname, atitle, aprocs in _sibling_areas(folder):
             _line(out, f"  - area {aname} — {atitle}  (another L1: OUT OF "
                        f"SCOPE — one handoff sentence naming the process, "
                        f"no steps; report the overlap in your status)")
+            if aprocs:
+                _line(out, f"    its procedures (each already documented "
+                           f"there — never re-document, even a step of "
+                           f"one): {'; '.join(aprocs)}")
     _line(out)
 
     items = notes_util.load_items(folder, slug)
