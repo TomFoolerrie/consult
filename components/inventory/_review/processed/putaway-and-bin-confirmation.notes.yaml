@@ -1,0 +1,13 @@
+# _review/putaway-and-bin-confirmation.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "putaway-and-bin-confirmation"
+items:
+  - kind: "consolidation"
+    type: "consolidation"
+    category: "phrasing"
+    location: "10_putaway-and-bin-confirmation.md (Before You Start)"
+    anchor: "visually inspected for damage under the receiving process"
+    note: "Damage found at receiving is referenced as 'visually inspected for damage under the receiving process'; the decided convention (see [[material-disposition-adjustment]]) references this as 'the Procure to Pay receiving process' (no steps). Align the referral phrasing to the convention form."
+    peers: "material-disposition-adjustment"
+    source: "consolidate"

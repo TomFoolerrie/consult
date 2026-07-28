@@ -29,7 +29,8 @@ variances that originate at this handoff are detected downstream by
 - **Posted goods receipt** — supplied by the Procure to Pay receiving process
   (posted in Coupa); must be posted before putaway begins (SRC-001).
 - **Staged material** — the received pallets, dock-checked and visually
-  inspected for damage under the receiving process, staged and ready to move
+  inspected for damage under the Procure to Pay receiving process, staged and
+  ready to move
   (SRC-001).
 
 ### Procedure
