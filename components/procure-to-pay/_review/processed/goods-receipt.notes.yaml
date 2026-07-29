@@ -1,0 +1,7 @@
+# _review/goods-receipt.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "goods-receipt"
+items:
+  - kind: "review"
+    note: "reduce to handoff; owner is inventory/[[putaway-and-bin-confirmation]]. Step 6 and Outputs ('a label is printed and the material is put away by location') describe putaway work owned by the Inventory L1 — keep one sentence naming inventory's putaway-and-bin-confirmation procedure as where bin placement and confirmation occur."

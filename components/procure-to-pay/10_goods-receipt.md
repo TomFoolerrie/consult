@@ -29,7 +29,7 @@ accrual are outside this procedure. (SRC-001, SRC-004, SRC-005)
 | Reviewer | None — no review or approval of an entered item receipt was described by any source |
 | Systems | NetSuite (Receive Orders, item receipt); paper bill of lading and supplier packing slip at the dock |
 | Key inputs | Open purchase order in NetSuite; carrier bill of lading; supplier packing slip |
-| Key outputs | NetSuite item receipt against the purchase order lines; inventory labelled and put away by location; filed paper packing slip |
+| Key outputs | NetSuite item receipt against the purchase order lines; received inventory material handed off for putaway; filed paper packing slip |
 
 ### Before You Start
 
@@ -104,12 +104,14 @@ target. (SRC-004)
 
 > **SCREENSHOT PLACEHOLDER — SC-01:** The NetSuite Receive Orders screen for an open purchase order, showing quantity received keyed per line and the packing slip number in the memo field.
 
-#### Step 6: Label and put away inventory material
+#### Step 6: Hand off received inventory material for putaway
 
 - **Condition:** the received material is inventory rather than non-inventory or
   direct-charge
 
-A label is printed and the material is put away by location. (SRC-004)
+Received inventory material passes to the warehouse for bin placement and
+confirmation under the Inventory area's Putaway and Bin Confirmation procedure.
+(SRC-004)
 
 #### Step 7: Leave the purchase order open on a partial shipment
 
@@ -193,7 +195,9 @@ confirm that the service was performed. TBD — confirm with process owner. See
   the received quantity leg of the three-way match in
   [[po-invoice-entry-and-three-way-match]] and the receipt against which a return
   is raised in [[return-to-vendor]].
-- **Inventory put away** — labelled and stored by location for inventory material.
+- **Received inventory material handed off for putaway** — bin placement and
+  confirmation are performed under the Inventory area's Putaway and Bin
+  Confirmation procedure.
 - **Evidence retained:** the item receipt and its packing slip number in NetSuite;
   the signed bill of lading, including any shortage or damage annotation; paper
   packing slips filed in the receiving office cabinet by month, then moved to the
