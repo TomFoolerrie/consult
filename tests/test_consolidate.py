@@ -89,29 +89,89 @@ def snapshot(area: Path) -> dict[str, str]:
             for p in area.rglob("*")}
 
 
-def test_plan_counts_buckets_and_cross(tmp_path, capsys):
-    area = make_area(tmp_path)
+def _man(sizes: list[int]) -> dict:
+    """A synthetic manifest with one bucket per size entry (bN, sN.M slugs)."""
+    comps, order = [], []
+    for i, n in enumerate(sizes):
+        order.append(f"b{i}")
+        for j in range(n):
+            comps.append({"role": "procedure", "slug": f"s{i}.{j}",
+                          "file": f"10_s{i}{j}.md", "heading": f"S{i}{j}",
+                          "l2": f"b{i}", "order": len(comps) * 10})
+    return {"l2_order": order, "components": comps}
+
+
+def test_groups_pack_consecutive_buckets_under_budget():
+    # [3,3,2,4,3] at budget 5: 3 | 3+2 | 4 | 3 — adjacency preserved,
+    # buckets never split, greedy (not optimal bin-packing) by design
+    assert consolidate._groups(_man([3, 3, 2, 4, 3])) == \
+        [["b0"], ["b1", "b2"], ["b3"], ["b4"]]
+    # an oversized bucket rides alone, over budget
+    assert consolidate._groups(_man([7, 2])) == [["b0"], ["b1"]]
+    # everything fits in one group
+    assert consolidate._groups(_man([1, 2, 1, 1])) == \
+        [["b0", "b1", "b2", "b3"]]
+
+
+def test_one_fragment_groups_fold_into_a_neighbor():
+    # [5,1]: the trailing singleton would be a structurally-useless agent
+    # (the run-4 waste) — folded into the previous group, over budget
+    assert consolidate._groups(_man([5, 1])) == [["b0", "b1"]]
+    # [1,5]: a LEADING singleton folds forward
+    assert consolidate._groups(_man([1, 5])) == [["b0", "b1"]]
+
+
+def test_plan_dispatches_groups_and_cross(tmp_path, capsys):
+    area = make_area(tmp_path)   # invoices(2) + payments(1) = one group of 3
     assert consolidate.main(["plan", str(area)]) == 0
     out = capsys.readouterr().out
-    assert "2 L2 bucket(s) · 3 agent(s)" in out
-    assert "bucket invoices" in out and "bucket payments" in out
-    assert "cross-bucket" in out
+    assert "2 L2 bucket(s) · 1 bucket group(s)" in out
+    assert "1 agent(s)" in out
+    assert "bucket group [invoices, payments]" in out
+    assert "--bucket invoices,payments" in out
+    # single group covers the area → no cross agent
+    assert "no cross-bucket agent" in out and "--cross" not in out
 
 
-def test_plan_single_bucket_skips_cross(tmp_path, capsys):
+def test_plan_keeps_cross_when_groups_split(tmp_path, capsys):
     area = make_area(tmp_path)
     m = json.loads((area / "manifest.json").read_text())
-    for c in m["components"]:
-        c["l2"] = "invoices"
-    m["l2_order"] = ["invoices"]
+    # grow invoices to 4 so invoices(4)+payments(1)>5 — but the payments
+    # singleton folds back in, so force a real split with 4+2
+    for extra in ("x1", "x2"):
+        m["components"].append(
+            {"file": f"40_{extra}.md", "heading": extra, "role": "procedure",
+             "slug": extra, "l2": "invoices", "order": 40})
+    m["components"].append(
+        {"file": "50_pay2.md", "heading": "Pay2", "role": "procedure",
+         "slug": "pay2", "l2": "payments", "order": 50})
     (area / "manifest.json").write_text(json.dumps(m), encoding="utf-8")
+    for f in ("40_x1.md", "40_x2.md", "50_pay2.md"):
+        (area / f).write_text("## X\n\n### Scope\n\nx\n", encoding="utf-8")
     assert consolidate.main(["plan", str(area)]) == 0
     out = capsys.readouterr().out
-    assert "1 agent(s)" in out and "no cross-bucket agent" in out
-    assert "brief" in out and "--cross" not in out
+    assert "2 bucket group(s)" in out and "3 agent(s)" in out
+    assert "cross-bucket" in out and "--cross" in out
 
 
-def test_bucket_brief_lists_only_its_fragments(tmp_path, capsys):
+def test_group_brief_lists_its_buckets_and_flags_between_seams(tmp_path,
+                                                               capsys):
+    area = make_area(tmp_path)
+    before = snapshot(area)
+    assert consolidate.main(["brief", str(area), "--bucket",
+                             "invoices,payments"]) == 0
+    out = capsys.readouterr().out
+    assert snapshot(area) == before                      # read-only
+    assert "10_bank-rec.md" in out and "30_payment-run.md" in out
+    assert "l2: invoices" in out and "l2: payments" in out
+    # full-area group carries the cross lens + the mechanical tally
+    assert "covers the whole area" in out
+    assert "NAMING TALLY" in out
+    assert "netsuite (canonical name: NetSuite): bound by 3" in out
+    assert "note" in out and "--peers" in out
+
+
+def test_partial_group_brief_has_no_tally(tmp_path, capsys):
     area = make_area(tmp_path)
     before = snapshot(area)
     assert consolidate.main(["brief", str(area), "--bucket", "payments"]) == 0
@@ -120,15 +180,17 @@ def test_bucket_brief_lists_only_its_fragments(tmp_path, capsys):
     assert "30_payment-run.md" in out
     assert "10_bank-rec.md" not in out
     assert "seam + sequence" in out
+    assert "NAMING TALLY" not in out                     # cross agent's job
     assert "note" in out and "--peers" in out
 
 
 def test_unknown_bucket_exits_2_naming_known(tmp_path, capsys):
     area = make_area(tmp_path)
     with pytest.raises(SystemExit) as e:
-        consolidate.main(["brief", str(area), "--bucket", "nope"])
+        consolidate.main(["brief", str(area), "--bucket", "nope,invoices"])
     assert e.value.code == 2
-    assert "invoices" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "nope" in err and "invoices" in err
 
 
 def test_cross_brief_digest_is_bounded_and_tallies_bindings(tmp_path,

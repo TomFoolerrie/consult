@@ -77,7 +77,9 @@ spend N (one per procedure — usually the bulk of it, and `reprofile` is a seco
 way to spend it), and **synthesize** spends one agent per stale judgment kind (2
 under the default profile — but the kinds come from the manifest, so a profile
 without `raci` spends 1); `consolidate` (M12, human-invoked at the draft-ready
-gate) spends 1 agent per L2 bucket + 1 cross-bucket agent.
+gate) spends 1 agent per bucket group (consecutive L2 buckets packed to a
+~5-fragment budget by `consolidate.py plan`) + 1 cross-bucket agent — none
+when a single group covers the area.
 Everything else on the ladder is free Python or a human's time — but `render` is
 the expensive kind of free, because it starts a human review cycle, which is the
 scarcer resource.
@@ -353,12 +355,15 @@ churning) and never demanded by the advisor. When the user picks the gate's
    plan <area>` — it names every agent and its brief command. Relay the agent
    count (that is the cost) and get the go-ahead if the user hasn't already
    given it.
-2. Dispatch **one `consult-consolidator` subagent per L2 bucket, in
-   parallel**, each with `{area, bucket: <l2>}` — then, after they return,
-   **one cross-bucket agent** with `{area, cross}` (it sees the queued notes,
-   so running it after the bucket agents avoids duplicate raises; a
-   single-bucket area skips it — the plan says so). Each agent's first action
-   is its brief; each writes findings ONLY via `consolidate.py note`.
+2. Dispatch **one `consult-consolidator` subagent per bucket group, in
+   parallel** — the groups come from the plan, verbatim (never regroup
+   yourself) — each with `{area, buckets: <l2,l2,...>}`. Then, after they
+   return, **one cross-bucket agent** with `{area, cross}` (it sees the
+   queued notes, so running it after the group agents avoids duplicate
+   raises) — UNLESS the plan says a single group covers the area, in which
+   case that group agent carries the cross lens and no cross agent runs.
+   Each agent's first action is its brief; each writes findings ONLY via
+   `consolidate.py note`.
 3. Run `consolidate.py report <area>` and show it verbatim — the dispatch
    count is the headline. **Relay the agents' conflicts, proposals and
    no-majority items yourself**: conflicts are never notes, so the report

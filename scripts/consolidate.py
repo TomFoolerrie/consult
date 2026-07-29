@@ -3,7 +3,7 @@
 
 Usage:
     python3 scripts/consolidate.py plan   <area>                # dispatch plan
-    python3 scripts/consolidate.py brief  <area> --bucket <l2>  # per-bucket work order
+    python3 scripts/consolidate.py brief  <area> --bucket <l2>[,<l2>...]  # group work order
     python3 scripts/consolidate.py brief  <area> --cross        # cross-bucket work order
     python3 scripts/consolidate.py note   <area> --slug S --category C \
         --note "..." --peers "a, b" [--location L] [--anchor A]
@@ -59,6 +59,15 @@ CATEGORIES = ("naming", "duplication", "seam", "phrasing", "sequence")
 #: across ALL buckets is worth flagging).
 CAP_PER_CATEGORY_PER_BUCKET = 10
 
+#: Bucket-group packing budget: consecutive `l2_order` buckets pack into one
+#: agent until the group would exceed this many fragments. Adjacency is the
+#: point — handoffs flow between neighboring buckets, so packing consecutive
+#: buckets puts the bucket-boundary seams (which one-agent-per-bucket
+#: structurally missed) inside a single read. Buckets are never split; a
+#: bucket larger than the budget rides alone, over budget (its seam density
+#: is exactly why it must be read together).
+FRAGMENT_BUDGET = 5
+
 #: The primer layer the cross-bucket digest carries verbatim (section SLUGS,
 #: M23): the process overview and the at-a-glance table — where cross-bucket
 #: drift surfaces.
@@ -98,6 +107,40 @@ def _buckets(manifest: dict) -> dict[str, list[dict]]:
     for c in sorted(_procedures(manifest), key=lambda c: c.get("order", 0)):
         out.setdefault(c.get("l2") or "?", []).append(c)
     return {l2: procs for l2, procs in out.items() if procs}
+
+
+def _groups(manifest: dict) -> list[list[str]]:
+    """Deterministic bucket-group packing: walk `l2_order` (document order),
+    greedy-pack consecutive buckets under FRAGMENT_BUDGET, never split a
+    bucket, then fold any 1-fragment group into its neighbor (an agent
+    reading one fragment can meet the evidence rule only via conventions —
+    run-4 measured that as dispatch waste)."""
+    buckets = _buckets(manifest)
+    size = {l2: len(procs) for l2, procs in buckets.items()}
+    groups: list[list[str]] = []
+    count = 0
+    for l2 in buckets:
+        if groups and count + size[l2] <= FRAGMENT_BUDGET:
+            groups[-1].append(l2)
+            count += size[l2]
+        else:
+            groups.append([l2])
+            count = size[l2]
+
+    def _gsize(g: list[str]) -> int:
+        return sum(size[l2] for l2 in g)
+
+    i = 0
+    while i < len(groups):
+        if _gsize(groups[i]) == 1 and len(groups) > 1:
+            if i > 0:
+                groups[i - 1].extend(groups.pop(i))
+                i -= 1
+            else:
+                groups[0] = groups[0] + groups.pop(1)
+        else:
+            i += 1
+    return groups
 
 
 def _line(out: list[str], s: str = "") -> None:
@@ -165,29 +208,48 @@ def _notes_block(out: list[str], folder: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# brief --bucket <l2>
+# brief --bucket <l2>[,<l2>...]  (a bucket GROUP — the plan computes groups)
 # --------------------------------------------------------------------------- #
 
-def bucket_brief(folder: Path, manifest: dict, l2: str) -> str:
+def bucket_brief(folder: Path, manifest: dict, bucket_arg: str) -> str:
     buckets = _buckets(manifest)
-    if l2 not in buckets:
+    group = [b.strip() for b in bucket_arg.split(",") if b.strip()]
+    unknown = [b for b in group if b not in buckets]
+    if unknown:
         known = ", ".join(sorted(buckets)) or "none"
-        raise _fail(f"unknown L2 bucket {l2!r} in {folder} (known: {known})")
+        raise _fail(f"unknown L2 bucket(s) {', '.join(unknown)!s} in "
+                    f"{folder} (known: {known})")
+    full_area = set(group) == set(buckets)
+    label = ", ".join(group)
     out: list[str] = []
-    _line(out, f"WORK ORDER — consult-consolidator · bucket {l2} · {folder}")
+    _line(out, f"WORK ORDER — consult-consolidator · bucket group "
+               f"[{label}] · {folder}")
     _line(out, "  read-only pass: you write NO fragment, NO registry file, "
                "NO derived view — findings go to the notes bus via the "
                "`note` command below")
-    _line(out, "  your lens: seam + sequence live here — hold this bucket's "
-               "procedures side by side")
+    if full_area:
+        _line(out, "  your lens: ALL of it — this group covers the whole "
+                   "area, so no cross-bucket agent runs after you: seam, "
+                   "sequence, naming, duplication and phrasing are all "
+                   "yours (the NAMING TALLY below is your mechanical "
+                   "majority basis)")
+    elif len(group) > 1:
+        _line(out, "  your lens: seam + sequence — hold these procedures "
+                   "side by side; seams BETWEEN your buckets are yours "
+                   "too, not just seams within each")
+    else:
+        _line(out, "  your lens: seam + sequence live here — hold this "
+                   "bucket's procedures side by side")
     _line(out)
     _line(out, "READING LIST (complete — the fragments below ARE your "
-               "bucket, in document order):")
-    for c in buckets[l2]:
-        p = folder / c.get("file", "")
-        mark = "" if p.is_file() else "  [MISSING — report it, do not guess]"
-        _line(out, f"  - {p}  ([[{c.get('slug', '?')}]] — "
-                   f"{c.get('heading', '')}){mark}")
+               "group, in document order):")
+    for l2 in group:
+        for c in buckets[l2]:
+            p = folder / c.get("file", "")
+            mark = ("" if p.is_file()
+                    else "  [MISSING — report it, do not guess]")
+            _line(out, f"  - {p}  ([[{c.get('slug', '?')}]] — "
+                       f"{c.get('heading', '')}; l2: {l2}){mark}")
     for name in REGISTRY_FILES:
         if (folder / "_reference" / name).is_file():
             _line(out, f"  - {folder / '_reference' / name}")
@@ -195,6 +257,16 @@ def bucket_brief(folder: Path, manifest: dict, l2: str) -> str:
         _line(out, f"  - {conv}  (conventions digest — phrasing already "
                    f"decided; drift FROM it is a `phrasing` finding)")
     _line(out)
+    if full_area:
+        _line(out, "NAMING TALLY (mechanical majority basis — counted over "
+                   "`consult-meta` slug bindings, NEVER over prose; your "
+                   "judgment covers only nouns the registry does not know, "
+                   "justified overrides, and even splits, which go to the "
+                   "human unresolved):")
+        for ln in _naming_tally(folder, manifest) \
+                or ["  - (no consult-meta bindings found)"]:
+            _line(out, ln)
+        _line(out)
     _rules_block(out, folder)
     _notes_block(out, folder)
     _line(out, "BEFORE YOU FINISH:")
@@ -367,25 +439,29 @@ def cross_brief(folder: Path, manifest: dict) -> str:
 
 def plan(folder: Path, manifest: dict) -> str:
     buckets = _buckets(manifest)
-    n = len(buckets)
-    agents = n + (1 if n > 1 else 0)
+    groups = _groups(manifest)
+    single = len(groups) == 1
+    agents = len(groups) + (0 if single else 1)
     out: list[str] = []
     _line(out, f"CONSOLIDATE PLAN — {folder}")
-    _line(out, f"  {len(_procedures(manifest))} procedures · {n} L2 "
-               f"bucket(s) · {agents} agent(s)"
-               + ("" if n > 1 else "  (single bucket: the bucket pass "
-                                   "covers everything; no cross-bucket "
-                                   "agent)"))
+    _line(out, f"  {len(_procedures(manifest))} procedures · "
+               f"{len(buckets)} L2 bucket(s) · {len(groups)} bucket "
+               f"group(s) (budget {FRAGMENT_BUDGET} fragments, buckets "
+               f"never split) · {agents} agent(s)"
+               + ("  (single group: it reads the whole area in full, so "
+                  "it carries the cross lens too — no cross-bucket agent)"
+                  if single else ""))
     _line(out)
-    _line(out, "DISPATCH (per-bucket agents in parallel, then the "
-               "cross-bucket agent — each runs its brief as its first "
-               "action):")
-    for l2, procs in buckets.items():
-        _line(out, f"  - consult-consolidator · bucket {l2} "
-                   f"({len(procs)} procedures)")
+    _line(out, "DISPATCH (group agents in parallel"
+               + ("" if single else ", then the cross-bucket agent")
+               + " — each runs its brief as its first action):")
+    for g in groups:
+        n_frag = sum(len(buckets[l2]) for l2 in g)
+        _line(out, f"  - consult-consolidator · bucket group "
+                   f"[{', '.join(g)}] ({n_frag} procedures)")
         _line(out, f"      brief: python3 <plugin>/scripts/consolidate.py "
-                   f"brief {folder} --bucket {l2}")
-    if n > 1:
+                   f"brief {folder} --bucket {','.join(g)}")
+    if not single:
         _line(out, "  - consult-consolidator · cross-bucket")
         _line(out, f"      brief: python3 <plugin>/scripts/consolidate.py "
                    f"brief {folder} --cross")
@@ -502,7 +578,9 @@ def main(argv=None) -> int:
     p_b = sub.add_parser("brief")
     p_b.add_argument("area")
     g = p_b.add_mutually_exclusive_group(required=True)
-    g.add_argument("--bucket", help="L2 bucket slug (per-bucket work order)")
+    g.add_argument("--bucket",
+                   help="L2 bucket slug or comma-joined bucket GROUP as "
+                        "printed by `plan` (group work order)")
     g.add_argument("--cross", action="store_true",
                    help="cross-bucket work order (digest computed here)")
     p_n = sub.add_parser("note")
