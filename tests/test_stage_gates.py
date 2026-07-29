@@ -570,3 +570,29 @@ def test_draft_ready_flag_is_git_ignored_by_the_seeded_area_gitignore(tmp_path):
     assert "10_bank-rec.md" in tracked
     assert ".draft_ready.json" not in tracked
     assert _git(area, "status", "--porcelain").stdout == ""
+
+
+# --------------------------------------------------------------------------- #
+# Git-health advisory (every decision carries details.git when untracked)
+# --------------------------------------------------------------------------- #
+
+def test_untracked_engagement_carries_the_git_note(tmp_path):
+    """pytest tmp dirs are outside any repo, so a fresh area is untracked —
+    every decision must say checkpoints are off and where to git init."""
+    area = simple(tmp_path / "components")     # -> <tmp>/components/cash
+    d = orchestrate.decide(area)
+    git = d["details"]["git"]
+    assert git["tracked"] is False
+    assert "CHECKPOINTS ARE OFF" in git["note"]
+    assert "PRIVATE" in git["note"]
+    # suggested init location is the ENGAGEMENT ROOT (parent of components/)
+    assert git["init_at"] == str(tmp_path)
+    # advisory, never a gate — the action itself is unchanged
+    assert d["action"] != "error"
+
+
+def test_tracked_engagement_carries_no_git_note(tmp_path):
+    area = simple(tmp_path / "components")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    d = orchestrate.decide(area)
+    assert "git" not in (d.get("details") or {})

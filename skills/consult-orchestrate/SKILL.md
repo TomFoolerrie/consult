@@ -221,6 +221,17 @@ loop:
   else: repeat
 ```
 
+**Git health (`details.git`).** Every decision carries `details.git`
+(`tracked: false` + a note + `init_at`) when the engagement is not in a git
+repository — meaning checkpoints are silently OFF: no history, no diffs, no
+revert. On the FIRST decision of a session that carries it, relay the note
+and offer the one-time fix; on the user's go-ahead run `git init` in
+`details.git.init_at` (the engagement root — never guess a different
+directory), remind them the repo must stay PRIVATE (checkpoints include
+`_sources/`, client material), then continue the loop — the flag clears
+itself on the next call. Advisory, never a gate: if the user declines,
+keep building and do not raise it again this session.
+
 `human_gate: true` is the machine-readable stop signal — it covers `confirm`,
 `review_triage`, `reprofile`, `registry_topup`, `draft_ready`, `unresolvable` and
 `review`, **and any action a sticky hold turned into a gate** (M17: same action

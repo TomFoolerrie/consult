@@ -411,7 +411,10 @@ def test_derived_without_raci_drops_the_component_and_the_dispatch(tmp_path):
     d = orchestrate.decide(str(drafted))
     assert d["action"] == "synthesize"
     assert d["details"]["stale_kinds"] == ["dependencies"]
-    assert "raci" not in json.dumps(d["details"])
+    # details.git carries the tmp folder PATH (which contains this test's
+    # name, hence "raci") — the kind-signal claim is about everything else
+    assert "raci" not in json.dumps(
+        {k: v for k, v in d["details"].items() if k != "git"})
 
 
 # --------------------------------------------------------------------------- #
