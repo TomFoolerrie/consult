@@ -213,7 +213,14 @@ def test_no_hold_key_anywhere_is_byte_identical_to_pre_m17(tmp_path):
               encoding="utf-8") as fh:
         fh.write("people: []\n")
     withcfg = at_synthesize(other)
-    strip = lambda d: {k: v for k, v in d.items() if k != "area"}
+    # `area` and `details.git` are area-path-dependent by design (the git
+    # advisory names the folder to init) — orthogonal to hold semantics.
+    def strip(d):
+        d = {k: v for k, v in d.items() if k != "area"}
+        if isinstance(d.get("details"), dict):
+            d["details"] = {k: v for k, v in d["details"].items()
+                            if k != "git"}
+        return d
     assert json.dumps(strip(bare), sort_keys=True) == \
         json.dumps(strip(withcfg), sort_keys=True)
 

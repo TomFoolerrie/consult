@@ -592,6 +592,39 @@ def _holds(folder: str):
     return client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
 
 
+def _git_note(folder: str) -> dict | None:
+    """None when the area is inside a git work tree; otherwise the advisory
+    payload every decision carries. Checked fresh each call (a `git init`
+    clears it on the next lap) and cheap (~ms). The suggested init location
+    is the ENGAGEMENT ROOT — the parent of components/ — so one repo covers
+    every area; an area parked elsewhere suggests its own parent."""
+    if not os.path.isdir(folder):
+        return None
+    import subprocess
+    try:
+        probe = subprocess.run(
+            ["git", "-C", folder, "rev-parse", "--is-inside-work-tree"],
+            capture_output=True, text=True)
+    except OSError:
+        probe = None
+    if probe is not None and probe.returncode == 0 \
+            and probe.stdout.strip() == "true":
+        return None
+    parent = os.path.dirname(os.path.abspath(folder))
+    root = (os.path.dirname(parent)
+            if os.path.basename(parent) == "components" else parent)
+    return {
+        "tracked": False,
+        "note": ("CHECKPOINTS ARE OFF — this engagement is not in a git "
+                 "repository, so there is no history, no diffs to review "
+                 "and no revert. Fix once: run `git init` in %s (the "
+                 "engagement root). Keep the repository PRIVATE — "
+                 "checkpoints deliberately include _sources/ (client "
+                 "material)." % root),
+        "init_at": root,
+    }
+
+
 def decide(folder: str) -> dict:
     # Resolved after the folder-existence check below, so a typo'd --area still
     # reports `error` rather than failing on a config read. The closure reads it
@@ -610,6 +643,13 @@ def decide(folder: str) -> dict:
         if holds is not None and action in holds:
             d["human_gate"] = True
             details["held_by"] = holds.held_by(action)
+        # Git health, at the single exit point so every decision carries it.
+        # Advisory, never a gate: an untracked engagement still builds — it
+        # just has no checkpoints, no diffs, no revert, and the human should
+        # hear that ONCE rather than discover it after a bad pass.
+        note = _git_note(folder)
+        if note:
+            details["git"] = note
         if details:
             d["details"] = details
         return d
