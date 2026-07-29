@@ -189,6 +189,16 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
     for c in conv:
         _reading_item(out, folder, str(c.relative_to(folder)),
                       "conventions digest — phrasing already decided")
+    parent = folder.resolve().parent
+    if parent.name == "components" and (parent / "_client"
+                                        / "registers").is_dir():
+        for r in sorted((parent / "_client" / "registers").glob("*")):
+            if r.is_file():
+                _line(out, f"  - {r}  (ENGAGEMENT REGISTER — reference, "
+                           f"never restate: cite the register for shared "
+                           f"values like thresholds, codes, terms and "
+                           f"cutoff rules; hard-code only stable values "
+                           f"essential to executing YOUR steps)")
     ups = [u for u in (comp.get("upstream") or [])]
     for u in ups:
         ucomp = next((c for c in procs if c.get("slug") == u), None)

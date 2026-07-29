@@ -317,3 +317,49 @@ def test_missing_manifest_exits_2(tmp_path, capsys):
         consolidate.main(["plan", str(tmp_path)])
     assert e.value.code == 2
     assert "manifest.json" in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------- #
+# M12/A2 — gap-answer + engagement registers in the briefs
+# --------------------------------------------------------------------------- #
+
+def test_gap_answer_is_a_valid_category(tmp_path, capsys):
+    area = make_area(tmp_path)
+    assert consolidate.main(
+        ["note", str(area), "--slug", "bank-rec", "--category",
+         "gap-answer", "--note",
+         "GAP-01 appears answered in [[payment-run]], sourced to SRC-004",
+         "--peers", "payment-run"]) == 0
+    items = notes_util.load_items(area, "bank-rec")
+    assert items[0]["category"] == "gap-answer"
+
+
+def test_cross_digest_carries_the_open_gap_register(tmp_path, capsys):
+    area = make_area(tmp_path)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "#### Step 2: Do the second thing\n",
+        "#### Step 2: Do the second thing\n\n"
+        "> **VALIDATION REQUIRED — GAP-01:** How the goods receipt posts\n"
+        "> to the sub-ledger is unconfirmed.\n"), encoding="utf-8")
+    assert consolidate.main(["brief", str(area), "--cross"]) == 0
+    out = capsys.readouterr().out
+    # the digest skips `>` lines, so the gap register must carry it —
+    # wrapped callout text joined, flagged as gap-answer material
+    assert "open gaps" in out
+    assert ("GAP-01 — How the goods receipt posts to the sub-ledger is "
+            "unconfirmed.") in out
+    assert "gap-answer" in out
+
+
+def test_group_brief_lists_engagement_registers(tmp_path, capsys):
+    root = tmp_path / "components"
+    area = make_area(root)
+    regs = root / "_client" / "registers"
+    regs.mkdir(parents=True)
+    (regs / "accounting-dates.md").write_text("| txn | date |\n",
+                                              encoding="utf-8")
+    assert consolidate.main(["brief", str(area), "--bucket", "payments"]) == 0
+    out = capsys.readouterr().out
+    assert "accounting-dates.md" in out
+    assert "ENGAGEMENT REGISTER" in out

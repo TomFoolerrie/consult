@@ -49,7 +49,7 @@ def test_audit_finds_all_three_shapes(tmp_path, capsys):
     assert "names 'Sales Package Preparation'" in out
     # shared prose: the identical long sentence in both areas
     assert "8-word run(s)" in out
-    assert "finding(s)." in out
+    assert "duplication finding(s)" in out
 
 
 def test_clean_engagement_reports_clean(tmp_path, capsys):
@@ -66,7 +66,7 @@ def test_clean_engagement_reports_clean(tmp_path, capsys):
         encoding="utf-8")
     assert engagement.main(["audit", str(root)]) == 0
     out = capsys.readouterr().out
-    assert "Clean: no cross-area duplication detected." in out
+    assert "Clean: no cross-area duplication, no open gaps." in out
 
 
 def test_single_area_engagement_explains_layout(tmp_path, capsys):
@@ -140,3 +140,143 @@ def test_shared_prose_survives_hard_wrapping(tmp_path, capsys):
     assert engagement.main(["audit", str(root)]) == 0
     assert "fscp/close-calendar  <->  inventory/cycle-counts" in \
         capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- #
+# M24 — the knowledge-placement layer: gap register, placement brief, adopt
+# --------------------------------------------------------------------------- #
+
+GAPPY = """## Cycle Counts
+
+### Scope
+
+Counting text with an open question [[GAP-02 — where the recount
+sheets are retained]].
+
+### Procedure
+
+> **VALIDATION REQUIRED — GAP-01:** How the goods receipt posts to the
+> sub-ledger is unconfirmed.
+"""
+
+
+def add_gaps(root):
+    (root / "inventory" / "10_cycle-counts.md").write_text(
+        GAPPY, encoding="utf-8")
+
+
+def test_audit_gap_register_reads_both_gap_forms(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    add_gaps(root)
+    before = {str(p) for p in root.rglob("*")}
+    assert engagement.main(["audit", str(root)]) == 0
+    out = capsys.readouterr().out
+    assert {str(p) for p in root.rglob("*")} == before        # read-only
+    assert "4. OPEN GAPS" in out
+    assert "inventory/cycle-counts" in out
+    # callout form, with hard-wrapped text joined
+    assert "GAP-01 — How the goods receipt posts to the sub-ledger" in out
+    # body-tag form, wrap rejoined
+    assert "GAP-02 — where the recount sheets are retained" in out
+    assert "2 open gap(s)" in out
+
+
+def test_gap_defined_as_callout_and_tagged_counts_once(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    (root / "inventory" / "10_cycle-counts.md").write_text(
+        "## Cycle Counts\n\nSee [[GAP-01 — short label]].\n\n"
+        "> **VALIDATION REQUIRED — GAP-01:** The full question text.\n",
+        encoding="utf-8")
+    assert engagement.main(["audit", str(root)]) == 0
+    out = capsys.readouterr().out
+    assert "1 open gap(s)" in out
+    assert "The full question text" in out            # callout text wins
+    assert "short label" not in out
+
+
+def test_placement_brief_carries_rules_findings_and_digests(tmp_path,
+                                                            capsys):
+    root = make_engagement(tmp_path)
+    add_gaps(root)
+    regs = root / "_client" / "registers"
+    regs.mkdir(parents=True)
+    (regs / "approval-matrix.md").write_text("| band | approver |\n",
+                                             encoding="utf-8")
+    before = {str(p) for p in root.rglob("*")}
+    assert engagement.main(["brief", str(root)]) == 0
+    out = capsys.readouterr().out
+    assert {str(p) for p in root.rglob("*")} == before        # read-only
+    assert "knowledge-placement pass" in out
+    # the three moves + the fourth non-move
+    assert "reduce to handoff" in out
+    assert "promote to register" in out and "PRIMARY MOVE" in out
+    assert "adopt as source" in out
+    assert "POLICY" in out and "unresolved" in out
+    # registers listed; mechanical findings + gaps + digests present
+    assert "approval-matrix.md" in out
+    assert "twin L3s:" in out and "OPEN GAP REGISTER (2 gap(s))" in out
+    assert "[[sales-package-preparation]]" in out
+    assert "Report-don't-guess" in out
+
+
+def test_adopt_registers_prose_as_source_idempotently(tmp_path, capsys):
+    import yaml
+    import notes_util
+    root = make_engagement(tmp_path)
+    inv = root / "inventory"
+    args = ["adopt", str(inv), "--from", "fscp/sales-package-preparation",
+            "--touches", "cycle-counts"]
+    assert engagement.main(args) == 0
+    out = capsys.readouterr().out
+    assert "SRC-001" in out and "hash-stamped" in out
+    copy = inv / "_sources" / "new" / "adopted-fscp-sales-package-preparation.md"
+    assert copy.is_file()
+    assert copy.read_text(encoding="utf-8") == \
+        (root / "fscp" / "10_sales-package-preparation.md").read_text(
+            encoding="utf-8")
+    data = yaml.safe_load(
+        (inv / "_reference" / "sources.yaml").read_text(encoding="utf-8"))
+    entry = data["sources"][0]
+    assert entry["id"] == "SRC-001" and entry["state"] == "new"
+    assert entry["touches"] == ["cycle-counts"]
+    assert "second-hand" in entry["note"]
+    import hashlib
+    assert entry["hash"] == hashlib.sha256(copy.read_bytes()).hexdigest()
+    items = notes_util.load_items(inv, "cycle-counts")
+    assert len(items) == 1
+    assert items[0]["kind"] == "source" and items[0]["src"] == "SRC-001"
+    # rerun: hash match -> no-op, note dedupes
+    assert engagement.main(args) == 0
+    assert "no-op" in capsys.readouterr().out
+    data = yaml.safe_load(
+        (inv / "_reference" / "sources.yaml").read_text(encoding="utf-8"))
+    assert len(data["sources"]) == 1
+    assert len(notes_util.load_items(inv, "cycle-counts")) == 1
+
+
+def test_adopt_respects_the_sticky_hold(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    inv = root / "inventory"
+    (inv / "_client").mkdir()
+    (inv / "_client" / "consult.yaml").write_text("hold: [adopt]\n",
+                                                  encoding="utf-8")
+    before = {str(p) for p in root.rglob("*")}
+    assert engagement.main(
+        ["adopt", str(inv), "--from", "fscp/sales-package-preparation",
+         "--touches", "cycle-counts"]) == 3
+    err = capsys.readouterr().err
+    assert "held: adopt" in err and "area" in err
+    assert {str(p) for p in root.rglob("*")} == before   # nothing written
+
+
+def test_adopt_validates_from_and_touches(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    inv = root / "inventory"
+    assert engagement.main(
+        ["adopt", str(inv), "--from", "fscp/nope",
+         "--touches", "cycle-counts"]) == 2
+    assert "sales-package-preparation" in capsys.readouterr().err
+    assert engagement.main(
+        ["adopt", str(inv), "--from", "fscp/sales-package-preparation",
+         "--touches", "nope"]) == 2
+    assert "cycle-counts" in capsys.readouterr().err

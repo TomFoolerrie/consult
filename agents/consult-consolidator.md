@@ -62,6 +62,7 @@ Each category requires **two or more procedures as evidence**:
 | `seam` | one handoff described inconsistently on its two sides | both sides |
 | `phrasing` | a recurring formulation done differently for no reason | the minority-form procedures |
 | `sequence` | described order contradicts itself across a bucket | both sides |
+| `gap-answer` | a GAP in one procedure that a sibling procedure answers | the procedure CARRYING the gap |
 
 **Explicitly out of bounds — never raise:**
 
@@ -91,6 +92,22 @@ Route vocabulary-first: three names for one report is usually one registry
 alias top-up or one `conventions/` entry, not eight prose notes. Propose the
 alias/conventions entry in your status; write prose notes only to the
 minority-form procedures that need a text change.
+
+## `gap-answer` — route the pointer, never the answer
+
+A GAP is a question; when a sibling procedure documents the answer, the
+finding is the CONNECTION, not the content. Your note goes to the procedure
+carrying the gap and says where the answer lives: name the sibling
+`[[slug]]`, and **when the sibling's statement carries a citation, name that
+`SRC-` id in the note** — the drafter may then close the gap citing the same
+id (the area's source pool is shared). A sibling statement with NO citation
+may still route the note, but say so: the drafter treats it as a lead, not
+evidence. You never assert the answer's content as fact — you saw the
+sibling's claim, not its source. Two siblings "answering" the same gap
+differently is a CONFLICT, not two findings. Facts that are really SHARED
+RECURRING values (thresholds, dates, codes) belong in an engagement
+register, not closed procedure-by-procedure — say that in your status
+instead of raising per-procedure notes.
 
 ## Writing a finding
 

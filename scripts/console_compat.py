@@ -19,3 +19,12 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(errors="replace")
     except (AttributeError, ValueError, OSError):  # pragma: no cover
         pass  # non-reconfigurable stream (pipe wrapper, frozen env) — leave it
+
+# `script | head` closes the pipe early; Python's default turns that into a
+# BrokenPipeError traceback at exit. Restore the POSIX default (die quietly).
+# Windows has no SIGPIPE — the AttributeError branch covers it.
+try:  # pragma: no cover - signal availability is platform-dependent
+    import signal
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+except (ImportError, AttributeError, ValueError, OSError):
+    pass

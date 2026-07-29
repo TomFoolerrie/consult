@@ -72,6 +72,12 @@ producers, so not every item is a reviewer instruction:
   suggested harmonization agrees with (or is neutral to) your sources, make
   the edit; when it contradicts them, do NOT silently harmonize — keep your
   sourced text and add a GAP naming the mismatch with the peer procedure.
+  **`category: gap-answer` — transitive citation is allowed:** when the note
+  names the `SRC-` id backing the sibling's statement, you MAY close your
+  GAP citing that same id without re-reading the source (the ledger points
+  at the same transcript either way). A gap-answer note with NO `SRC-` id is
+  a lead: check the named sibling's sources yourself, or keep the GAP. A GAP
+  is never closed on prose alone with nothing entering the ledger.
 
 **Update mode is EDIT mode — never a rewrite.** `first-draft` writes the whole
 file (Write); every `update` trigger makes **targeted edits** (Edit) to your
@@ -216,6 +222,21 @@ read whatever is there and match it. After drafting, you may write
 at most ~10 lines of decisions the next drafter would otherwise have to
 re-make. Facts and canonical nouns do NOT belong here — the registry owns
 nouns; sources own facts. Nothing breaks if you write nothing.
+
+## Engagement registers — reference, never restate (M24)
+
+When your brief lists files under `components/_client/registers/` (approval
+matrix, accounting-date/cutoff matrix, system-of-record, master data), those
+are the ONE home of shared recurring facts. **Cite the register instead of
+restating its values**: write "per the engagement approval matrix" (and the
+band, if the reader needs it to act), not a local copy of the threshold. A
+hard-coded copy of a register value is drift waiting to happen — when the
+value changes, the register is edited once and referencing procedures stay
+true; a restated copy silently goes stale. Hard-code only values that are
+stable AND essential to executing your steps (a transaction code, a menu
+path). If a shared fact you need has NO register yet, keep it in prose but
+flag it in your return (`register_candidates`) — never invent a register
+file yourself.
 
 ## You own this procedure — first draft AND every update
 
@@ -636,6 +657,9 @@ A short status object/paragraph:
 - `conflicts`: source conflicts you logged as GAPs (id + one line each)
 - `out_of_scope`: activities in your sources owned elsewhere (sibling
   procedure or another area) that you reduced to a handoff sentence
+- `register_candidates`: shared recurring facts you had to state in prose
+  because no engagement register covers them yet (thresholds, cutoff rules,
+  codes — one line each)
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
   `revised` (one line on what changed)
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,
