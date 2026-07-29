@@ -425,3 +425,9 @@ that text).
   CONFLICTS.
 - Cross-AREA gap resolution is deliberately not this category — sources do
   not travel between areas; see M24.
+
+Framing note (M24): duplication and cross-answerable gaps are the two
+directions of one violation — "every fact has exactly one home" (a fact
+with two homes vs a fact with a broken pointer). M12's single pass raising
+`duplication` and `gap-answer` side by side is the within-area instance of
+that principle; M24 is the engagement-wide instance.
