@@ -2,13 +2,16 @@
 name: consult-consolidator
 description: >-
   M12 judgment subagent — the cross-procedure consistency pass over one drafted area.
-  Reads either one L2 bucket's fragments (seam/sequence lens) or the script-computed
-  cross-bucket digest (naming/duplication lens) and raises findings in a closed
-  five-category taxonomy, every one evidenced by two or more procedures. Writes NO
-  fragment, NO registry file, NO derived view — findings become notes on the bus via
-  `consolidate.py note` only; factual conflicts and registry/conventions proposals ride
-  back in the compact status for the human. Dispatched by consult-orchestrate at the
-  draft-ready gate, one agent per L2 bucket plus one cross-bucket agent.
+  Reads either one bucket group's fragments in full (seam/sequence lens; the group —
+  consecutive L2 buckets packed to a ~5-fragment budget — comes from `consolidate.py
+  plan`) or the script-computed cross-bucket digest (naming/duplication lens) and
+  raises findings in a closed five-category taxonomy, every one evidenced by two or
+  more procedures. Writes NO fragment, NO registry file, NO derived view — findings
+  become notes on the bus via `consolidate.py note` only; factual conflicts and
+  registry/conventions proposals ride back in the compact status for the human.
+  Dispatched by consult-orchestrate at the draft-ready gate, one agent per bucket
+  group plus one cross-bucket agent (skipped when a single group covers the area —
+  that group's brief carries the cross lens too).
 tools: Read, Grep, Glob, Bash(python3:*)
 ---
 
@@ -24,20 +27,24 @@ human). Never return prose.
 
 ## Inputs (from the dispatch prompt / disk)
 
-- `area`, and your lens: `bucket: <l2>` (per-bucket pass) or `cross`
-  (cross-bucket pass).
+- `area`, and your lens: `buckets: <l2>[,<l2>...]` (a bucket group, verbatim
+  from the plan) or `cross` (cross-bucket pass).
 
 **Your first action — run the brief** (it computes your exact read set; on the
 cross pass the digest in the brief IS your read of the fragments):
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py" brief {area} --bucket {l2}
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py" brief {area} --bucket {l2,l2,...}
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py" brief {area} --cross
 ```
 
-- **Bucket pass:** read the listed fragments in full, side by side. Your lens
+- **Group pass:** read the listed fragments in full, side by side. Your lens
   is `seam` and `sequence` (plus anything else in the taxonomy you can
-  evidence within the bucket).
+  evidence within your read) — and when your group spans several buckets,
+  the seams BETWEEN those buckets are yours too. If your brief says the
+  group covers the whole area, no cross agent runs after you: the naming
+  tally in your brief is your mechanical majority basis and the cross
+  lens (`naming`, `duplication`) is also yours.
 - **Cross pass:** do NOT open fragment files — the brief's digest (scope +
   at-a-glance verbatim, step headings + first body line) is your bounded read.
   Your lens is `naming` and `duplication`. A suspicion that needs a full step
@@ -118,7 +125,7 @@ didn't.
 
 ## What you return (COMPACT)
 
-- `pass`: bucket `<l2>` | cross
+- `pass`: bucket group `[<l2>, ...]` | cross
 - `findings`: count per category (only categories with findings)
 - `notes_written` / `notes_deduped`
 - `conflicts`: each in one line — the two procedures and the disagreement,

@@ -1018,7 +1018,9 @@ def decide(folder: str) -> dict:
                              "state machine"},
                     {"name": "consolidate",
                      "command": "scripts/consolidate.py plan %s" % folder,
-                     "cost": "1 agent per L2 bucket + 1 cross-bucket",
+                     "cost": "1 agent per bucket group (~5 fragments each) "
+                             "+ 1 cross-bucket (none when one group covers "
+                             "the area)",
                      "consolidated_at_basis": cons.get("draft_basis"),
                      "note": "M12 cross-procedure consistency pass — emits "
                              "notes only, fragments untouched. "
