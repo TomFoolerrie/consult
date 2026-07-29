@@ -392,7 +392,7 @@ mechanically but nothing detects a missed seam), and the measured cost
 problem was dispatch count, which packing fixes without a quality price.
 Model choice stays a per-dispatch dial, not a default.
 
-### A2 — `gap-answer`, the sixth category (DESIGNED, ready to build)
+### A2 — `gap-answer`, the sixth category (SHIPPED, v1.10.0)
 
 Within one area the source pool is shared (`sources.yaml` is area-local;
 `touches` is tagging, not access control), so a GAP in procedure A that

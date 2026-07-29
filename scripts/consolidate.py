@@ -40,6 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import callouts     # noqa: E402  (open_gaps — the one gap parser)
 import doc_model    # noqa: E402
 import notes_util   # noqa: E402
 from aggregate import parse_consult_meta  # noqa: E402
@@ -50,8 +51,11 @@ except ImportError:  # pragma: no cover - pyyaml ships in requirements
     yaml = None
 
 #: The M12 finding taxonomy — closed; anything else the agent wants to raise
-#: is out of bounds by contract.
-CATEGORIES = ("naming", "duplication", "seam", "phrasing", "sequence")
+#: is out of bounds by contract. `gap-answer` (A2): a GAP in one procedure
+#: that a sibling procedure answers — within-area only, where the source
+#: pool is shared so the resolution is a pointer to the sibling's SRC id.
+CATEGORIES = ("naming", "duplication", "seam", "phrasing", "sequence",
+              "gap-answer")
 
 #: Per category, per bucket (M12 settled decision 3). Enforced agent-side —
 #: the script cannot know which bucket a note came from — but restated in
@@ -169,6 +173,21 @@ def _queued(folder: Path) -> dict[str, list[dict]]:
     return out
 
 
+def _register_lines(folder: Path) -> list[str]:
+    """Engagement registers (components/_client/registers/*), listed in
+    every brief with the M24 rule: values are referenced, never restated."""
+    parent = folder.resolve().parent
+    if parent.name != "components":
+        return []
+    regs = parent / "_client" / "registers"
+    if not regs.is_dir():
+        return []
+    return [f"  - {p}  (ENGAGEMENT REGISTER — the one home of shared "
+            f"facts; a procedure restating one of its values is a "
+            f"`phrasing`/`duplication` finding)"
+            for p in sorted(regs.glob("*")) if p.is_file()]
+
+
 def _note_command(folder: Path) -> str:
     return (f"python3 <plugin>/scripts/consolidate.py note {folder} "
             f"--slug <slug> --category <"
@@ -256,6 +275,8 @@ def bucket_brief(folder: Path, manifest: dict, bucket_arg: str) -> str:
     for conv in sorted((folder / "_reference" / "conventions").glob("*.md")):
         _line(out, f"  - {conv}  (conventions digest — phrasing already "
                    f"decided; drift FROM it is a `phrasing` finding)")
+    for ln in _register_lines(folder):
+        _line(out, ln)
     _line(out)
     if full_area:
         _line(out, "NAMING TALLY (mechanical majority basis — counted over "
@@ -339,6 +360,17 @@ def _digest(folder: Path, comp: dict) -> list[str]:
                            "body was NOT read; if a finding needs more, name "
                            "the fragment in your status):")
                 out.extend(steps)
+    # A2: the digest deliberately skips callout (`>`) lines, which is where
+    # GAP callouts live — so the open gaps ride along mechanically, or the
+    # cross pass would be structurally blind to the gap-answer category.
+    gaps = callouts.open_gaps(text)
+    if gaps:
+        out.append("    open gaps (still unanswered here — if another "
+                   "procedure's digest answers one, that is a `gap-answer` "
+                   "finding):")
+        for gid, gtext in gaps:
+            gtext = gtext if len(gtext) <= 160 else gtext[:157] + "…"
+            out.append(f"      {gid} — {gtext}")
     return out
 
 
@@ -406,6 +438,8 @@ def cross_brief(folder: Path, manifest: dict) -> str:
             _line(out, f"  - {folder / '_reference' / name}")
     for conv in sorted((folder / "_reference" / "conventions").glob("*.md")):
         _line(out, f"  - {conv}  (conventions digest)")
+    for ln in _register_lines(folder):
+        _line(out, ln)
     _line(out)
     _line(out, "NAMING TALLY (mechanical majority basis — counted over "
                "`consult-meta` slug bindings, NEVER over prose; your "

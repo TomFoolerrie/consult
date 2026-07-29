@@ -1,32 +1,39 @@
 #!/usr/bin/env python3
-"""engagement.py — cross-area audit: one process, one home, one telling.
+"""engagement.py — the knowledge-placement layer: one fact, one home (M24).
 
 Usage:
-    python3 scripts/engagement.py audit [components-dir]
+    python3 scripts/engagement.py audit  [components-dir]
+    python3 scripts/engagement.py brief  [components-dir]
+    python3 scripts/engagement.py note   <area> --slug S --note "..."
+    python3 scripts/engagement.py adopt  <area> --from <area>/<slug> \
+        --touches <slug> [<slug> ...]
 
 The per-area guards (ownership map, taxonomy neighbors, reconcile check 17)
-are PREVENTIVE and see only one area at a time. This audit is the
-RETROSPECTIVE, engagement-wide sweep: it reads every area under the
-components/ dir (default: ./components) and reports the three shapes of
-cross-L1 duplication:
+are PREVENTIVE and see only one area at a time. This module is the
+RETROSPECTIVE, engagement-wide layer. The standing rule is that every fact
+has exactly ONE home; the engagement's two chronic diseases are the two
+directions of violating it — DUPLICATION (a fact with two homes) and a
+CROSS-ANSWERABLE GAP (a fact with a broken pointer: one area asks what
+another area documents). `audit` reports both directions from one walk:
 
   1. TWIN L3s     — two areas each scoped a procedure whose titles are the
-                    same activity (normalized-token containment). One of
-                    them is the owner; the other should be retired or
-                    reduced to a handoff.
-  2. MENTIONS     — one area's prose names another area's procedure title
-                    (reconcile check 17, aggregated engagement-wide with
-                    both sides visible).
-  3. SHARED PROSE — fragment pairs across areas whose prose shares long
-                    word runs (8-word shingles): the fingerprint of the
-                    same source material drafted twice, verbatim OR
-                    paraphrased around a shared skeleton.
+                    same activity (normalized-token containment).
+  2. MENTIONS     — one area's prose names another area's procedure title.
+  3. SHARED PROSE — fragment pairs across areas sharing long word runs
+                    (8-word shingles): the same source material drafted
+                    twice, verbatim OR paraphrased around a shared skeleton.
+  4. OPEN GAPS    — the engagement's unanswered questions, by area
+                    (callouts.open_gaps — the one gap parser everywhere).
 
-Read-only, advisory: exit 0 with findings (the human decides ownership),
-exit 2 on a missing/empty components dir. The fix path for every finding is
-the existing machinery — the human names the owner, the orchestrator appends
-a `kind: review` note to the losing procedure's notes bus, and its drafter's
-update pass reduces the duplication to a handoff sentence.
+`brief` prints the work order for the single placement-pass agent (three
+moves: reduce-to-handoff, promote-to-register, adopt-as-source; policy /
+control-design questions are reported, never resolved). `adopt` is the
+prose-as-source verb: it REGISTERS another area's drafted fragment as an
+ordinary hash-stamped source, so every invariant (citation resolution,
+provenance, retirement accounting) survives because it IS a source.
+
+Read-only except `note` (notes bus) and `adopt` (source registration);
+exit 0 with findings (the human decides ownership), exit 2 on bad usage.
 """
 from __future__ import annotations
 
@@ -37,6 +44,11 @@ import sys
 
 import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import callouts   # noqa: E402  (open_gaps — the one gap parser)
+import doc_model  # noqa: E402  (section_of_heading — the one section parser)
 
 _WORD_RE = re.compile(r"[a-z0-9]+")
 #: Title tokens carrying no activity identity on their own.
@@ -189,6 +201,48 @@ def shared_prose(root: Path, areas, out: list[str]) -> int:
     return n
 
 
+def open_gap_register(root: Path, areas) -> tuple[int, list[str]]:
+    """(count, lines) — every open gap across the engagement, by area."""
+    lines: list[str] = []
+    n = 0
+    for a, m in areas:
+        area_lines: list[str] = []
+        for comp in _procedures(m):
+            text = _fragment_text(root, a, comp)
+            if not text:
+                continue
+            gaps = callouts.open_gaps(text)
+            if gaps:
+                area_lines.append(f"  {a}/{comp.get('slug', '?')}")
+                for gid, gtext in gaps:
+                    gtext = gtext if len(gtext) <= 160 else gtext[:157] + "…"
+                    area_lines.append(f"    {gid} — {gtext}")
+                n += len(gaps)
+        lines.extend(area_lines)
+    return n, lines
+
+
+def _scope_digest(root: Path, a: str, comp: dict) -> list[str]:
+    """The fragment's Scope section body — enough for the placement pass to
+    judge what an area covers without reading the fragments."""
+    text = _fragment_text(root, a, comp)
+    out: list[str] = []
+    in_scope = False
+    for line in text.split("\n"):
+        if line.startswith("### "):
+            in_scope = doc_model.section_of_heading(line) == "scope"
+            continue
+        if in_scope and line.strip():
+            out.append(f"      {line.strip()}")
+    return out
+
+
+def _registers(root: Path) -> list[Path]:
+    reg = root / "_client" / "registers"
+    return sorted(p for p in reg.glob("*") if p.is_file()) \
+        if reg.is_dir() else []
+
+
 def audit(root: Path) -> int:
     areas = _areas(root)
     if len(areas) < 2:
@@ -231,9 +285,247 @@ def audit(root: Path) -> int:
               "naming the owner ('reduce to a handoff sentence'), then run "
               "its area's apply_review pass")
 
+    n4, lines = open_gap_register(root, areas)
+    print(f"\n4. OPEN GAPS — the engagement's unanswered questions, "
+          f"by area: {n4}")
+    for ln in lines:
+        print(ln)
+    if n4:
+        print("   fix: many are answered elsewhere in the engagement or "
+              "belong in a shared register — run the placement pass "
+              "(engagement.py brief) before sending them to process owners")
+
     total = n1 + n2 + n3
-    print(f"\n{total} finding(s)." if total else "\nClean: no cross-area "
-          "duplication detected.")
+    print(f"\n{total} duplication finding(s) · {n4} open gap(s)."
+          if (total or n4) else "\nClean: no cross-area duplication, no "
+          "open gaps.")
+    return 0
+
+
+def placement_brief(root: Path) -> int:
+    """The work order for the single knowledge-placement agent (M24)."""
+    areas = _areas(root)
+    if len(areas) < 2:
+        print(f"{root}: {len(areas)} area(s) — the placement pass needs at "
+              f"least two areas under one components/ dir.")
+        return 2 if not areas else 0
+    print(f"WORK ORDER — knowledge-placement pass · {root}")
+    print("  read-only pass: you write NOTHING except through the two "
+          "commands below — findings become notes; register content and "
+          "adoptions are executed on the notes' say-so, never by you")
+    print(f"  {len(areas)} areas: " + ", ".join(a for a, _ in areas))
+    print()
+    print("THE RULE — every fact has exactly ONE home. You route each "
+          "finding (a duplication OR a gap another area answers) to ONE "
+          "move, decided by the CLASS of the fact:")
+    print("  - reduce to handoff — the work is owned by another L1: the "
+          "non-owner keeps one sentence naming the owner's procedure")
+    print("  - promote to register — the fact is SHARED and RECURRING "
+          "(approval threshold, date/cutoff rule, system-of-record, master "
+          "data, report definition): it belongs ONCE in "
+          "components/_client/registers/, referenced everywhere. THE "
+          "PRIMARY MOVE for recurring facts — adopting or restating "
+          "shared-fact prose is the anti-pattern")
+    print("  - adopt as source — one-off only: another area's SOURCED "
+          "documentation genuinely answers a question inside this area's "
+          "own scope")
+    print("  - NONE OF THE ABOVE — a POLICY, CONTROL-DESIGN or SYSTEM-"
+          "CONFIGURATION question (should a review exist? what should the "
+          "threshold be?) is reported in your status, unresolved. No "
+          "component may close it with prose.")
+    print()
+    print("TRIAGE QUESTIONS (ask per finding): owned by another L1? "
+          "volatile shared data 2+ areas keep needing? one-off evidence "
+          "match? does the downstream area need the calculation, or only "
+          "the approved output? Report-don't-guess: a match you cannot "
+          "place confidently rides back in your status, never the bus.")
+    print()
+    print("YOUR TWO COMMANDS:")
+    print(f"  python3 <plugin>/scripts/engagement.py note "
+          f"{root.parent / root.name}/<area> --slug <slug> --note "
+          f"\"reduce to handoff; owner is <area>/[[slug]]\"")
+    print(f"  (adopt is NAMED IN A NOTE, never run by you: include the "
+          f"exact command — python3 <plugin>/scripts/engagement.py adopt "
+          f"{root}/<area> --from <area>/<slug> --touches <slug> — in the "
+          f"note text; the orchestrator runs it)")
+    print()
+    regs = _registers(root)
+    if regs:
+        print("ENGAGEMENT REGISTERS (existing — propose ENTRIES into these "
+              "in your status; reference-don't-restate is the drafters' "
+              "rule):")
+        for p in regs:
+            print(f"  - {p}")
+    else:
+        print("ENGAGEMENT REGISTERS: none yet — propose the file and its "
+              "first entries in your status (the human's word creates it)")
+    print()
+    print("MECHANICAL FINDINGS (script-computed — your judgment starts "
+          "from these, it does not re-derive them):")
+    lines: list[str] = []
+    n1 = twin_l3s(areas, lines)
+    print(f"  twin L3s: {n1}")
+    for ln in lines:
+        print(ln)
+    lines = []
+    n2 = cross_mentions(root, areas, lines)
+    print(f"  cross-area mentions: {n2}")
+    for ln in lines:
+        print(ln)
+    lines = []
+    n3 = shared_prose(root, areas, lines)
+    print(f"  shared prose: {n3}")
+    for ln in lines:
+        print(ln)
+    n4, lines = open_gap_register(root, areas)
+    print(f"\nOPEN GAP REGISTER ({n4} gap(s)):")
+    for ln in lines:
+        print(ln)
+    print()
+    print("AREA DIGESTS (procedure titles + Scope sections — your read of "
+          "the areas; a finding that needs a full fragment names it in "
+          "your status instead):")
+    for a, m in areas:
+        print(f"  ── area {a} — {m.get('title', a)}")
+        for comp in _procedures(m):
+            print(f"    [[{comp.get('slug', '?')}]] — "
+                  f"{comp.get('heading', '')}")
+            for ln in _scope_digest(root, a, comp):
+                print(ln)
+    print()
+    print("WHAT YOU RETURN (COMPACT): findings per move; register "
+          "proposals (file, key, suggested content, which procedures "
+          "currently restate it); policy/control items (unresolved); "
+          "unmatched gaps count; needs_full_read. Never paste digests or "
+          "fragment text back.")
+    return 0
+
+
+def adopt(area: Path, from_ref: str, touches: list[str]) -> int:
+    """Register another area's drafted fragment as a second-hand source
+    (M24 'prose as source', made literal). Copies the fragment into
+    _sources/new/, appends a hash-stamped sources.yaml entry, and queues a
+    `kind: source` note per touched procedure — the ordinary apply_review
+    loop does the rest. Idempotent at the content hash."""
+    import notes_util
+    import sources as sources_mod
+    try:
+        import yaml
+    except ImportError:
+        print("error: pyyaml is required for adopt", file=sys.stderr)
+        return 2
+    manifest = area / "manifest.json"
+    if not manifest.is_file():
+        print(f"error: {area} has no manifest.json — pass the AREA folder",
+              file=sys.stderr)
+        return 2
+
+    # The sticky-hold brake (M17): enforced at the verb, since the advisor
+    # never schedules adopt. `hold: [adopt]` in either _client layer wins.
+    import client_config
+    held = client_config.holds(str(area), holdable=("adopt",))
+    if "adopt" in held:
+        print(f"held: adopt ({held.layer_label()}) — this engagement "
+              f"requires a human to pre-approve source adoption. Edit the "
+              f"hold: list in _client/consult.yaml to release. Nothing "
+              f"was written.", file=sys.stderr)
+        return 3
+
+    m = re.fullmatch(r"([^/]+)/([^/]+)", from_ref or "")
+    if not m:
+        print("error: --from takes <area>/<slug>, e.g. "
+              "procure-to-pay/goods-receipt", file=sys.stderr)
+        return 2
+    from_area, from_slug = m.group(1), m.group(2)
+    src_area = area.resolve().parent / from_area
+    src_manifest = src_area / "manifest.json"
+    if not src_manifest.is_file():
+        print(f"error: no area {from_area!r} beside {area.name} "
+              f"(looked at {src_area})", file=sys.stderr)
+        return 2
+    src_m = json.loads(src_manifest.read_text(encoding="utf-8"))
+    comp = next((c for c in src_m.get("components", [])
+                 if c.get("role") == "procedure"
+                 and c.get("slug") == from_slug), None)
+    if comp is None:
+        known = ", ".join(sorted(c.get("slug", "?")
+                                 for c in src_m.get("components", [])
+                                 if c.get("role") == "procedure"))
+        print(f"error: no procedure {from_slug!r} in {from_area} "
+              f"(known: {known})", file=sys.stderr)
+        return 2
+    frag = src_area / comp.get("file", "")
+    if not frag.is_file():
+        print(f"error: {frag} is missing", file=sys.stderr)
+        return 2
+
+    slugs = {c.get("slug") for c in
+             json.loads(manifest.read_text(encoding="utf-8"))
+             .get("components", []) if c.get("role") == "procedure"}
+    bad = [t for t in touches if t not in slugs]
+    if bad:
+        print(f"error: --touches slug(s) not in {area.name}: "
+              f"{', '.join(bad)} "
+              f"(known: {', '.join(sorted(s for s in slugs if s))})",
+              file=sys.stderr)
+        return 2
+    if not touches:
+        print("error: --touches requires at least one procedure slug (the "
+              "gap's home — who reads the adopted source)", file=sys.stderr)
+        return 2
+
+    content = frag.read_bytes()
+    import hashlib
+    digest = hashlib.sha256(content).hexdigest()
+
+    try:
+        data = sources_mod._load_sources(str(area))
+    except FileNotFoundError:
+        # A legacy/minimal area with no sources.yaml yet — adopt may be its
+        # very first source; start the ledger rather than refusing.
+        data = {"sources": []}
+    if not isinstance(data, dict):
+        data = {"sources": []}
+    (area / "_reference").mkdir(parents=True, exist_ok=True)
+    entries = data.setdefault("sources", [])
+    existing = next((e for e in entries if isinstance(e, dict)
+                     and e.get("hash") == digest), None)
+    if existing:
+        sid = existing.get("id", "?")
+        print(f"already adopted (hash match) as {sid} — no-op")
+    else:
+        nums = [int(mm.group(1)) for e in entries if isinstance(e, dict)
+                for mm in [re.fullmatch(r"SRC-(\d+)",
+                                        str(e.get("id", "")))] if mm]
+        sid = f"SRC-{(max(nums) + 1 if nums else 1):03d}"
+        rel = f"_sources/new/adopted-{from_area}-{from_slug}.md"
+        dest = area / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(content)
+        entries.append({
+            "id": sid, "file": rel, "touches": list(touches),
+            "hash": digest, "state": "new",
+            "note": (f"internal: drafted {from_area} procedure "
+                     f"'{comp.get('heading', from_slug)}' adopted as a "
+                     f"second-hand source (M24). Frozen copy — the living "
+                     f"text is {from_area}/{comp.get('file', '')}."),
+        })
+        sources_mod._dump_sources(str(area), data)
+        print(f"adopted {from_area}/{from_slug} → {dest}  ({sid}, "
+              f"hash-stamped, state: new)")
+
+    queued = 0
+    for t in touches:
+        queued += notes_util.append_items(area, t, [{
+            "kind": "source", "src": sid,
+            "note": (f"adopted second-hand source from {from_area}/"
+                     f"[[{from_slug}]] — read it and close the gap(s) it "
+                     f"answers, citing {sid}; if it conflicts with your "
+                     f"existing sources, keep the GAP and say so"),
+            "source": "adopt",
+        }])
+    print(f"queued {queued} source note(s) on: {', '.join(touches)} — the "
+          f"ordinary apply_review loop dispatches the drafter(s)")
     return 0
 
 
@@ -266,12 +558,18 @@ def add_note(area: Path, slug: str, note: str) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=["audit", "note"])
+    ap.add_argument("command", choices=["audit", "brief", "note", "adopt"])
     ap.add_argument("root", nargs="?", default="components",
-                    help="audit: the engagement components/ dir (default: "
-                         "./components); note: the AREA folder")
+                    help="audit/brief: the engagement components/ dir "
+                         "(default: ./components); note/adopt: the AREA "
+                         "folder")
     ap.add_argument("--slug", help="note: procedure slug to queue on")
     ap.add_argument("--note", help="note: the review instruction text")
+    ap.add_argument("--from", dest="from_ref",
+                    help="adopt: <area>/<slug> to adopt as a source")
+    ap.add_argument("--touches", nargs="+", default=[],
+                    help="adopt: procedure slug(s) in the target area that "
+                         "read the adopted source")
     a = ap.parse_args(argv)
     root = Path(a.root)
     if a.command == "note":
@@ -279,11 +577,17 @@ def main(argv=None) -> int:
             print("error: note requires --slug and --note", file=sys.stderr)
             return 2
         return add_note(root, a.slug, a.note)
+    if a.command == "adopt":
+        if not a.from_ref:
+            print("error: adopt requires --from <area>/<slug>",
+                  file=sys.stderr)
+            return 2
+        return adopt(root, a.from_ref, list(a.touches))
     if not root.is_dir():
         print(f"error: {root} is not a directory — run from the engagement "
               f"root (the folder containing components/)", file=sys.stderr)
         return 2
-    return audit(root)
+    return placement_brief(root) if a.command == "brief" else audit(root)
 
 
 if __name__ == "__main__":

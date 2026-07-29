@@ -1,6 +1,11 @@
 # M24 — Knowledge placement (the engagement pass: duplication + gaps, one problem)
 
-> **Status: DESIGNED — decisions settled with the user.** Ready to build.
+> **Status: BUILT (v1.10.0).** `engagement.py` audit section 4 (open-gap
+> register via the shared `callouts.open_gaps` parser), `brief` (the
+> placement-pass work order), `adopt` (hash-stamped second-hand source +
+> `kind: source` notes; sticky-hold `adopt` enforced at the verb);
+> registers listed read-only in the drafter and consolidator briefs;
+> drafter contract carries reference-don't-restate + `register_candidates`.
 > Supersedes this ticket's earlier draft ("gap pollination"), which treated
 > gap resolution as a sibling of the duplication audit. The user's
 > observation collapsed the two: they are the SAME problem, so they are one

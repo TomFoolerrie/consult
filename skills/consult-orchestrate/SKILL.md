@@ -384,43 +384,68 @@ Scope note: M12 is within-area. Cross-L1 consistency is the engagement
 audit's job (next section); run consolidation per area first — the audit's
 heuristics read cleaner signals off internally-consistent areas.
 
-## Engagement hygiene — the cross-area audit
+## Knowledge placement (M24) — the engagement layer
 
-The per-area guards (drafter ownership map, taxonomy neighbors, reconcile
-check 17) PREVENT cross-L1 duplication going forward; the audit FINDS what
-already exists. Run it from the engagement root:
+One rule: **every fact has exactly one home.** Duplication (a fact with two
+homes) and cross-answerable gaps (a fact with a broken pointer — one area
+asks what another documents) are the two directions of breaking it, and
+they share one toolset. Run everything from the engagement root.
+
+**The audit (free, read-only):**
 
 ```
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" audit components
 ```
 
-Run it when the user asks ("audit the engagement", "check for duplication
-across areas"), after areas scoped in silos are first brought under one
-`components/` tree, and offer it before any final export when the engagement
-has more than one area. Read-only, advisory — it reports three shapes:
+Run it when the user asks, after silo-scoped areas are first brought under
+one `components/` tree, and offer it before any final export when the
+engagement has more than one area. Four sections: **TWIN L3s** (HUMAN GATE —
+present the pairs, ask which area owns each, never decide ownership
+yourself), **CROSS-AREA MENTIONS** (usually fine as one handoff sentence),
+**SHARED PROSE** (same material drafted twice), and **OPEN GAPS** (the
+engagement-wide register of unanswered questions — standalone value: the
+user matches the obvious ones on sight).
 
-1. **TWIN L3s** — the same activity scoped as a procedure in two areas.
-   **HUMAN GATE**: present the pairs and ask which area owns each; never
-   decide ownership yourself. The loser is retired (taxonomy retirement
-   flow) or reduced to a handoff (shape 3's fix).
-2. **CROSS-AREA MENTIONS** — prose naming another area's procedure. Usually
-   fine as one handoff sentence; actionable only when paired with shape 3.
-3. **SHARED PROSE** — near-identical sentences in two areas' fragments: the
-   same material drafted twice. After the human names the owner, queue the
-   fix on the OTHER procedure's notes bus:
+**The placement pass (1 agent, on the user's word):** dispatch ONE
+judgment subagent whose first action is
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" brief components` —
+the brief carries the mechanical findings, the gap register, area scope
+digests, and the full triage rules. It routes each finding to one of THREE
+moves via `engagement.py note` (kind: review, the existing bus):
+
+1. **reduce to handoff** — work owned by another L1; the note tells the
+   losing procedure's drafter to keep one sentence naming the owner.
+2. **promote to register** — a SHARED RECURRING fact (approval threshold,
+   date/cutoff rule, system-of-record, master data): proposed in the
+   agent's returned status, NOT queued. Relay proposals to the user;
+   on their word, create/extend the file under `components/_client/
+   registers/` and queue notes telling the restating procedures to
+   reference it. Register CONTENT is always the human's decision.
+3. **adopt as source** — one-off: another area's sourced documentation
+   answers a question inside this area's own scope. The note carries the
+   exact command; YOU run it when absorbing the note:
 
    ```
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" note \
-       components/<losing-area> --slug <slug> \
-       --note "Reduce <activity> to a one-sentence handoff; it is owned by
-               <area>/<slug>. Do not restate its steps or controls."
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" adopt \
+       components/<gap-area> --from <answering-area>/<slug> \
+       --touches <gap-procedure-slug>
    ```
 
-   then run that area's ordinary loop — the advisor routes the queued notes
-   through `apply_review`, the drafter's update pass (targeted edits, scope-
-   boundary rule) makes the reduction, and re-render/review proceeds as
-   normal. Never edit fragments yourself, and never delete a procedure
-   without the human's ownership call.
+   It copies the fragment into `_sources/new/` as a hash-stamped,
+   second-hand `SRC-` entry and queues `kind: source` notes — the ordinary
+   `apply_review` loop does the rest. Idempotent. If it prints `held:
+   adopt`, this engagement requires pre-approval (`hold:` list, M17) —
+   relay and stop, exactly like any held action.
+
+   POLICY / CONTROL-DESIGN / CONFIGURATION questions are none of the
+   three: the agent reports them unresolved; relay them to the user.
+
+After notes land, each area's ordinary loop (`apply_review` → targeted
+drafter edits → aggregate/reconcile → checkpoint) resolves them — the user
+reviews diffs, not queues. Never edit fragments yourself, and never delete
+a procedure without the human's ownership call. Run per-area consolidation
+(M12) before the audit when both are wanted — its heuristics read cleaner
+signals off internally-consistent areas.
 
 ## Reporting
 

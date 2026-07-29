@@ -180,13 +180,36 @@ def open_gaps(text: str) -> list[tuple[str, str]]:
     (procedure, id), never on the id alone."""
     blanked = blank_fences(text)
     found: list[tuple[int, str, str]] = []
+    seen: set[str] = set()
+    lines = blanked.splitlines(keepends=True)
     pos = 0
-    for line in blanked.splitlines(keepends=True):
+    offsets = []
+    for ln in lines:
+        offsets.append(pos)
+        pos += len(ln)
+    for i, line in enumerate(lines):
         m = _GAP_CALLOUT_RE.match(line)
-        if m:
-            found.append((pos, m.group("id"), m.group("text")))
-        pos += len(line)
+        if not m or m.group("id") in seen:
+            continue
+        seen.add(m.group("id"))
+        # Callout text hard-wraps across continuation quote lines — join
+        # them until a blank quote, a sub-field bullet, or a new callout.
+        parts = [m.group("text")]
+        for nxt in lines[i + 1:]:
+            s = nxt.strip()
+            if (not s.startswith(">") or s in (">",)
+                    or CALLOUT_FIELD_RE.match(nxt)
+                    or _DEF_LINE_RE.match(nxt)):
+                break
+            parts.append(s.lstrip(">").strip())
+        found.append((offsets[i], m.group("id"),
+                      re.sub(r"\s+", " ", " ".join(parts)).strip()))
+    # Body tags often REFERENCE a gap the callout defines (same local id) —
+    # one gap, not two, so the callout's fuller text wins and the tag counts
+    # only when no callout carries its id.
     for m in _GAP_TAG_RE.finditer(blanked):
-        found.append((m.start(), m.group("id"),
-                      re.sub(r"\s+", " ", m.group("text"))))
+        if m.group("id") not in seen:
+            seen.add(m.group("id"))
+            found.append((m.start(), m.group("id"),
+                          re.sub(r"\s+", " ", m.group("text"))))
     return [(gid, txt) for _, gid, txt in sorted(found)]

@@ -171,3 +171,15 @@ def test_brief_says_when_cross_l1_boundaries_are_unavailable(tmp_path,
     assert brief.main([str(area), "--slug", "bank-rec"]) == 0
     out = capsys.readouterr().out
     assert "cross-L1 boundaries are UNAVAILABLE" in out
+
+
+def test_drafter_brief_lists_engagement_registers(tmp_path, capsys):
+    area = make_area(tmp_path / "components")
+    regs = tmp_path / "components" / "_client" / "registers"
+    regs.mkdir(parents=True)
+    (regs / "approval-matrix.md").write_text("| band | approver |\n",
+                                             encoding="utf-8")
+    assert brief.main([str(area), "--slug", "bank-rec"]) == 0
+    out = capsys.readouterr().out
+    assert "approval-matrix.md" in out
+    assert "ENGAGEMENT REGISTER" in out and "never restate" in out
