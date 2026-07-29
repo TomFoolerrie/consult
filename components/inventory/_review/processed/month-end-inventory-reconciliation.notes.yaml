@@ -1,0 +1,7 @@
+# _review/month-end-inventory-reconciliation.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "month-end-inventory-reconciliation"
+items:
+  - kind: "review"
+    note: "reduce to handoff; owner is procure-to-pay/[[goods-receipt]]. Step 3 restates goods-receipt posting mechanics ('a goods receipt posted in Coupa on the last day of the period') owned by that L1, and it conflicts with the owner's documentation (item receipt entered directly in NetSuite per goods-receipt SRC-004). Keep the in-transit timing explanation but name the owner's procedure instead of restating where/how the receipt posts."

@@ -37,7 +37,7 @@ The inventory valuation report is compared against the GL inventory account bala
 
 #### Step 3: Document each reconciling item in the reconciliation workbook
 
-Each reconciling item is documented in the reconciliation workbook. Timing differences from in-transit receipts are the usual reconciling item: a goods receipt posted in Coupa on the last day of the period can reach NetSuite a day later through the sync (SRC-002).
+Each reconciling item is documented in the reconciliation workbook. Timing differences from in-transit receipts are the usual reconciling item: a receipt recorded on the last day of the period may reach the inventory sub-ledger after period end (SRC-002). Goods receipt posting is performed under the Goods Receipt procedure in the Procure to Pay process.
 
 - **System / Tool:** Reconciliation workbook on the shared drive
 - **Evidence Required:** A documented explanation in the workbook for each reconciling item

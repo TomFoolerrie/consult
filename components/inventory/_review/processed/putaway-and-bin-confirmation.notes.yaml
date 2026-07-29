@@ -3,11 +3,5 @@
 # Consumed by consult-drafter (mode: update).
 procedure: "putaway-and-bin-confirmation"
 items:
-  - kind: "consolidation"
-    type: "consolidation"
-    category: "phrasing"
-    location: "10_putaway-and-bin-confirmation.md (Before You Start)"
-    anchor: "visually inspected for damage under the receiving process"
-    note: "Damage found at receiving is referenced as 'visually inspected for damage under the receiving process'; the decided convention (see [[material-disposition-adjustment]]) references this as 'the Procure to Pay receiving process' (no steps). Align the referral phrasing to the convention form."
-    peers: "material-disposition-adjustment"
-    source: "consolidate"
+  - kind: "review"
+    note: "reduce to handoff; owner is procure-to-pay/[[goods-receipt]]. Scope and Before-You-Start restate goods-receipt mechanics ('dock check', 'posted in Coupa') owned by that L1 — keep one sentence naming the owner's procedure. Caution: the restated detail conflicts with the owner ('posted in Coupa' here vs item receipt entered in NetSuite Receive Orders per goods-receipt SRC-004); reducing to the handoff removes the drift."

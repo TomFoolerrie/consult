@@ -4,10 +4,10 @@
 
 This procedure covers the movement of received material from the receiving
 area to its warehouse storage bin and the confirmation of that move in
-NetSuite. It begins after the goods receipt has been posted; the dock check
-of the delivery against the purchase order (PO) and the posting of the goods
-receipt in Coupa are performed under the Procure to Pay process and are
-explicitly excluded here. Corrections to item-vendor records, including unit
+NetSuite. It begins after the goods receipt has been posted; the receipt of
+the delivery is performed under the Goods Receipt procedure of the Procure to
+Pay process and is explicitly excluded here. Corrections to item-vendor
+records, including unit
 of measure setup, are likewise owned by the Procure to Pay process. Book-to-floor
 variances that originate at this handoff are detected downstream by
 [[cycle-count-execution]].
@@ -26,12 +26,10 @@ variances that originate at this handoff are detected downstream by
 
 ### Before You Start
 
-- **Posted goods receipt** — supplied by the Procure to Pay receiving process
-  (posted in Coupa); must be posted before putaway begins (SRC-001).
-- **Staged material** — the received pallets, dock-checked and visually
-  inspected for damage under the Procure to Pay receiving process, staged and
-  ready to move
-  (SRC-001).
+- **Posted goods receipt** — supplied by the Goods Receipt procedure under
+  the Procure to Pay process; must be posted before putaway begins (SRC-001).
+- **Staged material** — the received pallets, staged at receiving and ready
+  to move (SRC-001).
 
 ### Procedure
 
@@ -97,7 +95,8 @@ to Pay process (SRC-001).
 ### Known Issues & Improvement Opportunities
 
 > **PAIN POINT — PP-001:** Receiving errors propagate undetected into inventory.
-> - **Note:** A short count or a receipt posted against the wrong PO line makes
+> - **Note:** A short count or a receipt posted against the wrong purchase
+>   order (PO) line makes
 >   the inventory wrong from the first day, and there is no check at putaway
 >   that would catch it.
 > - **Detail:** The Warehouse Manager describes the receipt-posted-to-putaway-
@@ -118,6 +117,6 @@ to Pay process (SRC-001).
 > - **Severity:** Medium
 
 ```consult-meta
-systems: [netsuite, coupa]
+systems: [netsuite]
 roles:   [material-handler, warehouse-manager, procurement-lead]
 ```
