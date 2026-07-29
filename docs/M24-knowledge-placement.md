@@ -6,6 +6,15 @@
 > observation collapsed the two: they are the SAME problem, so they are one
 > register, one pass, one report. M12's `gap-answer` category (see M12
 > "Amendments", A2) is the within-area instance of the same principle.
+>
+> **Revised against real-engagement evidence** (the user's cross-L1 seam
+> analysis over four L1s): most cross-answerable gaps are not one-off facts
+> but RECURRING shared facts — approval thresholds, cutoff/date rules,
+> system-of-record answers, master data. For those, adopting another area's
+> prose would copy a volatile fact into a second home (the analysis's Root
+> Cause 3, "master data embedded in narrative procedures", mechanized). So
+> the pass has THREE moves, and for recurring facts the primary one is
+> **promote to an engagement register**, not adopt.
 
 ## Goal — one fact, one home
 
@@ -97,14 +106,54 @@ directions as ordinary notes through the existing commands — no new agent
 `.md`; the orchestrate skill's dispatch prompt carries the one-paragraph
 contract:
 
-| Direction | Finding | Queued as |
+Every finding routes to one of THREE moves — the class of the fact decides
+which (see triage below):
+
+| Move | When | Executes as |
 |---|---|---|
-| over-sharing | this fact/procedure is doubled; owner is X | `engagement.py note <area> --slug <loser> --note "reduce to handoff; owner …"` (kind: review — unchanged) |
-| under-sharing | this GAP is answered in `<area>/[[slug]]` | same `note` command; the note text names the answering slug and, where adoption is warranted, the exact `adopt` command |
+| **reduce to handoff** | the question/duplication is about work owned by another L1 | `engagement.py note <area> --slug <loser> --note "reduce to handoff; owner …"` (kind: review — unchanged) |
+| **promote to engagement register** | the fact is SHARED and RECURRING — approval threshold, date/cutoff rule, system-of-record, master data, report definition. Primary move for these (real-engagement evidence). | a register-entry PROPOSAL in the pass's returned status (file, key, suggested content, which procedures currently restate it) — the human's word creates/edits the `components/_client/registers/` file; follow-up notes tell the restating procedures' drafters to replace local copies with references |
+| **adopt as source** | one-off: another area's SOURCED walkthrough genuinely answers a question inside this area's own scope | the note names the exact `adopt` command; the orchestrator runs it |
+
+**Triage before routing** (the analysis's diagnostic questions, distilled
+into the brief's rules): is the fact owned by another L1 (→ handoff)? is it
+volatile shared data two-plus areas keep needing (→ promote)? is it a
+one-off evidence match (→ adopt)? is it a POLICY / CONTROL-DESIGN /
+CONFIGURATION question (→ none of the above: reported to the human
+unresolved, like a conflict — no drafter may "resolve" a policy gap with
+prose)? Adoption of shared-fact prose is named in the brief as the
+anti-pattern.
 
 Report-don't-guess holds: a match the agent cannot place confidently rides
 back in its return status, never the bus. Ownership calls stay human (the
 audit's existing gate).
+
+### 2b. Engagement registers — creation, update, consumption
+
+Registers live at `components/_client/registers/*` — the human's territory
+(their content is a management decision: no agent has authority over an
+approval threshold). Lifecycle, all on existing machinery:
+
+- **Creation:** agent-proposed (the pass's status), human-worded (the
+  orchestrator may write the file on the user's explicit go-ahead).
+  Cold-start on a real engagement: seed from the user's seam analysis
+  (accounting-date matrix, approval matrix, system-of-record matrix
+  first — its own top-priority list).
+- **Update:** edit the one engagement file; M13 resolution propagates it
+  to every area. An area that genuinely differs shadows the key with its
+  own `_client/` copy — divergence explicit, provenance reported. Because
+  procedures REFERENCE registers rather than restating values, a register
+  edit normally needs zero drafter dispatches — that is the economic
+  argument for the whole layer.
+- **Consumption (build items):** `brief.py` (drafter + consolidator
+  briefs) lists `components/_client/registers/*` read-only with the rule
+  inline; the drafter contract gets the prevention rule — volatile shared
+  facts (thresholds, codes, terms, cutoff rules) are cited from the
+  register, hard-coding only for stable execution-essential values.
+- **Known limitation (deferred):** nothing yet flags a procedure that
+  hard-codes a register value anyway; a future reconcile check can grep
+  register values against prose once registers carry real content. The
+  shared-prose audit covers the worst of it meanwhile.
 
 ### 3. `engagement.py adopt <area> --from <other-area>/<slug>` — the verb
 
@@ -147,17 +196,26 @@ All three are batched and asynchronous; none is a synchronous approval.
 1. **Duplication and gaps are one pass** (user insight): one register, one
    agent read, one report — two symmetric finding directions.
 2. **Prose-as-source via registration only**; transitive citation covers
-   the within-area case (M12/A2), adoption covers cross-area.
-3. **Flow-through defaults; sticky hold `adopt` is the brake.**
-4. **One agent per pass, engagement-scoped.** Value scales with migrated
+   the within-area case (M12/A2), adoption covers cross-area one-offs.
+3. **Promote-to-register outranks adopt for recurring shared facts**
+   (real-engagement evidence: gaps cluster at seams and are mostly shared
+   facts, not one-off answers). Register content is human-owned;
+   proposals are agent work.
+4. **Policy / control-design / configuration gaps are never resolved by
+   any component** — classified and reported, like conflicts.
+5. **Flow-through defaults; sticky hold `adopt` is the brake.**
+6. **One agent per pass, engagement-scoped.** Value scales with migrated
    L1s; cost does not.
 
 ## Acceptance
 
 - `audit` on a two-area fixture prints section 4 with every open gap
   (callout AND body-tag forms), grouped by area, and still writes nothing.
-- `brief` prints mechanical findings + gap register + scope digests +
-  both command templates, read-only.
+- `brief` prints mechanical findings + gap register + scope digests + the
+  three-move triage rules + the command templates, read-only; it lists any
+  existing `components/_client/registers/*` files.
+- The drafter/consolidator briefs list engagement registers when present,
+  with the reference-don't-restate rule.
 - `adopt` creates copy + `SRC-` entry + `kind: source` notes exactly once
   across two invocations (idempotent at the content hash); the entry's id
   is fresh, its hash matches the copy, and a drafter citing it survives
