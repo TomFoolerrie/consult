@@ -150,3 +150,43 @@ def iter_defined_ids(text: str):
         cid = m.group("id").strip()
         if prefix and cid.startswith(prefix + "-"):
             yield prefix, cid
+
+
+# --------------------------------------------------------------------------- #
+# M24 — open gaps, read one way everywhere. The engagement gap register and
+# M12's cross-brief gap register both ask "what is still unanswered in this
+# fragment?", and a second parser is how the two would drift. A gap is open
+# by virtue of being present: closing one removes it from the fragment.
+# --------------------------------------------------------------------------- #
+
+# A GAP definition line WITH its text: `> **VALIDATION REQUIRED — GAP-NN:** …`.
+_GAP_CALLOUT_RE = re.compile(
+    r"^\s*>\s*\*\*\s*VALIDATION REQUIRED\s*" + DELIM + r"\s*"
+    r"(?P<id>GAP-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*:\*\*\s*(?P<text>.*?)\s*$"
+)
+# A body gap tag WITH its text: `[[GAP-NN — reason]]` (may span a hard wrap).
+_GAP_TAG_RE = re.compile(
+    r"\[\[\s*(?P<id>GAP-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + DELIM
+    + r"\s*(?P<text>.*?)\s*\]\]",
+    re.DOTALL,
+)
+
+
+def open_gaps(text: str) -> list[tuple[str, str]]:
+    """Every open gap in a fragment as (local id, text), in document order:
+    VALIDATION REQUIRED callout definitions first-class, plus `[[GAP-NN — …]]`
+    body tags. Fence bodies are blanked; hard-wrapped tag text is rejoined.
+    Ids are procedure-LOCAL (they renumber at render) — callers key on
+    (procedure, id), never on the id alone."""
+    blanked = blank_fences(text)
+    found: list[tuple[int, str, str]] = []
+    pos = 0
+    for line in blanked.splitlines(keepends=True):
+        m = _GAP_CALLOUT_RE.match(line)
+        if m:
+            found.append((pos, m.group("id"), m.group("text")))
+        pos += len(line)
+    for m in _GAP_TAG_RE.finditer(blanked):
+        found.append((m.start(), m.group("id"),
+                      re.sub(r"\s+", " ", m.group("text"))))
+    return [(gid, txt) for _, gid, txt in sorted(found)]
