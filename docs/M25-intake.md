@@ -75,15 +75,29 @@ engagement.py park  intake/<file> --reason "..."
 ```
 
 `route`: for each target area, copy the file to
-`<area>/_sources/new/intake-<basename>`, hash-stamp (dedupe at content
-hash — re-routing is a no-op per area already holding it), and record the
-optional per-area relevance pointer in a note the taxonomy/drafter layer
-surfaces (mechanism: a sidecar note file or a `note:` on the eventual
-sources.yaml entry at scaffold assess — decide at build time; the pointer
-must reach the drafter's brief). Then move the original to
-`intake/routed/`. `park`: move to `intake/parked/` with the reason
-recorded. Both idempotent; both usable by hand — the human override is
-one line.
+`<area>/_sources/new/intake-<basename>` **and write NOTHING else — no
+sources.yaml entry, no hash stamp.** (Sanity-check finding, M6 contract:
+a hash at the file's current content means "already assessed" at guard 5.
+Pre-stamping would silently SKIP source assessment, so `touches` would
+never be proposed and the source would strand unconsumed. `adopt` stamps
+deliberately — flow-through for derived prose — but raw client material
+must enter the ordinary assess/confirm flow exactly like a hand-dropped
+file.) Idempotency is at the file layer: an identical copy already
+present in the target's `_sources/new/` (or its ledger, by content) is a
+no-op. The per-area relevance pointer is a SIDECAR note file beside the
+copy (`intake-<basename>.route.md`), which scaffold's assess step folds
+into the eventual sources.yaml `note:` — the pointer must reach the
+drafter's brief. Then move the original to `intake/routed/`. `park`: move
+to `intake/parked/` with the reason recorded. Both usable by hand — the
+human override is one line.
+
+**Greenfield ordering:** sources normally arrive BEFORE an area is
+scoped, so the classifier (which routes against scoped areas' manifests)
+will park the first documents of any brand-new L1 — correct behavior,
+loud, with the reason naming the unscoped content. `route` itself accepts
+an explicit not-yet-scoped area name on HUMAN direction (creating
+`components/<area>/_sources/new/`), which is exactly today's hand-drop,
+formalized.
 
 ### 3. The intake classifier — taxonomy's little sibling
 
