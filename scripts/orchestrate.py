@@ -872,8 +872,11 @@ def decide(folder: str) -> dict:
     #     guard 2 has ruled out any pending note and guard 4 any `unfilled`
     #     skeleton, so NOTHING can consume it: re-dispatching taxonomy proposes
     #     nothing new and re-spends a dispatch per lap. That is the gate below.
-    if _dir_has_files(st.sources_new):
-        unassessed, assessed = st.new_source_assessment()
+    # M25: route sidecars (`*.route.md`) are metadata, not sources — a folder
+    # holding only them has nothing to assess and must not gate.
+    unassessed, assessed = (st.new_source_assessment()
+                            if _dir_has_files(st.sources_new) else ([], []))
+    if unassessed or assessed:
         if unassessed:
             return result("taxonomy",
                           "manifest exists and _sources/new/ holds %d unassessed "
