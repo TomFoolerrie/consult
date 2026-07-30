@@ -1,6 +1,10 @@
 # M26 — The engagement seam model (taxonomy-declared, token-carried, audit-derived)
 
 > **Status: DESIGNED — decisions settled with the user.** Not yet built.
+> **BUILD PRIORITY: first** — ahead of M25 (intake) and the M24 `--full`
+> read, in this order: tokens → taxonomy (with the Opus pin and the gap
+> forecast) → briefs → derived spine. Then M25, then the legacy-migration
+> playbook on the user's real engagement.
 > Supersedes the two earlier shapes this idea passed through: a
 > human-curated `interfaces.yaml` (rejected: the user must not own
 > engagement plumbing) and an agent-maintained one (superseded: a curated
@@ -79,6 +83,24 @@ exactly once (confirm), which is the standing requirement.
   what to write. Upstream context is seam alignment only; drafters draft
   from their own sources. This is the line that kept the planner out and
   it is not negotiable here either.
+- **The gap forecast.** The proposal gains, per proposed procedure, the
+  questions its sources visibly do NOT answer ("no approver named for the
+  payment run", "retention location never stated"). Same read, new
+  output: gap discovery moves BEFORE prose, so the client ask-list goes
+  out while fieldwork access is hot — drafting proceeds in parallel and
+  is never hostage to answers (settled: the two-phase scout-then-write
+  model was REJECTED — scouts double the read spend, "all inputs
+  gathered" never arrives, and blind seams are already handled by this
+  ticket's drafting-order rules; the forecast captures the same early
+  discovery at ~zero marginal cost on the scoping read).
+- **Model pin: `model: opus` lands in `agents/consult-taxonomy.md`
+  frontmatter IN THE SAME COMMIT as this contract.** Settled reasoning:
+  M26 makes taxonomy the engagement's single point of judgment, with four
+  mechanical consumers that ENFORCE its output rather than second-guess
+  it — concentrated judgment gets funded deliberately. Once per area, so
+  the premium is bounded; and a pin (unlike a "use a strong session"
+  habit) transfers to teammates, making the quality floor structural. No
+  other agent is pinned; agents otherwise inherit the session model.
 
 ### 3. Cross-area upstream in the drafter brief
 
@@ -161,6 +183,8 @@ back-fills the manifest `upstream` declarations once its neighbors exist.
 - Taxonomy proposal on a fixture with a described handoff declares
   `area/slug` upstream; the confirm gate surfaces it; scaffold writes it
   to the manifest.
+- The taxonomy proposal carries a gap forecast naming a fact the fixture
+  sources visibly omit; `consult-taxonomy.md` carries `model: opus`.
 - The drafter brief resolves a cross-area upstream to the sibling
   fragment read-only, and to the honest "scoped, not yet drafted" line
   when the fragment is a skeleton.

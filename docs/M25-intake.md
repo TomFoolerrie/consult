@@ -1,9 +1,13 @@
 # M25 — Engagement intake (one drop point, agent-routed, loud when parked)
 
-> **Status: DESIGNED — decisions settled with the user.** Not yet built.
-> Companions: M24 (the placement pass this REDUCES traffic for — misfiled
-> evidence is a chunk of what `adopt` would otherwise repatriate after the
-> fact) and M0/taxonomy (the within-area allocation this feeds).
+> **Status: DESIGNED — decisions settled with the user; APPROVED, build
+> sequenced AFTER M26** (tokens/taxonomy/spine first — M25 is independent
+> of it but M26 is the priority). Companions: M24 (the placement pass this
+> REDUCES traffic for — misfiled evidence is a chunk of what `adopt`
+> would otherwise repatriate after the fact) and M0/taxonomy (the
+> within-area allocation this feeds; under M26 the taxonomy pass also
+> emits the gap forecast, so well-routed intake directly improves the
+> earliest client ask-list).
 
 ## Goal
 
