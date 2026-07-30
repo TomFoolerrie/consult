@@ -24,6 +24,10 @@ another area documents). `audit` reports both directions from one walk:
                     twice, verbatim OR paraphrased around a shared skeleton.
   4. OPEN GAPS    — the engagement's unanswered questions, by area
                     (callouts.open_gaps — the one gap parser everywhere).
+  5. INTERFACES   — the M26 derived spine: every [[area/slug]] token and
+                    cross-area upstream declaration, read fresh off the
+                    prose/manifests each run (owned and maintained by
+                    nobody), plus asymmetric-seam findings.
 
 `brief` prints the work order for the single placement-pass agent (three
 moves: reduce-to-handoff, promote-to-register, adopt-as-source; policy /
@@ -237,6 +241,56 @@ def _scope_digest(root: Path, a: str, comp: dict) -> list[str]:
     return out
 
 
+def interface_spine(root: Path, areas) -> tuple[list[str], list[str]]:
+    """(spine lines, finding lines) — the M26 derived spine.
+
+    The interface catalog is READ OFF the [[area/slug]] tokens in the prose
+    plus the manifests' cross-area `upstream` declarations, fresh each run —
+    owned by nobody, maintained by nobody, never stale. Findings:
+      - asymmetric seam: a seam declared/tokened from one side only
+        (expected during mixed scoping order; the fix is an incremental
+        taxonomy pass on the older area);
+      - dangling target: the token names an area/procedure the manifests do
+        not carry (reconcile blocks this per-area; named here so the blast
+        radius of a rename is enumerable before AND after).
+    """
+    known: dict[str, set[str]] = {a: {c.get("slug") for c in _procedures(m)}
+                                  for a, m in areas}
+    # seams[(from_area, to_area)] = [(holder "a/slug", target "a/slug", how)]
+    seams: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
+    spine: list[str] = []
+    findings: list[str] = []
+    for a, m in areas:
+        for comp in _procedures(m):
+            holder = f"{a}/{comp.get('slug', '?')}"
+            targets: list[tuple[str, str]] = []
+            text = _fragment_text(root, a, comp)
+            if text:
+                for tok in callouts.XREF_RE.findall(
+                        callouts.blank_fences(text)):
+                    if "/" in tok:
+                        targets.append((tok, "token"))
+            for u in comp.get("upstream") or []:
+                if "/" in str(u):
+                    targets.append((str(u), "upstream"))
+            for tgt, how in dict.fromkeys(targets):
+                ta, ts = tgt.split("/", 1)
+                dangling = ta not in known or ts not in known.get(ta, set())
+                mark = "  [DANGLING — reconcile blocks the holder]" \
+                    if dangling else ""
+                spine.append(f"  {holder}  --{how}-->  {tgt}{mark}")
+                if not dangling and ta != a:
+                    seams.setdefault((a, ta), []).append((holder, tgt, how))
+    for (a, b), entries in sorted(seams.items()):
+        if (b, a) not in seams:
+            findings.append(
+                f"  - asymmetric seam: {a} declares toward {b} "
+                f"({len(entries)}) but {b} declares nothing toward {a} — "
+                f"expected during mixed scoping; fix with an incremental "
+                f"taxonomy pass on {b}")
+    return spine, findings
+
+
 def _registers(root: Path) -> list[Path]:
     reg = root / "_client" / "registers"
     return sorted(p for p in reg.glob("*") if p.is_file()) \
@@ -271,7 +325,10 @@ def audit(root: Path) -> int:
         print(ln)
     if n2:
         print("   fix: usually fine as ONE handoff sentence — flag only "
-              "where the mention grew into documentation (see shape 3)")
+              "where the mention grew into documentation (see shape 3). "
+              "Since the target is scoped, upgrade the mention to a "
+              "[[area/slug]] token (M26): checkable identity instead of "
+              "prose the audit must guess at")
 
     lines = []
     n3 = shared_prose(root, areas, lines)
@@ -295,10 +352,23 @@ def audit(root: Path) -> int:
               "belong in a shared register — run the placement pass "
               "(engagement.py brief) before sending them to process owners")
 
+    spine, seam_findings = interface_spine(root, areas)
+    print(f"\n5. INTERFACES — the engagement spine, derived from "
+          f"[[area/slug]] tokens and cross-area upstream declarations: "
+          f"{len(spine)}")
+    for ln in spine:
+        print(ln)
+    for ln in seam_findings:
+        print(ln)
+    if not spine:
+        print("   (none declared yet — seams are still prose-only; see "
+              "section 2 for upgrade candidates)")
+
     total = n1 + n2 + n3
-    print(f"\n{total} duplication finding(s) · {n4} open gap(s)."
-          if (total or n4) else "\nClean: no cross-area duplication, no "
-          "open gaps.")
+    print(f"\n{total} duplication finding(s) · {n4} open gap(s) · "
+          f"{len(spine)} declared interface(s)."
+          if (total or n4 or spine) else "\nClean: no cross-area "
+          "duplication, no open gaps, no declared interfaces.")
     return 0
 
 
@@ -376,6 +446,11 @@ def placement_brief(root: Path) -> int:
     n3 = shared_prose(root, areas, lines)
     print(f"  shared prose: {n3}")
     for ln in lines:
+        print(ln)
+    spine, seam_findings = interface_spine(root, areas)
+    print(f"  declared interfaces (M26 spine — seams already DECLARED; "
+          f"your matching work starts where these end): {len(spine)}")
+    for ln in spine + seam_findings:
         print(ln)
     n4, lines = open_gap_register(root, areas)
     print(f"\nOPEN GAP REGISTER ({n4} gap(s)):")

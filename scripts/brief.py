@@ -200,11 +200,52 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
                            f"cutoff rules; hard-code only stable values "
                            f"essential to executing YOUR steps)")
     ups = [u for u in (comp.get("upstream") or [])]
+    siblings = doc_model.sibling_procedures(folder) if any(
+        "/" in u for u in ups) else {}
     for u in ups:
-        ucomp = next((c for c in procs if c.get("slug") == u), None)
-        if ucomp:
-            _reading_item(out, folder, ucomp.get("file", ""),
-                          f"upstream seam ({u}) — READ-ONLY context")
+        uarea, ulocal = doc_model.split_xref(u)
+        if uarea is None:
+            ucomp = next((c for c in procs if c.get("slug") == u), None)
+            if ucomp:
+                _reading_item(out, folder, ucomp.get("file", ""),
+                              f"upstream seam ({u}) — READ-ONLY context")
+            continue
+        # M26 cross-area seam: the counterpart fragment is READ-ONLY seam
+        # context — align artifact names, timing and state, and write the
+        # handoff sentence with the [[area/slug]] token. Never document the
+        # other area's work.
+        sib = siblings.get(uarea)
+        if sib is None:
+            _line(out, f"  - CROSS-AREA upstream [[{u}]] — sibling area "
+                       f"not visible (not under a components/ root?) — "
+                       f"report this, do not guess")
+            continue
+        sfolder = sib["path"]
+        ufile = None
+        try:
+            um = doc_model.load_manifest(sfolder)
+            ucomp = next((c for c in um.get("components", [])
+                          if c.get("role") == "procedure"
+                          and c.get("slug") == ulocal), None)
+            ufile = ucomp.get("file") if ucomp else None
+        except doc_model.ManifestError:
+            pass
+        upath = (sfolder / ufile) if ufile else None
+        drafted = bool(upath and upath.is_file()
+                       and not UNFILLED_RE.search(
+                           upath.read_text(encoding="utf-8")))
+        if drafted:
+            _line(out, f"  - {upath}  (CROSS-AREA upstream seam "
+                       f"[[{u}]] — READ-ONLY: align artifact names, "
+                       f"timing and state; write your handoff sentence "
+                       f"with the [[{u}]] token; never document that "
+                       f"area's work)")
+        else:
+            _line(out, f"  - [[{u}]] — CROSS-AREA upstream: scoped, not "
+                       f"yet drafted — seam context UNAVAILABLE; draft "
+                       f"the handoff from your own sources, still use "
+                       f"the [[{u}]] token (it is valid), and return "
+                       f"seam_unverified for this seam")
     _line(out)
 
     _line(out, "OWNERSHIP MAP — work owned elsewhere is NEVER documented in "

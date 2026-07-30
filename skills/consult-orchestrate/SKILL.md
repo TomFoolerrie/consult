@@ -410,12 +410,29 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" audit components
 
 Run it when the user asks, after silo-scoped areas are first brought under
 one `components/` tree, and offer it before any final export when the
-engagement has more than one area. Four sections: **TWIN L3s** (HUMAN GATE —
+engagement has more than one area. Five sections: **TWIN L3s** (HUMAN GATE —
 present the pairs, ask which area owns each, never decide ownership
-yourself), **CROSS-AREA MENTIONS** (usually fine as one handoff sentence),
-**SHARED PROSE** (same material drafted twice), and **OPEN GAPS** (the
+yourself), **CROSS-AREA MENTIONS** (usually fine as one handoff sentence;
+when the target is scoped, the upgrade is a `[[area/slug]]` token),
+**SHARED PROSE** (same material drafted twice), **OPEN GAPS** (the
 engagement-wide register of unanswered questions — standalone value: the
-user matches the obvious ones on sight).
+user matches the obvious ones on sight), and **INTERFACES** (M26 — the
+engagement spine, derived fresh off `[[area/slug]]` tokens and cross-area
+`upstream` declarations; an *asymmetric seam* finding means one side
+declares and the other doesn't — the fix is an incremental taxonomy pass
+on the silent area, on the user's word).
+
+**Cross-area seams (M26) in the ordinary loop:** taxonomy may declare
+`upstream: ["p2p/goods-receipt"]` cross-area entries — the confirm gate
+surfaces them (plus the gap forecast, the early client ask-list: relay it
+to the user). A cross-area upstream NEVER defers a drafter (no cross-area
+waves); the brief hands the counterpart fragment read-only, or says
+honestly "scoped, not yet drafted". Relay any `seam_unverified` entries
+from drafter returns in your status one-liner — they clear mechanically
+once the upstream drafts (audit + M12 seam findings verify). A dangling
+cross-area token after a rename is a hard reconcile ERROR in the HOLDER
+area: fix it with `engagement.py note` per holder (the audit's INTERFACES
+section enumerates holders before you rename).
 
 **The placement pass (1 agent, on the user's word):** dispatch ONE
 judgment subagent whose first action is

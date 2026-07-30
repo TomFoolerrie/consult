@@ -76,7 +76,8 @@ from docx.oxml.ns import qn  # noqa: E402
 
 UNASSIGNED = "_unassigned"
 
-_XREF_RE = re.compile(r"\[\[(#?)([a-z0-9][a-z0-9-]*)\]\]")
+_XREF_RE = re.compile(
+    r"\[\[(#?)([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 _GAPTAG_RE = re.compile(r"\[\[\s*(GAP-\d+[^\]]*?)\s*\]\]")
 _LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _CALLOUT_DEF_RE = re.compile(
@@ -212,6 +213,10 @@ def synth_rendered(logical_md: str, submap: dict, labels: dict,
         label = labels.get(m.group(2))
         if label is None:
             return m.group(0)
+        # Cross-area labels have no number to split off ([[#area/slug]] is a
+        # reconcile ERROR anyway — never emit a fabricated "number").
+        if "/" in m.group(2):
+            return label
         return label.split(" ", 1)[0] if m.group(1) else label
     text, amap = _aligned_sub(text, amap, _XREF_RE, xref)
     # 3. body gap tags: [[GAP-x — y]] → **[GAP-x — y]** → (bold strip) [·]
@@ -404,6 +409,8 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
             role_of[comp["file"]] = comp.get("role", "")
             if s:
                 slug_of_file[comp["file"]] = s
+    # M26: cross-area tokens resolve through the same labels map render uses.
+    labels.update(doc_model.cross_labels(area))
     id_map = doc_model.callout_display_ids(area)
     sub_by_slug: dict[str, dict] = {}
     for (s, local), disp in id_map.items():

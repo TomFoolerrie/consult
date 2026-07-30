@@ -44,7 +44,12 @@ present (phrasing decisions by earlier drafters — match them; you may write
 facts/nouns); and any `upstream` fragment paths in your dispatch — **read-only
 seam context** (align how the handoff artifact is named/arrives; never edit
 those files; facts still come from your own sources — an upstream conflict
-becomes a GAP naming the mismatch, never a silent harmonization); and the
+becomes a GAP naming the mismatch, never a silent harmonization). A
+CROSS-AREA upstream (M26, `[[area/slug]]` in your brief) follows the same
+rules, plus: write the handoff sentence with the token (never `[[#area/…]]`
+— no cross-area numbers); if the brief says the counterpart is "scoped, not
+yet drafted", proceed from your own sources and return `seam_unverified`
+for that seam. Finally, read the
 **document profile** if one is present (`_client/profile.yaml`, or the
 engagement-wide `components/_client/profile.yaml`) — it tells you which callout
 kinds and inline tags are in play (see below).

@@ -787,6 +787,9 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
         })
 
     known = {p["slug"] for p in procedures}
+    # M26: sibling manifests, read once — validates cross-area upstream hints.
+    all_siblings = (doc_model.sibling_procedures(area)
+                    if doc_model is not None else {})
     for p in procedures:
         slug = p["slug"]
         comp = {
@@ -797,11 +800,32 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
         # M11 ordering hints: validated here (mechanics), decided by taxonomy
         # (judgment). Unknown or self references are dropped with a warning —
         # the manifest only ever carries hints the advisor can act on.
+        # M26: a cross-area hint `area/slug` is validated against the SIBLING
+        # manifest and PRESERVED — it declares an engagement seam, and the
+        # advisor never defers on it (cross-area waves do not exist).
+        siblings = all_siblings
         upstream = list(dict.fromkeys(str(u) for u in (p.get("upstream") or []) if u))
-        valid = [u for u in upstream if u in known and u != slug]
-        for bad in [u for u in upstream if u not in valid]:
-            print(f"  WARNING: {slug}: dropping upstream hint '{bad}' "
-                  "(unknown slug or self-reference)")
+        valid = []
+        for u in upstream:
+            uarea, ulocal = ((u.partition("/")[0], u.partition("/")[2])
+                             if "/" in u else (None, u)) \
+                if doc_model is None else doc_model.split_xref(u)
+            if uarea is None:
+                if u in known and u != slug:
+                    valid.append(u)
+                else:
+                    print(f"  WARNING: {slug}: dropping upstream hint '{u}' "
+                          "(unknown slug or self-reference)")
+            elif uarea in siblings and ulocal in siblings[uarea]["slugs"]:
+                valid.append(u)
+            else:
+                why = (f"no sibling area '{uarea}' is scoped"
+                       if uarea not in siblings else
+                       f"area '{uarea}' has no procedure '{ulocal}' (its "
+                       f"slugs: "
+                       f"{', '.join(sorted(siblings[uarea]['slugs'])) or 'none'})")
+                print(f"  WARNING: {slug}: dropping cross-area upstream "
+                      f"hint '{u}' — {why}")
         if valid:
             comp["upstream"] = valid
         components.append(comp)
@@ -1013,6 +1037,20 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     print(f"scaffolded {area}")
     print(f"  {profile.report_line()}")
     print(f"  l1={l1}  l2_order={l2_order}")
+    # M26: surface seam declarations + the gap forecast at the gate — the
+    # human reviews the connective tissue and the client ask-list here.
+    seams = [(p["slug"], u) for p in procedures
+             for u in (p.get("upstream") or []) if "/" in str(u)]
+    if seams:
+        print("  cross-area seams (M26): "
+              + "; ".join(f"{s} ← {u}" for s, u in seams))
+    forecast = [(p["slug"], q) for p in proposed_procs
+                for q in (p.get("gap_forecast") or []) if q]
+    if forecast:
+        print(f"  gap forecast ({len(forecast)} question(s) — the early "
+              f"client ask-list):")
+        for s, q in forecast:
+            print(f"    {s}: {q}")
     print(f"  procedures={len(procedures)} (proposal delta={len(proposed_procs)})  "
           f"created={len(created)}  skipped(existing)={len(skipped)}")
     if created:

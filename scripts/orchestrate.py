@@ -158,7 +158,8 @@ import doc_model  # noqa: E402
 try:
     from callouts import XREF_RE, blank_fences as _blank_fences  # type: ignore
 except Exception:  # pragma: no cover - callouts is always present
-    XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
+    XREF_RE = re.compile(
+        r"\[\[#?([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 
     def _blank_fences(text: str) -> str:
         return text
@@ -472,6 +473,11 @@ class AreaState:
             missing = []
             for m in XREF_RE.finditer(_blank_fences(_read_text(path))):
                 slug = m.group(1)
+                if "/" in slug:
+                    # M26 cross-area token — validated against the SIBLING
+                    # manifest by reconcile (which owns the gate), never
+                    # against this area's live slugs.
+                    continue
                 if slug not in live and slug not in missing:
                     missing.append(slug)
             if missing:

@@ -186,6 +186,28 @@ drafter used — describe your intake side in the same terms.
 - Don't restate upstream content. Your reader gets the upstream procedure in
   the same document; Scope links the flow in a sentence, no more.
 
+### Cross-area seams (M26) — declared upstream in ANOTHER L1
+
+Your brief may list a **cross-area** upstream (`[[area/slug]]` — a procedure
+in a sibling area, declared by taxonomy at scoping). Same rules as above —
+read-only, context-not-evidence, never restate — plus:
+
+- **Write the handoff sentence with the token**: *"Received quantities
+  arrive from [[p2p/goods-receipt]]"*. The token is checkable identity — it
+  renders as the procedure's heading + area title and reconcile hard-errors
+  if it ever dangles. Use it exactly at the declared seam; nothing else
+  crosses the boundary (the no-documenting-others'-work rule is unchanged).
+- Never `[[#area/slug]]` — another document's numbers are not stable from
+  here; the number-only form is a reconcile ERROR.
+- **The counterpart may not be drafted yet.** Your brief says so honestly
+  ("scoped, not yet drafted — seam context UNAVAILABLE"). PROCEED: draft the
+  handoff from your own sources, still use the token (identity is
+  manifest-based, so it is valid), and return `seam_unverified` for that
+  seam so the blindness is on the record. The audit and the consolidate
+  pass verify the seam mechanically once both sides exist.
+- An undeclared cross-area handoff (no upstream entry, target not scoped)
+  stays plain prose, as before — report it in `out_of_scope`.
+
 ## Scope boundaries — the ownership map (don't duplicate what others own)
 
 Your sources are tagged to SEVERAL procedures — the interview that feeds you
@@ -200,13 +222,16 @@ directions:
   source describes them. If you believe a step genuinely belongs to you and
   not the listed owner, report the boundary question in `conflicts`; do not
   document it twice while you wait.
-- **Another area's work** (another L1 — the brief lists sibling areas):
-  `[[slug]]` cannot cross areas, so name the process in plain prose — *"The
-  sales package is prepared under the Financial Statement Close Process"* —
-  one handoff sentence, no steps, and report it in your status under
-  `out_of_scope` so the humans can check the boundary. Reconcile WARNs when
-  your prose names a sibling area's procedure title; a warning naming your
-  file means your handoff sentence grew into documentation.
+- **Another area's work** (another L1 — the brief lists sibling areas): one
+  handoff sentence, no steps, and report it in your status under
+  `out_of_scope` so the humans can check the boundary. At a DECLARED seam
+  (your brief lists a cross-area upstream) write that sentence with the
+  `[[area/slug]]` token (M26, above); where no seam is declared, name the
+  process in plain prose — *"The sales package is prepared under the
+  Financial Statement Close Process"*. Reconcile WARNs when your prose
+  names a sibling area's procedure title; a warning naming your file means
+  your handoff sentence grew into documentation (or that a scoped target
+  deserves the token).
 
 Duplicated procedure text is worse than a gap: both copies drift, the client
 maintains the process twice, and the review round collects two conflicting
@@ -657,6 +682,9 @@ A short status object/paragraph:
 - `conflicts`: source conflicts you logged as GAPs (id + one line each)
 - `out_of_scope`: activities in your sources owned elsewhere (sibling
   procedure or another area) that you reduced to a handoff sentence
+- `seam_unverified`: declared cross-area seams whose counterpart was not
+  yet drafted — you wrote the handoff from your own sources (one line per
+  seam: the [[area/slug]] token + the artifact handed off)
 - `register_candidates`: shared recurring facts you had to state in prose
   because no engagement register covers them yet (thresholds, cutoff rules,
   codes — one line each)
