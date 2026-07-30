@@ -84,8 +84,14 @@ unless a finding demands it.
    sketch: it RANKS, never filters; the index still lists every gap.
 3. Does the audit keep its human-facing report shape unchanged (yes,
    presumably — the toolkit is the agent-facing view of the same facts)?
-4. Interaction with M12: should the consolidator's cross pass get the
-   same toolkit instead of its baked digest? (Same shape, smaller scope.)
+4. ~~Interaction with M12~~ — SETTLED (2026-07-30, with the user): the
+   consolidator's cross pass becomes a CLIENT of this toolkit. Its baked
+   digest is the same pre-decided-relevance gamble that made M24's digest
+   under-recall (naming lives in headings; duplication lives mid-step-
+   body), and its only widening path today is `needs_full_read` → wait
+   for a human. Queries make widening sanctioned and bounded. Design the
+   query surface with BOTH consumers in mind; M12's A3 amendment carries
+   the pointer back here.
 5. Token accounting: instrument a run with and without the toolkit before
    declaring victory — the digest-mode lesson is that pre-deciding what
    the agent needs can silently cost recall, and recall is the metric

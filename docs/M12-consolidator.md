@@ -1,7 +1,8 @@
 # M12 — Consolidator (cross-procedure consistency pass)
 
-> **Status: BUILT** (v1.8.0; amendments below — packing SHIPPED v1.9.0,
-> `gap-answer` DESIGNED). `scripts/consolidate.py` (plan / brief / note /
+> **Status: BUILT** (v1.8.0; amendments below — A1 packing SHIPPED v1.9.0,
+> A2 `gap-answer` SHIPPED v1.10.0, A3 candidate improvements AGREED
+> 2026-07-30 not yet built). `scripts/consolidate.py` (plan / brief / note /
 > report / mark), `agents/consult-consolidator.md`, the draft-ready gate's
 > `consolidate` answer wired (`consolidated_at_basis` from
 > `.consolidate.json`), notes bus extended with `category`/`peers`
@@ -431,3 +432,45 @@ directions of one violation — "every fact has exactly one home" (a fact
 with two homes vs a fact with a broken pointer). M12's single pass raising
 `duplication` and `gap-answer` side by side is the within-area instance of
 that principle; M24 is the engagement-wide instance.
+
+### A3 — Candidate improvements (AGREED 2026-07-30, not yet built)
+
+Reviewed after the M26/M25 builds and the run-4/field experience. The
+test any M12 change must pass, per the user's standing constraint: no new
+agent, no new state file, no new gate. Three candidates clear it:
+
+1. **Cross-boundary seam verification in the group brief (the M26
+   follow-through, ~20 lines).** Drafters return `seam_unverified` when
+   they drafted a declared seam blind (upstream not yet drafted); today
+   nothing CLEARS that state. Fix: when a group's fragments hold
+   cross-area `[[area/slug]]` tokens, the group brief includes the
+   counterpart's HANDOFF SENTENCE — one script-extracted sentence, not
+   the fragment — so the group agent can check artifact-name/timing
+   agreement across the boundary and raise an ordinary `seam` finding.
+   This is the deferred seam-staleness idea in its minimal form; the
+   hash-tracking subsystem stays deferred.
+2. **Instrumented anti-noise tuning run.** The caps (10/category) and the
+   >=2-procedure rule were tuned on clean synthetic areas; the field
+   read was that synthetic-tuned reads as timidity on legacy prose. Before
+   touching any threshold: instrument ONE run on the user's real
+   engagement — findings raised vs findings acted on by drafters vs
+   findings the human wanted but didn't get. Tune from that, not from
+   intuition.
+3. **Findings-survive-the-tail accounting (one status field).** A
+   consolidation note the drafter rejects (contradicts its sources → GAP,
+   per contract) is currently indistinguishable in the record from one
+   applied. Add `consolidation_rejected` to the drafter's compact status
+   (one line per rejected note) so systematically-wrong consolidator
+   findings become visible — the feedback loop the contract lacks.
+
+**Also agreed, tracked in M27 (not here):** the cross-bucket pass should
+become a CLIENT of the M27 detection toolkit — queries replace the baked
+digest, making a widened read sanctioned and bounded instead of
+impossible (`needs_full_read` → human wait). Same pre-decided-relevance
+lesson as M24's digest under-recall.
+
+**Explicitly rejected in the same review:** touching the packing
+(measured well; pure arithmetic), letting the consolidator resolve
+anything (the no-facts rule is the load-bearing wall that lets its notes
+flow through ungated), and adding categories (the closed taxonomy IS the
+anti-noise contract).
