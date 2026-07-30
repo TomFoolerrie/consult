@@ -1,18 +1,27 @@
 sources:
 - id: SRC-001
-  file: _sources/new/2026-07-20-warehouse-manager-interview.md
+  file: _sources/processed/2026-07-20-warehouse-manager-interview.md
   touches:
   - cycle-count-execution
   - count-adjustment-review-and-posting
   - material-disposition-adjustment
   - putaway-and-bin-confirmation
   hash: 88fcd11767d017c4a78679493c7f7cbcb4d049c296c25a117be6b6174749685c
-  state: new
+  state: processed
+  consumed:
+  - count-adjustment-review-and-posting
+  - cycle-count-execution
+  - material-disposition-adjustment
+  - putaway-and-bin-confirmation
 - id: SRC-002
-  file: _sources/new/2026-07-21-inventory-analyst-interview.md
+  file: _sources/processed/2026-07-21-inventory-analyst-interview.md
   touches:
   - cycle-count-execution
   - count-adjustment-review-and-posting
   - month-end-inventory-reconciliation
   hash: 9048a5b4e1f31c248f4f52ee94a0a6391164979dce8462e6222e046ddb06c0af
-  state: new
+  state: processed
+  consumed:
+  - count-adjustment-review-and-posting
+  - cycle-count-execution
+  - month-end-inventory-reconciliation
