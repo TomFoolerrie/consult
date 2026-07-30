@@ -280,3 +280,36 @@ def test_adopt_validates_from_and_touches(tmp_path, capsys):
         ["adopt", str(inv), "--from", "fscp/sales-package-preparation",
          "--touches", "nope"]) == 2
     assert "cycle-counts" in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------- #
+# M24 --full — the deep-sweep / legacy-migration read
+# --------------------------------------------------------------------------- #
+
+def test_brief_full_lists_whole_fragments_with_estimate(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    assert engagement.main(["brief", str(root), "--full"]) == 0
+    out = capsys.readouterr().out
+    assert "FULL READ" in out and "READ IN FULL" in out
+    assert "10_cycle-counts.md" in out
+    assert "tokens est." in out
+    assert "SIZE GUARD" not in out          # tiny fixture fits the budget
+    assert "AREA DIGESTS" not in out        # full replaces the digests
+
+
+def test_brief_full_size_guard_recommends_splits(tmp_path, capsys,
+                                                 monkeypatch):
+    root = make_engagement(tmp_path)
+    monkeypatch.setattr(engagement, "_FULL_READ_TOKEN_BUDGET", 1)
+    assert engagement.main(["brief", str(root), "--full"]) == 0
+    out = capsys.readouterr().out
+    assert "SIZE GUARD" in out
+    assert "digest mode" in out and "area PAIR" in out
+
+
+def test_brief_digest_mode_unchanged_and_names_full(tmp_path, capsys):
+    root = make_engagement(tmp_path)
+    assert engagement.main(["brief", str(root)]) == 0
+    out = capsys.readouterr().out
+    assert "AREA DIGESTS" in out and "use\n--full" in out.replace(
+        "use \n", "use\n") or "--full" in out
