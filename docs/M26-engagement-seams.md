@@ -63,6 +63,32 @@ exactly once (confirm), which is the standing requirement.
 - Check 17 (title-grep mention heuristic) and the audit's MENTIONS shape
   remain as backstops for UNDECLARED references, with upgraded fix text:
   "use a `[[area/slug]]` token" once the target is scoped.
+- **Integration facts (sanity-check pass, verified against the code):**
+  - The token grammar lives in ONE place — `doc_model`'s `XREF_RE` (M23's
+    centralization) — and every consumer (resolve_tokens, reconcile's
+    dangling check, kits anchors) inherits from it. The current regex has
+    no `/`, so an unextended `[[area/slug]]` would MATCH NOTHING and pass
+    through to the .docx as literal text — extending `XREF_RE` is the
+    load-bearing edit, and "a raw token survives to render" is the
+    failure the acceptance tests must rule out.
+  - `scaffold.py` currently DROPS unknown upstream hints with a WARNING
+    (its slug-validation loop) — an `area/slug` entry would be silently
+    discarded at the confirm promote. Scaffold must learn the form:
+    validate the area/slug against the sibling manifest, keep it.
+  - `orchestrate`'s wave logic defers a slug only when an upstream hint is
+    in the area's own `pending` set — a cross-area entry is naturally
+    NON-BLOCKING (never in pending). This is the desired behavior
+    (cross-area waves rejected) but it is currently accidental: pin it
+    with a test so a future wave refactor cannot start deferring on
+    cross-area hints.
+  - **Rename propagation, corrected:** the per-area rename-notes flow
+    (M20) cannot write other areas' notes and MUST NOT (one writer per
+    file). The actual mechanism: a rename makes every holder area's
+    cross-area token DANGLE, which is a hard reconcile ERROR in the
+    holder on its next pass — loud by construction; the audit's derived
+    spine enumerates the holders BEFORE the rename so the blast radius is
+    known, and the fix is an `engagement.py note` per holder (human/
+    orchestrator-run, the existing cross-area fix path).
 
 ### 2. Taxonomy as the declarer (the glue, at declaration time only)
 
@@ -190,8 +216,15 @@ back-fills the manifest `upstream` declarations once its neighbors exist.
   when the fragment is a skeleton.
 - The audit INTERFACES section lists tokens as from→to pairs; an
   asymmetric seam and a prose-mention-upgrade candidate are each flagged.
-- Rename of a tokened procedure reaches cross-area holders via the rename
-  flow.
+- Rename of a tokened procedure makes the holder's token a hard reconcile
+  ERROR (not silence, not prose passthrough); the audit's spine names the
+  holder before and after.
+- A raw `[[area/slug]]` token NEVER survives to rendered output (the
+  XREF_RE extension reaches every consumer).
+- Scaffold PRESERVES an `area/slug` upstream entry (today's code would
+  drop it with a warning — regression-tested).
+- The advisor never defers a drafter on a cross-area upstream hint
+  (pinning today's accidental non-blocking behavior).
 - The seam-staleness signal is NOT built (deferred), and cross-area waves
   do NOT exist: a downstream drafter is never deferred on an undrafted
   cross-area upstream.
