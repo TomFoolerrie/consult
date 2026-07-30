@@ -61,6 +61,8 @@ import os
 import shutil
 import sys
 
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
+
 import yaml
 
 # notes_util owns the `_review/{slug}.notes.yaml` shape (the M6 bus). The join
@@ -337,6 +339,11 @@ def mark_processed(folder: str, filled: set, updated: set | None = None) -> int:
             dest = os.path.join(processed_dir, os.path.basename(src))
             if os.path.isfile(src):
                 shutil.move(src, dest)
+                # M25: the intake pointer sidecar retires with its source, so
+                # a lone sidecar can never keep _sources/new/ "non-empty".
+                side = src + ROUTE_SIDECAR_SUFFIX
+                if os.path.isfile(side):
+                    shutil.move(side, dest + ROUTE_SIDECAR_SUFFIX)
             entry["state"] = "processed"
             entry["file"] = os.path.relpath(dest, folder)
             moved.append(entry.get("id", os.path.basename(dest)))
@@ -364,16 +371,23 @@ def _hash_file(path: str) -> str:
         return ""
 
 
+#: M25 intake pointer sidecars (`<copy>.route.md`) beside a routed source:
+#: routing metadata, never a source — excluded from assessment, folded into
+#: the entry's `note:` by scaffold's stamp_sources, retired with the source.
+ROUTE_SIDECAR_SUFFIX = ".route.md"
+
+
 def new_source_files(folder: str) -> list[str]:
     """Area-relative paths of the real files in `_sources/new/`.
 
     Same walk as the advisor's `_dir_has_files`: recursive, dotfiles ignored, so
-    "the folder is non-empty" and "these are the files" can never disagree."""
+    "the folder is non-empty" and "these are the files" can never disagree.
+    M25 route sidecars are metadata, not sources — skipped."""
     root = os.path.join(folder, "_sources", "new")
     out = []
     for base, _dirs, names in os.walk(root):
         for name in names:
-            if name.startswith("."):
+            if name.startswith(".") or name.endswith(ROUTE_SIDECAR_SUFFIX):
                 continue
             rel = os.path.relpath(os.path.join(base, name), folder)
             out.append(rel.replace(os.sep, "/"))

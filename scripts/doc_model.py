@@ -23,6 +23,8 @@ Python 3, stdlib only.
 
 from __future__ import annotations
 
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
+
 import json
 import re
 from dataclasses import dataclass, field
@@ -517,6 +519,11 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
 
     A `[[GAP-...]]` body tag is NOT a procedure cross-ref and is left untouched.
     An unknown slug raises KeyError (dangling reference is an ERROR upstream).
+
+    M26: a CROSS-AREA token `[[area/slug]]` resolves through the same map
+    (callers merge `cross_labels(folder)` in) but ALWAYS formats as its full
+    label regardless of mode — another document's display numbers are not
+    stable from here, so a number-only `[[#area/slug]]` raises ValueError.
     """
     if mode not in ("number", "title", "number+title"):
         raise ValueError(f"unknown mode {mode!r}")
@@ -525,6 +532,10 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
         if slug not in numbers:
             raise KeyError(f"unknown [[{slug}]] cross-reference")
         val = numbers[slug]
+        if "/" in slug:
+            # Cross-area: the map value IS the label (heading + area title);
+            # mode never applies — numbers are area-local render artifacts.
+            return val if isinstance(val, str) else val.get("title", "")
         if isinstance(val, str):
             num, title = val, ""
         else:
@@ -537,6 +548,11 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
         return f"{num} {title}".strip()
 
     def _fmt_number(slug: str) -> str:
+        if "/" in slug:
+            raise ValueError(
+                f"[[#{slug}]]: cross-area tokens have no display number — "
+                f"another area's numbering is not stable from here; use "
+                f"[[{slug}]]")
         if slug not in numbers:
             raise KeyError(f"unknown [[#{slug}]] cross-reference")
         val = numbers[slug]
@@ -576,7 +592,8 @@ def resolve_tokens(text: str, numbers, mode: str = "number") -> str:
 
 
 def _is_procedure_slug(inner: str) -> bool:
-    """A bare `[[slug]]` cross-ref: lowercase slug, no embedded ' — TEXT'."""
+    """A bare `[[slug]]` or cross-area `[[area/slug]]` cross-ref: lowercase
+    slug(s), at most one `/`, no embedded ' — TEXT'."""
     s = inner.strip()
     if not s:
         return False
@@ -586,7 +603,67 @@ def _is_procedure_slug(inner: str) -> bool:
     # Callout ID grammar (UPPER-...) is not a slug.
     if s.upper() == s and any(c.isalpha() for c in s):
         return False
-    return all(c.islower() or c.isdigit() or c == "-" for c in s)
+    if s.count("/") > 1 or s.startswith("/") or s.endswith("/"):
+        return False
+    return all(c.islower() or c.isdigit() or c in "-/" for c in s)
+
+
+# --------------------------------------------------------------------------- #
+# M26 — cross-area seam helpers (the [[area/slug]] side of the grammar)
+# --------------------------------------------------------------------------- #
+
+def split_xref(ref: str) -> tuple[Optional[str], str]:
+    """`"p2p/goods-receipt"` -> ("p2p", "goods-receipt"); a local slug ->
+    (None, slug). THE ONE splitter — every consumer of an upstream hint or a
+    token asks here instead of str.split-ing its own way."""
+    if "/" in (ref or ""):
+        area, _, slug = ref.partition("/")
+        return area, slug
+    return None, ref or ""
+
+
+def sibling_procedures(folder) -> dict[str, dict]:
+    """{area-name: {"title": ..., "slugs": {slug: heading}, "path": Path}}
+    for every OTHER area under the same components/ engagement root.
+
+    Empty dict when `folder` is not under a components/ root — the callers
+    (reconcile's cross-token check, render's cross labels, scaffold's
+    upstream validation, brief's seam resolution) all gate cross-L1 behavior
+    on exactly that layout, so the gate lives here once."""
+    folder = Path(folder).resolve()
+    parent = folder.parent
+    out: dict[str, dict] = {}
+    if parent.name != "components" or not parent.is_dir():
+        return out
+    for sib in sorted(parent.iterdir()):
+        if (not sib.is_dir() or sib.name.startswith(("_", "."))
+                or sib.resolve() == folder):
+            continue
+        mpath = sib / "manifest.json"
+        if not mpath.is_file():
+            continue
+        try:
+            data = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        slugs = {c.get("slug"): (c.get("heading") or c.get("slug") or "")
+                 for c in data.get("components", [])
+                 if c.get("role") == "procedure" and c.get("slug")}
+        out[sib.name] = {"title": data.get("title", sib.name),
+                         "slugs": slugs, "path": sib}
+    return out
+
+
+def cross_labels(folder) -> dict[str, str]:
+    """{"area/slug": "Heading (Area Title)"} for every sibling procedure —
+    the resolution map cross-area tokens render through. Render and
+    review_apply merge this into their label maps; identity is the sibling
+    MANIFEST (a scoped-but-unfilled target resolves, by design)."""
+    labels: dict[str, str] = {}
+    for aname, info in sibling_procedures(folder).items():
+        for slug, heading in info["slugs"].items():
+            labels[f"{aname}/{slug}"] = f"{heading} ({info['title']})"
+    return labels
 
 
 # --------------------------------------------------------------------------- #

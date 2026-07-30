@@ -65,7 +65,12 @@ BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-[A-Z0-9])\s*(?:" + DELIM + r"|\]\])")
 
 # Procedure cross-reference token: `[[slug]]` (resolves to number + title) or
 # `[[#slug]]` (number only — for table refs where the title is its own column).
-XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
+# M26: an optional `area/` prefix makes it a CROSS-AREA token `[[area/slug]]`
+# (resolves to heading + area title, never a number). This regex is the ONE
+# token grammar — every consumer (resolve, reconcile's dangling check,
+# orchestrate, review_apply) matches through it or mirrors it exactly.
+XREF_RE = re.compile(
+    r"\[\[#?([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 
 # A fenced code block (``` or ~~~) — blanked so callouts inside code/examples
 # and the consult-meta block are not parsed as real callouts.
@@ -150,3 +155,66 @@ def iter_defined_ids(text: str):
         cid = m.group("id").strip()
         if prefix and cid.startswith(prefix + "-"):
             yield prefix, cid
+
+
+# --------------------------------------------------------------------------- #
+# M24 — open gaps, read one way everywhere. The engagement gap register and
+# M12's cross-brief gap register both ask "what is still unanswered in this
+# fragment?", and a second parser is how the two would drift. A gap is open
+# by virtue of being present: closing one removes it from the fragment.
+# --------------------------------------------------------------------------- #
+
+# A GAP definition line WITH its text: `> **VALIDATION REQUIRED — GAP-NN:** …`.
+_GAP_CALLOUT_RE = re.compile(
+    r"^\s*>\s*\*\*\s*VALIDATION REQUIRED\s*" + DELIM + r"\s*"
+    r"(?P<id>GAP-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*:\*\*\s*(?P<text>.*?)\s*$"
+)
+# A body gap tag WITH its text: `[[GAP-NN — reason]]` (may span a hard wrap).
+_GAP_TAG_RE = re.compile(
+    r"\[\[\s*(?P<id>GAP-[A-Z0-9]+(?:-[A-Z0-9]+)*)\s*" + DELIM
+    + r"\s*(?P<text>.*?)\s*\]\]",
+    re.DOTALL,
+)
+
+
+def open_gaps(text: str) -> list[tuple[str, str]]:
+    """Every open gap in a fragment as (local id, text), in document order:
+    VALIDATION REQUIRED callout definitions first-class, plus `[[GAP-NN — …]]`
+    body tags. Fence bodies are blanked; hard-wrapped tag text is rejoined.
+    Ids are procedure-LOCAL (they renumber at render) — callers key on
+    (procedure, id), never on the id alone."""
+    blanked = blank_fences(text)
+    found: list[tuple[int, str, str]] = []
+    seen: set[str] = set()
+    lines = blanked.splitlines(keepends=True)
+    pos = 0
+    offsets = []
+    for ln in lines:
+        offsets.append(pos)
+        pos += len(ln)
+    for i, line in enumerate(lines):
+        m = _GAP_CALLOUT_RE.match(line)
+        if not m or m.group("id") in seen:
+            continue
+        seen.add(m.group("id"))
+        # Callout text hard-wraps across continuation quote lines — join
+        # them until a blank quote, a sub-field bullet, or a new callout.
+        parts = [m.group("text")]
+        for nxt in lines[i + 1:]:
+            s = nxt.strip()
+            if (not s.startswith(">") or s in (">",)
+                    or CALLOUT_FIELD_RE.match(nxt)
+                    or _DEF_LINE_RE.match(nxt)):
+                break
+            parts.append(s.lstrip(">").strip())
+        found.append((offsets[i], m.group("id"),
+                      re.sub(r"\s+", " ", " ".join(parts)).strip()))
+    # Body tags often REFERENCE a gap the callout defines (same local id) —
+    # one gap, not two, so the callout's fuller text wins and the tag counts
+    # only when no callout carries its id.
+    for m in _GAP_TAG_RE.finditer(blanked):
+        if m.group("id") not in seen:
+            seen.add(m.group("id"))
+            found.append((m.start(), m.group("id"),
+                          re.sub(r"\s+", " ", m.group("text"))))
+    return [(gid, txt) for _, gid, txt in sorted(found)]

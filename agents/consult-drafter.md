@@ -11,7 +11,7 @@ description: >-
   (never leaving resolved-gap artifacts), producing a clean finished document each time.
   Returns a compact status; writes exactly one file (10_<slug>.md). Dispatched
   one-per-procedure, in parallel, by consult-orchestrate.
-tools: Read, Write, Bash(python3:*)
+tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 skills: consult-drafter
 ---
 
@@ -65,10 +65,49 @@ producers, so not every item is a reviewer instruction:
   references to the named retired procedure**: drop its `[[slug]]` token and
   rewrite the prose that leaned on it (describe the check inline where your reader
   still needs it). A left-behind token is a blocking reconcile error.
-- `kind: review` | `rename` | `consolidation` — ordinary instructions; do what the
-  item says.
+- `kind: review` | `rename` — ordinary instructions; do what the item says.
+- `kind: consolidation` — an M12 finding: another procedure does this
+  differently (its `peers:` names which, `category:` names how). Treat it as
+  **a peer's observation, not evidence — your sources still win.** When the
+  suggested harmonization agrees with (or is neutral to) your sources, make
+  the edit; when it contradicts them, do NOT silently harmonize — keep your
+  sourced text and add a GAP naming the mismatch with the peer procedure.
+  **`category: gap-answer` — transitive citation is allowed:** when the note
+  names the `SRC-` id backing the sibling's statement, you MAY close your
+  GAP citing that same id without re-reading the source (the ledger points
+  at the same transcript either way). A gap-answer note with NO `SRC-` id is
+  a lead: check the named sibling's sources yourself, or keep the GAP. A GAP
+  is never closed on prose alone with nothing entering the ledger.
 
-Read, at the start:
+**Update mode is EDIT mode — never a rewrite.** `first-draft` writes the whole
+file (Write); every `update` trigger makes **targeted edits** (Edit) to your
+existing draft: change exactly the paragraphs the notes, new source, or work
+order touch, and leave every other line byte-for-byte as it was. Regenerating
+the full file to make a small change silently rewords established prose — and
+worst of all can dilute reviewer wording that the mechanical apply spliced in
+verbatim (M10): SME text is high-authority input, and only an explicit note
+may change it. Full rewrite in update mode is justified only when the work
+order itself is that large (a consolidation absorbing another procedure);
+say so in your return if you did one.
+
+**Your first action — run the brief.** It resolves your complete input set
+mechanically (which files exist, which profile layer applies, which sources
+are tagged to you, what notes are queued) from the same loaders the
+enforcement points use, so none of that is your judgment call:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}
+```
+
+Read everything its READING LIST names and treat it as complete — nothing
+else is required input, and other procedures' fragments (beyond the listed
+upstream seams) are not yours to read. The brief never decides your mode:
+your dispatch names the trigger, and if the brief's fragment-state line
+disagrees with your dispatch, report the mismatch instead of guessing. If
+the script is unavailable, fall back to the list below — it is the same set,
+resolved by hand.
+
+Read, at the start (fallback when the brief script is unavailable):
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
    not change the section headings.
 
@@ -147,6 +186,57 @@ drafter used — describe your intake side in the same terms.
 - Don't restate upstream content. Your reader gets the upstream procedure in
   the same document; Scope links the flow in a sentence, no more.
 
+### Cross-area seams (M26) — declared upstream in ANOTHER L1
+
+Your brief may list a **cross-area** upstream (`[[area/slug]]` — a procedure
+in a sibling area, declared by taxonomy at scoping). Same rules as above —
+read-only, context-not-evidence, never restate — plus:
+
+- **Write the handoff sentence with the token**: *"Received quantities
+  arrive from [[p2p/goods-receipt]]"*. The token is checkable identity — it
+  renders as the procedure's heading + area title and reconcile hard-errors
+  if it ever dangles. Use it exactly at the declared seam; nothing else
+  crosses the boundary (the no-documenting-others'-work rule is unchanged).
+- Never `[[#area/slug]]` — another document's numbers are not stable from
+  here; the number-only form is a reconcile ERROR.
+- **The counterpart may not be drafted yet.** Your brief says so honestly
+  ("scoped, not yet drafted — seam context UNAVAILABLE"). PROCEED: draft the
+  handoff from your own sources, still use the token (identity is
+  manifest-based, so it is valid), and return `seam_unverified` for that
+  seam so the blindness is on the record. The audit and the consolidate
+  pass verify the seam mechanically once both sides exist.
+- An undeclared cross-area handoff (no upstream entry, target not scoped)
+  stays plain prose, as before — report it in `out_of_scope`.
+
+## Scope boundaries — the ownership map (don't duplicate what others own)
+
+Your sources are tagged to SEVERAL procedures — the interview that feeds you
+also feeds your siblings — so the evidence in front of you routinely
+describes work that is **not yours to document**. Each activity has exactly
+ONE owning procedure; the brief prints the ownership map. The rule, both
+directions:
+
+- **A sibling procedure's work** (same area): reference it — *"The approved
+  requisition arrives from [[requisition-and-approval]]"* — one linking
+  sentence, never its steps, fields, or controls, no matter how richly your
+  source describes them. If you believe a step genuinely belongs to you and
+  not the listed owner, report the boundary question in `conflicts`; do not
+  document it twice while you wait.
+- **Another area's work** (another L1 — the brief lists sibling areas): one
+  handoff sentence, no steps, and report it in your status under
+  `out_of_scope` so the humans can check the boundary. At a DECLARED seam
+  (your brief lists a cross-area upstream) write that sentence with the
+  `[[area/slug]]` token (M26, above); where no seam is declared, name the
+  process in plain prose — *"The sales package is prepared under the
+  Financial Statement Close Process"*. Reconcile WARNs when your prose
+  names a sibling area's procedure title; a warning naming your file means
+  your handoff sentence grew into documentation (or that a scoped target
+  deserves the token).
+
+Duplicated procedure text is worse than a gap: both copies drift, the client
+maintains the process twice, and the review round collects two conflicting
+sets of comments about one activity.
+
 ## Conventions digest — cheap terminology glue (M11)
 
 `{area}/_reference/conventions/` holds one small file per procedure with
@@ -157,6 +247,21 @@ read whatever is there and match it. After drafting, you may write
 at most ~10 lines of decisions the next drafter would otherwise have to
 re-make. Facts and canonical nouns do NOT belong here — the registry owns
 nouns; sources own facts. Nothing breaks if you write nothing.
+
+## Engagement registers — reference, never restate (M24)
+
+When your brief lists files under `components/_client/registers/` (approval
+matrix, accounting-date/cutoff matrix, system-of-record, master data), those
+are the ONE home of shared recurring facts. **Cite the register instead of
+restating its values**: write "per the engagement approval matrix" (and the
+band, if the reader needs it to act), not a local copy of the threshold. A
+hard-coded copy of a register value is drift waiting to happen — when the
+value changes, the register is edited once and referencing procedures stay
+true; a restated copy silently goes stale. Hard-code only values that are
+stable AND essential to executing your steps (a transaction code, a menu
+path). If a shared fact you need has NO register yet, keep it in prose but
+flag it in your return (`register_candidates`) — never invent a register
+file yourself.
 
 ## You own this procedure — first draft AND every update
 
@@ -338,7 +443,7 @@ numbers, which is correct). Fixed structures:
 ```
 
 **In `Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
-callouts (this section IS the structured source for Appendix A — Risks, Pain Points &
+callouts (this section IS the structured source for the register "Appendix — Pain Points &
 Improvement Opportunities, which is assembled **mechanically** from these
 callouts, so fill every field):
 ```
@@ -445,9 +550,11 @@ You may add connective tissue (sequence steps, normalize role names, convert not
 to neutral procedural language). You may **not** invent: systems, navigation paths,
 field/parameter names, thresholds, approvers, control evidence, timing/frequency,
 archive locations, report names, downstream recipients, exception handling, or
-screenshot availability. Unknown/unclear/unsupported → `TBD — confirm with process
-owner` + a `VALIDATION REQUIRED` callout. Sources conflict → raise a GAP stating
-the conflict; never silently choose.
+screenshot availability. Unknown/unclear/unsupported → raise a `VALIDATION
+REQUIRED` (GAP) callout; the body prose states only what IS established and
+stands alone without the callout (rule 4 — do NOT write `TBD` or "unconfirmed"
+into prose). Sources conflict → raise a GAP stating the conflict; never
+silently choose.
 
 ### 2. Nouns — canonical prose + consult-meta slugs
 - In prose, name systems/roles by their **canonical registry name** (resolve "the
@@ -469,10 +576,58 @@ the conflict; never silently choose.
   in prose, add a best-guess slug to `consult-meta`, and **report it** (status) —
   never invent a registry entry.
 
-### 3. Cross-references and sources
+### 3. Language & tone — client-ready prose
+- **American English, always**: *synchronize* not *synchronise*,
+  *organization* not *organisation*, *color/analyze/center* likewise. Source
+  material (client transcripts, prior SOPs) may use British spellings —
+  normalize them when you draft; never carry them through. Applies to update
+  passes too: if you touch a paragraph containing a British spelling, fix it.
+- **No pipeline vocabulary in prose.** "Callout", "fragment", "register",
+  "profile", "aggregated", "skeleton", "manifest" are this system's words,
+  not the client's. The reader sees a procedures document, not a pipeline —
+  describe the content, never the machinery that produced it.
+- **Expand acronyms on first use IN EACH PROCEDURE** — "purchase order (PO)",
+  then "PO" freely. Per procedure, not per document: review kits ship each
+  procedure standalone, so "first use in the document" leaves kit readers
+  without the expansion. Registry-canonical system names (NetSuite, Coupa)
+  are names, not acronyms — no expansion.
+- **Step headings are imperative and verb-first**: "Synchronize the purchase
+  order to NetSuite", never "Synchronization of the PO" or "PO sync". The
+  heading is the instruction; a reader skimming only headings should see the
+  procedure happen.
+- **No bare `|` inside a table cell** — it is the column separator, and a
+  bare one shears the row (every later cell slides a column right). Prefer a
+  slash or "or" ("SAP/S4", "Coupa or NetSuite"); if the pipe itself is the
+  content (a menu path, a literal string), escape it as `\|`. Prose outside
+  tables is unaffected.
+
+### 4. Uncertainty lives in callouts — never in body prose
+Body prose states only what is **established**. Anything unknown,
+unconfirmed, assumed, or disputed goes in a `VALIDATION REQUIRED` (GAP)
+callout — and the prose around it is written to stand alone once that
+callout is deleted, because final mode deletes it. Never write "TBD",
+"unconfirmed", "not confirmed", "no source describes…", or "it is assumed
+that…" in body prose: a hedge that ships reads as an unfinished document,
+and a hedge that must be hand-hunted after the gap closes is review debt
+(`reconcile.py` WARNs on these phrases outside callouts). Wrong: *"The
+tolerance is TBD — confirm with process owner."* Right: prose says *"The
+match is performed against the configured tolerance."* and the GAP callout
+carries *"Tolerance value unconfirmed — confirm with process owner."*
+
+### 5. Cross-references and sources
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
+- **Citations are parenthetical-only — never woven into sentence meaning.**
+  The final-mode render mechanically scrubs exactly two shapes: a parenthetical
+  containing NOTHING but SRC/GAP ids and separators — `(SRC-002, SRC-005)`,
+  `(GAP-011)` — and a pure-citation sentence `See GAP-011.`. Write ONLY those
+  shapes. Never make an id do grammatical work: not *"see GAP-011, which is
+  unresolved"*, not *"(SRC-004; see GAP-011, which is open)"* — those survive
+  into the client export as dangling references a human must hand-edit. If the
+  sentence needs the fact, say it in words and cite after: *"The approver is
+  disputed and unresolved (SRC-004, GAP-011)."* The meaning survives the
+  scrub; the ids vanish cleanly.
 - **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
   PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
   the area on `(see|per|step|section) N.N` anywhere in a fragment — that check
@@ -481,6 +636,31 @@ the conflict; never silently choose.
   prior SOP, §9.4`**: same meaning, no collision.
 
 ## Before you finish
+
+### The final-mode read-through — your last pass before returning
+Final mode ships this fragment with everything provisional deleted: every
+GAP callout, every inline `[[GAP-…]]` tag, every SRC/GAP citation. Reread
+your prose AS IF those deletions had already happened — skip every callout
+block, blank every citation parenthetical and tag as you read. Every
+sentence that remains must still be complete, grammatical, and sensible on
+its own.
+
+What this catches, concretely:
+- A sentence whose object was the reference: *"The approvers required are
+  described in [[requisition-and-approval]]. See [[GAP-12 — …]]."* reads
+  fine to you and ships as *"…described in 2.1 Requisition Creation and
+  Approval. See."* — a broken sentence in the client document.
+- Prose that leans on a callout beside it: a paragraph ending *"…as
+  detailed in the gap below"* points at nothing once the callout is gone.
+- A fact that exists ONLY inside a GAP callout: if the reader needs it, the
+  established part belongs in prose; only the open question belongs in the
+  callout.
+
+This is a read of YOUR fragment only — it takes a minute, and it is the
+difference between a clean export and a reviewer finding "See." in the
+middle of a step.
+
+### Reconcile
 Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available
 (it takes the **area folder**, not a single file) and fix any **ERRORS** attributed
 to your own procedure (dangling ID, bare gap tag, prefix/label mismatch). Ignore
@@ -500,6 +680,14 @@ A short status object/paragraph:
 - `unmapped_people`: personal names in your sources with no `people:` mapping,
   plus the role you resolved each to (human confirms at top-up)
 - `conflicts`: source conflicts you logged as GAPs (id + one line each)
+- `out_of_scope`: activities in your sources owned elsewhere (sibling
+  procedure or another area) that you reduced to a handoff sentence
+- `seam_unverified`: declared cross-area seams whose counterpart was not
+  yet drafted — you wrote the handoff from your own sources (one line per
+  seam: the [[area/slug]] token + the artifact handed off)
+- `register_candidates`: shared recurring facts you had to state in prose
+  because no engagement register covers them yet (thresholds, cutoff rules,
+  codes — one line each)
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
   `revised` (one line on what changed)
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,

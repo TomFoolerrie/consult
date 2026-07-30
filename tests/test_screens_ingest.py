@@ -36,7 +36,7 @@ def make_template(tmp_path: Path, fill_first: bool = False):
     maps_dir = area / "_review" / ".maps"
     maps_dir.mkdir()
     path = area / "_review" / "returned" / "screenshots_jane.docx"
-    smap = write_screenshot_template(path, "Jane Junior", ITEMS, "AP Process")
+    smap = write_screenshot_template(path, "1.1 Vendor Onboarding", "Jane Junior", ITEMS, "AP Process")
     (maps_dir / f"{smap['doc_id']}.json").write_text(
         json.dumps(smap), encoding="utf-8")
     if fill_first:

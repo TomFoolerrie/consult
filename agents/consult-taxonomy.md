@@ -9,9 +9,17 @@ description: >-
   gate before anything scaffolds. Returns a compact proposal summary; writes only under
   _reference/.proposed/. Runs once per area (initial), re-dispatched when new
   sources land (incremental). Dispatched by consult-orchestrate.
-tools: Read, Write
+tools: Read, Write, Edit, Grep, Glob
 skills: consult-taxonomy
+model: opus
 ---
+
+<!-- model pin (M26): taxonomy is the engagement's single point of judgment —
+     its seam declarations, gap forecast and scope set are ENFORCED by four
+     mechanical consumers (scaffold, reconcile, briefs, the audit spine)
+     rather than second-guessed. Once per area, so the premium is bounded;
+     a pin (unlike a "use a strong session" habit) transfers to teammates.
+     No other agent is pinned. -->
 
 # consult-taxonomy — scoping + registry stand-up (one L1)
 
@@ -63,10 +71,24 @@ do not do it — **flag it** for the human (see return). Continue `SRC-` ids fro
 existing max in `sources.yaml`.
 
 Read, at the start:
-1. Everything in `{area}/_sources/new/`.
+1. Everything in `{area}/_sources/new/`. A `*.route.md` file beside a
+   source is an M25 intake pointer (where in the document this area's
+   relevance lives) — READ it to speed your `touches` tagging, but never
+   register it as a source: it is routing metadata, and the scaffold step
+   folds it into the source's `note:` automatically.
 2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
    buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
    your **known backbone**: the buckets L3 activities file under.
+
+   **The reference taxonomy is ADVISORY, never a gate.** Your L1 absent from
+   it is a valid engagement, not a refusal: the user's word (the dispatched
+   L1) outranks the reference file. Proceed with an empty backbone — take
+   your L2 buckets from the client's `taxonomy.yaml` if present, else propose
+   your own sensible sub-process buckets, **every one flagged
+   `needs-approval`** (the human rules on them at the confirm gate, and
+   scaffold accepts an unknown L1 the same way — new buckets, first-seen
+   order). Never refuse the area, and never substitute a different L1 that
+   happens to be listed.
 3. `{area}/_client/` **and the engagement-wide `components/_client/`**, if
    present (area files shadow same-name engagement files, M13) — optional
    client-supplied context:
@@ -77,7 +99,9 @@ Read, at the start:
 
 - **L2 buckets** = the sub-processes listed under your L1 in the taxonomy (e.g.
   Record to Report → Pre-Close Set-Up, Close, Consolidation, Reporting,
-  Accounting Policy). These are a mostly-closed, known set.
+  Accounting Policy). These are a mostly-closed, known set — when your L1 is
+  in the reference file. When it is not (advisory, see above), the bucket set
+  is yours to propose, all needs-approval.
 - **L3 activities** = what you **discover** from the sources. Each L3 becomes one
   **procedure**, filed under exactly one L2 bucket. This is the open set — the
   taxonomy does not enumerate L3s.
@@ -107,6 +131,31 @@ may or may not provide. Never write to this folder; never invent its contents. (
   reference backbone (map client L2 names onto backbone buckets; a client L2
   with no backbone home is a new-bucket request, same needs-approval flow).
 
+**Engagement neighbors — the boundary evidence you always have.** With or
+without a client taxonomy, the engagement's OTHER areas are already scoped:
+before finalizing your L3 set, Glob `components/*/manifest.json` (excluding
+your own area) and read their procedure headings. A candidate L3 that is
+already another area's procedure — or is transparently a phase of one (your
+sources describing "sales package preparation" when a sibling area owns
+*Sales Package Preparation*) — is **not yours to scope**: report it in
+`out_of_l1` with the owning area named, exactly as the client-taxonomy rule.
+Sources routinely narrate into neighboring functions; scoping what they
+narrate (instead of what your L1 owns) is how the same process ends up
+documented twice in one engagement.
+
+**Declare the seams, not just the boundary (M26).** The sibling manifests
+are not only what you must NOT scope — they are the counterparts your
+procedures CONNECT to. When your sources describe a handoff whose other
+side lives in a sibling area (goods receipt feeding invoice matching; the
+payment run feeding bank reconciliation), declare it: a cross-area
+`upstream` entry `<area>/<slug>` on your downstream procedure (notation
+below). You may read a sibling fragment or two to identify the exact
+counterpart — bounded investigation where your sources describe a handoff,
+never browsing. You prescribe WHAT THE DRAFTER READS, never what it
+writes: upstream context is seam alignment only; drafters draft from their
+own sources. Declarations are reviewed by the human at the existing
+confirm gate — the connective tissue is part of the structure.
+
 ## One activity, one procedure — merge near-duplicate L3s
 
 Before finalizing the set, compare your candidate L3s pairwise. Two candidates
@@ -134,20 +183,40 @@ arrow between two boxes.* When the handoff arm fires, that same judgment
 usually tells you the direction — record it as an `upstream:` hint on the
 downstream procedure (below).
 
-## Ordering hints — `upstream:` (optional, use sparingly)
+## Ordering hints & seam declarations — `upstream:` (use on evidence)
 
 When the sources **clearly** show one procedure consuming another's output
 (invoice intake feeds the payment run), stamp the downstream procedure with
-`upstream: [<producer slugs>]` in `procedures.yaml`. The orchestrator drafts
-producers first and hands their finished fragments to downstream drafters as
-read-only context, so the handoff seam is described consistently on both sides.
+`upstream: [<producer refs>]` in `procedures.yaml`. Within the area the
+orchestrator drafts producers first and hands their finished fragments to
+downstream drafters as read-only context, so the handoff seam is described
+consistently on both sides.
 
 - Hint **only** on evidenced producer→consumer handoffs. When in doubt, omit —
   an absent hint means "no opinion", never "no relationship"; drafting merely
   runs in parallel there, as it always has.
-- Hints reference procedure slugs inside this area only (never another L1).
+- **Two notations, side by side (M26):** a local slug (`bank-rec`) for a
+  producer inside this area; `<area>/<slug>` (`p2p/goods-receipt`) for a
+  producer in a SIBLING area. The cross-area form must name a procedure that
+  exists in the sibling's manifest — scaffold validates and DROPS anything
+  else with a warning. A cross-area entry never defers drafting (no
+  cross-area waves): it feeds the drafter read-only seam context and tells
+  it to write the handoff with the `[[area/slug]]` token.
+- An upstream in an area that is NOT yet scoped cannot be declared — leave
+  the handoff plain prose and mention it in `unresolved`; when that area is
+  scoped, its own taxonomy pass declares the seam from its side.
 - Do not build long chains for their own sake; two or three hops where the
   flow is obvious is the expected shape.
+
+## The gap forecast (M26) — same read, earlier discovery
+
+Per proposed procedure, list the questions its sources visibly do NOT
+answer ("no approver named for the payment run", "retention location never
+stated") as `gap_forecast:` in `procedures.yaml` (one short line each).
+This moves gap discovery BEFORE prose, so the client ask-list goes out
+while fieldwork access is hot; drafting proceeds in parallel and is never
+hostage to answers. Forecast only what the sources visibly omit — never
+speculate about facts no source approaches.
 
 ## What you write — all under `{area}/_reference/.proposed/` (staging only)
 
@@ -164,8 +233,14 @@ procedures:
     sources: [SRC-001, SRC-003]    # which sources describe this L3
     variants: []                   # only on a merged near-duplicate pair, e.g.
                                    #   ["New vendor setup", "Vendor banking change"]
-    upstream: []                   # optional ordering hint: slugs whose output
-                                   #   this procedure consumes (drafted first)
+    upstream: []                   # producer refs this procedure consumes:
+                                   #   local slugs (drafted first) and/or
+                                   #   cross-area "<area>/<slug>" seam
+                                   #   declarations (M26 — read-only context,
+                                   #   never a drafting-order constraint)
+    gap_forecast: []               # M26: questions the sources visibly do
+                                   #   NOT answer (one short line each) —
+                                   #   the early client ask-list
 ```
 
 ### `systems.yaml` / `roles.yaml` (the canonical noun registry)
@@ -310,7 +385,12 @@ notes.
 - `by_bucket`: each L2 → the L3 slugs filed under it
 - `new_buckets`: any proposed buckets needing approval (slug + one-line rationale)
 - `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants)
-- `ordered`: upstream hints you stamped (downstream slug → upstream slugs)
+- `ordered`: upstream hints you stamped (downstream slug → upstream refs,
+  cross-area `<area>/<slug>` refs included)
+- `seams`: the cross-area declarations, one line each (downstream slug →
+  sibling area/slug, plus the handoff artifact if the sources name it)
+- `gap_forecast`: total count + the questions, grouped by procedure — the
+  human turns this into the client ask-list at the confirm gate
 - `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides)
 - `unmapped_people`: individuals you could not confidently map to a role
 - `low_confidence`: procedures/entries the human should scrutinize first

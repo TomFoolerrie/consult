@@ -304,6 +304,66 @@ def test_final_mode_strips_gaps_and_reports_counts(tmp_path):
     assert "CTRL-01" in text                        # controls survive
 
 
+def test_final_mode_reports_dangling_prose_gap_references(tmp_path):
+    """A free-prose mention of a gap id ("... see GAP-01") survives the final
+    strip — its definition (the callout and the gap-log row) is exactly what
+    final mode removes — so the render counts and enumerates it per procedure
+    instead of shipping the dangling reference silently. The prose itself is
+    left untouched (no mechanical rewriting of deliverable wording), and
+    working mode reports nothing: there the reference points at a callout the
+    reader still has."""
+    area = make_area(tmp_path)
+    pay = area / "20_payment-run.md"
+    pay.write_text(pay.read_text(encoding="utf-8").replace(
+        "- Payment file",
+        "- Payment file (cut-off unconfirmed - see GAP-01)"), encoding="utf-8")
+
+    working = render.render_folder(area, tmp_path / "working.docx",
+                                   emit_signal=False)
+    assert working["dangling_gap_refs"] == {}
+    assert working["dangling_gap_ref_count"] == 0
+
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    # payment-run's local GAP-01 is display GAP-02 (vendor-onboarding's gap
+    # takes GAP-01): the detector sees what the READER sees.
+    assert stats["dangling_gap_refs"] == {"payment-run": ["GAP-02"]}
+    assert stats["dangling_gap_ref_count"] == 1
+    text = doc_text(Document(str(out)))
+    assert "see GAP-02" in text
+    assert "VALIDATION REQUIRED" not in text
+
+
+def test_final_mode_scrubs_unambiguous_citations(tmp_path):
+    """Final mode removes the two mechanically-safe citation shapes — a
+    parenthetical containing nothing but SRC/GAP ids, and a pure-citation
+    "See GAP-##." sentence — and leaves ids woven into sentence meaning for
+    the dangling-reference warning (now covering SRC too). Working mode is
+    untouched: citations are the drafters' provenance."""
+    area = make_area(tmp_path)
+    pay = area / "20_payment-run.md"
+    pay.write_text(pay.read_text(encoding="utf-8").replace(
+        "- Payment file",
+        "- The run is cut Thursday (SRC-002, SRC-005). See GAP-01.\n"
+        "- Approver disputed (SRC-004; see GAP-01, which is unresolved)\n"
+        "- Payment file"), encoding="utf-8")
+
+    working = render.render_folder(area, tmp_path / "w.docx",
+                                   emit_signal=False)
+    assert working["citations_scrubbed"] == 0
+    wtext = doc_text(Document(str(tmp_path / "w.docx")))
+    assert "(SRC-002, SRC-005)" in wtext
+
+    stats = render.render_folder(area, tmp_path / "f.docx", mode="final",
+                                 emit_signal=False)
+    assert stats["citations_scrubbed"] == 2
+    text = doc_text(Document(str(tmp_path / "f.docx")))
+    assert "SRC-002" not in text and "See GAP" not in text
+    assert "The run is cut Thursday." in text     # clean seam, no double space
+    assert "SRC-004" in text                      # woven — left for a human
+    assert "SRC-004" in stats["dangling_gap_refs"]["payment-run"]
+
+
 def test_final_mode_placeholder_kept_when_no_image(tmp_path):
     """Final mode keeps the SCREENSHOT PLACEHOLDER callout when no captured
     image exists under _assets/screens/<slug>/."""
@@ -526,6 +586,122 @@ def test_column_widths_stay_positive_and_fill_usable(n):
     assert sum(widths) == usable
 
 
+def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
+    """A folder render emits one `# {ordinal}. {Title}` divider before the
+    first procedure of each L2 bucket, plus `Reference & Appendices` before
+    the back matter — each a Heading 1 with page-break-before. Display glue
+    only: no fragment, manifest, or provenance change."""
+    area = make_area(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    h1 = [p for p in Document(str(out)).paragraphs
+          if p.style.name == "Heading 1"]
+    # This fixture's only front matter is the cover-lifted Document Profile,
+    # so no Introduction chapter — an empty chapter head would be worse than
+    # none.
+    assert [p.text for p in h1] == ["1. Invoices", "2. Payments",
+                                    "Reference & Appendices"]
+    assert all(p.paragraph_format.page_break_before for p in h1)
+    # Chapter weight must reach the RUNS: styled_run stamps body-default
+    # direct formatting that overrides the paragraph style, so a style-table
+    # change alone renders 10pt black (the "flat H1" review note).
+    run = h1[0].runs[0]
+    assert run.font.size.pt == 20 and run.font.bold
+    # Same trap one level down: H4 (procedure steps, appendix process
+    # buckets) was absent from HEADING_RUN_FMT and rendered as flat body
+    # text (the "sub-heading visibility" review note).
+    h4 = [p for p in Document(str(out)).paragraphs
+          if p.style.name == "Heading 4"]
+    assert h4, "fixture has #### step headings"
+    run4 = h4[0].runs[0]
+    assert run4.font.size.pt == 11 and run4.font.bold
+
+    # With the cover off the profile renders inline as front matter, and the
+    # Introduction chapter appears above it.
+    out2 = tmp_path / "d2.docx"
+    render.render_folder(area, out2, do_cover=False, emit_signal=False)
+    texts = [p.text for p in Document(str(out2)).paragraphs
+             if p.style.name == "Heading 1"]
+    assert texts == ["Introduction", "1. Invoices", "2. Payments",
+                     "Reference & Appendices"]
+
+
+def test_toc_title_is_not_a_heading_so_the_toc_cannot_list_itself(tmp_path):
+    """The TOC field collects Heading 1-3; a Heading-styled page title makes
+    the table list itself as its first entry. The title is a direct-formatted
+    Normal paragraph instead — same chapter look, invisible to the field."""
+    area = make_area(tmp_path)
+    out = tmp_path / "t.docx"
+    # No flag passed: folder renders carry the TOC unconditionally.
+    render.render_folder(area, out, emit_signal=False)
+    toc_title = [p for p in Document(str(out)).paragraphs
+                 if p.text == "Table of Contents"]
+    assert len(toc_title) == 1
+    assert toc_title[0].style.name == "Normal"
+    run = toc_title[0].runs[0]
+    assert run.font.size.pt == 20 and run.font.bold
+
+
+def test_subset_kit_render_has_no_dividers(tmp_path):
+    """Kit docs are lean per-owner excerpts: a chapter head over a single
+    excerpted procedure is noise, so subset renders carry no H1 at all."""
+    area = make_area(tmp_path)
+    out = tmp_path / "k.docx"
+    render.render_folder(area, out, slugs=["payment-run"], emit_signal=False)
+    doc = Document(str(out))
+    assert not [p for p in doc.paragraphs if p.style.name == "Heading 1"]
+    assert not [p for p in doc.paragraphs if p.text == "Table of Contents"]
+
+
+def test_callout_color_comes_from_the_label_not_the_prose(tmp_path):
+    """A CONTROL whose prose cites a gap ("see GAP-07") stays control-green,
+    and a VALIDATION REQUIRED stays gap-yellow. The old whole-text keyword
+    scan recolored boxes by whatever their prose happened to mention — GAP
+    outranks CONTROL in the cascade, so control boxes turned yellow."""
+    md = tmp_path / "c.md"
+    md.write_text(
+        "# T\n\n## Key Controls\n\n"
+        "> **CONTROL — CTRL-001:** Dual approval of banking changes.\n"
+        "> - **Owner:** TBD — the performing role is contested; see GAP-07\n"
+        "\n"
+        "> **VALIDATION REQUIRED — GAP-07:** Who performs the callback.\n"
+        "> - **Owner to confirm:** Controller\n",
+        encoding="utf-8")
+    out = tmp_path / "c.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    fills = []
+    for t in Document(str(out)).tables:
+        shd = t.cell(0, 0)._tc.get_or_add_tcPr().find(qn("w:shd"))
+        fills.append(shd.get(qn("w:fill")))
+    assert fills == ["F3F8F4", "FCF7CC"]   # control green, then gap yellow
+
+
+def test_paired_pain_improvement_table_is_not_red(tmp_path):
+    """The Appendix A register pairs 'Pain Point' and 'Improvement
+    Opportunity' in ONE header — the pain-table red wash must not fire on it
+    (a red recommendation reads as a problem). A pain-only table keeps the
+    red styling."""
+    md = tmp_path / "a.md"
+    md.write_text(
+        "# T\n\n## Appendix\n\n"
+        "| Pain Point | Impact | Severity | Improvement Opportunity |\n"
+        "|---|---|---|---|\n"
+        "| PP-01 — manual matching | Two days | High | IO-01 — automate |\n"
+        "\n\n## Known Issues\n\n"
+        "| Pain Point | Impact |\n"
+        "|---|---|\n"
+        "| PP-02 — re-keying | An hour a day |\n",
+        encoding="utf-8")
+    out = tmp_path / "a.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    body_fills = []
+    for t in Document(str(out)).tables:
+        shd = t.cell(1, 0)._tc.get_or_add_tcPr().find(qn("w:shd"))
+        body_fills.append(shd.get(qn("w:fill")))
+    assert body_fills[0] == "FFFFFF"       # paired register: standard
+    assert body_fills[1] == "FBEBEB"       # pain-only table: still red
+
+
 def test_wide_raci_table_renders(tmp_path):
     """A 17-column RACI matrix converts without a width error."""
     md = tmp_path / "wide.md"
@@ -541,3 +717,57 @@ def test_wide_raci_table_renders(tmp_path):
     doc = Document(str(out))
     assert doc.tables, "no table rendered"
     assert all(c.width > 0 for c in doc.tables[0].columns)
+
+
+def test_raci_rows_render_in_display_number_order(tmp_path):
+    """Reviewer ask: RACI activities appear sequentially (1.1, 1.2, … 2.1).
+    Ordering is render-time display keyed on each row's leading [[slug]]
+    token — the derived file's authored order is never rewritten. A row
+    without a resolvable slug leaves the authored order untouched."""
+    area = make_area(tmp_path)
+    manifest = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    manifest["components"].append(
+        {"file": "84_raci.md", "heading": "RACI Matrix", "role": "derived",
+         "derived_kind": "raci", "writer": "agent", "order": 84})
+    (area / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (area / "84_raci.md").write_text(
+        "## RACI Matrix\n\n"
+        "| Activity | Responsible | Accountable | Consulted | Informed |\n"
+        "|---|---|---|---|---|\n"
+        "| [[cash-application]] | AR Clerk | Controller | — | — |\n"
+        "| [[vendor-onboarding]] | AP Clerk | Controller | — | — |\n"
+        "| [[payment-run]] | AP Clerk | Controller | — | — |\n",
+        encoding="utf-8")
+
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    doc = Document(str(out))
+    raci = next(t for t in doc.tables
+                if t.rows[0].cells[0].text.strip() == "Activity")
+    acts = [r.cells[0].text for r in raci.rows[1:]]
+    assert acts == ["1.1 Vendor Onboarding", "2.1 Payment Run",
+                    "2.2 Cash Application"]
+
+    # authored file untouched (display-only ordering)
+    assert (area / "84_raci.md").read_text(encoding="utf-8").split("\n")[4] \
+        .startswith("| [[cash-application]]")
+
+
+def test_escaped_pipe_in_table_cell_does_not_shear_the_row(tmp_path):
+    """A literal pipe in cell text is written `\\|` (aggregate's cell()); the
+    converter must split on UNESCAPED pipes only. Splitting on the escape
+    slid every later cell one column right — a phantom fourth column and a
+    stray backslash in the cell (the systems-view quirk)."""
+    md = tmp_path / "t.md"
+    md.write_text(
+        "# T\n\n## Systems\n\n"
+        "| System / Tool | Role in Process | Related Procedures |\n"
+        "|---|---|---|\n"
+        "| SAP S/4HANA | ERP (SAP\\|S4 job schedule) | 1.1, 1.2 |\n",
+        encoding="utf-8")
+    out = tmp_path / "t.docx"
+    cfgi.main([str(md), "-o", str(out)])
+    t = Document(str(out)).tables[0]
+    assert len(t.columns) == 3
+    assert t.cell(1, 1).text == "ERP (SAP|S4 job schedule)"
+    assert t.cell(1, 2).text == "1.1, 1.2"

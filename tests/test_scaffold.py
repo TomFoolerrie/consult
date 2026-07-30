@@ -350,3 +350,22 @@ def test_main_refuses_without_confirm(tmp_path):
     import pytest
     with pytest.raises(SystemExit):
         scaffold.main(["--area", str(tmp_path)])
+
+
+def test_unknown_l1_is_advisory_not_fatal(tmp_path, capsys):
+    """The reference taxonomy is a menu, not a gate: an L1 it does not list
+    returns an empty backbone (loudly), and compute_l2_order then files every
+    used bucket as an approved new bucket in first-seen order."""
+    import yaml as _yaml
+    tax = tmp_path / "taxonomy.yaml"
+    tax.write_text(_yaml.safe_dump({"taxonomy": {"categories": [
+        {"name": "Procure to Pay", "slug": "procure-to-pay",
+         "subcategories": [{"name": "Payments", "slug": "payments"}]},
+    ]}}), encoding="utf-8")
+    buckets = scaffold.load_l1_buckets(tax, "field-services")
+    assert buckets == []
+    assert "advisory" in capsys.readouterr().out
+    order = scaffold.compute_l2_order(
+        [{"l2": "dispatch"}, {"l2": "billing"}, {"l2": "dispatch"}],
+        buckets, [])
+    assert order == ["dispatch", "billing"]

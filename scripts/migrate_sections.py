@@ -44,6 +44,8 @@ from __future__ import annotations
 
 import argparse
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

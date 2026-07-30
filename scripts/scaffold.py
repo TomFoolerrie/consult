@@ -40,7 +40,10 @@ sections the skeletons carry and which derived components the manifest lists.
 Nothing else in the pipeline gets to decide shape: the drafter fills what it is
 handed, and render (enforcement point 2) strips what a later profile change
 removed. A `body_omit` section is scaffolded exactly as if it were not listed —
-it is authored and aggregated, and only the RENDER hides it.
+it is authored and aggregated, and only the RENDER hides it. A profile whose
+`derived:` set changes AFTER the confirm gate ran is reconciled into the live
+manifest with `--sync-profile` (no `.proposed/` round): the path that lets an
+area acquire `appendix-controls` so `body_omit: [controls]` has a destination.
 
 Nothing touches the live folder until `--confirm` is passed. The step is
 idempotent: re-running with the same confirmed set is a no-op; adding one
@@ -62,6 +65,8 @@ import json
 import re
 import shutil
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 import yaml
@@ -143,8 +148,13 @@ DERIVED_FILES = [
      "heading": "Key Dependencies", "order": 8200},
     {"file": "84_raci.md", "kind": "raci", "writer": "agent",
      "heading": "RACI Matrix", "order": 8400},
+    # Appendix headings carry NO letters — "Appendix — <what it shows>".
+    # Letters forced renumbering whenever a profile added or dropped a
+    # register (the controls register was given a letterless heading for
+    # exactly that reason), and nothing in the document cites an appendix by
+    # letter: prose references go to procedures ([[slug]]) and callout ids.
     {"file": "88_appendix-a.md", "kind": "appendix-a", "writer": "python",
-     "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
+     "heading": "Appendix — Pain Points & Improvement Opportunities",
      "order": 8800},
     # M14: the destination F never had. OPT-IN — absent from the default derived
     # set, so an area with no profile is byte-identical to pre-M14. Sits right
@@ -154,9 +164,9 @@ DERIVED_FILES = [
      "writer": "python", "heading": "Appendix — Key Controls Register",
      "order": 8900},
     {"file": "90_appendix-b-gaps.md", "kind": "gap-log", "writer": "python",
-     "heading": "Appendix B — Gap / Validation Log", "order": 9000},
+     "heading": "Appendix — Gap / Validation Log", "order": 9000},
     {"file": "91_appendix-c-screens.md", "kind": "screenshot-index", "writer": "python",
-     "heading": "Appendix C — Screenshot / Evidence Index", "order": 9100},
+     "heading": "Appendix — Screenshot / Evidence Index", "order": 9100},
 ]
 
 PROC_BASE = 10   # first procedure order
@@ -240,15 +250,24 @@ def _merge_by_key(existing: list, proposed: list) -> list:
 # --------------------------------------------------------------------------- #
 
 def load_l1_buckets(taxonomy_path: Path, l1_slug: str) -> list[str]:
-    """Return the L2 bucket slugs for the given L1, in taxonomy order."""
+    """Return the L2 bucket slugs for the given L1, in taxonomy order.
+
+    The reference taxonomy is ADVISORY: an L1 it does not list is a valid
+    engagement (clients have functions the backbone never enumerated), not an
+    error. Unknown L1 → empty backbone, announced loudly: compute_l2_order
+    then treats every bucket the proposal uses as an approved new bucket in
+    first-seen order — the same path a single new bucket under a known L1
+    already takes."""
     tax = _load_yaml(taxonomy_path)
     cats = (tax.get("taxonomy") or {}).get("categories") or []
     for cat in cats:
         if cat.get("slug") == l1_slug:
             return [sc.get("slug") for sc in (cat.get("subcategories") or []) if sc.get("slug")]
-    raise SystemExit(
-        f"error: L1 slug {l1_slug!r} not found in taxonomy {taxonomy_path}"
-    )
+    print(f"note: L1 {l1_slug!r} is not in the reference taxonomy "
+          f"({taxonomy_path}) — the reference is advisory, proceeding with "
+          f"the proposal's own L2 buckets in first-seen order. If "
+          f"{l1_slug!r} is a typo, stop and re-run with the intended slug.")
+    return []
 
 
 def compute_l2_order(procedures: list[dict], tax_buckets: list[str],
@@ -562,6 +581,17 @@ def stamp_sources(area: Path) -> None:
                     # to `new` when there is no state yet — never un-process.
                     src["hash"] = digest
                     changed = True
+                # M25: fold the intake pointer sidecar into the entry's note,
+                # so the classifier's relevance judgment reaches the drafter's
+                # brief. Idempotent: never appended twice.
+                side = Path(str(fpath) + ".route.md")
+                if side.is_file():
+                    pointer = side.read_text(encoding="utf-8").strip()
+                    note = str(src.get("note") or "")
+                    if pointer and pointer not in note:
+                        src["note"] = (note + " | " if note else "") \
+                            + "intake pointer: " + pointer
+                        changed = True
             elif "hash" not in src:
                 src["hash"] = ""
                 changed = True
@@ -768,6 +798,9 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
         })
 
     known = {p["slug"] for p in procedures}
+    # M26: sibling manifests, read once — validates cross-area upstream hints.
+    all_siblings = (doc_model.sibling_procedures(area)
+                    if doc_model is not None else {})
     for p in procedures:
         slug = p["slug"]
         comp = {
@@ -778,11 +811,32 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
         # M11 ordering hints: validated here (mechanics), decided by taxonomy
         # (judgment). Unknown or self references are dropped with a warning —
         # the manifest only ever carries hints the advisor can act on.
+        # M26: a cross-area hint `area/slug` is validated against the SIBLING
+        # manifest and PRESERVED — it declares an engagement seam, and the
+        # advisor never defers on it (cross-area waves do not exist).
+        siblings = all_siblings
         upstream = list(dict.fromkeys(str(u) for u in (p.get("upstream") or []) if u))
-        valid = [u for u in upstream if u in known and u != slug]
-        for bad in [u for u in upstream if u not in valid]:
-            print(f"  WARNING: {slug}: dropping upstream hint '{bad}' "
-                  "(unknown slug or self-reference)")
+        valid = []
+        for u in upstream:
+            uarea, ulocal = ((u.partition("/")[0], u.partition("/")[2])
+                             if "/" in u else (None, u)) \
+                if doc_model is None else doc_model.split_xref(u)
+            if uarea is None:
+                if u in known and u != slug:
+                    valid.append(u)
+                else:
+                    print(f"  WARNING: {slug}: dropping upstream hint '{u}' "
+                          "(unknown slug or self-reference)")
+            elif uarea in siblings and ulocal in siblings[uarea]["slugs"]:
+                valid.append(u)
+            else:
+                why = (f"no sibling area '{uarea}' is scoped"
+                       if uarea not in siblings else
+                       f"area '{uarea}' has no procedure '{ulocal}' (its "
+                       f"slugs: "
+                       f"{', '.join(sorted(siblings[uarea]['slugs'])) or 'none'})")
+                print(f"  WARNING: {slug}: dropping cross-area upstream "
+                      f"hint '{u}' — {why}")
         if valid:
             comp["upstream"] = valid
         components.append(comp)
@@ -994,6 +1048,20 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     print(f"scaffolded {area}")
     print(f"  {profile.report_line()}")
     print(f"  l1={l1}  l2_order={l2_order}")
+    # M26: surface seam declarations + the gap forecast at the gate — the
+    # human reviews the connective tissue and the client ask-list here.
+    seams = [(p["slug"], u) for p in procedures
+             for u in (p.get("upstream") or []) if "/" in str(u)]
+    if seams:
+        print("  cross-area seams (M26): "
+              + "; ".join(f"{s} ← {u}" for s, u in seams))
+    forecast = [(p["slug"], q) for p in proposed_procs
+                for q in (p.get("gap_forecast") or []) if q]
+    if forecast:
+        print(f"  gap forecast ({len(forecast)} question(s) — the early "
+              f"client ask-list):")
+        for s, q in forecast:
+            print(f"    {s}: {q}")
     print(f"  procedures={len(procedures)} (proposal delta={len(proposed_procs)})  "
           f"created={len(created)}  skipped(existing)={len(skipped)}")
     if created:
@@ -1008,10 +1076,94 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     return 0
 
 
+def sync_profile(area: Path) -> int:
+    """Reconcile the live manifest's DERIVED components with the resolved
+    profile — enforcement point 1 re-run, WITHOUT a `.proposed/` round.
+
+    The confirm gate is the manifest's only writer and it refuses to run
+    without proposals, so a profile whose `derived:` set changed AFTER
+    scaffolding had no supported path back into the manifest. The case that
+    matters is adding `appendix-controls` so `body_omit: [controls]` has a
+    destination — without the component, render (which builds from the
+    manifest, not the profile) would drop every control, which is why it
+    fails loudly and names this command.
+
+    Only the derived set is touched: static and procedure components are
+    preserved byte-for-byte, and a derived entry whose kind the profile still
+    wants keeps its existing (possibly hand-edited) fields. An added kind
+    takes its DERIVED_FILES spec and gets its stub file iff absent; a removed
+    kind loses only its manifest entry — the file stays on disk (scaffold
+    never deletes) and the next render simply omits the view, exactly as a
+    fresh confirm would. Idempotent: an in-sync manifest is left unwritten.
+    """
+    manifest_path = area / "manifest.json"
+    if not manifest_path.is_file():
+        raise SystemExit(
+            f"error: no manifest at {manifest_path} — sync-profile reconciles "
+            "an ALREADY-SCAFFOLDED area with a changed profile; a fresh area "
+            "goes through the confirm gate (--confirm)"
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    profile = client_config.profile(area)
+
+    wanted = profile_derived_files(profile)
+    wanted_kinds = {d["kind"] for d in wanted}
+    existing = {c.get("derived_kind"): c for c in manifest.get("components", [])
+                if c.get("role") == "derived"}
+
+    components = [c for c in manifest.get("components", [])
+                  if c.get("role") != "derived"]
+    added, created = [], []
+    for d in wanted:
+        if d["kind"] in existing:
+            components.append(existing[d["kind"]])
+            continue
+        components.append({"file": d["file"], "role": "derived",
+                           "derived_kind": d["kind"], "writer": d["writer"],
+                           "heading": d["heading"], "order": d["order"]})
+        added.append(d["kind"])
+        fp = area / d["file"]
+        if not fp.exists():
+            fp.write_text(render_derived(d["kind"], d["writer"], d["heading"]),
+                          encoding="utf-8")
+            created.append(d["file"])
+    removed = sorted(k for k in existing if k not in wanted_kinds)
+    components.sort(key=lambda c: (c["order"], c["file"]))
+    manifest["components"] = components
+
+    if doc_model is not None:
+        errors = doc_model.validate_manifest(manifest)
+        if errors:
+            raise SystemExit(
+                "error: synced manifest failed validation:\n  - "
+                + "\n  - ".join(errors)
+            )
+
+    print(f"sync-profile {area}")
+    print(f"  {profile.report_line()}")
+    if not added and not removed:
+        print("  manifest already matches the profile — nothing to do")
+        return 0
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    if added:
+        print("  derived added: " + ", ".join(added))
+    if created:
+        print("  created: " + ", ".join(created))
+    if removed:
+        print("  derived removed (files kept on disk): " + ", ".join(removed))
+    print("  re-run aggregate before the next render so new registers fill")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="M0 confirm-gate scaffolder")
     ap.add_argument("--confirm", action="store_true",
                     help="promote _reference/.proposed/ and scaffold the area")
+    ap.add_argument("--sync-profile", action="store_true",
+                    help="reconcile the live manifest's derived components with "
+                         "the resolved profile (no .proposed/ round needed)")
     ap.add_argument("--area", required=True, help="path to the area folder")
     ap.add_argument("--l1", default=None, help="L1 taxonomy slug (else read from manifest/area.yaml)")
     ap.add_argument("--taxonomy", default=str(DEFAULT_TAXONOMY), help="path to the reference taxonomy")
@@ -1019,7 +1171,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--subtitle", default=None, help="document subtitle override")
     args = ap.parse_args(argv)
 
-    if not args.confirm:
+    if args.confirm and args.sync_profile:
+        raise SystemExit("error: pass --confirm or --sync-profile, not both "
+                         "(a confirm already rebuilds the derived set from "
+                         "the profile)")
+    if not args.confirm and not args.sync_profile:
         raise SystemExit(
             "refusing to run without --confirm: this is the human confirm gate. "
             "Review _reference/.proposed/ first, then re-run with --confirm."
@@ -1028,6 +1184,8 @@ def main(argv: list[str] | None = None) -> int:
     area = Path(args.area).resolve()
     if not area.is_dir():
         raise SystemExit(f"error: area folder not found: {area}")
+    if args.sync_profile:
+        return sync_profile(area)
     return confirm(area, args.l1, Path(args.taxonomy), args.title, args.subtitle)
 
 

@@ -248,6 +248,20 @@ MANDATORY_SECTIONS = ["scope", "quick-reference", "steps"]
 CONTROLS_SECTION = "controls"
 #: The register that catches them (M14 `appendix-controls`).
 CONTROLS_REGISTER = "appendix-controls"
+#: Same pairing for the pain-point section and its register. `appendix-a` is
+#: in the DEFAULT derived set, so this rule only trips when a profile REMOVED
+#: it — but that is exactly the silent-loss shape the controls rule refuses,
+#: and it must be refused for issues too.
+ISSUES_SECTION = "issues"
+ISSUES_REGISTER = "appendix-a"
+#: body_omit section -> (register kind, what would vanish). The cross-field
+#: rule below and render's manifest-drift guard both walk THIS table, so a
+#: future register kind gets both protections by adding one row.
+BODY_OMIT_REGISTERS = {
+    CONTROLS_SECTION: (CONTROLS_REGISTER, "CONTROL callouts"),
+    ISSUES_SECTION: (ISSUES_REGISTER,
+                     "PAIN POINT / IMPROVEMENT OPPORTUNITY callouts"),
+}
 
 #: Today's callout kinds — the `callouts.py` LABEL→prefix map, in reading order.
 ALL_CALLOUTS = ["CONTROL", "VALIDATION REQUIRED", "PAIN POINT",
@@ -503,19 +517,22 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
     else:
         derived = list(DEFAULT_DERIVED)
 
-    # ---- the one cross-field rule that protects the deliverable ---------
-    # `controls` out of the body with no register means the controls are simply
-    # gone from the document: it is a SECTION, so unlike `issues` (which has
-    # Appendix A) it has no destination unless the profile asks for one.
-    if CONTROLS_SECTION in body_omit and CONTROLS_REGISTER not in derived:
-        raise ProfileError(
-            f"{where}: `body_omit:` hides the `{CONTROLS_SECTION}` section from the "
-            f"procedure body but `derived:` does not include "
-            f"`{CONTROLS_REGISTER}` — the controls would vanish from the "
-            f"document entirely. Add `{CONTROLS_REGISTER}` to `derived:` (the "
-            f"register that collects the CONTROL callouts), or stop omitting "
-            f"`{CONTROLS_SECTION}`."
-        )
+    # ---- the cross-field rule that protects the deliverable -------------
+    # A section out of the body with no register means its callouts are
+    # simply gone from the document. One table drives every pairing: controls
+    # -> appendix-controls (opt-in, so the historical trap), issues ->
+    # appendix-a (in the default set, so this only trips when a profile
+    # removed the register while still hiding the section).
+    for section, (register, what) in BODY_OMIT_REGISTERS.items():
+        if section in body_omit and register not in derived:
+            raise ProfileError(
+                f"{where}: `body_omit:` hides the `{section}` section from the "
+                f"procedure body but `derived:` does not include "
+                f"`{register}` — the {what} would vanish from the "
+                f"document entirely. Add `{register}` to `derived:` (the "
+                f"register that collects them), or stop omitting "
+                f"`{section}`."
+            )
 
     inline_tags = (_string_list(raw["inline_tags"], "inline_tags", where)
                    if "inline_tags" in raw else list(DEFAULT_INLINE_TAGS))

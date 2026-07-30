@@ -111,6 +111,12 @@ the named stage script WRITES each. This is the M7 orchestration contract:
       The human's answer to "am I happy with the verbs and the nouns" at guard
       8.5, keyed to the TWO DATABASES ONLY (procedures + registry), never to
       basis_hash — see AreaState.draft_basis().
+  .consolidate.json  written ONLY by `consolidate.py mark` (M12):
+      {"draft_basis": sha}
+      The last consolidation pass, keyed like .draft_ready.json to the two
+      databases — surfaced in the draft-ready gate's `consolidate` answer as
+      consolidated_at_basis (informational; never a guard: the stage is
+      human-invoked and the advisor never demands it).
   .render.json     written by the renderer (M4):
       {"basis": sha, "docx": path, "awaiting_review": bool}
 
@@ -127,6 +133,8 @@ import json
 import os
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 
 # --- doc_model is OWNED BY M2 (do not create it here) -----------------------
 # Prefer the shared spine's load_manifest. Until M2 lands, degrade to a minimal
@@ -150,7 +158,8 @@ import doc_model  # noqa: E402
 try:
     from callouts import XREF_RE, blank_fences as _blank_fences  # type: ignore
 except Exception:  # pragma: no cover - callouts is always present
-    XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
+    XREF_RE = re.compile(
+        r"\[\[#?([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 
     def _blank_fences(text: str) -> str:
         return text
@@ -464,6 +473,11 @@ class AreaState:
             missing = []
             for m in XREF_RE.finditer(_blank_fences(_read_text(path))):
                 slug = m.group(1)
+                if "/" in slug:
+                    # M26 cross-area token — validated against the SIBLING
+                    # manifest by reconcile (which owns the gate), never
+                    # against this area's live slugs.
+                    continue
                 if slug not in live and slug not in missing:
                     missing.append(slug)
             if missing:
@@ -584,6 +598,39 @@ def _holds(folder: str):
     return client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
 
 
+def _git_note(folder: str) -> dict | None:
+    """None when the area is inside a git work tree; otherwise the advisory
+    payload every decision carries. Checked fresh each call (a `git init`
+    clears it on the next lap) and cheap (~ms). The suggested init location
+    is the ENGAGEMENT ROOT — the parent of components/ — so one repo covers
+    every area; an area parked elsewhere suggests its own parent."""
+    if not os.path.isdir(folder):
+        return None
+    import subprocess
+    try:
+        probe = subprocess.run(
+            ["git", "-C", folder, "rev-parse", "--is-inside-work-tree"],
+            capture_output=True, text=True)
+    except OSError:
+        probe = None
+    if probe is not None and probe.returncode == 0 \
+            and probe.stdout.strip() == "true":
+        return None
+    parent = os.path.dirname(os.path.abspath(folder))
+    root = (os.path.dirname(parent)
+            if os.path.basename(parent) == "components" else parent)
+    return {
+        "tracked": False,
+        "note": ("CHECKPOINTS ARE OFF — this engagement is not in a git "
+                 "repository, so there is no history, no diffs to review "
+                 "and no revert. Fix once: run `git init` in %s (the "
+                 "engagement root). Keep the repository PRIVATE — "
+                 "checkpoints deliberately include _sources/ (client "
+                 "material)." % root),
+        "init_at": root,
+    }
+
+
 def decide(folder: str) -> dict:
     # Resolved after the folder-existence check below, so a typo'd --area still
     # reports `error` rather than failing on a config read. The closure reads it
@@ -602,6 +649,13 @@ def decide(folder: str) -> dict:
         if holds is not None and action in holds:
             d["human_gate"] = True
             details["held_by"] = holds.held_by(action)
+        # Git health, at the single exit point so every decision carries it.
+        # Advisory, never a gate: an untracked engagement still builds — it
+        # just has no checkpoints, no diffs, no revert, and the human should
+        # hear that ONCE rather than discover it after a bad pass.
+        note = _git_note(folder)
+        if note:
+            details["git"] = note
         if details:
             d["details"] = details
         return d
@@ -818,8 +872,11 @@ def decide(folder: str) -> dict:
     #     guard 2 has ruled out any pending note and guard 4 any `unfilled`
     #     skeleton, so NOTHING can consume it: re-dispatching taxonomy proposes
     #     nothing new and re-spends a dispatch per lap. That is the gate below.
-    if _dir_has_files(st.sources_new):
-        unassessed, assessed = st.new_source_assessment()
+    # M25: route sidecars (`*.route.md`) are metadata, not sources — a folder
+    # holding only them has nothing to assess and must not gate.
+    unassessed, assessed = (st.new_source_assessment()
+                            if _dir_has_files(st.sources_new) else ([], []))
+    if unassessed or assessed:
         if unassessed:
             return result("taxonomy",
                           "manifest exists and _sources/new/ holds %d unassessed "
@@ -990,6 +1047,7 @@ def decide(folder: str) -> dict:
         if not (dr.get("accepted") is True
                 and dr.get("draft_basis") == draft_basis):
             slugs = ",".join(sorted(st.procedure_slugs))
+            cons = _load_json(os.path.join(folder, ".consolidate.json")) or {}
             return result(
                 "draft_ready",
                 "drafted and verified, and this draft has not been accepted — "
@@ -1008,12 +1066,17 @@ def decide(folder: str) -> dict:
                              "writes .render.json, so it does not advance the "
                              "state machine"},
                     {"name": "consolidate",
-                     "command": None,
-                     "cost": "1 agent",
-                     "consolidated_at_basis": None,
-                     "note": "the M12 consolidator is not built yet — this slot "
-                             "is the gate's stable shape; consolidated_at_basis "
-                             "starts recording passes when M12 lands"},
+                     "command": "scripts/consolidate.py plan %s" % folder,
+                     "cost": "1 agent per bucket group (~5 fragments each) "
+                             "+ 1 cross-bucket (none when one group covers "
+                             "the area)",
+                     "consolidated_at_basis": cons.get("draft_basis"),
+                     "note": "M12 cross-procedure consistency pass — emits "
+                             "notes only, fragments untouched. "
+                             "consolidated_at_basis equal to draft_basis "
+                             "means this exact draft already had a pass; "
+                             "null or stale means it has not "
+                             "(consolidate.py mark records it)"},
                     {"name": "accept",
                      "command": "scripts/orchestrate.py accept-draft --area %s"
                                 % folder,
@@ -1159,6 +1222,7 @@ def accept_draft(folder: str) -> dict:
 AREA_GITIGNORE = """\
 # consult advisor signal files (derived; regenerated by the stage scripts)
 .aggregate.json
+.consolidate.json
 .draft_ready.json
 .hashes.json
 .reconcile.json

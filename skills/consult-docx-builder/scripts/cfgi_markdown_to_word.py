@@ -30,6 +30,15 @@ from __future__ import annotations
 import argparse
 import html
 import re
+import sys
+
+# Windows consoles default to cp1252; degrade unencodable output to '?'
+# instead of crashing a successful run (see scripts/console_compat.py).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass
 from dataclasses import dataclass, field as dc_field
 from html.parser import HTMLParser
 from pathlib import Path
@@ -230,10 +239,13 @@ def define_styles(doc) -> None:
     doc.styles["Normal"].paragraph_format.space_after = Pt(6)
     specs = {
         "Title": (40, PALETTE["dark_green"], True, False),
-        "Heading 1": (14, PALETTE["dark_green"], False, False),
+        # H1 is the CHAPTER level — the L2 dividers (and the TOC page head).
+        # It must visibly outrank the bold 13pt H2 section headings beneath
+        # it; at its old 14pt regular it read flatter than its own children.
+        "Heading 1": (20, PALETTE["dark_green"], True, False),
         "Heading 2": (13, PALETTE["green"], True, False),
         "Heading 3": (12, PALETTE["green"], False, True),
-        "Heading 4": (11, PALETTE["black"], True, False),
+        "Heading 4": (11, PALETTE["green"], True, False),
     }
     for name, (sz, col, b, it) in specs.items():
         st = doc.styles[name]
@@ -397,8 +409,12 @@ def styled_run(p, sg: Seg, color: str = PALETTE["black"], size: int = BODY_SIZE)
 # italic=False) from styled_run, which overrides the Heading 2/3 paragraph
 # STYLES in Word. Direct-format the runs to match the style instead.
 HEADING_RUN_FMT = {
+    "Heading 1": (20, PALETTE["dark_green"], True, False),  # chapter dividers
     "Heading 2": (13, PALETTE["green"], True, False),   # size, color, bold, italic
     "Heading 3": (12, PALETTE["green"], False, True),
+    # H4 (procedure steps; appendix process buckets) was absent from this
+    # table, so its runs got the 10pt/black body default and rendered flat.
+    "Heading 4": (11, PALETTE["green"], True, False),
 }
 
 
@@ -476,12 +492,22 @@ def html_table(block: str, context: str = "") -> TableBlock:
 def md_table(lines: List[str], i: int, context: str = "") -> Tuple[Optional[TableBlock], int]:
     if i + 1 >= len(lines) or "|" not in lines[i]:
         return None, i
-    sep = [c.strip() for c in lines[i + 1].strip().strip("|").split("|")]
+    # Cells are split on UNESCAPED pipes only: writers escape a literal pipe
+    # in cell text as `\|` (aggregate's cell() does), and splitting on it
+    # shears the row — every cell after the escape slides one column right,
+    # growing a phantom column and leaving a stray backslash behind.
+    def split(line: str) -> List[str]:
+        line = line.strip()
+        if line.startswith("|"):
+            line = line[1:]
+        if line.endswith("|") and not line.endswith("\\|"):
+            line = line[:-1]
+        return [c.strip().replace("\\|", "|")
+                for c in re.split(r"(?<!\\)\|", line)]
+
+    sep = split(lines[i + 1])
     if not sep or not all(re.fullmatch(r":?-{3,}:?", c or "") for c in sep):
         return None, i
-
-    def split(line: str) -> List[str]:
-        return [c.strip() for c in line.strip().strip("|").split("|")]
 
     header = split(lines[i])
     rows: List[List[str]] = []
@@ -513,10 +539,11 @@ def table_kind(tb: TableBlock, ctx: str) -> str:
         return "gap"
     if "control" in h:
         return "control"
-    # Pain-point-only tables get red; a mixed risks/pain/opportunity register
-    # (Appendix A) has no "pain" in its header, so it stays standard and its
-    # improvement rows aren't miscolored as pain.
-    if "pain" in h or "known issue" in h:
+    # Pain-point-ONLY tables get red. The paired register (Appendix A) has
+    # "Pain Point" AND "Improvement Opportunity" in one header — a whole-table
+    # red wash there paints recommendations as problems (reviewer feedback),
+    # so any header that also mentions improvements stays standard.
+    if ("pain" in h or "known issue" in h) and "improvement" not in h:
         return "pain"
     return "standard"
 
@@ -632,6 +659,33 @@ def add_table(doc, tb: TableBlock, ctx: str = "") -> None:
 # Callouts
 # --------------------------------------------------------------------------- #
 def callout_style(text: str) -> Tuple[str, str]:
+    """Fill/text colors for one callout box, decided by its LABEL.
+
+    Only the block's first non-empty line votes, and only via the kind label
+    it OPENS with. The old whole-body keyword scan made the color depend on
+    what the prose happened to mention — a CONTROL whose owner field says
+    "see GAP-01" turned gap-yellow, because GAP outranks CONTROL in the
+    cascade — which read as random recoloring in the document. A block whose
+    head carries no known label (a free-form quote) falls back to the
+    keyword scan of the whole text, then to the green default, as before.
+    """
+    head = next((ln for ln in text.split("\n") if ln.strip()), "")
+    h = head.strip().upper().lstrip(">").strip().strip("*_ ")
+    for prefix, key in (("PAIN POINT", "pain"),
+                        ("IMPROVEMENT OPPORTUNITY", "io"),
+                        ("VALIDATION REQUIRED", "gap"),
+                        ("DECISION REQUIRED", "gap"),
+                        ("SCREENSHOT PLACEHOLDER", "screen"),
+                        ("CONTROL", "control")):
+        if h.startswith(prefix) and (len(h) == len(prefix)
+                                     or not h[len(prefix)].isalpha()):
+            return {
+                "pain": (PALETTE["light_red"], PALETTE["red"]),
+                "io": (PALETTE["io_fill"], PALETTE["io_text"]),
+                "gap": (PALETTE["light_yellow"], PALETTE["dark_green"]),
+                "screen": (PALETTE["label_gray"], PALETTE["gray_text"]),
+                "control": (PALETTE["light_green"], PALETTE["dark_green"]),
+            }[key]
     u = text.upper()
     if "PAIN POINT" in u:
         return PALETTE["light_red"], PALETTE["red"]
@@ -641,8 +695,6 @@ def callout_style(text: str) -> Tuple[str, str]:
         return PALETTE["light_yellow"], PALETTE["dark_green"]
     if "SCREENSHOT" in u or "SC-" in u:
         return PALETTE["label_gray"], PALETTE["gray_text"]
-    if "CONTROL" in u or "FUTURE" in u:
-        return PALETTE["light_green"], PALETTE["dark_green"]
     return PALETTE["light_green"], PALETTE["dark_green"]
 
 
@@ -894,19 +946,33 @@ def build_cover(doc, title: str, subtitle: str, profile_rows: List[List[str]]) -
 # Main conversion
 # --------------------------------------------------------------------------- #
 def _emit_toc(doc) -> None:
-    para(doc, "Table of Contents", "Heading 1")
+    # The page title is deliberately NOT a Heading style: the TOC field
+    # collects Heading 1-3, so a Heading-styled title makes the table list
+    # ITSELF as its first entry ("Table of Contents .... 2"). A Normal
+    # paragraph direct-formatted to chapter weight looks identical and is
+    # invisible to the field. (Word's References -> "Update Table" button can
+    # still swap the raw field for its Automatic Table gallery, which brings
+    # its own "Contents" title — update with F9 / right-click "Update Field"
+    # to keep this one.)
     p = doc.add_paragraph()
-    add_toc(p)
+    styled_run(p, Seg("Table of Contents", bold=True), PALETTE["dark_green"], 20)
+    para_bottom_border(p, PALETTE["dark_green"], size="12", space="4")
+    p.paragraph_format.space_after = Pt(14)
+    p2 = doc.add_paragraph()
+    add_toc(p2)
     doc.add_page_break()
 
 
-def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None:
+def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
+                h1_page_break: bool = False) -> None:
     """Render assembled Markdown body lines into `doc`.
 
     Shared by the single-file `convert` and the pre-assembled folder
     `convert_assembled` paths. `do_cover` only governs inline suppression of
     the title H1 and lifted cover sections; the cover itself is built by the
-    caller.
+    caller. `h1_page_break` (the folder path sets it) opens every body H1 —
+    the L2 chapter dividers, the only H1s an assembled doc carries — on a
+    fresh page; single-file docs keep their legacy flow.
 
     `prov` (optional) is a provenance collector with a
     `mark(paras, i_start, i_end, kind)` method — called with the emitted
@@ -983,12 +1049,19 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None) -> None
             ctx.append(txt)
             style = f"Heading {min(level, 4)}"      # straight-through: #->H1 ... ####->H4
             p = para(doc, txt, style)
+            if level == 1 and h1_page_break:
+                p.paragraph_format.page_break_before = True
             # H1->H2 weight remap: under the flat-H2 template the section
             # weight formerly carried by H1 moves to H2, so the green rule is
             # drawn under both. (Single-file docs still have one inline H1;
             # folder docs hold their single H1/title on the cover and start
             # every section at H2.)
-            if style in ("Heading 1", "Heading 2"):
+            if style == "Heading 1":
+                # Chapter rule: heavier than the H2 hairline, dark green to
+                # match the chapter type, with air below before content.
+                para_bottom_border(p, PALETTE["dark_green"], size="12", space="4")
+                p.paragraph_format.space_after = Pt(14)
+            elif style == "Heading 2":
                 para_bottom_border(p)
             i += 1
             continue
@@ -1131,7 +1204,8 @@ def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
         build_cover(doc, title, subtitle, rows)
     if include_toc:
         _emit_toc(doc)
-    render_body(doc, body_md.split("\n"), do_cover=False, prov=prov)
+    render_body(doc, body_md.split("\n"), do_cover=False, prov=prov,
+                h1_page_break=True)
     if track_changes:
         enable_track_changes(doc)
     doc.save(str(out))

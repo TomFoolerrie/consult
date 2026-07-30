@@ -55,6 +55,8 @@ from __future__ import annotations
 import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 import yaml
@@ -499,51 +501,72 @@ def _body(ctx, p, c) -> str:
 
 
 def build_appendix_a(ctx) -> str:
-    # The reader-facing prose names the section by its TITLE (display), taken
-    # from the registry — M23: it must never name a letter, which is a position.
-    lines = [f"_Pain Points and Improvement Opportunities, aggregated "
-             f"mechanically from the "
-             f"{doc_model.section_title(ISSUES_SECTION)} section callouts "
-             f"(observation, impact, severity authored in the callout). IDs are "
-             f"numbered sequentially through the document; rows are grouped by "
+    # Reader-facing prose: client language only. It must not say "callout" or
+    # "aggregated mechanically" (pipeline vocabulary), and it must not name
+    # the body section it is built from — a profile may hide that section
+    # (`body_omit: [issues]`), leaving the reference pointing at nothing.
+    lines = [f"_Pain points and improvement opportunities observed in the "
+             f"current-state walkthroughs, with the impact and severity "
+             f"recorded for each. Each pain point is shown alongside the "
+             f"improvement opportunities that address it. IDs are numbered "
+             f"sequentially through the document; items are grouped by "
              f"sub-process._", ""]
 
-    lines.append("### Pain Points")
+    # Reviewer ask: an improvement sits RIGHT BESIDE the pain point it
+    # addresses — one row tells the whole story, no comparing across tables.
+    # Collect every IO once, resolving its `Addresses:` field (local sibling
+    # PP ids, comma-separated by contract) to display ids for the pairing.
+    ios = []
+    for _l2_title, rows in _grouped_by_l2(ctx, "IO"):
+        for p, c in rows:
+            addresses = _disp_text(ctx, p, _pick(c["fields"], "Addresses"))
+            ios.append({"p": p, "c": c, "disp": _disp(ctx, p, c),
+                        "targets": _ID_MENTION_RE.findall(addresses),
+                        "used": False})
+
     any_pp = False
     for l2_title, rows in _grouped_by_l2(ctx, "PP"):
         any_pp = True
         lines += ["", f"#### {l2_title}", "",
-                  "| ID | Observation | Impact | Severity |",
+                  "| Pain Point | Impact | Severity | "
+                  "Improvement Opportunity |",
                   "|---|---|---|---|"]
         for p, c in rows:
             f = c["fields"]
+            disp = _disp(ctx, p, c)
+            matched = [io for io in ios if disp in io["targets"]]
+            parts = []
+            for io in matched:
+                io["used"] = True
+                # An IO addressing several PPs repeats on each row — every
+                # row stands alone — with its other targets named.
+                others = [t for t in io["targets"] if t != disp]
+                also = (f" *(also addresses {', '.join(others)})*"
+                        if others else "")
+                parts.append(f"**{io['disp']}** — "
+                             f"{cell(_body(ctx, io['p'], io['c']))}{also}")
+            io_cell = "  ".join(parts) if parts else "—"
             lines.append(
-                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_body(ctx, p, c))} | "
-                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} |"
+                f"| {disp} ([[#{p['slug']}]]) — {cell(_body(ctx, p, c))} | "
+                f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
+                f"{io_cell} |"
             )
     if not any_pp:
         lines += ["", "_No pain points recorded._"]
-    lines.append("")
 
-    lines.append("### Improvement Opportunities")
-    any_io = False
-    for l2_title, rows in _grouped_by_l2(ctx, "IO"):
-        any_io = True
-        lines += ["", f"#### {l2_title}", "",
-                  "| ID | Recommendation | Addresses |",
-                  "|---|---|---|"]
-        for p, c in rows:
-            f = c["fields"]
-            # `Addresses:` names sibling PPs by LOCAL id (possibly a comma-
-            # separated list) — same procedure by contract — translate each.
-            addresses = _disp_text(ctx, p, _pick(f, "Addresses"))
+    # An IO whose `Addresses:` resolves to no recorded pain point still needs
+    # a home — silently dropping a finding is never an option.
+    stray = [io for io in ios if not io["used"]]
+    if stray:
+        lines += ["", "### Improvement Opportunities — general", "",
+                  "_Recommendations not tied to a single recorded pain "
+                  "point._", "",
+                  "| ID | Recommendation |",
+                  "|---|---|"]
+        for io in stray:
             lines.append(
-                f"| {_disp(ctx, p, c)} ([[#{p['slug']}]]) | "
-                f"{cell(_body(ctx, p, c))} | {cell(addresses)} |"
-            )
-    if not any_io:
-        lines += ["", "_No improvement opportunities recorded._"]
+                f"| {io['disp']} ([[#{io['p']['slug']}]]) | "
+                f"{cell(_body(ctx, io['p'], io['c']))} |")
     return "\n".join(lines)
 
 
@@ -561,11 +584,12 @@ def build_appendix_controls(ctx) -> str:
     emitted when the profile asks for it (the manifest is the authority: this
     builder runs iff an `appendix-controls` component is listed).
     """
-    lines = [f"_Key controls, aggregated mechanically from the "
-             f"{doc_model.section_title(CONTROLS_SECTION)} section callouts "
-             f"(statement, type, frequency and owner authored in the callout). "
-             f"IDs are numbered sequentially through the document; rows are "
-             f"grouped by sub-process._"]
+    # Client language only — see build_appendix_a for why this intro names
+    # neither "callouts" nor the body section it is built from.
+    lines = [f"_Key controls identified for the processes in this document, "
+             f"with the type, frequency and owner recorded for each. IDs are "
+             f"numbered sequentially through the document; rows are grouped "
+             f"by sub-process._"]
     any_row = False
     for l2_title, rows in _grouped_by_l2(ctx, "CTRL"):
         any_row = True
@@ -610,9 +634,11 @@ def build_gap_log(ctx) -> str:
 
 
 def build_screenshot_index(ctx) -> str:
-    lines = ["_Screenshot placeholders aggregated from the `SCREENSHOT "
-             "PLACEHOLDER` callouts. IDs are numbered sequentially through "
-             "the document; rows are grouped by sub-process._"]
+    # Client language only — see build_appendix_a.
+    lines = ["_Index of the screenshots and system evidence referenced in "
+             "this document, with capture status. IDs are numbered "
+             "sequentially through the document; rows are grouped by "
+             "sub-process._"]
     any_row = False
     for l2_title, rows in _grouped_by_l2(ctx, "SC"):
         any_row = True

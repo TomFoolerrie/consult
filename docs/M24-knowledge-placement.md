@@ -1,0 +1,260 @@
+# M24 — Knowledge placement (the engagement pass: duplication + gaps, one problem)
+
+> **Status: BUILT (v1.10.0; `--full` field-finding fix shipped v1.13.0).** `engagement.py` audit section 4 (open-gap register via the
+> shared `callouts.open_gaps` parser), `brief` (the placement-pass work
+> order), `adopt` (hash-stamped second-hand source + `kind: source`
+> notes; sticky-hold `adopt` enforced at the verb); registers listed
+> read-only in the drafter and consolidator briefs; drafter contract
+> carries reference-don't-restate + `register_candidates`.
+>
+> **Field finding (user's first real run, 4 L1s, mixed-version prose):
+> the pass under-recalled.** Root causes acknowledged: the brief's digest
+> was scope-sections-only (gap answers live in step bodies), one context
+> did N×M matching across 100+ gaps, and the anti-noise contract tuned on
+> clean synthetic data read as timidity on a legacy engagement.
+> **Settled fix — BUILT (v1.13.0): `brief --full`** — the brief lists
+> whole fragment paths instead of digests (one strong agent reads the
+> engagement in full — ~150–250k tokens at 4 L1s, which fits), plus a
+> mechanical size guard (chars/4 estimate vs a ~300k budget) that prints
+> the token estimate and recommends digest mode / area-pair splits when
+> an engagement outgrows it. The
+> candidate-shortlist and fan-out designs considered alongside were NOT
+> adopted — superseded by the full read at this scale.
+> **Demotion (M26):** once cross-area tokens exist, this pass's matching
+> work is a BACKSTOP for the undeclared, no longer the mechanism; the
+> `--full` read remains the migration instrument for legacy prose and the
+> periodic deep sweep.
+> Supersedes this ticket's earlier draft ("gap pollination"), which treated
+> gap resolution as a sibling of the duplication audit. The user's
+> observation collapsed the two: they are the SAME problem, so they are one
+> register, one pass, one report. M12's `gap-answer` category (see M12
+> "Amendments", A2) is the within-area instance of the same principle.
+>
+> **Revised against real-engagement evidence** (the user's cross-L1 seam
+> analysis over four L1s): most cross-answerable gaps are not one-off facts
+> but RECURRING shared facts — approval thresholds, cutoff/date rules,
+> system-of-record answers, master data. For those, adopting another area's
+> prose would copy a volatile fact into a second home (the analysis's Root
+> Cause 3, "master data embedded in narrative procedures", mechanized). So
+> the pass has THREE moves, and for recurring facts the primary one is
+> **promote to an engagement register**, not adopt.
+
+## Goal — one fact, one home
+
+The system's standing rule (ownership maps, "say it once") is that **every
+fact has exactly one home.** The engagement's two chronic diseases are the
+two directions of violating it:
+
+- **Duplication** — a fact with TWO homes (over-sharing): the same activity
+  scoped twice, the same explanation drafted twice.
+- **A cross-answerable gap** — a fact with a home but a BROKEN POINTER
+  (under-sharing): inventory carries `GAP — how the goods receipt posts is
+  unconfirmed` while procure-to-pay documents exactly that, fully sourced.
+  The gap goes out in a review kit and spends a process owner's scarcest
+  resource on a question the engagement already answered.
+
+The proof they are one problem is that the resolution verbs are the same
+set: **reduce to a handoff reference** (duplication: trim the non-home copy
+to a pointer; gap: the question was about work owned elsewhere), **adopt
+the source** (gap: import the evidence; occasionally duplication's cousin),
+and **pick the owner** — the only genuinely human verb in either direction.
+The two lenses also feed each other: a shared-prose match sitting next to
+an open GAP is often the same fact caught mid-migration between homes.
+
+This ticket makes the engagement-wide sweep report BOTH directions from one
+read, and resolve both through machinery that already exists.
+
+## Constraints that settled the shape (user decisions)
+
+**Simplicity is a requirement, not a preference.** "The more compute we
+throw at this the harder it will be to keep track of." So: no new agent
+type, no new note kind, no new state file, no new gate, no scheduled pass,
+no per-area fan-out. New surface: two `engagement.py` subcommands (`brief`,
+`adopt`), one section added to `audit`, one shared gap parser, one
+single-agent pass.
+
+**The human is a reviewer, not a gatekeeper.** The user identified
+themselves as the bottleneck. Everything below defaults to FLOW THROUGH:
+notes route to drafters on the ordinary loop (delete-at-triage is a right,
+never a duty) and `adopt` runs unattended when a note names it. The review
+moment is the checkpoint diff and the rendered draft — where the human
+already was. Git is the safety net: reverting a bad auto-decision is
+cheaper than pre-approving every good one. An engagement that wants the
+gate back gets it with the EXISTING sticky-hold mechanism
+(`hold: [adopt]` in `_client/consult.yaml`, M17) — config, not machinery.
+
+**Prose becomes a source by REGISTERING it, never by citing it invisibly.**
+Cross-area, a `SRC-` id does not resolve in the other area's
+`sources.yaml`, so "just cite theirs" breaks the dangling-citation checks.
+The settled mechanism makes prose-as-source literal: `adopt` copies the
+answering fragment into the gap area's `_sources/` and gives it an
+ordinary `SRC-` entry (hash-stamped, marked second-hand). Every invariant
+survives for free — citation resolution, provenance maps, retirement
+accounting — because it IS a source. The copy is a feature: it freezes
+what was relied on, so the sibling's later edits cannot silently
+invalidate the citation. The forbidden move stays forbidden: closing a gap
+from sibling prose with NO ledger entry manufactures exactly the dangling
+statements reconcile exists to flag.
+
+## Design
+
+### 1. The register — `engagement.py audit` grows a fourth section (free)
+
+The audit already walks every area for its three duplication shapes (twin
+L3s, cross-area mentions, shared prose). It gains:
+
+```
+4. OPEN GAPS — the engagement's unanswered questions, by area:
+  inventory/month-end-inventory-reconciliation
+    GAP-01 — how the goods receipt posts to the sub-ledger is unconfirmed
+  ...
+  47 open gap(s) across 6 area(s)
+```
+
+Extraction is mechanical and shared: a parser in `callouts.py` (the
+callout-grammar home) yields each fragment's open gaps — `VALIDATION
+REQUIRED` callout lines AND `[[GAP-NN — …]]` body tags — so this register,
+M12's cross-brief gap register, and any future consumer read gaps one way.
+Layer-1 value is standalone: the consultant who sat the walkthroughs is
+the best matching engine on the engagement, and today the open questions
+are scattered across N documents where nobody sees them side by side.
+
+### 2. The placement pass — one agent, human-invoked
+
+`engagement.py brief` prints the work order: the audit's mechanical
+findings, the gap register, each area's procedure titles + scope digests
+(the bounded-digest discipline from M12), the finding rules, and the two
+command templates below. One judgment agent reads it and raises BOTH
+directions as ordinary notes through the existing commands — no new agent
+`.md`; the orchestrate skill's dispatch prompt carries the one-paragraph
+contract:
+
+Every finding routes to one of THREE moves — the class of the fact decides
+which (see triage below):
+
+| Move | When | Executes as |
+|---|---|---|
+| **reduce to handoff** | the question/duplication is about work owned by another L1 | `engagement.py note <area> --slug <loser> --note "reduce to handoff; owner …"` (kind: review — unchanged) |
+| **promote to engagement register** | the fact is SHARED and RECURRING — approval threshold, date/cutoff rule, system-of-record, master data, report definition. Primary move for these (real-engagement evidence). | a register-entry PROPOSAL in the pass's returned status (file, key, suggested content, which procedures currently restate it) — the human's word creates/edits the `components/_client/registers/` file; follow-up notes tell the restating procedures' drafters to replace local copies with references |
+| **adopt as source** | one-off: another area's SOURCED walkthrough genuinely answers a question inside this area's own scope | the note names the exact `adopt` command; the orchestrator runs it |
+
+**Triage before routing** (the analysis's diagnostic questions, distilled
+into the brief's rules): is the fact owned by another L1 (→ handoff)? is it
+volatile shared data two-plus areas keep needing (→ promote)? is it a
+one-off evidence match (→ adopt)? is it a POLICY / CONTROL-DESIGN /
+CONFIGURATION question (→ none of the above: reported to the human
+unresolved, like a conflict — no drafter may "resolve" a policy gap with
+prose)? Adoption of shared-fact prose is named in the brief as the
+anti-pattern.
+
+Report-don't-guess holds: a match the agent cannot place confidently rides
+back in its return status, never the bus. Ownership calls stay human (the
+audit's existing gate).
+
+### 2b. Engagement registers — creation, update, consumption
+
+Registers live at `components/_client/registers/*` — the human's territory
+(their content is a management decision: no agent has authority over an
+approval threshold). Lifecycle, all on existing machinery:
+
+- **Creation:** agent-proposed (the pass's status), human-worded (the
+  orchestrator may write the file on the user's explicit go-ahead).
+  Cold-start on a real engagement: seed from the user's seam analysis
+  (accounting-date matrix, approval matrix, system-of-record matrix
+  first — its own top-priority list).
+- **Update:** edit the one engagement file; M13 resolution propagates it
+  to every area. An area that genuinely differs shadows the key with its
+  own `_client/` copy — divergence explicit, provenance reported. Because
+  procedures REFERENCE registers rather than restating values, a register
+  edit normally needs zero drafter dispatches — that is the economic
+  argument for the whole layer.
+- **Consumption (build items):** `brief.py` (drafter + consolidator
+  briefs) lists `components/_client/registers/*` read-only with the rule
+  inline; the drafter contract gets the prevention rule — volatile shared
+  facts (thresholds, codes, terms, cutoff rules) are cited from the
+  register, hard-coding only for stable execution-essential values.
+- **Known limitation (deferred):** nothing yet flags a procedure that
+  hard-codes a register value anyway; a future reconcile check can grep
+  register values against prose once registers carry real content. The
+  shared-prose audit covers the worst of it meanwhile.
+
+### 3. `engagement.py adopt <area> --from <other-area>/<slug>` — the verb
+
+Deterministic, idempotent, and it feeds the EXISTING source pipeline
+rather than inventing one:
+
+1. copies `components/<other-area>/<fragment>` to
+   `<area>/_sources/new/adopted-<other-area>-<slug>.md`;
+2. appends a `sources.yaml` entry via `sources.py`'s loaders/dumpers —
+   next `SRC-` id, `hash` stamped now (sha256, same as scaffold),
+   `state: new`, `touches: [--touches slugs]`, `note:` marking it
+   second-hand ("internal: drafted <other-area> procedure");
+3. queues a `kind: source` note (with the new `src:` id) on each touched
+   procedure — so the advisor's ordinary `apply_review` loop dispatches
+   the drafter with standard evidence discipline, no confirm gate.
+
+Re-adopting the same fragment at the same content hash is a no-op (entry
+and notes both dedupe). Holds: before writing anything, `adopt` resolves
+`client_config.holds(area, ...)`; if `adopt` is held, it prints the hold
+(area or engagement layer) and exits nonzero without touching the folder —
+M17 semantics, enforced at the verb since the advisor never schedules it.
+
+### Resolution flow (nothing new after a note lands)
+
+pass → notes queued (+ adoptions executed) → each area's ordinary
+`apply_review` → drafter reduces to a handoff OR closes the GAP citing the
+adopted `SRC-` id → aggregate / reconcile → checkpoint → the human reads a
+diff.
+
+## Where the human stays (the load-bearing bottlenecks)
+
+1. Factual conflicts between areas — no component may pick a side.
+2. Ownership calls — client-org questions, not text questions.
+3. Review kits — the engagement's bottleneck, not the system's.
+
+All three are batched and asynchronous; none is a synchronous approval.
+
+## Settled decisions
+
+1. **Duplication and gaps are one pass** (user insight): one register, one
+   agent read, one report — two symmetric finding directions.
+2. **Prose-as-source via registration only**; transitive citation covers
+   the within-area case (M12/A2), adoption covers cross-area one-offs.
+3. **Promote-to-register outranks adopt for recurring shared facts**
+   (real-engagement evidence: gaps cluster at seams and are mostly shared
+   facts, not one-off answers). Register content is human-owned;
+   proposals are agent work.
+4. **Policy / control-design / configuration gaps are never resolved by
+   any component** — classified and reported, like conflicts.
+5. **Flow-through defaults; sticky hold `adopt` is the brake.**
+6. **One agent per pass, engagement-scoped.** Value scales with migrated
+   L1s; cost does not.
+
+## Acceptance
+
+- `audit` on a two-area fixture prints section 4 with every open gap
+  (callout AND body-tag forms), grouped by area, and still writes nothing.
+- `brief` prints mechanical findings + gap register + scope digests + the
+  three-move triage rules + the command templates, read-only; it lists any
+  existing `components/_client/registers/*` files.
+- The drafter/consolidator briefs list engagement registers when present,
+  with the reference-don't-restate rule.
+- `adopt` creates copy + `SRC-` entry + `kind: source` notes exactly once
+  across two invocations (idempotent at the content hash); the entry's id
+  is fresh, its hash matches the copy, and a drafter citing it survives
+  reconcile with no dangling-citation error.
+- With `hold: [adopt]` in `_client/consult.yaml` (either layer), `adopt`
+  refuses, names the layer, and the folder is untouched.
+- A gap with no cross-area answer produces no note (report-don't-guess —
+  agent-side, exercised in the live pass rather than unit-tested).
+- Rerunning `adopt` and re-queueing identical notes adds zero new items.
+
+## Out of scope
+
+- Within-area gap resolution — M12/A2 (`gap-answer`; the area's source
+  pool is shared, so transitive citation suffices there).
+- Auto-adoption without a queued note naming it (the note is the audit
+  trail).
+- Scheduled/recurring invocation — run like the audit: occasionally, from
+  the engagement root, on a human's word.
+- Tuning the audit's heuristics (thresholds await real client-run data).

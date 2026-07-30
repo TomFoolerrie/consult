@@ -401,3 +401,135 @@ def test_callout_id_in_python_derived_prose_is_not_this_check(tmp_path, capsys):
                                "Open gaps: GAP-01 remains unconfirmed.\n"))
     rc, out = run(area, capsys)
     assert rc == 0, out
+
+
+# --------------------------------------------------------------------------- #
+# 14. hedge phrases in body prose (drafter contract: uncertainty in callouts)
+# --------------------------------------------------------------------------- #
+
+def test_hedge_phrase_in_body_prose_warns(tmp_path, capsys):
+    """'TBD' in body prose is review debt that would ship in a final export —
+    WARNING (exit 0), naming file, line and the phrase."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe match tolerance is TBD - confirm with owner.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "HEDGE IN PROSE" in out
+    assert "'TBD'" in out and "10_bank-rec.md" in out
+
+
+def test_hedge_inside_callout_is_not_flagged(tmp_path, capsys):
+    """A GAP callout is exactly where uncertainty belongs — hedge words on
+    `>` lines are the contract being followed, not broken."""
+    area = make_area(tmp_path, {"bank-rec": fragment(callouts=(
+        "> **CONTROL — CTRL-001:** Controller reviews the rec.\n\n"
+        "> **VALIDATION REQUIRED — GAP-001:** Tolerance value unconfirmed —\n"
+        "> confirm with process owner.\n"))})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "HEDGE IN PROSE" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 15. British spellings (drafter contract: American English, always)
+# --------------------------------------------------------------------------- #
+
+def test_british_spelling_warns_naming_word_and_line(tmp_path, capsys):
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe run is authorised and synchronised nightly.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "BRITISH SPELLING" in out and "'authorised'" in out
+
+
+def test_shared_spellings_never_flag(tmp_path, capsys):
+    """'analysis', 'analyst', 'advise', 'premise' are correct American
+    English — the check is a word list, not a general -ise detector."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\nThe analyst documents the analysis on this premise "
+                   "and can advise the Controller.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "BRITISH SPELLING" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 16. sheared table rows (bare '|' in cell text)
+# --------------------------------------------------------------------------- #
+
+def test_bare_pipe_in_table_cell_warns_as_sheared_row(tmp_path, capsys):
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\n| Field | Value |\n|---|---|\n"
+                   "| System | SAP | S4 job schedule |\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "SHEARED TABLE ROW" in out and "1 more cell" in out
+
+
+def test_escaped_pipe_and_short_rows_are_fine(tmp_path, capsys):
+    """`\\|` is the sanctioned escape and a row with FEWER cells than the
+    header is a writer choice — neither flags."""
+    area = make_area(tmp_path, {"bank-rec": fragment(
+        body_extra="\n| Field | Value |\n|---|---|\n"
+                   "| System | SAP \\| S4 job schedule |\n"
+                   "| Owner |\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "SHEARED TABLE ROW" not in out
+
+
+# --------------------------------------------------------------------------- #
+# 17. cross-area ownership (sibling area's procedure title in this prose)
+# --------------------------------------------------------------------------- #
+
+def _add_sibling_area(tmp_path, title="Sales Package Preparation"):
+    import json as _json
+    sib = tmp_path / "components" / "fscp"
+    sib.mkdir(parents=True)
+    (sib / "manifest.json").write_text(_json.dumps({
+        "area": "fscp", "title": "FSCP",
+        "components": [
+            {"file": "10_x.md", "role": "procedure",
+             "slug": "sales-package-preparation", "heading": title},
+            {"file": "10_y.md", "role": "procedure",
+             "slug": "close", "heading": "Close"},
+        ]}), encoding="utf-8")
+
+
+def test_naming_a_sibling_areas_procedure_warns(tmp_path, capsys):
+    """Prose naming another area's procedure title flags the ownership
+    boundary — the drafter's handoff sentence grew into documentation."""
+    _add_sibling_area(tmp_path)
+    (tmp_path / "components" / "cash").mkdir(parents=True)
+    area = make_area(tmp_path / "components" / "cash",
+                     {"bank-rec": fragment(
+                         body_extra="\nThe sales package preparation is "
+                                    "performed here by assembling the "
+                                    "schedules.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "owned by fscp/sales-package-preparation" in out
+
+
+def test_single_word_sibling_titles_never_flag(tmp_path, capsys):
+    """'Close' appears in ordinary prose constantly — one-word titles are
+    too collision-prone to be signal and are skipped."""
+    _add_sibling_area(tmp_path)
+    (tmp_path / "components" / "cash").mkdir(parents=True)
+    area = make_area(tmp_path / "components" / "cash",
+                     {"bank-rec": fragment(
+                         body_extra="\nPerform this at close of "
+                                    "business.\n")})
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "owned by fscp/close" not in out
+
+
+def test_area_outside_components_gets_a_loud_inactive_note(tmp_path, capsys):
+    """Silent inertness of the cross-area check is the failure mode the
+    note exists to prevent — an area not under components/ says so."""
+    area = make_area(tmp_path)          # tmp_path itself: not components/
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "cross-area ownership check inactive" in out
+    assert "WARNINGS" not in out        # a note, not a warning

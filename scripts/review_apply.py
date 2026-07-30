@@ -54,6 +54,8 @@ import hashlib
 import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 _SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -74,7 +76,8 @@ from docx.oxml.ns import qn  # noqa: E402
 
 UNASSIGNED = "_unassigned"
 
-_XREF_RE = re.compile(r"\[\[(#?)([a-z0-9][a-z0-9-]*)\]\]")
+_XREF_RE = re.compile(
+    r"\[\[(#?)([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 _GAPTAG_RE = re.compile(r"\[\[\s*(GAP-\d+[^\]]*?)\s*\]\]")
 _LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _CALLOUT_DEF_RE = re.compile(
@@ -210,6 +213,10 @@ def synth_rendered(logical_md: str, submap: dict, labels: dict,
         label = labels.get(m.group(2))
         if label is None:
             return m.group(0)
+        # Cross-area labels have no number to split off ([[#area/slug]] is a
+        # reconcile ERROR anyway — never emit a fabricated "number").
+        if "/" in m.group(2):
+            return label
         return label.split(" ", 1)[0] if m.group(1) else label
     text, amap = _aligned_sub(text, amap, _XREF_RE, xref)
     # 3. body gap tags: [[GAP-x — y]] → **[GAP-x — y]** → (bold strip) [·]
@@ -402,6 +409,8 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
             role_of[comp["file"]] = comp.get("role", "")
             if s:
                 slug_of_file[comp["file"]] = s
+    # M26: cross-area tokens resolve through the same labels map render uses.
+    labels.update(doc_model.cross_labels(area))
     id_map = doc_model.callout_display_ids(area)
     sub_by_slug: dict[str, dict] = {}
     for (s, local), disp in id_map.items():
@@ -568,9 +577,68 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
             applied.extend(file_applied)
         fallbacks.extend(file_failed)
 
+    # ---- untracked-edit sweep (fail-loud when enforcement was lost) ---------
+    # Word can silently stop recording: Word on the web ignores an unsalted
+    # documentProtection, and desktop Word lets anyone unlock tracking with a
+    # blank password — then an edit carries no w:ins/w:del for the loop above
+    # to see, and the reviewer's work would vanish without a trace. The map
+    # records every anchored paragraph's rendered-text hash, so silence is
+    # detectable: an anchored, mark-free paragraph whose text no longer
+    # matches its hash is an UNTRACKED edit; a map bookmark gone from the doc
+    # entirely is an untracked deletion. Both become notes, never mechanical
+    # applies — with no revision marks there is no reviewer-accepted text to
+    # verify against, so the drafter (a judgment pass) works the intent in.
+    untracked: list[dict] = []
+    seen_bms: set[str] = set()
+    for p_el in doc.element.body.iter(qn("w:p")):
+        orig, fin, meta = paragraph_texts(p_el)
+        for bm in meta["bookmarks"]:
+            seen_bms.add(bm)
+            entry = entries.get(bm)
+            if entry is None or meta["edited"]:
+                continue
+            if hashlib.sha1(fin.encode("utf-8")).hexdigest() != entry.get("hash"):
+                untracked.append({
+                    "slug": entry.get("slug") or "",
+                    "kind": "review", "type": "untracked-edit",
+                    "location": entry.get("file", "unknown file"),
+                    "anchor": _clip(fin, 160),
+                    "note": ("UNTRACKED edit: this paragraph differs from the "
+                             "rendered text but carries no revision marks — "
+                             "tracked changes were not recording. It now "
+                             f"reads: “{_clip(fin, 300)}”. Compare "
+                             "against the fragment and work the reviewer's "
+                             "intent in."),
+                    "source": path.name,
+                })
+    # A cw_ bookmark present in the doc but absent from the map is a RENAMED
+    # / corrupted anchor: its paragraph's edit already fell back with "no
+    # verified anchor", so its map entry going unseen is the same defect, not
+    # an untracked deletion — reporting both would note one event twice.
+    unknown_bms = {b for b in seen_bms if b not in entries}
+    for bm, entry in entries.items():
+        if bm not in seen_bms and not unknown_bms:
+            untracked.append({
+                "slug": entry.get("slug") or "",
+                "kind": "review", "type": "untracked-deletion",
+                "location": entry.get("file", "unknown file"),
+                "anchor": f"rendered paragraph {bm}",
+                "note": ("UNTRACKED deletion: an anchored paragraph from the "
+                         "rendered doc is gone with no revision marks — "
+                         "tracked changes were not recording. Its text is "
+                         f"still at {entry.get('file')} lines "
+                         f"{entry.get('lines')}; confirm with the reviewer "
+                         "whether it should be removed, then delete it (or "
+                         "not) deliberately."),
+                "source": path.name,
+            })
+
     # ---- fallback notes ------------------------------------------------------
     noted = 0
     per_slug: dict[str, list[dict]] = {}
+    for item in untracked:
+        slug = item.pop("slug") or UNASSIGNED
+        per_slug.setdefault(slug, []).append(item)
     for e in fallbacks:
         slug = e.entry.get("slug") or UNASSIGNED
         loc = e.entry.get("file", "unknown file")
@@ -592,6 +660,7 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
 
     report.setdefault("files", []).append({
         "docx": path.name, "applied": len(applied), "noted": noted,
+        "untracked": len(untracked),
         "details": applied,
         "fallback_reasons": sorted({e.reason for e in fallbacks if e.reason}),
     })
@@ -624,15 +693,21 @@ def main(argv=None) -> int:
 
     for s in report.get("skipped", []):
         print(f"SKIP {s}")
-    tot_a = tot_n = 0
+    tot_a = tot_n = tot_u = 0
     for fr in report.get("files", []):
         tot_a += fr["applied"]
         tot_n += fr["noted"]
+        tot_u += fr.get("untracked", 0)
         print(f"{fr['docx']}: applied {fr['applied']}, noted {fr['noted']}")
         for d in fr["details"]:
             print(f"  APPLIED {d}")
         for r in fr["fallback_reasons"]:
             print(f"  fallback: {r}")
+        if fr.get("untracked"):
+            print(f"  WARNING: {fr['untracked']} UNTRACKED edit(s)/deletion(s) "
+                  f"detected — the reviewer's Word was not recording tracked "
+                  f"changes; each is preserved as a note for a drafter, "
+                  f"nothing was applied or lost")
     print(f"total: {tot_a} applied deterministically, {tot_n} routed to notes")
     print("(comments untouched — run review_extract.py --comments-only next; "
           "it archives the docx)")

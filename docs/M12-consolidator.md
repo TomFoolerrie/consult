@@ -1,6 +1,15 @@
 # M12 — Consolidator (cross-procedure consistency pass)
 
-> **Status: DESIGNED — open questions settled.** Ready to build.
+> **Status: BUILT** (v1.8.0; amendments below — packing SHIPPED v1.9.0,
+> `gap-answer` DESIGNED). `scripts/consolidate.py` (plan / brief / note /
+> report / mark), `agents/consult-consolidator.md`, the draft-ready gate's
+> `consolidate` answer wired (`consolidated_at_basis` from
+> `.consolidate.json`), notes bus extended with `category`/`peers`
+> (consolidation items require both). One deliberate divergence from the
+> design below: the naming-majority tally, the cross-bucket digest
+> extraction, and the finding-shape validation live in the deterministic
+> script (the brief pattern), not the agent — same behaviour, enforced
+> instead of instructed.
 
 ## Goal
 
@@ -351,7 +360,74 @@ silently added a second `synthesize` + `render` on top. See Invocation.
 ## Out of scope
 
 - Cross-area consolidation (per-area first; the registry and `_client/`
-  parent config are the cross-area consistency layer — see M13).
+  parent config are the cross-area consistency layer — see M13. Cross-area
+  GAP resolution specifically is M24.)
 - Auto-applying findings.
 - Reordering procedures (manifest `order` is a human/scoping decision).
 - Retiring M11 — waves prevent, this detects; both stay (see Why).
+
+## Amendments (post-build)
+
+### A1 — Bucket-group packing (SHIPPED, v1.9.0)
+
+The first live run (run-4 inventory) measured the original one-agent-per-
+bucket fan-out as dispatch waste: 3 of 5 agents landed in single-procedure
+buckets where the ≥2-procedure evidence rule makes findings structurally
+impossible. `plan` now greedy-packs **consecutive `l2_order` buckets into
+groups under a 5-fragment budget** — buckets never split (an oversized
+bucket rides alone, over budget), 1-fragment groups fold into a neighbor,
+adjacency preserved so bucket-boundary seams (which the original design
+admitted it missed) land inside one full-text read. `brief --bucket` takes
+the comma-joined group verbatim from the plan; the orchestrator never
+regroups. **A single group covering the whole area absorbs the cross
+lens** — its brief carries the naming tally and no cross-bucket agent
+runs, since a digest read adds nothing to an agent that read everything in
+full. Measured: run-4 5 agents → 1; P2P 6 → 5 with the
+procurement/receiving seam newly in one context.
+
+Considered and rejected alongside: downgrading bucket agents to a cheaper
+model tier. Seam/sequence detection fails in the invisible direction on a
+weaker model (misses, not noise — the evidence rule blocks noise
+mechanically but nothing detects a missed seam), and the measured cost
+problem was dispatch count, which packing fixes without a quality price.
+Model choice stays a per-dispatch dial, not a default.
+
+### A2 — `gap-answer`, the sixth category (SHIPPED, v1.10.0)
+
+Within one area the source pool is shared (`sources.yaml` is area-local;
+`touches` is tagging, not access control), so a GAP in procedure A that
+procedure B answers **with a citation** has a provenance-clean resolution:
+route A's drafter to B's `SRC-` id. This is a relationship between ≥2
+procedures — squarely M12's shape — and free-rides on reads already paid
+for (group agents hold the fragments side by side; GAP callouts are in
+that text).
+
+- **Category shape:** `gap-answer` — "a GAP in your file appears answered
+  in `[[sibling]]`, which sources the statement to SRC-nnn." The `note`
+  command requires the sibling slug; it requires the SRC id whenever the
+  sibling's statement carries one (an uncited sibling statement may still
+  route the note — the drafter then treats it as a lead, not evidence).
+- **Drafter side — transitive citation (user decision):** on a
+  `gap-answer` note the drafter MAY close the GAP citing the same SRC id
+  the sibling cites, without re-reading the source (re-reading is
+  verification theater at real token cost; the ledger points at the same
+  transcript either way, and the error surface — a sibling misreading its
+  source — existed before the gap-fix). If the note carries no SRC id, the
+  drafter reads the named sibling's source list or keeps the GAP; a GAP is
+  never closed on prose alone with nothing entering the ledger.
+- **Cross-pass visibility fix:** the cross agent's digest deliberately
+  skips `>` lines, which is where GAP callouts live — so the cross brief
+  gains a mechanical **open-gap register** per procedure (aggregate's
+  parser, script-extracted). A suspected answer sitting deeper than the
+  digest goes to `needs_full_read`, as ever.
+- **Unchanged:** the consolidator never edits a GAP, never asserts the
+  answer's content; the 10-cap applies; conflicting "answers" are
+  CONFLICTS.
+- Cross-AREA gap resolution is deliberately not this category — sources do
+  not travel between areas; see M24.
+
+Framing note (M24): duplication and cross-answerable gaps are the two
+directions of one violation — "every fact has exactly one home" (a fact
+with two homes vs a fact with a broken pointer). M12's single pass raising
+`duplication` and `gap-answer` side by side is the within-area instance of
+that principle; M24 is the engagement-wide instance.

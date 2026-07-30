@@ -411,7 +411,10 @@ def test_derived_without_raci_drops_the_component_and_the_dispatch(tmp_path):
     d = orchestrate.decide(str(drafted))
     assert d["action"] == "synthesize"
     assert d["details"]["stale_kinds"] == ["dependencies"]
-    assert "raci" not in json.dumps(d["details"])
+    # details.git carries the tmp folder PATH (which contains this test's
+    # name, hence "raci") — the kind-signal claim is about everything else
+    assert "raci" not in json.dumps(
+        {k: v for k, v in d["details"].items() if k != "git"})
 
 
 # --------------------------------------------------------------------------- #
@@ -478,8 +481,12 @@ def test_body_omit_f_with_controls_register_collects_every_control(tmp_path):
 
     register = register_of(area, "89_appendix-controls.md")
     assert "<!-- derived: appendix-controls; writer: python -->" in register
-    # M23: the caption names the section by TITLE (display), never by letter.
-    assert "aggregated mechanically from the Key Controls section" in register
+    # Reviewer rule: the caption speaks client language — no pipeline
+    # vocabulary ("callout", "aggregated mechanically") and no reference to
+    # the body section it is built from (a profile may hide that section).
+    assert "Key controls identified for the processes" in register
+    assert "aggregated mechanically" not in register
+    assert "callout" not in register.lower()
     # two procedures, one control each -> the two document-global display ids,
     # each exactly once, each row carrying its procedure's [[#slug]] token
     assert register.count("CTRL-01") == 1 and register.count("CTRL-02") == 1
@@ -566,6 +573,197 @@ def test_a_profile_error_stops_the_confirm_before_it_touches_the_folder(tmp_path
         scaffold.confirm(area, "finance", taxonomy, None, None)
     assert not (area / "manifest.json").exists()
     assert (proposed / "procedures.yaml").is_file()
+
+
+# --------------------------------------------------------------------------- #
+# Manifest drift — the trap the profile validator cannot see
+#
+# The validator vouches for the PROFILE (`body_omit: [controls]` requires the
+# register in `derived:`), but render builds from the MANIFEST, written at the
+# confirm gate. A profile that acquires the omission AFTER scaffolding leaves
+# a manifest with no register component: render must refuse (or every control
+# silently leaves the document), and `scaffold.sync_profile` is the supported
+# proposal-free path that reconciles the manifest.
+# --------------------------------------------------------------------------- #
+
+def drifted_area(root):
+    """An area scaffolded BEFORE the profile existed (default derived set, no
+    controls register), whose engagement then adopted `body_omit: [F]` with
+    the register in `derived:` — a profile the validator accepts."""
+    area = drafted_area(root, profile=client_config.Profile())
+    write_profile(root, body_omit=["F"],
+                  derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
+    return area
+
+
+def test_render_refuses_a_manifest_missing_the_controls_register(tmp_path):
+    """The valid-profile / stale-manifest combination fails the render loudly,
+    naming the register, the loss, and the sync command — never a document
+    with the controls silently gone."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+    assert "appendix-controls" not in derived_kinds(area)
+
+    with pytest.raises(SystemExit) as exc:
+        render.render_folder(area, area / "draft.docx", emit_signal=False)
+    message = str(exc.value)
+    assert "appendix-controls" in message and "drop them" in message
+    assert "--sync-profile" in message
+    assert not (area / "draft.docx").exists()
+
+
+def test_sync_profile_adds_the_register_and_render_recovers(tmp_path):
+    """`sync_profile` adds the register component + stub without a `.proposed/`
+    round; after aggregate the render succeeds and collects every control —
+    the same end state a fresh confirm would have produced."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+
+    assert scaffold.sync_profile(area) == 0
+    assert "appendix-controls" in derived_kinds(area)
+    assert (area / "89_appendix-controls.md").is_file()
+    # non-derived components survived byte-for-byte
+    assert [c["slug"] for c in manifest_of(area)["components"]
+            if c.get("role") == "procedure"] == ["bank-rec", "payment-run"]
+
+    assert aggregate.run(str(area)) == 0
+    text = rendered_text(area)
+    assert "CONTROL —" not in text             # still out of the body...
+    assert "Key Controls Register" in text     # ...but the register caught them
+    assert "CTRL-01" in text and "CTRL-02" in text
+
+
+def test_sync_profile_is_idempotent_and_only_touches_the_derived_set(tmp_path):
+    """A second sync is a byte-level no-op; dropping a kind from `derived:`
+    removes only the manifest entry — the file stays on disk, exactly the
+    removal semantics a fresh confirm has."""
+    root = engagement(tmp_path)
+    area = drifted_area(root)
+    assert scaffold.sync_profile(area) == 0
+    before = (area / "manifest.json").read_bytes()
+    assert scaffold.sync_profile(area) == 0
+    assert (area / "manifest.json").read_bytes() == before
+
+    write_profile(root, body_omit=["F"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "raci"] + ["appendix-controls"])
+    assert scaffold.sync_profile(area) == 0
+    assert "raci" not in derived_kinds(area)
+    assert (area / "84_raci.md").is_file()     # scaffold never deletes
+
+
+def test_controls_homeless_render_reports_dangling_control_references(tmp_path):
+    """A profile may deliberately drop `controls` from `sections:` (the "this
+    document carries no controls" shape — sanctioned, unlike the body_omit
+    trap). A prose mention of a control id then dangles for the reader, in
+    EVERY mode, so render counts and enumerates it like final-mode gap refs."""
+    root = engagement(tmp_path)
+    write_profile(root, sections=[s for s in client_config.ALL_SECTIONS
+                                  if s != "controls"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; constrained by CTRL-001."),
+        encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_refs"] == {"bank-rec": ["CTRL-01"]}
+    assert stats["dangling_ref_count"] == 1
+    text = rendered_text(area, "d2.docx")
+    assert "Key Controls" not in text          # the section really is gone
+    assert "CTRL-01" in text                   # ...and the prose ref dangles
+
+
+def test_controls_in_the_register_do_not_dangle(tmp_path):
+    """The register shape (body_omit + appendix-controls) gives every control
+    id a home the reader can look up, so the same prose reference is NOT
+    reported."""
+    root = engagement(tmp_path)
+    write_profile(root, body_omit=["F"],
+                  derived=client_config.DEFAULT_DERIVED + ["appendix-controls"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; constrained by CTRL-001."),
+        encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_refs"] == {}
+    assert stats["dangling_ref_count"] == 0
+
+
+def test_body_omit_issues_without_appendix_a_is_a_named_error(tmp_path):
+    """The cross-field rule covers the pain-point register too: hiding
+    `issues` from the body while removing `appendix-a` from `derived:` would
+    make every PAIN POINT / IMPROVEMENT OPPORTUNITY vanish — refused, named,
+    exactly like the controls rule."""
+    root = engagement(tmp_path)
+    write_profile(root, body_omit=["issues"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "appendix-a"])
+    with pytest.raises(ProfileError) as exc:
+        client_config.profile(root / "treasury")
+    message = str(exc.value)
+    assert "body_omit" in message and "appendix-a" in message
+    assert "vanish" in message and "PAIN POINT" in message
+
+
+def test_render_refuses_a_manifest_missing_the_pain_point_register(tmp_path):
+    """Manifest drift, issues flavor: the manifest was built without
+    appendix-a (a profile that dropped it), then the profile switched to
+    body_omit issues WITH the register — valid profile, stale manifest.
+    Render refuses and names --sync-profile, exactly like the controls case."""
+    root = engagement(tmp_path)
+    area = drafted_area(root, profile=client_config.Profile(
+        derived=[k for k in client_config.DEFAULT_DERIVED
+                 if k != "appendix-a"]))
+    write_profile(root, body_omit=["issues"],
+                  derived=client_config.DEFAULT_DERIVED)
+    assert "appendix-a" not in derived_kinds(area)
+
+    with pytest.raises(SystemExit) as exc:
+        render.render_folder(area, area / "d.docx", emit_signal=False)
+    message = str(exc.value)
+    assert "appendix-a" in message and "--sync-profile" in message
+
+    assert scaffold.sync_profile(area) == 0
+    assert "appendix-a" in derived_kinds(area)
+    assert aggregate.run(str(area)) == 0
+    render.render_folder(area, area / "d.docx", emit_signal=False)
+
+
+def test_issues_homeless_render_reports_dangling_pp_references(tmp_path):
+    """`issues` dropped from `sections:` with no appendix-a register: a prose
+    mention of a pain-point id dangles and is reported, same as controls."""
+    root = engagement(tmp_path)
+    write_profile(root,
+                  sections=[s for s in client_config.ALL_SECTIONS
+                            if s != "issues"],
+                  derived=[k for k in client_config.DEFAULT_DERIVED
+                           if k != "appendix-a"])
+    area = drafted_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8").replace(
+        "Covers the monthly reconciliation only.",
+        "Covers the monthly reconciliation only; the export burden is "
+        "recorded as PP-001."), encoding="utf-8")
+
+    stats = render.render_folder(area, area / "d.docx", emit_signal=False)
+    assert stats["dangling_refs"] == {"bank-rec": ["PP-01"]}
+    assert stats["dangling_ref_count"] == 1
+
+
+def test_sync_profile_refuses_an_unscaffolded_area(tmp_path):
+    """A fresh area has no manifest to reconcile — that is the confirm gate's
+    job, and the refusal says so."""
+    root = engagement(tmp_path)
+    area = root / "treasury"
+    area.mkdir()
+    with pytest.raises(SystemExit) as exc:
+        scaffold.sync_profile(area)
+    assert "confirm" in str(exc.value)
 
 
 # --------------------------------------------------------------------------- #
@@ -786,7 +984,8 @@ def test_render_strips_are_line_count_preserving(tmp_path):
     text = fragment("Bank Reconciliation", "bank-rec", "CTRL-001", "PP-001")
     prof = client_config.parse_profile({"sections": list("ABCDEFGH"),
                                         "body_omit": ["F", "H"],
-                                        "derived": ["appendix-controls"]})
+                                        "derived": ["appendix-controls",
+                                                    "appendix-a"]})
     stripped = render._apply_profile(text, prof)
     assert stripped.count("\n") == text.count("\n")
     assert "Key Controls" not in stripped and "Known Issues" not in stripped

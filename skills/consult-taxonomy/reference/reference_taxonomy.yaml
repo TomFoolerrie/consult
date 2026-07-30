@@ -48,6 +48,16 @@ taxonomy:
         - { name: Reporting, slug: reporting }
         - { name: Accounting Policy, slug: accounting-policy }
 
+    - name: Fixed Assets
+      slug: fixed-assets
+      subcategories:
+        - { name: Acquisition & Capitalization, slug: acquisition-and-capitalization }
+        - { name: Construction in Progress, slug: construction-in-progress }
+        - { name: Asset Register Maintenance, slug: asset-register-maintenance }
+        - { name: Depreciation & Amortization, slug: depreciation-and-amortization }
+        - { name: Transfers, Disposals & Retirements, slug: transfers-disposals-and-retirements }
+        - { name: Physical Verification & Impairment, slug: physical-verification-and-impairment }
+
     - name: Financial Planning & Analysis
       slug: fpa
       subcategories:

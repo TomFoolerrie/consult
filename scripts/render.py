@@ -78,6 +78,8 @@ import hashlib
 import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 import uuid
 from pathlib import Path
 
@@ -172,6 +174,51 @@ def _strip_consult_meta(text: str) -> str:
 
 
 _CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
+
+#: Citation scrub (final mode only). SRC-## ids are the drafters' provenance
+#: citations and GAP-## ids point at callouts/log rows that final mode strips —
+#: neither belongs in a client-facing export. Only two UNAMBIGUOUS shapes are
+#: removed mechanically: a parenthetical containing NOTHING but citation ids
+#: ("(SRC-002, SRC-005)", "(see GAP-011)") and a pure-citation sentence
+#: ("See GAP-012 and GAP-014."). An id woven into sentence meaning ("; see
+#: GAP-011, which is unresolved") is prose — it is never auto-edited; it falls
+#: through to the dangling-reference warning for a human to reword.
+#: Fragments hard-wrap prose at ~80 columns, so a citation may span a line
+#: break; _WS allows AT MOST ONE newline so a match can rejoin a wrapped
+#: paragraph but can never swallow a blank line (a paragraph boundary).
+_WS = r"[ \t]*(?:\n[ \t]*)?"
+_CITE_ID = r"(?:SRC|GAP)-\d+"
+_CITE_PAREN_RE = re.compile(
+    rf"{_WS}\({_WS}(?:see{_WS})?{_CITE_ID}"
+    rf"(?:{_WS}(?:[,;]|\band\b){_WS}{_CITE_ID})*{_WS}\)",
+    re.IGNORECASE)
+_CITE_SENTENCE_RE = re.compile(
+    rf"{_WS}\bSee{_WS}{_CITE_ID}"
+    rf"(?:{_WS}(?:[,;]|\band\b){_WS}{_CITE_ID})*{_WS}\.")
+#: What the scrub could not remove — the final-mode dangling-reference detector
+#: (formerly GAP-only; SRC ids dangle identically once sources.yaml is not
+#: shipped with the deliverable).
+_GAP_ID_RE = re.compile(rf"\b{_CITE_ID}\b")
+
+
+def _scrub_citations(text: str, stats: dict) -> str:
+    text, n1 = _CITE_PAREN_RE.subn("", text)
+    text, n2 = _CITE_SENTENCE_RE.subn("", text)
+    # Sentence skeletons left when the [[GAP-…]] tag strip deleted the whole
+    # object of a "see" clause: "owner. See ." / "owner. See and ." (the tag
+    # opened its own sentence) and "unconfirmed — see." / "— see ." (a
+    # trailing dash clause). Then seam repair: a space stranded before
+    # punctuation and doubled interior spaces — both anchored on a following
+    # non-space so a trailing double space (markdown hard break) survives.
+    text = re.sub(rf"(?:(?<=[.!?])|(?<=\n))[ \t]*\bSee(?:[ \t]+and\b)*"
+                  rf"{_WS}[,;]?[ \t]*\.", "", text)
+    text = re.sub(rf"[ \t]*[—–-][ \t]*\bsee(?:[ \t]+and\b)*{_WS}[,;]?[ \t]*"
+                  rf"(?=\.)", "", text, flags=re.IGNORECASE)
+    if n1 or n2:
+        text = re.sub(r" +([.,;:!?])", r"\1", text)
+        text = re.sub(r"(?<=\S)  +(?=\S)", " ", text)
+    stats["citations_scrubbed"] += n1 + n2
+    return text
 
 
 def _rewrite_callout_ids(text: str, submap: dict) -> str:
@@ -391,7 +438,13 @@ def _hide_callout_details(text: str) -> str:
             i += 1
             continue
         if in_callout and callouts.is_callout_field(ln, callouts.DETAIL_FIELD):
-            out[i] = ""
+            # Blank to a bare `>` — NOT to an empty line. The line count is
+            # preserved either way (provenance), but a fully blank line ends
+            # the blockquote, so the converter would split one callout into
+            # two boxes around the hidden detail (label + note above, the
+            # remaining sub-fields below, a page gap between). A bare quote
+            # marker keeps the block contiguous and renders nothing.
+            out[i] = ">"
             i += 1
             # A wrapped value continues over plain `>` lines until the next
             # sub-field bullet, the next callout, or the end of the block —
@@ -402,7 +455,7 @@ def _hide_callout_details(text: str) -> str:
                         or _CALLOUT_LABEL_RE.match(nxt)
                         or callouts.callout_field(nxt)):
                     break
-                out[i] = ""
+                out[i] = ">"
                 i += 1
             continue
         i += 1
@@ -466,6 +519,41 @@ def _lead_conditions(text: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# RACI display ordering — like letters and display numbers, row order is a
+# render-time concern: the derived file's authored order is never rewritten.
+# --------------------------------------------------------------------------- #
+_RACI_ROW_SLUG_RE = re.compile(r"^\|\s*\[\[\s*([a-z0-9][a-z0-9-]*)\s*\]\]")
+_TABLE_SEP_RE = re.compile(r"^\s*\|?[\s|:\-]+\|?\s*$")
+
+
+def _order_raci_rows(text: str, numbers) -> str:
+    """Sort the RACI matrix's activity rows into procedure display-number
+    order (1.1, 1.2, … 2.1). Fires only when EVERY row of the table leads
+    with a resolvable `[[slug]]` token — anything else (a hand-added row, an
+    unknown slug) leaves the authored order untouched rather than guessing."""
+    lines = text.split("\n")
+    for i, ln in enumerate(lines):
+        if not (ln.lstrip().startswith("|") and i + 1 < len(lines)
+                and "-" in lines[i + 1] and _TABLE_SEP_RE.match(lines[i + 1])):
+            continue
+        j = i + 2
+        rows = []
+        while j < len(lines) and lines[j].lstrip().startswith("|"):
+            rows.append(lines[j])
+            j += 1
+        keys = []
+        for r in rows:
+            m = _RACI_ROW_SLUG_RE.match(r.lstrip())
+            num = numbers.get(m.group(1)) if m else None
+            if not num:
+                return text
+            keys.append(tuple(int(x) for x in num.split(".")))
+        ordered = [r for _, r in sorted(zip(keys, rows), key=lambda t: t[0])]
+        return "\n".join(lines[:i + 2] + ordered + lines[j:])
+    return text
+
+
+# --------------------------------------------------------------------------- #
 # Final-mode transforms (line count NOT preserved — final mode has no
 # provenance; there is no review round against a final deliverable)
 # --------------------------------------------------------------------------- #
@@ -522,12 +610,16 @@ def _final_transform(text: str, slug: str, folder: Path,
                 stats["screens_placeholder"] += 1
                 out.extend(lines[block_start:i])
             continue
-        # inline body gap tags vanish in final mode
-        stripped, n = re.subn(r"\s*\[\[\s*GAP-[^\]]*\]\]", "", ln)
-        stats["gap_tags_stripped"] += n
-        out.append(stripped)
+        out.append(ln)
         i += 1
-    return "\n".join(out)
+    # Inline body gap tags vanish in final mode. Whole-text, because fragments
+    # hard-wrap prose: the tag (and the whitespace before it) may span a line
+    # break; at most one newline is consumed so a blank line (paragraph
+    # boundary) never is.
+    joined, n = re.subn(r"[ \t]*(?:\n[ \t]*)?\[\[[ \t]*GAP-[^\]]*\]\]", "",
+                        "\n".join(out))
+    stats["gap_tags_stripped"] += n
+    return joined
 
 
 # --------------------------------------------------------------------------- #
@@ -611,7 +703,7 @@ def _heading_for(section, numbers) -> str:
     return heading
 
 
-def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
+def render_folder(folder: Path, out: Path, *,
                   landscape: bool = False, do_cover: bool = True,
                   mode: str = "working", slugs: list[str] | None = None,
                   track_changes: bool = False, emit_signal: bool = True) -> dict:
@@ -622,6 +714,46 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
     doc_model.validate_manifest(manifest)
+    # The profile validator's cross-field rule refuses a `body_omit:` section
+    # whose register is not in `derived:` — but it can only vouch for the
+    # PROFILE. Registers are manifest components, written at the confirm gate
+    # (enforcement point 1); a profile that acquired the omission after that
+    # gate ran would blank the section from every body below while the
+    # manifest lists no register to catch the callouts, and they would
+    # silently leave the document. Same table, same rule, re-checked here
+    # against what this render actually builds from.
+    manifest_registers = {c.get("derived_kind")
+                          for c in manifest.get("components", [])}
+    for section, (register, what) in client_config.BODY_OMIT_REGISTERS.items():
+        if section in profile.body_omit and register not in manifest_registers:
+            raise SystemExit(
+                f"error: the profile's `body_omit:` hides the `{section}` "
+                f"section from the procedure body, but this manifest lists no "
+                f"`{register}` component to catch the {what} — rendering "
+                f"would drop them from the document. The manifest predates "
+                f"the profile change: run `python3 scripts/scaffold.py "
+                f"--sync-profile --area {folder}` to add the register, "
+                f"re-aggregate, then re-render."
+            )
+    # Callout kinds with no HOME at all — the profile deliberately drops the
+    # kind's home section from `sections:` (or the kind itself from
+    # `callouts:`) with no register in the manifest. Sanctioned, unlike the
+    # body_omit trap refused above: it declares "this document carries no
+    # controls / pain points". But a prose mention of such an id ("...the
+    # assurance provided by CTRL-31") then dangles for the reader exactly
+    # like a final-mode gap reference — and in EVERY mode, because the hole
+    # is profile-shaped, not export-shaped. Driven entirely by the shared
+    # registries (label -> home section -> register), so a new kind or
+    # register is covered by its table rows.
+    homeless_prefixes = sorted(
+        callouts.LABEL_TO_PREFIX[label]
+        for label, home in callouts.LABEL_TO_HOME_SECTION.items()
+        if home in client_config.BODY_OMIT_REGISTERS
+        and client_config.BODY_OMIT_REGISTERS[home][0] not in manifest_registers
+        and (home in profile.dropped_sections()
+             or label in profile.dropped_callouts()))
+    homeless_re = (re.compile(r"\b(?:%s)-\d+\b" % "|".join(homeless_prefixes))
+                   if homeless_prefixes else None)
     numbers = doc_model.display_numbers(manifest)
     # Token resolution map: [[slug]] -> "1.1 Vendor Onboarding". Bare numbers
     # are correct for section headings, but in prose and derived tables (where
@@ -635,6 +767,11 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             labels[slug] = f"{labels[slug]} {comp['heading']}"
         if slug:
             l2_of[slug] = comp.get("l2", "")
+    # M26 cross-area tokens: [[area/slug]] -> "Heading (Area Title)". Under a
+    # components/ root every sibling procedure resolves; elsewhere the map is
+    # empty and a cross token fails loud (KeyError) rather than reaching Word
+    # as raw brackets — reconcile reports the same defect first.
+    labels.update(doc_model.cross_labels(folder))
     assembled = doc_model.assemble(folder)
 
     # Global callout display IDs (drafters number locally from 01; the global
@@ -651,6 +788,9 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
+             "citations_scrubbed": 0,
+             "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
+             "dangling_refs": {}, "dangling_ref_count": 0,
              "screens_embedded": 0, "screens_placeholder": 0,
              "profile": profile.report_line()}
 
@@ -672,6 +812,46 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
         body_lines.append(line)
         origins.append(origin)
 
+    # L2 chapter dividers — display glue, exactly like the numbers themselves.
+    # The body gives sub-process boundaries no signal (1.3 is followed by 2.1
+    # with nothing between) while the appendix registers already group their
+    # rows by L2: the body claims a hierarchy it never shows. Before the first
+    # procedure of each bucket this emits `# {ordinal}. {Title}` — ordinal from
+    # the same l2_order index display_numbers uses, title by the same titleize
+    # rule aggregate's l2_titles applies — and one `# Reference & Appendices`
+    # before the back matter, so the TOC does not nest the registers under the
+    # last sub-process. H1 is otherwise unused in folder docs; the converter
+    # gives it a page break. Kit (subset) docs carry no dividers: a chapter
+    # head over a single excerpted procedure is noise.
+    l2_ordinal = {l2: i for i, l2 in
+                  enumerate(manifest.get("l2_order", []) or [], start=1)}
+    divider_state = {"l2": None, "front": False, "in_procedures": False,
+                     "backmatter": False}
+
+    def emit_divider(section, role, slug):
+        if subset:
+            return
+        if role == "procedure":
+            divider_state["in_procedures"] = True
+            l2 = l2_of.get(slug, "")
+            if l2 and l2 != divider_state["l2"]:
+                divider_state["l2"] = l2
+                title = l2.replace("-", " ").title()
+                emit(f"# {l2_ordinal.get(l2, '')}. {title}".replace("# . ", "# "))
+                emit("")
+        elif not divider_state["in_procedures"]:
+            # Front matter (Process Overview, the reader-orientation views)
+            # gets the same chapter treatment, or it floats parentless above
+            # chapter 1 in the TOC and on the page.
+            if not divider_state["front"]:
+                divider_state["front"] = True
+                emit("# Introduction")
+                emit("")
+        elif not divider_state["backmatter"]:
+            divider_state["backmatter"] = True
+            emit("# Reference & Appendices")
+            emit("")
+
     for section in _sections(assembled):
         role = _attr(section, "role")
         slug = _attr(section, "slug") or ""
@@ -681,6 +861,9 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             continue
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
+        if _attr(section, "derived_kind") == "raci":
+            # BEFORE token resolution, which replaces the [[slug]] sort keys.
+            raw_body = _order_raci_rows(raw_body, numbers)
         if role == "procedure":
             submap = ids_by_slug.get(slug, {})
             if submap:
@@ -697,6 +880,35 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             raw_body = _final_transform(
                 raw_body, slug, folder,
                 disp_to_local_by_slug.get(slug, {}), stats)
+        if mode == "final":
+            # Citation scrub — EVERY section (derived registers and static
+            # front/back matter cite sources too, not just procedures), after
+            # every other body transform so it sees what the reader would.
+            raw_body = _scrub_citations(raw_body, stats)
+            # What the scrub cannot reach: an id woven into sentence meaning
+            # ("... see GAP-37, which is unresolved") whose DEFINITION —
+            # callout, gap-log row, sources.yaml entry — never reaches the
+            # final reader. Reconcile cannot flag these (in the FRAGMENTS the
+            # ids are still defined), and meaning-bearing prose cannot be
+            # rewritten mechanically without risking the deliverable's
+            # wording — so they are counted and enumerated for the human
+            # running the export. Gap refs also clean themselves up through
+            # the review round: closing a gap deletes its callout, at which
+            # point the same prose mention DOES dangle at reconcile and the
+            # drafter must remove it.
+            refs = _GAP_ID_RE.findall(raw_body)
+            if refs:
+                key = slug or heading or "front-matter"
+                stats["dangling_gap_refs"][key] = sorted(set(refs))
+                stats["dangling_gap_ref_count"] += len(refs)
+        if homeless_re is not None and role == "procedure":
+            # Scanned AFTER every body transform, so it counts what the
+            # reader of THIS mode actually sees (a final-mode strip can
+            # remove a gap callout whose note cited a control).
+            refs = homeless_re.findall(raw_body)
+            if refs:
+                stats["dangling_refs"][slug] = sorted(set(refs))
+                stats["dangling_ref_count"] += len(refs)
         body = _clean_body(raw_body, labels)
         if mode == "final":
             body = body.strip("\n")
@@ -708,6 +920,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
             profile_md = body
             continue
 
+        emit_divider(section, role, slug)
         emit(f"## {_heading_for(section, numbers)}")
         emit("")
         if body.strip("\n"):
@@ -726,7 +939,7 @@ def render_folder(folder: Path, out: Path, *, include_toc: bool = False,
     doc_id = uuid.uuid4().hex[:12]
     cfgi.convert_assembled(
         body_md, out, title=title, subtitle=subtitle, profile_md=profile_md,
-        include_toc=include_toc, landscape=landscape, do_cover=do_cover,
+        include_toc=not subset, landscape=landscape, do_cover=do_cover,
         prov=prov, track_changes=track_changes,
     )
     stats["docx"] = str(out)
@@ -796,7 +1009,10 @@ def main(argv=None) -> int:
                     help="comma-separated procedure slugs — subset (kit) render")
     ap.add_argument("--track-changes", action="store_true",
                     help="emit the docx with tracked changes on by default")
-    ap.add_argument("--include-toc", action="store_true", help="Insert a generated Table of Contents")
+    ap.add_argument("--include-toc", action="store_true",
+                    help="single-file input only: insert a Table of Contents "
+                         "(folder renders ALWAYS carry one; kit/subset "
+                         "renders never do)")
     ap.add_argument("--landscape", action="store_true", help="Use landscape orientation")
     ap.add_argument("--no-cover", action="store_true", help="Skip the generated cover page")
     a = ap.parse_args(argv)
@@ -807,7 +1023,7 @@ def main(argv=None) -> int:
     if kind == "folder":
         slugs = [s.strip() for s in a.slugs.split(",") if s.strip()] if a.slugs else None
         stats = render_folder(
-            path, out, include_toc=a.include_toc, landscape=a.landscape,
+            path, out, landscape=a.landscape,
             do_cover=do_cover, mode=a.mode, slugs=slugs,
             track_changes=a.track_changes)
         print("Wrote " + str(out))
@@ -815,8 +1031,33 @@ def main(argv=None) -> int:
         if a.mode == "final":
             print(f"final mode: stripped {stats['gaps_stripped']} open gap callout(s) "
                   f"+ {stats['gap_tags_stripped']} inline tag(s); "
+                  f"scrubbed {stats['citations_scrubbed']} SRC/GAP citation(s); "
                   f"{stats['screens_embedded']} screenshot(s) embedded, "
                   f"{stats['screens_placeholder']} placeholder(s) remain")
+            if stats["dangling_gap_ref_count"]:
+                print(f"WARNING: {stats['dangling_gap_ref_count']} SRC/GAP "
+                      f"reference(s) survive in ordinary prose — they are "
+                      f"woven into sentence meaning, so the citation scrub "
+                      f"could not remove them mechanically, and what they "
+                      f"point at is not in this final render:")
+                for pslug, ids in sorted(stats["dangling_gap_refs"].items()):
+                    print(f"  {pslug}: " + ", ".join(ids))
+                print("  close gaps through the review round (once a gap "
+                      "closes, its leftover prose reference fails reconcile "
+                      "until the drafter removes it), or hand-edit the prose "
+                      "before shipping this export")
+        # Profile-shaped, so it applies in EVERY mode — a working draft
+        # without a home for these kinds has the same holes its final would.
+        if stats["dangling_ref_count"]:
+            print(f"WARNING: {stats['dangling_ref_count']} dangling callout "
+                  f"reference(s) survive in prose — this profile gives their "
+                  f"kind no home (no section in the body, no register in the "
+                  f"manifest):")
+            for pslug, ids in sorted(stats["dangling_refs"].items()):
+                print(f"  {pslug}: " + ", ".join(ids))
+            print("  keep the section, or hide it with `body_omit` plus its "
+                  "register (scaffold.py --sync-profile adds a register to a "
+                  "scaffolded area), or reword the prose before shipping")
     else:
         if a.mode != "working" or a.slugs or a.track_changes:
             raise SystemExit("error: --mode/--slugs/--track-changes require an area folder")

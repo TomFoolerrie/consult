@@ -71,8 +71,11 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
+
+import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 from pathlib import Path
 
 try:
@@ -431,6 +434,183 @@ def check_src_citations(folder: Path, manifest: dict, errors: list[str],
             )
 
 
+#: Hedge phrases that mark uncertainty. The drafter contract routes
+#: uncertainty into GAP callouts (which final mode strips); a hedge in body
+#: prose ships to the client, so it is flagged — WARNING, not ERROR, because
+#: fragments drafted under the older contract are full of them and the fix
+#: is editorial, not blocking.
+HEDGE_RE = re.compile(
+    r"\bTBD\b|\bunconfirmed\b|\bnot\s+confirmed\b|\bno\s+source\b",
+    re.IGNORECASE)
+
+
+#: Common British business spellings (drafter contract: American English,
+#: always). A targeted word list, NOT a general -ise detector — "advise",
+#: "premise", "raise", "analysis" and "analyst" are shared spellings and must
+#: never flag.
+BRITISH_RE = re.compile(
+    r"\b\w*(?:synchronis|organis|standardis|authoris|finalis|prioritis"
+    r"|recognis|categoris|centralis|formalis|normalis|utilis|minimis"
+    r"|maximis|itemis|capitalis|operationalis|analys(?:e|ed|ing)"
+    r"|colour|behaviour|favour|licenc|programme)\w*\b"
+    r"|\bcentre\b|\bwhilst\b|\bamongst\b",
+    re.IGNORECASE)
+
+
+def check_british_spellings(folder: Path, manifest: dict,
+                            warnings: list[str]) -> None:
+    """American English, always (drafter contract). Sources may speak British;
+    the fragment must not. WARNING — editorial, not blocking."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            m = BRITISH_RE.search(line)
+            if m:
+                warnings.append(
+                    f"{file}:{n}: BRITISH SPELLING ('{m.group(0)}') — the "
+                    f"drafter contract requires American English"
+                )
+
+
+def _sibling_procedures(folder: Path) -> list[tuple[str, str, str]]:
+    """(area, slug, title) for every procedure in every SIBLING area — the
+    other manifests under the same components/ parent. Unreadable manifests
+    are skipped: this feeds an advisory check, not a gate."""
+    out: list[tuple[str, str, str]] = []
+    parent = folder.resolve().parent
+    # Only the canonical engagement layout (components/<area>) has siblings;
+    # an area parked anywhere else must not scan its unrelated neighbors.
+    if parent.name != "components" or not parent.is_dir():
+        return out
+    for sib in sorted(parent.iterdir()):
+        if not sib.is_dir() or sib.resolve() == folder.resolve() \
+                or sib.name.startswith(("_", ".")):
+            continue
+        mpath = sib / "manifest.json"
+        if not mpath.is_file():
+            continue
+        try:
+            data = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for comp in data.get("components", []):
+            if comp.get("role") == "procedure":
+                title = (comp.get("heading") or "").strip()
+                if title:
+                    out.append((sib.name, comp.get("slug", "?"), title))
+    return out
+
+
+def check_cross_area_ownership(folder: Path, manifest: dict,
+                               warnings: list[str]) -> None:
+    """One process is never documented in two L1s (the client-taxonomy
+    boundary rule) — but [[slug]] tokens only resolve within an area, so a
+    drafter describing a SIBLING AREA's activity has no reference to reach
+    for and documents it inline instead. This check makes that visible: a
+    fragment whose prose contains another area's procedure TITLE is flagged.
+    Advisory (a legitimate one-sentence handoff mention also matches); the
+    fix is the drafter's ownership rule — one handoff sentence, no steps.
+    Single-word titles are skipped (too collision-prone to be signal)."""
+    if folder.resolve().parent.name != "components":
+        # Silent inertness is the failure mode this line exists to prevent:
+        # an area run outside the engagement layout gets NO cross-L1
+        # protection, and nothing else says so. A note, not a WARNING — a
+        # deliberately standalone area is legitimate.
+        print(f"note: cross-area ownership check inactive — {folder} is "
+              f"not under a components/ engagement root, so sibling areas "
+              f"are not visible")
+        return
+    sibs = [(a, s, t) for a, s, t in _sibling_procedures(folder)
+            if len(t.split()) >= 2]
+    if not sibs:
+        return
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        text = strip_fences(raw).lower()
+        for area_name, slug, title in sibs:
+            if title.lower() in text:
+                warnings.append(
+                    f"{file}: names '{title}' — an activity owned by "
+                    f"{area_name}/{slug} (another area): describe the "
+                    f"handoff in one sentence; never document another "
+                    f"area's procedure"
+                )
+
+
+_TABLE_SEP_ROW_RE = re.compile(r"^\s*\|?[\s|:\-]+\|?\s*$")
+
+
+def _cell_count(line: str) -> int:
+    """Cells in a markdown table row, honoring the `\\|` escape."""
+    line = line.strip()
+    if line.startswith("|"):
+        line = line[1:]
+    if line.endswith("|") and not line.endswith("\\|"):
+        line = line[:-1]
+    return len(re.split(r"(?<!\\)\|", line))
+
+
+def check_table_shape(folder: Path, manifest: dict,
+                      warnings: list[str]) -> None:
+    """A table row with MORE cells than its header is almost always a bare
+    `|` in cell text shearing the row (drafter contract: escape it `\\|`).
+    The render ships the sheared shape silently — a phantom column and every
+    later cell one over — so it is flagged here. Fewer cells than the header
+    is not flagged: writers legitimately leave trailing cells off."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        lines = strip_fences(raw).splitlines()
+        for i, line in enumerate(lines):
+            if "|" not in line or i + 1 >= len(lines):
+                continue
+            nxt = lines[i + 1]
+            if not ("-" in nxt and _TABLE_SEP_ROW_RE.match(nxt)):
+                continue
+            width = _cell_count(line)
+            j = i + 2
+            while j < len(lines) and lines[j].strip() and "|" in lines[j]:
+                extra = _cell_count(lines[j]) - width
+                if extra > 0:
+                    warnings.append(
+                        f"{file}:{j + 1}: SHEARED TABLE ROW — {extra} more "
+                        f"cell(s) than the header; a bare '|' in cell text "
+                        f"splits the row (escape it as '\\|')"
+                    )
+                j += 1
+
+
+def check_hedge_prose(folder: Path, manifest: dict,
+                      warnings: list[str]) -> None:
+    """Uncertainty lives in callouts, never in body prose (drafter contract).
+    A hedge phrase on a non-callout line of a filled procedure fragment would
+    survive into the client export — callouts strip, prose does not."""
+    for comp in _components(manifest, role="procedure"):
+        raw = _read(folder, comp)
+        if raw is None or UNFILLED_RE.search(raw):
+            continue
+        file = comp.get("file", "")
+        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+            if line.lstrip().startswith(">"):
+                continue
+            m = HEDGE_RE.search(line)
+            if m:
+                warnings.append(
+                    f"{file}:{n}: HEDGE IN PROSE ('{m.group(0)}') — "
+                    f"uncertainty belongs in a GAP callout (strippable), not "
+                    f"body prose; state what is established and raise a gap "
+                    f"for the rest"
+                )
+
+
 def check_touches(folder: Path, errors: list[str]) -> None:
     """M22 check 2 — `sources.yaml` `touches` ⊆ manifest procedure slugs.
 
@@ -736,7 +916,8 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
         group_slug = None  # set by `#### [[slug]]` per-procedure group headings
         for n, line in enumerate(text.splitlines(), start=1):
             if line.lstrip().startswith("#"):
-                hx = XREF_RE.findall(line)
+                # Cross-area tokens (M26) are never Source-Procedure refs.
+                hx = [x for x in XREF_RE.findall(line) if "/" not in x]
                 group_slug = hx[0] if hx else None
                 continue
             if not line.lstrip().startswith("|"):
@@ -756,8 +937,9 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
                 # Combined "ID ([[#slug]])" first cell is authoritative; the
                 # last token on the line is only the legacy Source-Procedure-
                 # column fallback (free-text cells may quote siblings).
-                first_xrefs = XREF_RE.findall(first_cell)
-                xrefs = XREF_RE.findall(line)
+                first_xrefs = [x for x in XREF_RE.findall(first_cell)
+                               if "/" not in x]
+                xrefs = [x for x in XREF_RE.findall(line) if "/" not in x]
                 row_slug = (first_xrefs[0] if first_xrefs
                             else (xrefs[-1] if xrefs else None))
             if row_slug is None:
@@ -821,7 +1003,13 @@ def reconcile(folder: str) -> int:
         warnings.extend(frag.warnings)
         frags[slug] = frag
 
-    # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files
+    # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files.
+    #    M26: [[area/slug]] cross-area tokens validate against the SIBLING
+    #    manifest (identity exists from scoping — a scoped-but-unfilled target
+    #    is valid). Outside a components/ engagement root, any cross token is
+    #    an ERROR with a layout explanation.
+    siblings = doc_model.sibling_procedures(folder)
+    under_root = Path(folder).resolve().parent.name == "components"
     for comp in manifest.get("components", []):
         file = comp.get("file", "")
         fpath = folder / file
@@ -831,9 +1019,41 @@ def reconcile(folder: str) -> int:
         for n, line in enumerate(text.splitlines(), start=1):
             for m in XREF_RE.finditer(line):
                 slug = m.group(1)
-                if slug not in known_slugs:
+                area_ref, local = doc_model.split_xref(slug)
+                if area_ref is None:
+                    if slug not in known_slugs:
+                        errors.append(
+                            f"{file}:{n}: DANGLING [[{slug}]] — no such "
+                            f"procedure"
+                        )
+                    continue
+                if not under_root:
                     errors.append(
-                        f"{file}:{n}: DANGLING [[{slug}]] — no such procedure"
+                        f"{file}:{n}: [[{slug}]] is a cross-area token, but "
+                        f"this area is not under a components/ engagement "
+                        f"root — move the L1s under one components/ dir, or "
+                        f"reword as plain prose"
+                    )
+                    continue
+                if m.group(0).startswith("[[#"):
+                    errors.append(
+                        f"{file}:{n}: [[#{slug}]] — cross-area tokens have "
+                        f"no display number (another area's numbering is "
+                        f"not stable from here); use [[{slug}]]"
+                    )
+                    continue
+                sib = siblings.get(area_ref)
+                if sib is None:
+                    errors.append(
+                        f"{file}:{n}: DANGLING [[{slug}]] — no sibling area "
+                        f"{area_ref!r} (known: "
+                        f"{', '.join(sorted(siblings)) or 'none'})"
+                    )
+                elif local not in sib["slugs"]:
+                    errors.append(
+                        f"{file}:{n}: DANGLING [[{slug}]] — area "
+                        f"{area_ref!r} has no procedure {local!r} (its "
+                        f"slugs: {', '.join(sorted(sib['slugs'])) or 'none'})"
                     )
 
     # 4. derived marker presence + ownership match (M22 check 3)
@@ -873,6 +1093,18 @@ def reconcile(folder: str) -> int:
     check_heading_contract(folder, manifest, errors)
     check_baked_numbers(folder, manifest, errors)
     check_quoted_callout_ids(folder, manifest, errors)
+
+    # 14-15. drafter-contract language rules (advisory only, exit stays 0):
+    # hedge phrases in body prose; British spellings anywhere in a fragment.
+    check_hedge_prose(folder, manifest, warnings)
+    check_british_spellings(folder, manifest, warnings)
+
+    # 16. sheared table rows (bare '|' in cell text) — advisory, exit 0.
+    check_table_shape(folder, manifest, warnings)
+
+    # 17. cross-area ownership (a sibling area's procedure title in this
+    # area's prose) — advisory, exit 0.
+    check_cross_area_ownership(folder, manifest, warnings)
 
     # report
     if errors:

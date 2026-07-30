@@ -7,7 +7,7 @@ description: >-
   dependencies, referencing procedures by [[slug]]. Change-scoped: only re-derives rows for
   changed procedures, preserving the rest from its prior file. Writes exactly one file;
   returns a compact status. Dispatched by consult-orchestrate.
-tools: Read, Write, Bash(python3:*)
+tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 ---
 
 # consult-dependencies — Key Dependencies view (one area)
@@ -21,6 +21,14 @@ Read your inputs, write the file, return a short status. Never return prose.
 - `changed_procedure_slugs` — the procedures whose content changed this pass
   (from the content-hash delta). First run → all procedures.
 - Your **prior file** `{area}/82_dependencies.md` (preserve unaffected rows).
+
+**Your first action — run the brief** (it resolves your input set and pass
+type mechanically; your dispatch stays authoritative for
+`changed_procedure_slugs`):
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --kind dependencies
+```
 
 Read:
 1. The bundle's **`raw_dependencies`** — each procedure's `A. Scope`
@@ -58,7 +66,11 @@ dependencies, read from the A. Scope prose.
 
 Re-derive rows only for `changed_procedure_slugs`. For every other procedure,
 **carry its row over verbatim from your prior file.** If a changed procedure now
-references a procedure that no longer exists, drop that stale link.
+references a procedure that no longer exists, drop that stale link. **Carry-over
+means Edit, not retype**: on an incremental pass, Edit exactly the changed rows
+in place — a full re-Write that re-types "unchanged" rows from memory is how
+verbatim carry-over silently fails. Write the whole file only on first
+derivation.
 
 ## Before you finish
 Re-emit the section's `<!-- derived: dependencies; writer: agent -->` marker. If

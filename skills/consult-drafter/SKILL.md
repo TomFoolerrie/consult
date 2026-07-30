@@ -23,6 +23,13 @@ current-state, practical for a preparer to execute and a reviewer to validate. Y
 receive a fresh skeleton on the first pass, or your own prior draft on an update
 pass. Do not change the section headings.
 
+**First action of every pass**: `python3
+"${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}` — it prints
+your resolved reading list (tagged sources, registry, conventions, profile,
+queued notes) from the same loaders the enforcement points use. Read what it
+lists, treat the list as complete, and let your dispatch (not the brief)
+decide your mode.
+
 **Headings carry the TITLE ONLY — never a letter.** Write
 `### Scope`, never `### A. Scope`. The A–G letters belong to
 the rendered document: they are assigned late, from the profile's section order,
@@ -37,7 +44,12 @@ present (phrasing decisions by earlier drafters — match them; you may write
 facts/nouns); and any `upstream` fragment paths in your dispatch — **read-only
 seam context** (align how the handoff artifact is named/arrives; never edit
 those files; facts still come from your own sources — an upstream conflict
-becomes a GAP naming the mismatch, never a silent harmonization); and the
+becomes a GAP naming the mismatch, never a silent harmonization). A
+CROSS-AREA upstream (M26, `[[area/slug]]` in your brief) follows the same
+rules, plus: write the handoff sentence with the token (never `[[#area/…]]`
+— no cross-area numbers); if the brief says the counterpart is "scoped, not
+yet drafted", proceed from your own sources and return `seam_unverified`
+for that seam. Finally, read the
 **document profile** if one is present (`_client/profile.yaml`, or the
 engagement-wide `components/_client/profile.yaml`) — it tells you which callout
 kinds and inline tags are in play (see below).
@@ -64,9 +76,13 @@ registry names, convert notes to neutral procedural language.
 You may **not** invent: systems, navigation paths, field/parameter names,
 thresholds, approvers, control evidence, timing/frequency, archive locations,
 report names, downstream recipients, exception handling, or screenshot
-availability. Anything unknown/unclear/unsupported → `TBD — confirm with process
-owner` plus a `VALIDATION REQUIRED` callout at the point it matters. When sources
-**conflict**, do not choose silently — raise a GAP stating the conflict.
+availability. Anything unknown/unclear/unsupported → a `VALIDATION REQUIRED`
+callout at the point it matters; the body prose states only what IS established
+and stands alone once the callout is stripped — never write `TBD`,
+"unconfirmed" or "no source describes…" into prose (the agent contract's
+uncertainty rule; `reconcile.py` WARNs on hedge phrases outside callouts).
+When sources **conflict**, do not choose silently — raise a GAP stating the
+conflict.
 
 ## The document profile — which kinds are in play
 
@@ -125,7 +141,7 @@ contract — a fact in the wrong section is a defect even when it is true.
   section records defects in the process — things that are wrong. A branch the
   process handles routinely is a conditional step in Procedure, not a known
   issue. PAIN POINT + IMPROVEMENT callouts; **this section IS the structured
-  source for Appendix A** ("Risks, Pain Points & Improvement Opportunities") — it
+  source for the pain-point register** ("Appendix — Pain Points & Improvement Opportunities") — it
   is assembled mechanically from these callouts, so fill every field. It is not
   free narrative to be ignored.
 
@@ -339,6 +355,12 @@ reconcile tells you which fragments still need it:
 
 You are dispatched in `mode: update` for your own procedure. Read the whole
 fragment first, then perform the seven steps below **in order**.
+
+**Work by targeted edits, never full regeneration** (agent contract): change
+exactly the lines the pass requires and leave everything else byte-for-byte.
+A full rewrite silently rewords established prose — including reviewer wording
+the mechanical apply spliced in verbatim, which only an explicit note may
+change.
 
 **The one rule that governs the whole pass: no content is invented and no fact is
 lost.** Every sentence in the old draft either stays where it is, moves to its

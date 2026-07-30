@@ -76,7 +76,10 @@ topology below: **taxonomy** spends 1 agent per scope pass, the **drafters**
 spend N (one per procedure — usually the bulk of it, and `reprofile` is a second
 way to spend it), and **synthesize** spends one agent per stale judgment kind (2
 under the default profile — but the kinds come from the manifest, so a profile
-without `raci` spends 1); `consolidate` will spend 1 more once M12 lands.
+without `raci` spends 1); `consolidate` (M12, human-invoked at the draft-ready
+gate) spends 1 agent per bucket group (consecutive L2 buckets packed to a
+~5-fragment budget by `consolidate.py plan`) + 1 cross-bucket agent — none
+when a single group covers the area.
 Everything else on the ladder is free Python or a human's time — but `render` is
 the expensive kind of free, because it starts a human review cycle, which is the
 scarcer resource.
@@ -128,6 +131,7 @@ revert); its failures degrade to notes, never to corrupted fragments.
 | `.hashes.json` | per-derived-kind procedure-hash baseline; ONLY `scope_delta.py commit` writes it — skip it after synthesize and guard 9 fires forever |
 | `.reconcile.json` | `{basis, clean}` — render is gated on clean at the current basis. May also carry `failing_files` (the area-relative files the last run's errors named): that is what lets guard 8 send a fixable failure to `synthesize` first and an unfixable one to `unresolvable`, instead of re-running the verifier forever |
 | `.draft_ready.json` | `{draft_basis, accepted}` — the M17 draft-ready accept flag, keyed to the **two databases only** (procedures + registry), so `synthesize` rewriting 82/84 cannot re-open a gate the human just cleared, while any fragment or registry edit does. ONLY `orchestrate.py accept-draft` writes it |
+| `.consolidate.json` | `{draft_basis}` — the last M12 consolidation pass, keyed like `.draft_ready.json` to the two databases. ONLY `consolidate.py mark` writes it; informational (the advisor never demands the stage), surfaced in the draft-ready gate's `consolidate` answer as `consolidated_at_basis` |
 | `.render.json` | `{basis, docx, awaiting_review}` — the review resting state. Only `--mode working` writes it; `--mode final` and `--slugs` renders are exports and leave it untouched |
 | `*.extract.json` | per-doc extraction sidecar written by aggregate (derived; git-ignored) |
 | `_review/kits/` | derived send-outs; regenerate freely with kits.py |
@@ -137,7 +141,7 @@ revert); its failures degrade to notes, never to corrupted fragments.
 | `_review/.maps/*.json` | render provenance (apply anchors); never hand-edit |
 | `_assets/screens/<slug>/SC-*.png` | captured evidence; final render embeds; hand-dropping a file here is first-class |
 | `_client/org-chart.yaml`, `taxonomy.yaml` | optional client context: person→role grounding + L1 boundary authority (taxonomy agent reads; reconcile enforces names). May live once per engagement at `components/_client/`; the area's own `_client/` shadows it per top-level key, and `reconcile` prints which layer answered (M13) |
-| `_client/profile.yaml` (`profile:` key) | the **document profile** (M14): which A–H sections exist, which are `body_omit`-hidden from the procedure body, which callout kinds and inline tags are in play, which derived views are built. Same resolution as the files above (engagement-wide, area shadows whole). It is what `reprofile` gates on, and what makes `synthesize`'s kinds manifest-driven. No `profile:` key anywhere = the full A–H default, i.e. every area predating M14. Human-owned: you never write it |
+| `_client/profile.yaml` (`profile:` key) | the **document profile** (M14): which A–H sections exist, which are `body_omit`-hidden from the procedure body, which callout kinds and inline tags are in play, which derived views are built. Same resolution as the files above (engagement-wide, area shadows whole). It is what `reprofile` gates on, and what makes `synthesize`'s kinds manifest-driven. No `profile:` key anywhere = the full A–H default, i.e. every area predating M14. Human-owned: you never write it — but you DO advise. **Key Controls has three sanctioned shapes** the user may ask for: (1) **inline** (default) — `controls` in `sections:`, callouts in each procedure body; (2) **register** — `controls` in `body_omit:` **plus** `appendix-controls` in `derived:` (the validator refuses one without the other), and for an already-scaffolded area the manifest must gain the register component first: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --sync-profile --area <area>`, then aggregate, then render; (3) **none** — drop `controls` from `sections:` (and CONTROL from `callouts:`): the document deliberately carries no controls anywhere. **Pain points / improvement opportunities have the same three shapes** via the `issues` section and the `appendix-a` register: (1) inline (default); (2) register-only — `issues` in `body_omit:` with `appendix-a` kept in `derived:` (no sync step needed: `appendix-a` is in the default derived set, and the validator refuses the omission without it); (3) none — drop `issues` from `sections:` plus PAIN POINT / IMPROVEMENT OPPORTUNITY from `callouts:` plus `appendix-a` from `derived:`. Shape 3 of either kind makes any prose mention of its callout ids (CTRL- / PP- / IO-) dangle; render prints a WARNING enumerating them per procedure (in every mode, not just final) — relay that list verbatim and never reword the prose yourself |
 | `_client/consult.yaml` (`hold:` key) | **sticky holds** (M17): a list of action names this engagement/area will not run unattended. Same resolution again (area list shadows the engagement list *whole* — there is no per-item merge). A held action comes back as the **same action** with `human_gate: true` and `details.held_by`; an unknown or already-a-gate name stops the run at load. Human-owned, and there is no "clear once" verb — a hold stays until the human edits the file |
 | `document profile: …` in stage output | the profile counterpart of `client config: …`: the stages that READ the profile print which layer answered and the shape it resolved to (`scaffold.py`, `render.py`). `reconcile.py` prints only `client config: …` — it name-checks the registry and never reads the profile. If a shape surprises the user, that line is the first thing to relay |
 | scope note comment in a skeleton | merged variant pair — drafter writes shared flow once, branches at divergence |
@@ -173,19 +177,35 @@ revert); its failures degrade to notes, never to corrupted fragments.
   tracked changes or restructured heavily; the notes carry everything, the
   drafters absorb it. Only report a defect if it applied something WRONG
   (it structurally shouldn't be able to).
-- **Kit lands in `role-*` / `unassigned/`** → roles.yaml `people:` or the org
-  chart is missing/thin; tell the user which role has no person mapped.
+- **Kit contact shows `(… — no person mapped)` / `(unassigned)`** →
+  roles.yaml `people:` or the org chart is missing/thin; tell the user which
+  role has no person mapped (the kit still exists — per procedure — and the
+  index flags it).
 - **User asks for the client deliverable while gaps are open** → that's
   allowed by design: `--mode final` strips and reports counts; relay the
-  counts so the acceptance is informed.
+  counts so the acceptance is informed. Final mode also **scrubs citations**:
+  a parenthetical of nothing but SRC/GAP ids — `(SRC-002, SRC-005)` — and a
+  pure-citation sentence (`See GAP-011.`) are removed mechanically (the
+  drafter contract mandates exactly those shapes). If the render prints a
+  WARNING listing surviving SRC/GAP references, those are ids **woven into
+  sentence meaning** (legacy prose like "see GAP-07, which is unresolved")
+  that the scrub must not touch: relay that list verbatim — the reader of the
+  export would see those references with nothing to look up — and note the
+  fixes: gap refs close through the review round; woven refs can be reworded
+  by dispatching that procedure's drafter (update mode) with the citation
+  shape rule, or hand-edited before shipping. Never rewrite the prose
+  yourself.
 
 ## How you are invoked
 
 "build <area>", "continue <area>", or `/consult-orchestrate <area>`. If the area
-is new and its **L1 function is unknown**, ask the user which L1 (from
-`skills/consult-taxonomy/reference/reference_taxonomy.yaml`) before scoping, and
-record it (area-level `l1` in the manifest once scaffolded). The L1 is what you
-pass to `consult-taxonomy`.
+is new and its **L1 function is unknown**, ask the user which L1 (the reference
+list in `skills/consult-taxonomy/reference/reference_taxonomy.yaml` is a menu of
+common functions, NOT a constraint — an L1 the user names that isn't listed is
+valid and proceeds: taxonomy proposes its own L2 buckets flagged needs-approval,
+and scaffold accepts them as new buckets). Record it (area-level `l1` in the
+manifest once scaffolded). The L1 is what you pass to `consult-taxonomy`, spelled
+exactly as the user gave it.
 
 ## The loop
 
@@ -200,6 +220,17 @@ loop:
   if action == done: report and stop
   else: repeat
 ```
+
+**Git health (`details.git`).** Every decision carries `details.git`
+(`tracked: false` + a note + `init_at`) when the engagement is not in a git
+repository — meaning checkpoints are silently OFF: no history, no diffs, no
+revert. On the FIRST decision of a session that carries it, relay the note
+and offer the one-time fix; on the user's go-ahead run `git init` in
+`details.git.init_at` (the engagement root — never guess a different
+directory), remind them the repo must stay PRIVATE (checkpoints include
+`_sources/`, client material), then continue the loop — the flag clears
+itself on the next call. Advisory, never a gate: if the user declines,
+keep building and do not raise it again this session.
 
 `human_gate: true` is the machine-readable stop signal — it covers `confirm`,
 `review_triage`, `reprofile`, `registry_topup`, `draft_ready`, `unresolvable` and
@@ -248,17 +279,17 @@ paths/ids — never pasted content.
 | `confirm` | **HUMAN GATE.** Show the proposal summary (procedures by L2, merged variants + overlap flags, new-L2 requests, low-confidence items, unmapped people, out-of-L1). Tell the user to edit `_reference/.proposed/` and reply **"confirm"** when ready. Stop. — The advisor keeps returning `confirm` while `.proposed/` exists un-promoted (it can't tell "still editing" from "ready"), so **only on the user's explicit go-ahead** do you run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area <area>` (promotes `.proposed/` → `_reference/`, writes manifest + A–H skeletons, stamps `sources.yaml` hashes). If the user just says "continue" without confirming, re-show the gate. |
 | `fill` | Dispatch a **`consult-drafter` subagent** for each slug in `details.unfilled` — **all in one batch, in parallel** — with `{area, slug, title, sources: <its touches list from sources.yaml>, mode: first-draft}`. **M11 waves:** `details.unfilled` is the *current wave only* — slugs whose `upstream` hints (manifest) are already drafted; `details.deferred` lists what waits for a later wave (dispatch nothing for those — the advisor surfaces them next pass, once this wave clears their sentinels). When `details.upstream_files` has an entry for a slug, add `upstream: [<those paths>]` to that drafter's dispatch (read-only seam context). Collect compact statuses. Then move **fully-consumed** sources (below) — pass the set of successfully-filled slugs to `sources.py mark-processed` as **`--filled`** (never `--updated`; see "Moving inputs"); a source moves only when its whole `touches` set is filled. Partial-batch failure is fine: unfilled procedures keep their sentinel and re-dispatch next pass. |
 | `reprofile` | **HUMAN GATE (guard 4.5) — a COST gate: report the count FIRST, dispatch only on the go-ahead.** The document profile now requires section(s) that N drafted fragments do not have. Your first line to the user is the count and the sections, from `details.dispatches` + `details.sections`: *"N drafter dispatches to add F. Key Controls — proceed?"* (use the section titles from `agents/consult-drafter.md`, not bare letters). Do not list every slug unless asked; `details.missing` is a `{slug: [sections]}` map and the count is what the decision turns on. Then **stop**. Only on the user's go-ahead, dispatch a **`consult-drafter` subagent per slug in `details.missing`** — batch/parallel, `{area, slug, title, mode: update, sections: <that slug's list>}` and **nothing else** (no notes file, no source list: the drafter revises its own draft). **Partial acceptance is fine** — the guard is per-procedure, so dispatch the subset the user approved and the rest simply re-appear next pass; an area can sit half-migrated indefinitely without wedging the loop. Removing a section from the profile needs **no action at all** (render omits it, the fragments keep their text), and `body_omit` never lands here — so a reprofile you see is always the expensive direction. Checkpoint after the batch. |
-| `ingest_returns` | Review-kit returns landed in `_review/returned/`. Run the deterministic ingest chain yourself, **in this order**: (1) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/screens_ingest.py" <area>` (pulls pasted screenshots → `_assets/screens/`, archives templates); (2) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gaps_ingest.py" <area>` (workbook answers → notes, archives workbooks); (3) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_apply.py" <area>` (tracked changes applied mechanically; failures become notes; does NOT archive); (4) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_extract.py" <area>/_review/returned --comments-only --area <area>` (comments → notes, archives the docs). Report the applied/noted split. Zero tokens spent; the advisor then routes any notes to `apply_review`. |
+| `ingest_returns` | Review-kit returns landed in `_review/returned/`. Run the deterministic ingest chain yourself, **in this order**: (1) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/screens_ingest.py" <area>` (pulls pasted screenshots → `_assets/screens/`, archives templates); (2) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gaps_ingest.py" <area>` (workbook answers → notes, archives workbooks); (3) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_apply.py" <area>` (tracked changes applied mechanically; failures become notes; does NOT archive); (4) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_extract.py" <area>/_review/returned --comments-only --area <area>` (comments → notes, archives the docs). Report the applied/noted split — and if step 3 printed an UNTRACKED warning, relay it: the reviewer's Word was not recording tracked changes, their edits were still caught (hash sweep against the provenance map) and preserved as notes, and nothing was lost or auto-applied. Zero tokens spent; the advisor then routes any notes to `apply_review`. |
 | `apply_review` | For each `{area}/_review/*.notes.yaml` in `details.notes`, dispatch a **`consult-drafter` subagent** with **only** `{area, slug, mode: update, review_notes: _review/{slug}.notes.yaml}` (one trigger — no `sources` list; the drafter reads its own draft + registry + the notes). Batch/parallel. **The dispatch shape does not change when a note carries new source material**: an item may be `kind: source` with `src: SRC-<id>`, and the drafter resolves that id through `_reference/sources.yaml` itself — you still paste no source paths and no source text. Then, after the batch succeeds: (1) archive the applied notes to `_review/processed/` (the `archive-review` command below), and (2) credit the retirement ledger — `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sources.py" mark-processed <area> --updated <slugs that succeeded>`. **Never pass update slugs as `--filled`** — that credits every source whose `touches` names the slug regardless of kind, so a plain reviewer comment would retire a source no drafter ever read (silent loss of client material). If `details.unassigned` is set, also tell the user that `_review/_unassigned.notes.yaml` holds reviewer items that couldn't be attributed to a procedure and needs their triage. Orphaned notes may ride along in `details.orphan_notes` — mention them, and expect a `review_triage` gate once the applicable notes are archived. |
 | `review_triage` | **HUMAN GATE.** Reviewer material no drafter can consume. Two shapes, told apart by which key is set (M18/F1): (a) `details.unassigned` — items `review_extract.py` couldn't attribute to a procedure; tell the user to open `_review/_unassigned.notes.yaml` and either move each item into the right `_review/{slug}.notes.yaml` or delete/archive the file. (b) `details.orphan_notes` + `details.orphan_slugs` — notes whose basename names **no live manifest procedure**, so a drafter has nothing to update and the note can never archive; relay `details.resolutions` verbatim (restore the procedure, or archive the note to `_review/processed/`). Then re-invoke. Stop. |
 | `aggregate` | Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/aggregate.py" <area folder path>` (this script does NOT resolve bare names under components/). Non-zero exit (fail-loud on a malformed callout) → surface + stop. Unmatched-mention WARNINGs → `registry_topup` gate. |
 | `registry_topup` | **HUMAN GATE.** List the flagged systems/roles (`details.warnings`); tell the user to add entries/aliases to `_reference/` and re-invoke. Stop. On re-invoke the registry edit changes `registry_hash`, so the advisor returns `aggregate` again — the top-up loop re-runs aggregate and clears (or re-flags) the warning. |
-| `draft_ready` | **HUMAN GATE (guard 8.5) — a resting gate, not a failure.** The area is fully drafted and reconciled clean, and the next move is the first one that costs something: `details.would_spend` says which (`synthesize` = 2 agents, or `render` = a human review round). Put `details.question` to the user ("am I happy with the verbs and the nouns before anything else is paid for?") and present the three options in `details.answers` — the list is the gate's stable shape, so read them from the JSON rather than reciting them: **read** (free) — the `command` field carries the real `--slugs` list for a procedures-only render; **consolidate** — `command: null` because the M12 consolidator is not built yet, so say that plainly and do not improvise a substitute; **accept** (free) — `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" accept-draft --area <area>`. Note the advisor prints repo-relative script paths in `answers[].command` (it has no `CLAUDE_PLUGIN_ROOT`), so prefix `python3 "${CLAUDE_PLUGIN_ROOT}/"` as you do everywhere else. Stop. Only on the user's explicit acceptance do you run `accept-draft` (the sole writer of `.draft_ready.json`), then re-loop. A `--slugs` read-render never writes `.render.json`, so showing the user the draft does not advance the machine and does not need a checkpoint. |
+| `draft_ready` | **HUMAN GATE (guard 8.5) — a resting gate, not a failure.** The area is fully drafted and reconciled clean, and the next move is the first one that costs something: `details.would_spend` says which (`synthesize` = 2 agents, or `render` = a human review round). Put `details.question` to the user ("am I happy with the verbs and the nouns before anything else is paid for?") and present the three options in `details.answers` — the list is the gate's stable shape, so read them from the JSON rather than reciting them: **read** (free) — the `command` field carries the real `--slugs` list for a procedures-only render; **consolidate** — the M12 cross-procedure consistency pass (see "Consolidate (M12)" below); its `command` is the free `consolidate.py plan`, its `consolidated_at_basis` says whether THIS draft already had a pass (equal to `details.draft_basis` = yes; null or different = no) — surface that so the user doesn't pay twice; **accept** (free) — `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" accept-draft --area <area>`. Note the advisor prints repo-relative script paths in `answers[].command` (it has no `CLAUDE_PLUGIN_ROOT`), so prefix `python3 "${CLAUDE_PLUGIN_ROOT}/"` as you do everywhere else. Stop. Only on the user's explicit acceptance do you run `accept-draft` (the sole writer of `.draft_ready.json`), then re-loop. A `--slugs` read-render never writes `.render.json`, so showing the user the draft does not advance the machine and does not need a checkpoint. |
 | `unresolvable` | **STOP — a resting gate (guards 5a/5b/8), `human_gate: true`, exit 0.** The folder is consistent and the ladder is simply out of moves: **no action can change the state that selected it.** So do NOT retry the action that led here, do not re-run the stage the state mentions, and do not invent a workaround. Report, verbatim and in this order: `details.state` (what was detected), `details.why_no_stage` (why no stage clears it), `details.human_action` (the specific fix — it is written to be actionable, including the exact command where one exists). Then add whatever evidence keys are present: `details.stranded_ids` (the `SRC-` ids stranded in `_sources/new/`, with `stranded_sources` carrying each one's `touches`/`consumed`), `details.missing_procedures` (manifest slugs whose fragment file is gone), `details.failing_files` + `details.dangling_refs` (reconcile failures no producer can regenerate). End the turn. |
 | `error` | **ABORT the run.** `next` exited **2** and read no state at all: the area folder does not exist (`details.missing_folder`). This is a wrong `--area` — a typo, or a bare name that resolves to `components/<name>` and was never scoped. It is deliberately not a gate, so do not checkpoint and do not re-loop. Show the path it tried, ask the user for the right area name, and stop. |
 | `synthesize` | **Iterate `details.stale_kinds` — never assume two kinds.** The judgment views are manifest-driven (M14): a document profile without `raci` has no RACI component, no RACI file and no RACI agent to dispatch, so the work order is exactly the kinds in that list (and `details.pending` names any view still carrying the pending placeholder). Dispatch **one subagent per stale kind**, mapping kind → agent: `dependencies` → `consult-dependencies`, `raci` → `consult-raci`. Batch/parallel; they self-scope to changed procedures via the delta; compact returns only. A kind in the list with no agent you know is a bug to surface, not a kind to skip silently. **Then, for each kind whose agent wrote successfully, rebaseline the change signal yourself:** `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scope_delta.py" commit --folder <area> --kind <kind>` — once per kind, using the same kind strings. This is the ONLY writer of the `.hashes.json` baseline the advisor reads — skip it and guard 9 keeps returning `synthesize` forever. Commit a kind only after its agent succeeded (a failed agent keeps its stale baseline so it re-dispatches next pass). |
 | `reconcile` | Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" <area folder path>` over the whole area (the hard gate; folder path, not a bare name). Any ERROR → surface + stop; don't render over it. |
-| `render` | Run the renderer (`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/render.py" <area> -o <out.docx>`) — only after `reconcile` is clean. Default is `--mode working` (everything visible + provenance anchors). Then emit the per-owner review kits: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kits.py" <area>`. Give the user the docx path + `_review/kits/index.md`. When the user asks for the **client-facing deliverable**, render `--mode final` instead (strips open gaps, embeds captured screenshots; report its stripped/embedded counts) — final mode emits no kits. Note (M21): a final render is an **export, not a pipeline state** — it never writes `.render.json`, so it cannot re-open the `review` gate or discard an `accept` that already happened. The advisor's answer is unchanged by it; hand over the file path and carry on from whatever the state actually is. |
+| `render` | Run the renderer (`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/render.py" <area> -o <out.docx>`) — only after `reconcile` is clean. Default is `--mode working` (everything visible + provenance anchors). Then emit the per-procedure (L3) review kits: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kits.py" <area>` — one kit folder per procedure, each naming its send-to contact (the index has a by-person rollup; a kit whose asks involve a second person says so, the workbook's Contact column names who each row is for). Give the user the docx path + `_review/kits/index.md`. When the user asks for the **client-facing deliverable**, render `--mode final` instead (strips open gaps, embeds captured screenshots; report its stripped/embedded counts) — final mode emits no kits. Note (M21): a final render is an **export, not a pipeline state** — it never writes `.render.json`, so it cannot re-open the `review` gate or discard an `accept` that already happened. The advisor's answer is unchanged by it; hand over the file path and carry on from whatever the state actually is. |
 | `review` | **HUMAN GATE.** The resting state after render. Give the `.docx` path (`details.docx`) and point at `_review/kits/index.md` — the user sends each kit folder to its owner. Returned files (reviewed docs, gap workbooks, screenshot templates) go into `_review/returned/` (→ `ingest_returns` next invoke). The user can also review the full draft directly, **or explicitly accept**. Stop. The advisor keeps returning `review` while `awaiting_review` is set — only on the user's explicit acceptance do you run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.py" accept --area <area>` (the only writer that clears the flag), then report `done`. |
 | `done` | Report: what's current, where the `.docx` is, nothing outstanding. Stop. |
 | *any action with* `details.held_by` | **STOP — a STICKY HOLD (M17).** This row overrides the action's own row: the action is unchanged and `human_gate: true`, but a `hold:` list in `_client/` says this engagement does not run it unattended. Do **not** perform it, do not work around it, and do not "just do the cheap part". Report one line — `held: <action> (<details.held_by>)` — say what the action would have done and cost (the table above), and tell the user the release is **theirs**: edit the `hold:` list in `<area>/_client/consult.yaml` (area) or `components/_client/consult.yaml` (engagement) and re-invoke. A hold is config, not state: there is no verb that clears it, no flag you can write, and it will keep coming back on every call until the file changes. Then end the turn. |
@@ -268,6 +299,13 @@ paths/ids — never pasted content.
 `fill` and `apply_review` dispatch **N subagents in one batch** (one per procedure)
 so they run concurrently. Wait for all, collect the compact statuses, then
 continue. Never fill procedures one-at-a-time in sequence.
+
+Every subagent's contract has it run `scripts/brief.py` as its first action —
+a read-only work order that resolves its reading list (tagged sources,
+registry, conventions, resolved profile, queued notes) mechanically. Your
+dispatch therefore stays lean and stays authoritative for the TRIGGER
+(mode, notes file, changed slugs); you do not need to enumerate registry or
+convention paths in dispatch prompts.
 
 ## Moving inputs (you own this, not the subagents)
 
@@ -317,6 +355,171 @@ cross them: `review` clears only via `orchestrate.py accept`, and `draft_ready`
 only via `orchestrate.py accept-draft`. `unresolvable`, `reprofile` and a sticky
 hold have no such verb by design — their crossing is a human editing the folder
 (or, for `reprofile`, a human saying "go" and you dispatching the drafters).
+
+## Consolidate (M12) — the within-area consistency pass
+
+Human-invoked at the **draft-ready gate only** — never before (fragments still
+churning) and never demanded by the advisor. When the user picks the gate's
+`consolidate` answer:
+
+1. Run the free plan: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py"
+   plan <area>` — it names every agent and its brief command. Relay the agent
+   count (that is the cost) and get the go-ahead if the user hasn't already
+   given it.
+2. Dispatch **one `consult-consolidator` subagent per bucket group, in
+   parallel** — the groups come from the plan, verbatim (never regroup
+   yourself) — each with `{area, buckets: <l2,l2,...>}`. Then, after they
+   return, **one cross-bucket agent** with `{area, cross}` (it sees the
+   queued notes, so running it after the group agents avoids duplicate
+   raises) — UNLESS the plan says a single group covers the area, in which
+   case that group agent carries the cross lens and no cross agent runs.
+   Each agent's first action is its brief; each writes findings ONLY via
+   `consolidate.py note`.
+3. Run `consolidate.py report <area>` and show it verbatim — the dispatch
+   count is the headline. **Relay the agents' conflicts, proposals and
+   no-majority items yourself**: conflicts are never notes, so the report
+   cannot carry them. Registry alias / conventions proposals are the human's
+   to confirm (the ordinary top-up loop); never apply one yourself.
+4. Tell the user they may **delete any note they disagree with** in
+   `_review/<slug>.notes.yaml` before continuing, then run
+   `consolidate.py mark <area>` (sole writer of `.consolidate.json`) and
+   checkpoint (`--stage consolidate`).
+5. Re-loop: the advisor routes the queued notes through the ordinary
+   `apply_review` path (one drafter per touched slug — per slug, not per
+   finding), then aggregate/reconcile bring you back to the draft-ready gate
+   with `consolidated_at_basis` still informative. The tail (synthesize,
+   render) has not run yet, so it runs once — that is the whole point of the
+   stage's placement.
+
+Scope note: M12 is within-area. Cross-L1 consistency is the engagement
+audit's job (next section); run consolidation per area first — the audit's
+heuristics read cleaner signals off internally-consistent areas.
+
+## Intake (M25) — one drop point, agent-routed, loud when parked
+
+The engagement root's `intake/` folder (sibling of `components/`) is where
+ALL fieldwork lands — zero decisions at drop time. Folder state is
+self-describing: top level = unprocessed, `routed/` = done (with
+`manifest.log` saying where each went), `parked/` = awaiting a human with a
+reason in `reasons.log`. Nothing is ever deleted.
+
+**Session-start notice:** when invoked from an engagement root, check
+`intake/` once per session; if unprocessed or parked files exist, relay the
+counts (informational, like the git-health note — NEVER a gate) and offer
+the classifier pass.
+
+**The classifier (1 agent per batch, on the user's word — "process
+intake"):** dispatch `consult-intake` with the engagement root and plugin
+paths. It reads each staged document plus every area's manifest, then runs
+the deterministic verbs itself:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" route intake/<file> \
+    --to <area>[,<area>...] [--note-for <area> "relevance pointer"] 
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" park  intake/<file> \
+    --reason "..."
+```
+
+`route` COPIES the file to each area's `_sources/new/intake-<name>` and
+writes NOTHING else — no sources.yaml entry, no hash (pre-stamping would
+mark it "already assessed" and strand it; the copy enters the ordinary
+assess/confirm flow exactly like a hand-dropped file). The pointer rides a
+`.route.md` sidecar that scaffold folds into the source's `note:` at
+confirm. Both verbs work by hand — the human override is one line. A
+not-yet-scoped target area needs `--new-area`, which only the HUMAN uses
+(the classifier parks instead — correct for greenfield: sources arrive
+before scoping).
+
+Relay the classifier's parked list verbatim; `engagement.py audit` also
+reports unprocessed/parked counts until intake is empty. Self-healing needs
+no build: an over-routed copy shows up as a never-consumed source in the
+retirement ledger; an under-routed area surfaces as gaps the M24 placement
+pass repatriates.
+
+## Knowledge placement (M24) — the engagement layer
+
+One rule: **every fact has exactly one home.** Duplication (a fact with two
+homes) and cross-answerable gaps (a fact with a broken pointer — one area
+asks what another documents) are the two directions of breaking it, and
+they share one toolset. Run everything from the engagement root.
+
+**The audit (free, read-only):**
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" audit components
+```
+
+Run it when the user asks, after silo-scoped areas are first brought under
+one `components/` tree, and offer it before any final export when the
+engagement has more than one area. Five sections: **TWIN L3s** (HUMAN GATE —
+present the pairs, ask which area owns each, never decide ownership
+yourself), **CROSS-AREA MENTIONS** (usually fine as one handoff sentence;
+when the target is scoped, the upgrade is a `[[area/slug]]` token),
+**SHARED PROSE** (same material drafted twice), **OPEN GAPS** (the
+engagement-wide register of unanswered questions — standalone value: the
+user matches the obvious ones on sight), and **INTERFACES** (M26 — the
+engagement spine, derived fresh off `[[area/slug]]` tokens and cross-area
+`upstream` declarations; an *asymmetric seam* finding means one side
+declares and the other doesn't — the fix is an incremental taxonomy pass
+on the silent area, on the user's word).
+
+**Cross-area seams (M26) in the ordinary loop:** taxonomy may declare
+`upstream: ["p2p/goods-receipt"]` cross-area entries — the confirm gate
+surfaces them (plus the gap forecast, the early client ask-list: relay it
+to the user). A cross-area upstream NEVER defers a drafter (no cross-area
+waves); the brief hands the counterpart fragment read-only, or says
+honestly "scoped, not yet drafted". Relay any `seam_unverified` entries
+from drafter returns in your status one-liner — they clear mechanically
+once the upstream drafts (audit + M12 seam findings verify). A dangling
+cross-area token after a rename is a hard reconcile ERROR in the HOLDER
+area: fix it with `engagement.py note` per holder (the audit's INTERFACES
+section enumerates holders before you rename).
+
+**The placement pass (1 agent, on the user's word):** dispatch ONE
+judgment subagent whose first action is
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" brief components` —
+the brief carries the mechanical findings, the gap register, area scope
+digests, and the full triage rules. **On a legacy/mixed-version engagement
+or a periodic deep sweep, add `--full`** — the brief then lists whole
+fragment paths (gap answers live in step bodies, not Scope digests; this
+fixed the first real run's under-recall) with a token estimate; if the
+SIZE GUARD line fires, follow it (digest mode, or `--full` per area pair)
+instead of dispatching an over-budget read. It routes each finding to one of THREE
+moves via `engagement.py note` (kind: review, the existing bus):
+
+1. **reduce to handoff** — work owned by another L1; the note tells the
+   losing procedure's drafter to keep one sentence naming the owner.
+2. **promote to register** — a SHARED RECURRING fact (approval threshold,
+   date/cutoff rule, system-of-record, master data): proposed in the
+   agent's returned status, NOT queued. Relay proposals to the user;
+   on their word, create/extend the file under `components/_client/
+   registers/` and queue notes telling the restating procedures to
+   reference it. Register CONTENT is always the human's decision.
+3. **adopt as source** — one-off: another area's sourced documentation
+   answers a question inside this area's own scope. The note carries the
+   exact command; YOU run it when absorbing the note:
+
+   ```
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" adopt \
+       components/<gap-area> --from <answering-area>/<slug> \
+       --touches <gap-procedure-slug>
+   ```
+
+   It copies the fragment into `_sources/new/` as a hash-stamped,
+   second-hand `SRC-` entry and queues `kind: source` notes — the ordinary
+   `apply_review` loop does the rest. Idempotent. If it prints `held:
+   adopt`, this engagement requires pre-approval (`hold:` list, M17) —
+   relay and stop, exactly like any held action.
+
+   POLICY / CONTROL-DESIGN / CONFIGURATION questions are none of the
+   three: the agent reports them unresolved; relay them to the user.
+
+After notes land, each area's ordinary loop (`apply_review` → targeted
+drafter edits → aggregate/reconcile → checkpoint) resolves them — the user
+reviews diffs, not queues. Never edit fragments yourself, and never delete
+a procedure without the human's ownership call. Run per-area consolidation
+(M12) before the audit when both are wanted — its heuristics read cleaner
+signals off internally-consistent areas.
 
 ## Reporting
 
