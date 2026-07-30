@@ -581,6 +581,17 @@ def stamp_sources(area: Path) -> None:
                     # to `new` when there is no state yet — never un-process.
                     src["hash"] = digest
                     changed = True
+                # M25: fold the intake pointer sidecar into the entry's note,
+                # so the classifier's relevance judgment reaches the drafter's
+                # brief. Idempotent: never appended twice.
+                side = Path(str(fpath) + ".route.md")
+                if side.is_file():
+                    pointer = side.read_text(encoding="utf-8").strip()
+                    note = str(src.get("note") or "")
+                    if pointer and pointer not in note:
+                        src["note"] = (note + " | " if note else "") \
+                            + "intake pointer: " + pointer
+                        changed = True
             elif "hash" not in src:
                 src["hash"] = ""
                 changed = True

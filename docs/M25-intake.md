@@ -1,8 +1,18 @@
 # M25 — Engagement intake (one drop point, agent-routed, loud when parked)
 
-> **Status: DESIGNED — decisions settled with the user; APPROVED, build
-> sequenced AFTER M26** (tokens/taxonomy/spine first — M25 is independent
-> of it but M26 is the priority). Companions: M24 (the placement pass this
+> **Status: BUILT (v1.12.0)** — `engagement.py route/park` (route = file
+> copies ONLY per the M6 contract below; idempotent at content hash against
+> both the destination and the ledger; different-content-same-name refuses;
+> `--new-area` is the human-only override and the error text says so);
+> pointer sidecars (`<copy>.route.md`) excluded from source assessment
+> (`sources.new_source_files` + a guard-5 fall-through in orchestrate),
+> folded into the entry's `note:` by `scaffold.stamp_sources` (idempotent),
+> shown in the drafter's brief, and retired with their source by
+> `mark-processed`; `audit` prints the INTAKE block until intake is empty;
+> `agents/consult-intake.md` carries the classifier contract (zero-routes
+> forbidden, over-route bias, describe-never-reduce, parks instead of
+> `--new-area`); the orchestrate skill gained the session-start notice +
+> dispatch flow. 13 tests. Companions: M24 (the placement pass this
 > REDUCES traffic for — misfiled evidence is a chunk of what `adopt`
 > would otherwise repatriate after the fact) and M0/taxonomy (the
 > within-area allocation this feeds; under M26 the taxonomy pass also

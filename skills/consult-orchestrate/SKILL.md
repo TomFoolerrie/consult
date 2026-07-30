@@ -395,6 +395,47 @@ Scope note: M12 is within-area. Cross-L1 consistency is the engagement
 audit's job (next section); run consolidation per area first — the audit's
 heuristics read cleaner signals off internally-consistent areas.
 
+## Intake (M25) — one drop point, agent-routed, loud when parked
+
+The engagement root's `intake/` folder (sibling of `components/`) is where
+ALL fieldwork lands — zero decisions at drop time. Folder state is
+self-describing: top level = unprocessed, `routed/` = done (with
+`manifest.log` saying where each went), `parked/` = awaiting a human with a
+reason in `reasons.log`. Nothing is ever deleted.
+
+**Session-start notice:** when invoked from an engagement root, check
+`intake/` once per session; if unprocessed or parked files exist, relay the
+counts (informational, like the git-health note — NEVER a gate) and offer
+the classifier pass.
+
+**The classifier (1 agent per batch, on the user's word — "process
+intake"):** dispatch `consult-intake` with the engagement root and plugin
+paths. It reads each staged document plus every area's manifest, then runs
+the deterministic verbs itself:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" route intake/<file> \
+    --to <area>[,<area>...] [--note-for <area> "relevance pointer"] 
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" park  intake/<file> \
+    --reason "..."
+```
+
+`route` COPIES the file to each area's `_sources/new/intake-<name>` and
+writes NOTHING else — no sources.yaml entry, no hash (pre-stamping would
+mark it "already assessed" and strand it; the copy enters the ordinary
+assess/confirm flow exactly like a hand-dropped file). The pointer rides a
+`.route.md` sidecar that scaffold folds into the source's `note:` at
+confirm. Both verbs work by hand — the human override is one line. A
+not-yet-scoped target area needs `--new-area`, which only the HUMAN uses
+(the classifier parks instead — correct for greenfield: sources arrive
+before scoping).
+
+Relay the classifier's parked list verbatim; `engagement.py audit` also
+reports unprocessed/parked counts until intake is empty. Self-healing needs
+no build: an over-routed copy shows up as a never-consumed source in the
+retirement ledger; an under-routed area surfaces as gaps the M24 placement
+pass repatriates.
+
 ## Knowledge placement (M24) — the engagement layer
 
 One rule: **every fact has exactly one home.** Duplication (a fact with two

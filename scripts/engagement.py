@@ -7,6 +7,9 @@ Usage:
     python3 scripts/engagement.py note   <area> --slug S --note "..."
     python3 scripts/engagement.py adopt  <area> --from <area>/<slug> \
         --touches <slug> [<slug> ...]
+    python3 scripts/engagement.py route  intake/<file> --to a[,b] \
+        [--note-for a "pointer"] [--new-area]
+    python3 scripts/engagement.py park   intake/<file> --reason "..."
 
 The per-area guards (ownership map, taxonomy neighbors, reconcile check 17)
 are PREVENTIVE and see only one area at a time. This module is the
@@ -307,6 +310,19 @@ def audit(root: Path) -> int:
         return 2 if not areas else 0
     print(f"ENGAGEMENT AUDIT — {len(areas)} areas under {root}: "
           + ", ".join(a for a, _ in areas))
+
+    # M25 — intake is LOUD until empty: unprocessed and parked evidence can
+    # never silently sit (the no-silent-caps standard applied to evidence).
+    unprocessed, parked = intake_status(root)
+    if unprocessed or parked:
+        print(f"\nINTAKE — {len(unprocessed)} unprocessed, "
+              f"{len(parked)} parked:")
+        for name in unprocessed:
+            print(f"  unprocessed: {name}  (run the intake classifier, or "
+                  f"route/park by hand)")
+        for name, why in parked:
+            print(f"  parked: {name} — {why}")
+
     lines: list[str] = []
     n1 = twin_l3s(areas, lines)
     print(f"\n1. TWIN L3s — same activity scoped in two areas: {n1}")
@@ -631,13 +647,173 @@ def add_note(area: Path, slug: str, note: str) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------- #
+# M25 — intake: ONE drop point, deterministic route/park (the only writers)
+#
+# `intake/` sits at the engagement root (sibling of components/). route COPIES
+# a staged document into each target area's `_sources/new/` and writes NOTHING
+# else — no sources.yaml entry, no hash stamp (M6 contract: a hash at the
+# file's current content means "already assessed" at guard 5, so pre-stamping
+# would silently skip source assessment and strand the source). The per-area
+# relevance pointer is a SIDECAR (`<copy>.route.md`) that scaffold's
+# stamp_sources folds into the entry's `note:` at confirm, so it reaches the
+# drafter's brief. park moves a file to intake/parked/ with a stated reason.
+# The folder state is self-describing: top level = unprocessed, parked/ =
+# awaiting a human, nothing is ever deleted.
+# --------------------------------------------------------------------------- #
+
+ROUTE_SIDECAR_SUFFIX = ".route.md"
+
+
+def _sha256_file(path: Path) -> str:
+    import hashlib
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _intake_context(file: Path) -> tuple[Path, Path]:
+    """(engagement root, components dir) for a staged intake file, or raise
+    SystemExit(2). The file must sit at intake/ TOP LEVEL (routed/ and
+    parked/ files are already processed)."""
+    file = file.resolve()
+    if file.parent.name != "intake" or not file.is_file():
+        print(f"error: {file} is not a top-level file in an intake/ folder "
+              f"(already routed/parked files are not re-routable — copy "
+              f"back to intake/ top level to redo)", file=sys.stderr)
+        raise SystemExit(2)
+    engroot = file.parent.parent
+    comps = engroot / "components"
+    return engroot, comps
+
+
+def _ledger_hashes(area: Path) -> set[str]:
+    """Content hashes sources.yaml already knows — the by-content half of
+    route's idempotency (a re-dropped file whose bytes are already registered
+    is a no-op, even after the copy moved to _sources/processed/)."""
+    p = area / "_reference" / "sources.yaml"
+    if not p.is_file():
+        return set()
+    try:
+        import yaml
+        data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return set()
+    return {str(e.get("hash") or "") for e in (data.get("sources") or [])
+            if isinstance(e, dict)} - {""}
+
+
+def route(file: Path, to_areas: list[str], pointers: dict[str, str],
+          new_area: bool = False) -> int:
+    """Copy a staged intake file to each target area's _sources/new/, write
+    pointer sidecars, move the original to intake/routed/. File copies ONLY —
+    the ordinary assess/confirm flow does everything else."""
+    engroot, comps = _intake_context(file)
+    if not to_areas:
+        print("error: route requires --to <area>[,<area>...]", file=sys.stderr)
+        return 2
+    known = {d.name for d in comps.iterdir()
+             if d.is_dir() and not d.name.startswith(("_", "."))} \
+        if comps.is_dir() else set()
+    for aname in to_areas:
+        if aname not in known and not new_area:
+            print(f"error: no area {aname!r} under {comps} (known: "
+                  f"{', '.join(sorted(known)) or 'none'}). A not-yet-scoped "
+                  f"area is created only on HUMAN direction: re-run with "
+                  f"--new-area. The classifier parks instead.",
+                  file=sys.stderr)
+            return 2
+    digest = _sha256_file(file)
+    lines = []
+    for aname in to_areas:
+        area = comps / aname
+        new_dir = area / "_sources" / "new"
+        new_dir.mkdir(parents=True, exist_ok=True)
+        dest = new_dir / f"intake-{file.name}"
+        if dest.is_file():
+            if _sha256_file(dest) == digest:
+                lines.append(f"  {aname}: already present (no-op)")
+            else:
+                print(f"error: {dest} exists with DIFFERENT content — "
+                      f"never overwritten; rename the intake file",
+                      file=sys.stderr)
+                return 2
+        elif digest and digest in _ledger_hashes(area):
+            lines.append(f"  {aname}: content already in the source ledger "
+                         f"(no-op)")
+        else:
+            import shutil
+            shutil.copy2(file, dest)
+            lines.append(f"  {aname}: → {dest.relative_to(engroot)}")
+        pointer = pointers.get(aname)
+        if pointer:
+            side = Path(str(dest) + ROUTE_SIDECAR_SUFFIX)
+            side.write_text(pointer.strip() + "\n", encoding="utf-8")
+            lines.append(f"  {aname}: pointer sidecar "
+                         f"{side.name} (folded into sources.yaml note: at "
+                         f"confirm)")
+    routed = file.parent / "routed"
+    routed.mkdir(exist_ok=True)
+    import shutil
+    shutil.move(str(file), str(routed / file.name))
+    with (routed / "manifest.log").open("a", encoding="utf-8") as fh:
+        fh.write(f"{file.name} -> {', '.join(to_areas)}\n")
+    print(f"routed {file.name} -> {', '.join(to_areas)}")
+    for ln in lines:
+        print(ln)
+    return 0
+
+
+def park(file: Path, reason: str) -> int:
+    _intake_context(file)
+    if not (reason or "").strip():
+        print("error: park requires --reason (parked is LOUD by contract — "
+              "a file nobody can place still says why)", file=sys.stderr)
+        return 2
+    parked = file.parent / "parked"
+    parked.mkdir(exist_ok=True)
+    import shutil
+    shutil.move(str(file), str(parked / file.name))
+    with (parked / "reasons.log").open("a", encoding="utf-8") as fh:
+        fh.write(f"{file.name} — {reason.strip()}\n")
+    print(f"parked {file.name} — {reason.strip()}")
+    return 0
+
+
+def intake_status(components_root: Path) -> tuple[list[str],
+                                                  list[tuple[str, str]]]:
+    """(unprocessed names, [(parked name, reason)]) — empty lists when there
+    is no intake/ folder beside components/."""
+    intake = components_root.resolve().parent / "intake"
+    if not intake.is_dir():
+        return [], []
+    unprocessed = sorted(p.name for p in intake.iterdir()
+                         if p.is_file() and not p.name.startswith("."))
+    reasons: dict[str, str] = {}
+    rlog = intake / "parked" / "reasons.log"
+    if rlog.is_file():
+        for ln in rlog.read_text(encoding="utf-8").splitlines():
+            name, _, why = ln.partition(" — ")
+            if name:
+                reasons[name.strip()] = why.strip()
+    parked_dir = intake / "parked"
+    parked = [(p.name, reasons.get(p.name, "(no reason recorded)"))
+              for p in sorted(parked_dir.iterdir())
+              if parked_dir.is_dir() and p.is_file()
+              and not p.name.startswith(".") and p.name != "reasons.log"] \
+        if parked_dir.is_dir() else []
+    return unprocessed, parked
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=["audit", "brief", "note", "adopt"])
+    ap.add_argument("command", choices=["audit", "brief", "note", "adopt",
+                                        "route", "park"])
     ap.add_argument("root", nargs="?", default="components",
                     help="audit/brief: the engagement components/ dir "
                          "(default: ./components); note/adopt: the AREA "
-                         "folder")
+                         "folder; route/park: the staged intake/<file>")
     ap.add_argument("--slug", help="note: procedure slug to queue on")
     ap.add_argument("--note", help="note: the review instruction text")
     ap.add_argument("--from", dest="from_ref",
@@ -645,8 +821,31 @@ def main(argv=None) -> int:
     ap.add_argument("--touches", nargs="+", default=[],
                     help="adopt: procedure slug(s) in the target area that "
                          "read the adopted source")
+    ap.add_argument("--to", default="",
+                    help="route: comma-separated target area name(s)")
+    ap.add_argument("--note-for", dest="note_for", nargs=2, action="append",
+                    default=[], metavar=("AREA", "TEXT"),
+                    help="route: per-area relevance pointer (repeatable) — "
+                         "written as a sidecar the confirm step folds into "
+                         "sources.yaml note:")
+    ap.add_argument("--new-area", action="store_true",
+                    help="route: allow a not-yet-scoped target area (HUMAN "
+                         "direction only — the classifier parks instead)")
+    ap.add_argument("--reason", default="",
+                    help="park: why no scoped area can take this file")
     a = ap.parse_args(argv)
     root = Path(a.root)
+    if a.command in ("route", "park"):
+        try:
+            if a.command == "route":
+                return route(root,
+                             [s.strip() for s in a.to.split(",")
+                              if s.strip()],
+                             {area: text for area, text in a.note_for},
+                             new_area=a.new_area)
+            return park(root, a.reason)
+        except SystemExit as exc:   # _intake_context fails loud with code 2
+            return exc.code if isinstance(exc.code, int) else 2
     if a.command == "note":
         if not a.slug or not a.note:
             print("error: note requires --slug and --note", file=sys.stderr)

@@ -71,7 +71,11 @@ do not do it — **flag it** for the human (see return). Continue `SRC-` ids fro
 existing max in `sources.yaml`.
 
 Read, at the start:
-1. Everything in `{area}/_sources/new/`.
+1. Everything in `{area}/_sources/new/`. A `*.route.md` file beside a
+   source is an M25 intake pointer (where in the document this area's
+   relevance lives) — READ it to speed your `touches` tagging, but never
+   register it as a source: it is routing metadata, and the scaffold step
+   folds it into the source's `note:` automatically.
 2. The `taxonomy` file — find your L1 by `slug` and read its **L2 sub-process
    buckets** (each has a `slug` — use these verbatim as the `l2` values). These are
    your **known backbone**: the buckets L3 activities file under.

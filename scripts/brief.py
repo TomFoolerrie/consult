@@ -177,6 +177,12 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
             if done:
                 note += ("; already consumed by you — re-read only if your "
                          "dispatch names it")
+            entry_note = str(e.get("note") or "").strip()
+            if entry_note:
+                # M24 adoption provenance / M25 intake pointers ride here.
+                trimmed = entry_note if len(entry_note) <= 200 \
+                    else entry_note[:197] + "…"
+                note += f"; note: {trimmed}"
             _reading_item(out, folder, f, note)
     else:
         _line(out, "  - (no sources tagged to this procedure in "
