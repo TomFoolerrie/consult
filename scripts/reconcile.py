@@ -916,7 +916,8 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
         group_slug = None  # set by `#### [[slug]]` per-procedure group headings
         for n, line in enumerate(text.splitlines(), start=1):
             if line.lstrip().startswith("#"):
-                hx = XREF_RE.findall(line)
+                # Cross-area tokens (M26) are never Source-Procedure refs.
+                hx = [x for x in XREF_RE.findall(line) if "/" not in x]
                 group_slug = hx[0] if hx else None
                 continue
             if not line.lstrip().startswith("|"):
@@ -936,8 +937,9 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
                 # Combined "ID ([[#slug]])" first cell is authoritative; the
                 # last token on the line is only the legacy Source-Procedure-
                 # column fallback (free-text cells may quote siblings).
-                first_xrefs = XREF_RE.findall(first_cell)
-                xrefs = XREF_RE.findall(line)
+                first_xrefs = [x for x in XREF_RE.findall(first_cell)
+                               if "/" not in x]
+                xrefs = [x for x in XREF_RE.findall(line) if "/" not in x]
                 row_slug = (first_xrefs[0] if first_xrefs
                             else (xrefs[-1] if xrefs else None))
             if row_slug is None:
@@ -1001,7 +1003,13 @@ def reconcile(folder: str) -> int:
         warnings.extend(frag.warnings)
         frags[slug] = frag
 
-    # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files
+    # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files.
+    #    M26: [[area/slug]] cross-area tokens validate against the SIBLING
+    #    manifest (identity exists from scoping — a scoped-but-unfilled target
+    #    is valid). Outside a components/ engagement root, any cross token is
+    #    an ERROR with a layout explanation.
+    siblings = doc_model.sibling_procedures(folder)
+    under_root = Path(folder).resolve().parent.name == "components"
     for comp in manifest.get("components", []):
         file = comp.get("file", "")
         fpath = folder / file
@@ -1011,9 +1019,41 @@ def reconcile(folder: str) -> int:
         for n, line in enumerate(text.splitlines(), start=1):
             for m in XREF_RE.finditer(line):
                 slug = m.group(1)
-                if slug not in known_slugs:
+                area_ref, local = doc_model.split_xref(slug)
+                if area_ref is None:
+                    if slug not in known_slugs:
+                        errors.append(
+                            f"{file}:{n}: DANGLING [[{slug}]] — no such "
+                            f"procedure"
+                        )
+                    continue
+                if not under_root:
                     errors.append(
-                        f"{file}:{n}: DANGLING [[{slug}]] — no such procedure"
+                        f"{file}:{n}: [[{slug}]] is a cross-area token, but "
+                        f"this area is not under a components/ engagement "
+                        f"root — move the L1s under one components/ dir, or "
+                        f"reword as plain prose"
+                    )
+                    continue
+                if m.group(0).startswith("[[#"):
+                    errors.append(
+                        f"{file}:{n}: [[#{slug}]] — cross-area tokens have "
+                        f"no display number (another area's numbering is "
+                        f"not stable from here); use [[{slug}]]"
+                    )
+                    continue
+                sib = siblings.get(area_ref)
+                if sib is None:
+                    errors.append(
+                        f"{file}:{n}: DANGLING [[{slug}]] — no sibling area "
+                        f"{area_ref!r} (known: "
+                        f"{', '.join(sorted(siblings)) or 'none'})"
+                    )
+                elif local not in sib["slugs"]:
+                    errors.append(
+                        f"{file}:{n}: DANGLING [[{slug}]] — area "
+                        f"{area_ref!r} has no procedure {local!r} (its "
+                        f"slugs: {', '.join(sorted(sib['slugs'])) or 'none'})"
                     )
 
     # 4. derived marker presence + ownership match (M22 check 3)

@@ -767,6 +767,11 @@ def render_folder(folder: Path, out: Path, *,
             labels[slug] = f"{labels[slug]} {comp['heading']}"
         if slug:
             l2_of[slug] = comp.get("l2", "")
+    # M26 cross-area tokens: [[area/slug]] -> "Heading (Area Title)". Under a
+    # components/ root every sibling procedure resolves; elsewhere the map is
+    # empty and a cross token fails loud (KeyError) rather than reaching Word
+    # as raw brackets — reconcile reports the same defect first.
+    labels.update(doc_model.cross_labels(folder))
     assembled = doc_model.assemble(folder)
 
     # Global callout display IDs (drafters number locally from 01; the global

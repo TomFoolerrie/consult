@@ -103,8 +103,12 @@ procedures:
     sources: [SRC-001, SRC-003]    # which sources describe this L3
     variants: []                   # only on a merged near-duplicate pair, e.g.
                                    #   ["New vendor setup", "Vendor banking change"]
-    upstream: []                   # optional ordering hint: slugs whose output
-                                   #   this procedure consumes (drafted first)
+    upstream: []                   # producer refs this procedure consumes:
+                                   #   local slugs (drafted first) and/or
+                                   #   cross-area "<area>/<slug>" seam
+                                   #   declarations (M26)
+    gap_forecast: []               # M26: questions the sources visibly do
+                                   #   NOT answer — the early client ask-list
 ```
 Slugs are identity: unique, kebab-case, never colliding. Scaffold builds the
 manifest from this file; `procedures.yaml` itself is **not** a live registry file
@@ -130,6 +134,15 @@ producers first and passes their fragments to downstream drafters read-only,
 so the seam is described consistently. Hint only on clearly evidenced
 handoffs; when in doubt, omit (absent = "no opinion", drafting just runs in
 parallel as always).
+
+**Cross-area seams (M26).** When the producer lives in a SIBLING area
+(its manifest names the procedure), declare the seam with the cross-area
+form — `upstream: ["p2p/goods-receipt"]`. It must name an existing sibling
+procedure (scaffold validates and drops anything else); it never defers
+drafting (no cross-area waves) — it feeds the drafter read-only seam
+context and the `[[area/slug]]` handoff token. An upstream in an UNSCOPED
+area cannot be declared: leave it plain prose, mention it in `unresolved`.
+You prescribe what the drafter READS, never what it writes.
 
 ### 3. Stand up the noun registry → `.proposed/systems.yaml`, `.proposed/roles.yaml`
 ```yaml
@@ -303,7 +316,10 @@ confirm only ever ADDS to the manifest.
 - `by_bucket`: each L2 → the L3 slugs filed under it.
 - `new_buckets`: proposed buckets needing approval (slug + one-line rationale).
 - `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants).
-- `ordered`: upstream hints you stamped (downstream slug → upstream slugs).
+- `ordered`: upstream hints you stamped (downstream slug → upstream refs,
+  cross-area `<area>/<slug>` included).
+- `seams` / `gap_forecast` (M26): cross-area declarations, one line each;
+  forecast questions grouped by procedure.
 - `overlap_flags`: heavily-overlapping pairs you did NOT merge (human decides).
 - `unmapped_people`: individuals you could not confidently map to a role.
 - `low_confidence`: procedures/entries the human should scrutinize first.

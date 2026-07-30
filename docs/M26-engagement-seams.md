@@ -1,10 +1,21 @@
 # M26 — The engagement seam model (taxonomy-declared, token-carried, audit-derived)
 
-> **Status: DESIGNED — decisions settled with the user.** Not yet built.
-> **BUILD PRIORITY: first** — ahead of M25 (intake) and the M24 `--full`
-> read, in this order: tokens → taxonomy (with the Opus pin and the gap
-> forecast) → briefs → derived spine. Then M25, then the legacy-migration
-> playbook on the user's real engagement.
+> **Status: BUILT (v1.11.0)** — shipped in the ticket's order: tokens
+> (XREF_RE extended everywhere the grammar lives — callouts, doc_model,
+> orchestrate's fallback, review_apply — with render/review_apply label
+> maps carrying `cross_labels()` so a raw token can never survive to Word);
+> reconcile validates against the sibling MANIFEST (dangling area/slug,
+> number-only form, and outside-components-root are all hard ERRORs naming
+> the fix); scaffold PRESERVES validated cross-area `upstream` entries and
+> surfaces seams + the gap forecast at the confirm gate; taxonomy contract
+> carries the seam-declarer posture, the gap forecast, and `model: opus`
+> (same commit, per the settled rule); the drafter brief resolves
+> cross-area upstream read-only with the honest "scoped, not yet drafted →
+> seam_unverified" line; `engagement.py audit` gained section 5 INTERFACES
+> (the derived spine + asymmetric-seam findings) and the placement brief
+> carries it. The advisor's non-blocking behavior on cross-area hints is
+> pinned by test. Remaining from the plan: M25, the M24 `--full` read,
+> then the legacy-migration playbook.
 > Supersedes the two earlier shapes this idea passed through: a
 > human-curated `interfaces.yaml` (rejected: the user must not own
 > engagement plumbing) and an agent-maintained one (superseded: a curated

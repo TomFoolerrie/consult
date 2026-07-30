@@ -65,7 +65,12 @@ BARE_GAP_RE = re.compile(r"\[\[\s*GAP(?!-[A-Z0-9])\s*(?:" + DELIM + r"|\]\])")
 
 # Procedure cross-reference token: `[[slug]]` (resolves to number + title) or
 # `[[#slug]]` (number only — for table refs where the title is its own column).
-XREF_RE = re.compile(r"\[\[#?([a-z0-9][a-z0-9-]*)\]\]")
+# M26: an optional `area/` prefix makes it a CROSS-AREA token `[[area/slug]]`
+# (resolves to heading + area title, never a number). This regex is the ONE
+# token grammar — every consumer (resolve, reconcile's dangling check,
+# orchestrate, review_apply) matches through it or mirrors it exactly.
+XREF_RE = re.compile(
+    r"\[\[#?([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 
 # A fenced code block (``` or ~~~) — blanked so callouts inside code/examples
 # and the consult-meta block are not parsed as real callouts.

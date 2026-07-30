@@ -66,7 +66,7 @@ def test_clean_engagement_reports_clean(tmp_path, capsys):
         encoding="utf-8")
     assert engagement.main(["audit", str(root)]) == 0
     out = capsys.readouterr().out
-    assert "Clean: no cross-area duplication, no open gaps." in out
+    assert "Clean: no cross-area duplication, no open gaps" in out
 
 
 def test_single_area_engagement_explains_layout(tmp_path, capsys):
