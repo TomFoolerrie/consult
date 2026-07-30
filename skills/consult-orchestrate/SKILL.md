@@ -479,7 +479,12 @@ section enumerates holders before you rename).
 judgment subagent whose first action is
 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" brief components` —
 the brief carries the mechanical findings, the gap register, area scope
-digests, and the full triage rules. It routes each finding to one of THREE
+digests, and the full triage rules. **On a legacy/mixed-version engagement
+or a periodic deep sweep, add `--full`** — the brief then lists whole
+fragment paths (gap answers live in step bodies, not Scope digests; this
+fixed the first real run's under-recall) with a token estimate; if the
+SIZE GUARD line fires, follow it (digest mode, or `--full` per area pair)
+instead of dispatching an over-budget read. It routes each finding to one of THREE
 moves via `engagement.py note` (kind: review, the existing bus):
 
 1. **reduce to handoff** — work owned by another L1; the note tells the

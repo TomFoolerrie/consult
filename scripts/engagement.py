@@ -388,14 +388,27 @@ def audit(root: Path) -> int:
     return 0
 
 
-def placement_brief(root: Path) -> int:
-    """The work order for the single knowledge-placement agent (M24)."""
+#: M24 `--full` size guard: a rough chars/4 token estimate over every
+#: fragment. One strong agent comfortably reads a 4-L1 engagement in full
+#: (~150–250k tokens); past the budget the brief recommends digest mode or
+#: area-pair splits instead of silently overrunning the reader's context.
+_FULL_READ_TOKEN_BUDGET = 300_000
+
+
+def placement_brief(root: Path, full: bool = False) -> int:
+    """The work order for the single knowledge-placement agent (M24).
+
+    `full` (the field-finding fix): list whole fragment paths instead of
+    Scope-only digests — gap answers live in step bodies, and the digest
+    under-recalled on the first real engagement. The migration instrument
+    for legacy prose and the periodic deep sweep."""
     areas = _areas(root)
     if len(areas) < 2:
         print(f"{root}: {len(areas)} area(s) — the placement pass needs at "
               f"least two areas under one components/ dir.")
         return 2 if not areas else 0
-    print(f"WORK ORDER — knowledge-placement pass · {root}")
+    print(f"WORK ORDER — knowledge-placement pass "
+          f"({'FULL READ' if full else 'digest'}) · {root}")
     print("  read-only pass: you write NOTHING except through the two "
           "commands below — findings become notes; register content and "
           "adoptions are executed on the notes' say-so, never by you")
@@ -473,16 +486,44 @@ def placement_brief(root: Path) -> int:
     for ln in lines:
         print(ln)
     print()
-    print("AREA DIGESTS (procedure titles + Scope sections — your read of "
-          "the areas; a finding that needs a full fragment names it in "
-          "your status instead):")
-    for a, m in areas:
-        print(f"  ── area {a} — {m.get('title', a)}")
-        for comp in _procedures(m):
-            print(f"    [[{comp.get('slug', '?')}]] — "
-                  f"{comp.get('heading', '')}")
-            for ln in _scope_digest(root, a, comp):
-                print(ln)
+    if full:
+        total_chars = 0
+        blocks: list[str] = []
+        for a, m in areas:
+            blocks.append(f"  ── area {a} — {m.get('title', a)}")
+            for comp in _procedures(m):
+                p = root / a / comp.get("file", "")
+                try:
+                    total_chars += p.stat().st_size
+                except OSError:
+                    pass
+                blocks.append(f"    [[{comp.get('slug', '?')}]] — "
+                              f"{comp.get('heading', '')}  → READ IN FULL: "
+                              f"{p}")
+        est = total_chars // 4
+        print(f"FRAGMENTS — FULL READ (M24 --full: gap answers live in "
+              f"step bodies, not Scope digests). Read EVERY file below "
+              f"whole (~{est:,} tokens est.):")
+        if est > _FULL_READ_TOKEN_BUDGET:
+            print(f"  SIZE GUARD: ~{est:,} tokens exceeds the single-read "
+                  f"budget (~{_FULL_READ_TOKEN_BUDGET:,}). Recommend digest "
+                  f"mode (drop --full), or run --full per area PAIR "
+                  f"(smaller engagements read whole; this one has "
+                  f"outgrown one context).")
+        for ln in blocks:
+            print(ln)
+    else:
+        print("AREA DIGESTS (procedure titles + Scope sections — your read "
+              "of the areas; a finding that needs a full fragment names it "
+              "in your status instead. Legacy/mixed-version prose? use "
+              "--full):")
+        for a, m in areas:
+            print(f"  ── area {a} — {m.get('title', a)}")
+            for comp in _procedures(m):
+                print(f"    [[{comp.get('slug', '?')}]] — "
+                      f"{comp.get('heading', '')}")
+                for ln in _scope_digest(root, a, comp):
+                    print(ln)
     print()
     print("WHAT YOU RETURN (COMPACT): findings per move; register "
           "proposals (file, key, suggested content, which procedures "
@@ -833,6 +874,10 @@ def main(argv=None) -> int:
                          "direction only — the classifier parks instead)")
     ap.add_argument("--reason", default="",
                     help="park: why no scoped area can take this file")
+    ap.add_argument("--full", action="store_true",
+                    help="brief: list whole fragment paths instead of Scope "
+                         "digests (the M24 deep-sweep / legacy-migration "
+                         "read; a size guard warns past the token budget)")
     a = ap.parse_args(argv)
     root = Path(a.root)
     if a.command in ("route", "park"):
@@ -861,7 +906,8 @@ def main(argv=None) -> int:
         print(f"error: {root} is not a directory — run from the engagement "
               f"root (the folder containing components/)", file=sys.stderr)
         return 2
-    return placement_brief(root) if a.command == "brief" else audit(root)
+    return placement_brief(root, full=a.full) if a.command == "brief" \
+        else audit(root)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 # M24 — Knowledge placement (the engagement pass: duplication + gaps, one problem)
 
-> **Status: BUILT (v1.10.0), with one field finding and one pending build
-> item.** `engagement.py` audit section 4 (open-gap register via the
+> **Status: BUILT (v1.10.0; `--full` field-finding fix shipped v1.13.0).** `engagement.py` audit section 4 (open-gap register via the
 > shared `callouts.open_gaps` parser), `brief` (the placement-pass work
 > order), `adopt` (hash-stamped second-hand source + `kind: source`
 > notes; sticky-hold `adopt` enforced at the verb); registers listed
@@ -13,11 +12,12 @@
 > was scope-sections-only (gap answers live in step bodies), one context
 > did N×M matching across 100+ gaps, and the anti-noise contract tuned on
 > clean synthetic data read as timidity on a legacy engagement.
-> **Settled fix (pending, small): `brief --full`** — the brief lists
+> **Settled fix — BUILT (v1.13.0): `brief --full`** — the brief lists
 > whole fragment paths instead of digests (one strong agent reads the
 > engagement in full — ~150–250k tokens at 4 L1s, which fits), plus a
-> mechanical size guard that prints the token estimate and recommends
-> digest mode / area-pair splits when an engagement outgrows it. The
+> mechanical size guard (chars/4 estimate vs a ~300k budget) that prints
+> the token estimate and recommends digest mode / area-pair splits when
+> an engagement outgrows it. The
 > candidate-shortlist and fan-out designs considered alongside were NOT
 > adopted — superseded by the full read at this scale.
 > **Demotion (M26):** once cross-area tokens exist, this pass's matching
