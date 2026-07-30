@@ -1,7 +1,0 @@
-# _review/putaway-and-bin-confirmation.notes.yaml
-# Procedure-anchored notes (the M6 bus: every item carries `kind`).
-# Consumed by consult-drafter (mode: update).
-procedure: "putaway-and-bin-confirmation"
-items:
-  - kind: "review"
-    note: "reduce to handoff; owner is procure-to-pay/[[goods-receipt]]. Scope and Before-You-Start restate goods-receipt mechanics ('dock check', 'posted in Coupa') owned by that L1 — keep one sentence naming the owner's procedure. Caution: the restated detail conflicts with the owner ('posted in Coupa' here vs item receipt entered in NetSuite Receive Orders per goods-receipt SRC-004); reducing to the handoff removes the drift."
