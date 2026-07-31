@@ -42,6 +42,9 @@ M28 replaced the old per-check comment numbering with that one list):
     - M16.3 — a callout carrying `detail:` with no `note:`. The two are two views
       of one body; `detail` renders only in the appendix, so the inline view at
       the step would be empty (see `check_note_detail`)
+    - M29 — a DRAFTED procedure fragment (no `unfilled` sentinel) with no
+      `consult-meta` fenced block at all: noun binding is silently skipped, so
+      the Systems view / Role Dictionary / RACI just omit the procedure
 
   WARNING (exit stays 0):
     - a `consult-meta` systems:/roles: slug absent from `_reference/*.yaml`
@@ -54,6 +57,15 @@ M28 replaced the old per-check comment numbering with that one list):
     - M16.1 — two `###` headings resolving to ONE section (`Pre-Requisites` +
       `Inputs` after the merge): the fragment is awaiting the content wave. Every
       fact is kept (aggregate concatenates) so this can never be an error
+    - M29 — a PROSE line past 100 columns in a procedure fragment (the drafter
+      contract hard-wraps at ~80; consolidator anchors (M12) and the citation
+      scrub's one-newline window (M4) depend on it). Table rows, fenced blocks,
+      URLs, headings, callout `>` lines and HTML comments are exempt; ONE
+      warning per fragment (first offending line + "and N more")
+    - M29 — a number-only `[[#slug]]` token outside a table row: the form is
+      for Ref cells where the title is its own column; in prose it renders a
+      cryptic bare number (use `[[slug]]`). Cross-area `[[#area/slug]]` is
+      already an M26 ERROR and is not double-reported here
 
 Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
@@ -68,6 +80,12 @@ Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - `touches` membership and the SRC- citation checks need a manifest /
       a populated sources.yaml respectively; during initial scoping either may
       not exist yet, so each check no-ops until its authority is on disk.
+    - M29: the consult-meta PRESENCE check no-ops until a noun registry exists
+      on disk (`_reference/systems.yaml` or `roles.yaml`) — same M22 pattern:
+      a block that binds prose to registry slugs cannot be demanded before any
+      registry exists to bind to (initial scoping, or a standalone fixture
+      area). Once either file is present, a drafted fragment with no block is
+      an ERROR: the omission is invisible downstream (the views just omit it).
 
 Usage:
     python3 scripts/reconcile.py <area-folder>
@@ -1027,6 +1045,97 @@ def check_consult_meta(ctx: Ctx) -> None:
                     )
 
 
+def check_consult_meta_presence(ctx: Ctx) -> None:
+    """M29 check 2 — a DRAFTED procedure fragment with NO consult-meta block.
+
+    The block is the machine binding (drafter contract rule 2): without it the
+    fragment silently skips noun binding, so the Systems view / Role Dictionary
+    / RACI omit the procedure and nothing says so — only unknown SLUGS warned
+    before M29; a missing BLOCK was invisible. ERROR.
+
+    EXEMPTION: an `unfilled` skeleton is routed to `fill` (the scaffolder
+    writes no block by design). BOUNDARY (documented above): no-ops until
+    `_reference/systems.yaml` or `roles.yaml` exists — no noun registry on
+    disk, no binding authority to demand a binding to."""
+    if yaml is None:
+        return  # extract_consult_meta cannot see a fence body without pyyaml
+    ref = ctx.folder / "_reference"
+    if not ((ref / "systems.yaml").is_file() or (ref / "roles.yaml").is_file()):
+        return
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        _meta, fence_line = extract_consult_meta(f.raw)
+        if fence_line == 0:
+            ctx.errors.append(
+                f"{f.file}: NOUN BINDING SKIPPED — no consult-meta block; the "
+                f"Systems/Role/RACI views will omit this procedure; add a "
+                f"```consult-meta``` block with its systems:/roles: slugs"
+            )
+
+
+# A URL anywhere on a line exempts it from the hard-wrap check — a long link
+# cannot be wrapped without breaking it.
+_URL_RE = re.compile(r"https?://", re.IGNORECASE)
+
+#: The hard-wrap tolerance. The drafter contract wraps at ~80 columns; the
+#: check flags only clear breaches so reflowed-but-honest prose never warns.
+WRAP_LIMIT = 100
+
+
+def check_hard_wrap(ctx: Ctx) -> None:
+    """M29 check 3 — a PROSE line past WRAP_LIMIT columns (WARNING).
+
+    The ~80-column hard wrap is the contract rule two mechanisms depend on:
+    consolidator anchors must sit inside one line to literal-match (M12), and
+    the citation scrub's window spans at most one newline (M4). Exempt: table
+    rows (`|`), fenced blocks (already blanked in the cache), lines carrying a
+    URL, headings, callout/definition `>` lines, and HTML comments. ONE
+    warning per fragment — the first offending line plus a count — never one
+    per line (noise discipline)."""
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        offenders: list[tuple[int, int]] = []  # (line no, length)
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
+            if len(line) <= WRAP_LIMIT:
+                continue
+            s = line.lstrip()
+            if (s.startswith(("|", "#", ">"))
+                    or s.startswith("<!--")
+                    or _URL_RE.search(line)):
+                continue
+            offenders.append((n, len(line)))
+        if offenders:
+            n, length = offenders[0]
+            more = (f" (and {len(offenders) - 1} more)"
+                    if len(offenders) > 1 else "")
+            ctx.warnings.append(
+                f"{f.file}:{n}: LONG PROSE LINE — {length} chars{more}; "
+                f"hard-wrap at ~80 columns (anchor matching and the citation "
+                f"scrub depend on wrapped prose)"
+            )
+
+
+def check_number_only_xref_in_prose(ctx: Ctx) -> None:
+    """M29 check 4 — a number-only `[[#slug]]` token outside a table row
+    (WARNING). The form exists for Ref cells where the title is its own
+    column; in prose it renders a cryptic bare number. Cross-area tokens
+    (`[[#area/slug]]`) are skipped: M26 already hard-errors those in
+    check_xref_tokens, and one defect gets one report."""
+    for f in ctx.fragments(ctx.manifest.get("components", []),
+                           skip_unfilled=True):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
+            if line.lstrip().startswith("|"):
+                continue
+            for m in XREF_RE.finditer(line):
+                slug = m.group(1)
+                if m.group(0).startswith("[[#") and "/" not in slug:
+                    ctx.warnings.append(
+                        f"{f.file}:{n}: [[#{slug}]] outside a table row — "
+                        f"the number-only form renders a cryptic bare number "
+                        f"in prose; use [[{slug}]]"
+                    )
+
+
 # --------------------------------------------------------------------------- #
 # Derived-table (slug, id) check
 # --------------------------------------------------------------------------- #
@@ -1118,11 +1227,14 @@ CHECKS: list = [
     check_heading_contract,       # 11 M22 check 4 — no H1 (ATX or setext)
     check_baked_numbers,          # 12 M22 check 5 — baked display numbers
     check_quoted_callout_ids,     # 13 M22 check 6 — quoted ids in agent prose
+    check_consult_meta_presence,  # 14 M29 — no consult-meta block at all
     # advisory-only from here down (exit stays 0)
-    check_hedge_prose,            # 14 hedges in body prose
-    check_british_spellings,      # 15 British spellings
-    check_table_shape,            # 16 sheared table rows
-    check_cross_area_ownership,   # 17 sibling area's procedure title in prose
+    check_hedge_prose,            # 15 hedges in body prose
+    check_british_spellings,      # 16 British spellings
+    check_table_shape,            # 17 sheared table rows
+    check_cross_area_ownership,   # 18 sibling area's procedure title in prose
+    check_hard_wrap,              # 19 M29 — prose line past ~100 cols
+    check_number_only_xref_in_prose,  # 20 M29 — [[#slug]] outside a table row
 ]
 
 

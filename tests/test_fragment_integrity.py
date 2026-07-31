@@ -180,7 +180,8 @@ def test_no_length_check_is_introduced(tmp_path, capsys):
     """A terse but real fragment passes: M19 is 'did the writer finish', never
     'is this long enough' (M15's retirement stands)."""
     terse = ("## Bank Rec\n\n### A. Process Overview\n\n"
-             "Controller reconciles cash daily. (SRC-001)\n")
+             "Controller reconciles cash daily. (SRC-001)\n\n"
+             "```consult-meta\nsystems: [netsuite]\nroles: [controller]\n```\n")
     rc, out = run(make_area(tmp_path, {"bank-rec": terse}), capsys)
     assert rc == 0
 

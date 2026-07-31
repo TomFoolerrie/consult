@@ -446,3 +446,145 @@ def test_each_fragment_read_and_blanked_once(tmp_path, capsys, monkeypatch):
     assert len(reads) == 3
     # ...and each fence-blanked exactly once.
     assert len(blank_calls) == 3
+
+
+# --------------------------------------------------------------------------- #
+# M29 check 2 — consult-meta PRESENCE (noun binding skipped)
+# --------------------------------------------------------------------------- #
+
+NO_META_FRAGMENT = """## Bank Rec
+
+### A. Purpose & Scope
+
+Reconcile all cash accounts against the bank statement.
+
+### E. Step-by-Step Procedure
+
+1. Export the bank statement from the portal.
+"""
+
+
+def test_drafted_fragment_without_consult_meta_is_error(tmp_path, capsys):
+    """M29 — a drafted fragment (no sentinel) with NO consult-meta block
+    silently skips noun binding: ERROR naming the file and the fix."""
+    rc, out = run(make_area(tmp_path, {"bank-rec": NO_META_FRAGMENT}), capsys)
+    assert rc == 1
+    assert "10_bank-rec.md: NOUN BINDING SKIPPED" in out
+    assert "add a" in out and "consult-meta" in out
+
+
+def test_fragment_with_consult_meta_passes_presence_check(tmp_path, capsys):
+    """Clean pass: the standard fixture carries a consult-meta block."""
+    rc, out = run(make_area(tmp_path,
+                            {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS)}),
+                  capsys)
+    assert rc == 0
+    assert "NOUN BINDING SKIPPED" not in out
+
+
+def test_unfilled_skeleton_exempt_from_presence_check(tmp_path, capsys):
+    """A scaffolded skeleton declares itself unfinished — routed to `fill`,
+    not failed here (the documented sentinel exemption)."""
+    skeleton = ("## Bank Rec\n\n<!-- unfilled -->\n\n### A. Purpose & Scope\n\n"
+                "TBD — what this procedure accomplishes.\n")
+    rc, out = run(make_area(tmp_path, {"bank-rec": skeleton}), capsys)
+    assert rc == 0
+    assert "NOUN BINDING SKIPPED" not in out
+
+
+def test_presence_check_noops_without_a_noun_registry(tmp_path, capsys):
+    """BOUNDARY (M22 pattern): with neither systems.yaml nor roles.yaml on
+    disk there is no binding authority — the presence check no-ops."""
+    area = make_area(tmp_path, {"bank-rec": NO_META_FRAGMENT})
+    (area / "_reference" / "systems.yaml").unlink()
+    (area / "_reference" / "roles.yaml").unlink()
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "NOUN BINDING SKIPPED" not in out
+
+
+# --------------------------------------------------------------------------- #
+# M29 check 3 — hard-wrap (long prose lines)
+# --------------------------------------------------------------------------- #
+
+LONG = "The reconciliation is performed against the statement " * 3  # >100
+
+
+def test_long_prose_line_warns_once_with_count(tmp_path, capsys):
+    """Two over-limit prose lines produce ONE warning: first line + 'and N
+    more' (noise discipline), exit stays 0."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra=f"\n{LONG}\n\nShort line.\n\n{LONG}\n")
+    first = frag.splitlines().index(LONG) + 1
+    rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
+    assert rc == 0
+    assert out.count("LONG PROSE LINE") == 1
+    assert f"10_bank-rec.md:{first}: LONG PROSE LINE" in out
+    assert "(and 1 more)" in out
+    assert "hard-wrap" in out
+
+
+def test_hard_wrap_exemptions_do_not_warn(tmp_path, capsys):
+    """Table rows, headings, callout `>` lines, URL lines, HTML comments and
+    fenced-block bodies are exempt however long they run."""
+    pad = "x" * 110
+    frag = fragment("Bank Rec", GOOD_CALLOUTS, body_extra=(
+        f"\n| Field | {pad} |\n"
+        f"### Heading {pad}\n"
+        f"> **CONTROL — CTRL-002:** {pad}\n"
+        f"See https://example.com/{pad} for the portal.\n"
+        f"<!-- note: {pad} -->\n"
+        f"```\n{pad} {pad}\n```\n"))
+    rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
+    assert rc == 0
+    assert "LONG PROSE LINE" not in out
+
+
+# --------------------------------------------------------------------------- #
+# M29 check 4 — [[#slug]] outside a table row
+# --------------------------------------------------------------------------- #
+
+def test_number_only_xref_in_prose_warns_with_fix(tmp_path, capsys):
+    """[[#slug]] in prose renders a cryptic bare number — WARNING naming the
+    plain-token fix."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="Feeds [[#petty-cash]] downstream.")
+    frags = {"bank-rec": frag,
+             "petty-cash": fragment("Petty Cash", GOOD_CALLOUTS)}
+    rc, out = run(make_area(tmp_path, frags), capsys)
+    assert rc == 0
+    assert "[[#petty-cash]] outside a table row" in out
+    assert "use [[petty-cash]]" in out
+
+
+def test_number_only_xref_in_table_row_is_sanctioned(tmp_path, capsys):
+    """The Ref-cell home of the form: a `|` row never warns."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="\n| Ref | Title |\n|---|---|\n"
+                               "| [[#petty-cash]] | Petty Cash |\n")
+    frags = {"bank-rec": frag,
+             "petty-cash": fragment("Petty Cash", GOOD_CALLOUTS)}
+    rc, out = run(make_area(tmp_path, frags), capsys)
+    assert rc == 0
+    assert "outside a table row" not in out
+
+
+def test_cross_area_number_only_token_is_not_double_reported(tmp_path, capsys):
+    """[[#area/slug]] is already an M26 ERROR — check 4 skips it, so the one
+    defect gets exactly one report."""
+    import json as _json
+    sib = tmp_path / "components" / "p2p"
+    sib.mkdir(parents=True)
+    (sib / "manifest.json").write_text(_json.dumps({
+        "area": "p2p", "title": "P2P",
+        "components": [{"file": "10_x.md", "role": "procedure",
+                        "slug": "goods-receipt", "heading": "Goods Receipt"}],
+    }), encoding="utf-8")
+    (tmp_path / "components" / "cash").mkdir(parents=True)
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="Ref [[#p2p/goods-receipt]].")
+    area = make_area(tmp_path / "components" / "cash", {"bank-rec": frag})
+    rc, out = run(area, capsys)
+    assert rc == 1
+    assert "no display number" in out          # the M26 error
+    assert "outside a table row" not in out    # not double-reported
