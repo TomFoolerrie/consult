@@ -58,6 +58,30 @@ def test_blank_fences_tilde():
     assert "secret" not in blank_fences("~~~\nsecret\n~~~\n")
 
 
+def test_blank_fences_indented_fence_is_blanked():
+    """M28 — a fence opened/closed with up to 3 leading spaces (e.g. inside a
+    list item) is still a fence; example callouts inside it must not parse."""
+    text = ("- an example:\n"
+            "  ```\n"
+            "  > **CONTROL — CTRL-09:** example only\n"
+            "  ```\n"
+            "after\n")
+    out = blank_fences(text)
+    assert "CTRL-09" not in out
+    assert out.count("\n") == text.count("\n")
+    assert "after" in out
+
+
+def test_blank_fences_unclosed_fence_blanks_to_eof():
+    """M28 — an unclosed fence blanks to end-of-text instead of escaping
+    blanking entirely (the old false-positive source for DANGLING ids)."""
+    text = "prose\n```\n> **CONTROL — CTRL-09:** example\n[[no-such-slug]]\n"
+    out = blank_fences(text)
+    assert "CTRL-09" not in out and "no-such-slug" not in out
+    assert out.count("\n") == text.count("\n")
+    assert "prose" in out
+
+
 def test_iter_defined_ids_basic():
     """iter_defined_ids yields (prefix, id) for each well-labelled callout in order."""
     text = (

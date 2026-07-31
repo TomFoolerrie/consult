@@ -73,8 +73,14 @@ XREF_RE = re.compile(
     r"\[\[#?([a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?)\]\]")
 
 # A fenced code block (``` or ~~~) — blanked so callouts inside code/examples
-# and the consult-meta block are not parsed as real callouts.
-FENCE_BLOCK_RE = re.compile(r"^(`{3,}|~{3,}).*?^\1\s*$", re.MULTILINE | re.DOTALL)
+# and the consult-meta block are not parsed as real callouts. M28: fences may
+# open/close with up to 3 leading spaces (CommonMark; e.g. inside a list item),
+# and an UNCLOSED fence blanks to end-of-text — before M28 both forms escaped
+# blanking, so example callouts/xrefs/ids inside them parsed as real (the one
+# genuine false-positive source the 2026-07 review found).
+FENCE_BLOCK_RE = re.compile(
+    r"^ {0,3}(`{3,}|~{3,}).*?(?:^ {0,3}\1\s*$|\Z)",
+    re.MULTILINE | re.DOTALL)
 
 
 class FragmentError(Exception):
@@ -139,14 +145,16 @@ _DEF_LINE_RE = re.compile(
 )
 
 
-def iter_defined_ids(text: str):
+def iter_defined_ids(text: str, blanked: bool = False):
     """Yield (prefix, id) for each callout defined in a fragment, in order.
 
-    Fence bodies are blanked first. Only lines whose label is in
+    Fence bodies are blanked first (pass `blanked=True` when the caller
+    already holds `blank_fences` output — M28's read-once cache does — so
+    the regex pass is not repeated). Only lines whose label is in
     LABEL_TO_PREFIX and whose id carries the matching prefix are yielded —
     malformed definitions are the fail-loud parsers' concern, not ours.
     """
-    for line in blank_fences(text).splitlines():
+    for line in (text if blanked else blank_fences(text)).splitlines():
         m = _DEF_LINE_RE.match(line)
         if not m:
             continue

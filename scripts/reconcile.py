@@ -8,7 +8,9 @@ PROCEDURE-LOCAL: `CTRL-001` in `bank-reconciliation` and `CTRL-001` in
 procedure fragment is parsed independently; a reference only reconciles within
 its own fragment. There is no global ID namespace.
 
-Checks (see docs/README.md + docs/M2-splitter-manifest.md):
+Checks (see docs/README.md + docs/M2-splitter-manifest.md; the authoritative
+ORDER and numbering live in the CHECKS registry at the bottom of this file —
+M28 replaced the old per-check comment numbering with that one list):
 
   ERROR (nonzero exit):
     - manifest.json invalid against v1 schema (incl. duplicate order/slug)
@@ -31,7 +33,8 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
       slug (same check, same message, as `sources.py` load time)
     - M22.3 — a derived file whose `<!-- derived: KIND; writer: W -->` marker
       disagrees with the manifest's `derived_kind`/`writer` (or is unparseable)
-    - M22.4 — an H1 (`# `) line in a procedure fragment (the heading contract)
+    - M22.4 — an H1 in a procedure fragment (the heading contract): an ATX
+      `# ` line, or (M28) a setext `===` underline making the line above an H1
     - M22.5 — a baked display number (`see|per|step|section 1.2`) in fragment or
       agent-derived prose; the sanctioned cross-reference form is `[[slug]]`
     - M22.6 — a callout ID quoted in agent-owned derived prose (82/84) outside a
@@ -54,9 +57,14 @@ Checks (see docs/README.md + docs/M2-splitter-manifest.md):
 
 Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
-      the M19 substance check and from the M22 zero-citation check: it declares
-      itself unfinished and the advisor routes it to `fill`. M19 targets SILENT
-      emptiness.
+      the M19 substance check, the M22 zero-citation check, and the advisory
+      language/shape checks (hedge, British, table shape, cross-area): it
+      declares itself unfinished and the advisor routes it to `fill`. M19
+      targets SILENT emptiness. The GRAMMAR checks (callout/ID parse, heading
+      contract, baked numbers, named individuals) still run on a skeleton —
+      an H1 or a name leak is already wrong before the content wave, and the
+      scaffolder never writes one. The exemption is decided ONCE per fragment
+      (Ctx.fragments) so no check can drift its own reading of the sentinel.
     - `touches` membership and the SRC- citation checks need a manifest /
       a populated sources.yaml respectively; during initial scoping either may
       not exist yet, so each check no-ops until its authority is on disk.
@@ -71,7 +79,6 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 
@@ -116,7 +123,7 @@ except ImportError:  # pragma: no cover - orchestrate is always present
 import client_config  # noqa: E402
 
 from callouts import (  # noqa: E402
-    LABEL_PREFIX, PREFIXES, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
+    LABEL_PREFIX, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
     BODY_GAP_RE, BARE_GAP_RE, XREF_RE, blank_fences as strip_fences,
     NOTE_FIELD, DETAIL_FIELD, DETAIL_KINDS, callout_field,
 )
@@ -147,6 +154,11 @@ SRC_RE = re.compile(r"\bSRC-\d+\b")
 # leading spaces still opens an ATX heading.
 H1_RE = re.compile(r"^ {0,3}#[ \t]")
 
+# A setext H1 underline (`Title` + `===`) — the same defect in the other
+# markdown spelling, which evaded the contract until M28. Only promotes the
+# line ABOVE it, so check_heading_contract pairs it with a paragraph line.
+SETEXT_H1_RE = re.compile(r"^ {0,3}=+\s*$")
+
 # A baked display number: the ticket's deliberately NARROW contextual pattern.
 # Case-insensitive ("Section 3.2" is the same defect). A false positive costs one
 # rewritten sentence; a false negative goes stale on the first reorder.
@@ -157,8 +169,10 @@ BAKED_NUMBER_RE = re.compile(r"\b(?:see|per|step|section)\s+\d+\.\d+", re.IGNORE
 FENCE_LINE_RE = re.compile(r"^\s*(```|~~~)")
 
 
-def extract_consult_meta(text: str) -> dict:
-    """Return the parsed body of the ```consult-meta``` fence, or {}."""
+def extract_consult_meta(text: str) -> tuple[dict, int]:
+    """The parsed body of the ```consult-meta``` fence plus the fence opener's
+    1-based line number, or ({}, 0) when there is none (M28: the line rides
+    along so the registry-slug warnings can point at the fence)."""
     lines = text.splitlines()
     for i, line in enumerate(lines):
         m = FENCE_LINE_RE.match(line)
@@ -171,12 +185,12 @@ def extract_consult_meta(text: str) -> dict:
                 body.append(lines[j])
             raw = "\n".join(body)
             if yaml is None:
-                return {}
+                return {}, 0
             try:
-                return yaml.safe_load(raw) or {}
+                return (yaml.safe_load(raw) or {}), i + 1
             except yaml.YAMLError:
-                return {}
-    return {}
+                return {}, i + 1
+    return {}, 0
 
 
 # --------------------------------------------------------------------------- #
@@ -256,8 +270,106 @@ def load_people_names(folder: Path) -> list[str]:
     return out
 
 
-def check_named_individuals(folder: Path, manifest: dict,
-                            errors: list[str], warnings: list[str]) -> None:
+# --------------------------------------------------------------------------- #
+# Run context: read-once cache + fragment iteration (M28)
+# --------------------------------------------------------------------------- #
+
+def _components(manifest: dict, role: str | None = None,
+                writer: str | None = None) -> list[dict]:
+    """Manifest components, optionally filtered by `role` and (for derived
+    files) by `writer`."""
+    out = []
+    for comp in manifest.get("components", []):
+        if role is not None and comp.get("role") != role:
+            continue
+        if writer is not None and comp.get("writer") != writer:
+            continue
+        out.append(comp)
+    return out
+
+
+class FragText:
+    """One component's text as a check sees it: raw, fence-blanked, and the
+    `unfilled` sentinel verdict — each produced exactly once per run."""
+
+    __slots__ = ("comp", "file", "slug", "raw", "blanked", "unfilled")
+
+    def __init__(self, comp: dict, raw: str, blanked: str, unfilled: bool):
+        self.comp = comp
+        self.file = comp.get("file", "")
+        self.slug = comp.get("slug")
+        self.raw = raw
+        self.blanked = blanked
+        self.unfilled = unfilled
+
+
+class Ctx:
+    """One reconcile run: the manifest, the error/warning accumulators, and
+    the read-once file cache — `{relpath: (raw, blanked, unfilled)}`. Every
+    check takes this instead of the pre-M28 copy-pasted
+    (folder, manifest, errors, warnings) preamble, so each fragment costs one
+    disk read, one blank_fences pass and one UNFILLED_RE search per run
+    (folder state is the run's snapshot; a mid-run write is already undefined,
+    so there is no mtime invalidation)."""
+
+    def __init__(self, folder: Path, manifest: dict):
+        self.folder = folder
+        self.manifest = manifest
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
+        # slug -> Frag, built by check_procedure_parse for check_derived_tables.
+        self.frags: dict[str, Frag] = {}
+        # relpath -> (raw | None, blanked | None, unfilled).
+        self._cache: dict[str, tuple[str | None, str | None, bool]] = {}
+        # Sibling areas, scanned once — the xref check and the cross-area
+        # ownership check both consume them (doc_model owns the one scanner).
+        self.siblings = doc_model.sibling_procedures(folder)
+
+    def _entry(self, comp: dict) -> tuple[str | None, str | None, bool]:
+        file = comp.get("file", "")
+        got = self._cache.get(file)
+        if got is None:
+            fpath = self.folder / file
+            if file and fpath.is_file():
+                raw = fpath.read_text(encoding="utf-8")
+                got = (raw, strip_fences(raw), bool(UNFILLED_RE.search(raw)))
+            else:
+                got = (None, None, False)
+            self._cache[file] = got
+        return got
+
+    def read(self, comp: dict) -> str | None:
+        """A component's raw text, or None when the file is not on disk
+        (missing files are reported once by the manifest/derived checks)."""
+        return self._entry(comp)[0]
+
+    def blanked(self, comp: dict) -> str | None:
+        """A component's fence-blanked text (same None contract as read)."""
+        return self._entry(comp)[1]
+
+    def fragments(self, comps: list[dict], skip_unfilled: bool = False):
+        """Yield a FragText per on-disk component of `comps`, in manifest
+        order. `skip_unfilled=True` applies the documented sentinel exemption
+        (see the module docstring's boundaries)."""
+        for comp in comps:
+            raw, blanked, unfilled = self._entry(comp)
+            if raw is None or (skip_unfilled and unfilled):
+                continue
+            yield FragText(comp, raw, blanked, unfilled)
+
+
+def _fragment_and_agent_derived(manifest: dict) -> list[dict]:
+    """Procedure fragments + agent-owned derived files: the prose a drafter or
+    synthesis agent writes, and the only prose those checks police."""
+    return (_components(manifest, role="procedure")
+            + _components(manifest, role="derived", writer="agent"))
+
+
+# --------------------------------------------------------------------------- #
+# Named individuals
+# --------------------------------------------------------------------------- #
+
+def check_named_individuals(ctx: Ctx) -> None:
     """Individuals appear in prose by ROLE, never by name.
 
     A multi-token full name is unambiguous → ERROR. A standalone first/last
@@ -265,7 +377,7 @@ def check_named_individuals(folder: Path, manifest: dict,
     ("Mark", "Price") → WARNING, case-sensitive, for the human to judge.
     Static front matter (role: static) is exempt — e.g. the Document Profile
     legitimately credits interviewees by name."""
-    names = load_people_names(folder)
+    names = load_people_names(ctx.folder)
     if not names:
         return
 
@@ -285,74 +397,44 @@ def check_named_individuals(folder: Path, manifest: dict,
     token_res = [(tok, owner, re.compile(r"\b" + re.escape(tok) + r"\b"))
                  for tok, owner in token_owner.items()]
 
-    for comp in manifest.get("components", []):
-        if comp.get("role") not in ("procedure", "derived"):
-            continue
-        file = comp.get("file", "")
-        fpath = folder / file
-        if not fpath.is_file():
-            continue
-        text = strip_fences(fpath.read_text(encoding="utf-8"))
-        for n, line in enumerate(text.splitlines(), start=1):
+    comps = [c for c in ctx.manifest.get("components", [])
+             if c.get("role") in ("procedure", "derived")]
+    for f in ctx.fragments(comps):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             spans: list[tuple[int, int]] = []
             for name, rx in full:
                 for m in rx.finditer(line):
                     spans.append(m.span())
-                    errors.append(
-                        f"{file}:{n}: NAMED INDIVIDUAL {name!r} — refer to "
+                    ctx.errors.append(
+                        f"{f.file}:{n}: NAMED INDIVIDUAL {name!r} — refer to "
                         f"people by role (roles.yaml `people` mapping)"
                     )
             for tok, owner, rx in token_res:
                 for m in rx.finditer(line):
                     if any(s <= m.start() and m.end() <= e for s, e in spans):
                         continue
-                    warnings.append(
-                        f"{file}:{n}: possible named individual {tok!r} "
+                    ctx.warnings.append(
+                        f"{f.file}:{n}: possible named individual {tok!r} "
                         f"({owner}) — use the role instead"
                     )
                     break  # one warning per token per line
 
 
 # --------------------------------------------------------------------------- #
-# Component iteration helper
-# --------------------------------------------------------------------------- #
-
-def _components(manifest: dict, role: str | None = None,
-                writer: str | None = None) -> list[dict]:
-    """Manifest components, optionally filtered by `role` and (for derived
-    files) by `writer`."""
-    out = []
-    for comp in manifest.get("components", []):
-        if role is not None and comp.get("role") != role:
-            continue
-        if writer is not None and comp.get("writer") != writer:
-            continue
-        out.append(comp)
-    return out
-
-
-def _read(folder: Path, comp: dict) -> str | None:
-    """A component's raw text, or None when the file is not on disk (missing
-    files are reported once by the manifest/derived checks, not here)."""
-    fpath = folder / comp.get("file", "")
-    if not fpath.is_file():
-        return None
-    return fpath.read_text(encoding="utf-8")
-
-
-# --------------------------------------------------------------------------- #
 # M19 — fragment substance (docs/M19-fragment-integrity.md)
 # --------------------------------------------------------------------------- #
 
-def has_substance(text: str) -> bool:
+def has_substance(text: str, blanked: bool = False) -> bool:
     """True when a fragment carries content beyond its heading(s).
 
-    Fence bodies (including `consult-meta`) are blanked first: a fragment whose
-    only non-heading content is its end-matter slug block has not been written.
-    Blank lines, HTML comments and horizontal rules are likewise not substance.
-    There is deliberately NO length or verbosity threshold — this answers "did
-    the writer finish", not "is this long enough" (M15's retirement stands)."""
-    for line in strip_fences(text).splitlines():
+    Fence bodies (including `consult-meta`) are blanked first (skipped with
+    `blanked=True` when the caller already holds blank_fences output): a
+    fragment whose only non-heading content is its end-matter slug block has
+    not been written. Blank lines, HTML comments and horizontal rules are
+    likewise not substance. There is deliberately NO length or verbosity
+    threshold — this answers "did the writer finish", not "is this long
+    enough" (M15's retirement stands)."""
+    for line in (text if blanked else strip_fences(text)).splitlines():
         s = line.strip()
         if not s or s.startswith("#"):
             continue
@@ -364,31 +446,26 @@ def has_substance(text: str) -> bool:
     return False
 
 
-def check_fragment_substance(folder: Path, manifest: dict,
-                             errors: list[str]) -> None:
+def check_fragment_substance(ctx: Ctx) -> None:
     """A zero-byte or heading-only procedure fragment is a blocking error (F2).
 
     EXEMPTION: a fragment still carrying the `<!-- unfilled -->` sentinel is a
     scaffolded skeleton that declares itself unfinished and is routed to `fill`
     by the advisor (guard 4). M19 exists for SILENT emptiness — the interrupted
     drafter that removed the sentinel and wrote nothing."""
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None:
-            continue
-        file, slug = comp.get("file", ""), comp.get("slug")
-        if not raw.strip():
-            errors.append(
-                f"{file}: EMPTY FRAGMENT — zero-byte procedure file; an "
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure")):
+        if not f.raw.strip():
+            ctx.errors.append(
+                f"{f.file}: EMPTY FRAGMENT — zero-byte procedure file; an "
                 f"interrupted drafter leaves no `unfilled` sentinel, so re-run "
-                f"fill for {slug!r}"
+                f"fill for {f.slug!r}"
             )
-        elif UNFILLED_RE.search(raw):
+        elif f.unfilled:
             continue                      # declared-unfinished skeleton: exempt
-        elif not has_substance(raw):
-            errors.append(
-                f"{file}: HEADING-ONLY FRAGMENT — no content beyond the "
-                f"heading(s); re-run fill for {slug!r}"
+        elif not has_substance(f.blanked, blanked=True):
+            ctx.errors.append(
+                f"{f.file}: HEADING-ONLY FRAGMENT — no content beyond the "
+                f"heading(s); re-run fill for {f.slug!r}"
             )
 
 
@@ -396,40 +473,35 @@ def check_fragment_substance(folder: Path, manifest: dict,
 # M22 — the constitution (docs/M22-enforce-invariants.md)
 # --------------------------------------------------------------------------- #
 
-def check_src_citations(folder: Path, manifest: dict, errors: list[str],
-                        warnings: list[str]) -> None:
+def check_src_citations(ctx: Ctx) -> None:
     """M22 check 1 — every cited `SRC-<n>` is registered, and a procedure cites
     at least one.
 
     BOUNDARY: skipped when `_reference/sources.yaml` registers no ids (absent,
     unreadable, or empty — the initial-scoping window). The skip is loud: a
     fragment citing ids with no registry to check them against warns."""
-    ids = sources_mod.registered_ids(str(folder)) if sources_mod else set()
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None:
-            continue
-        file = comp.get("file", "")
+    ids = sources_mod.registered_ids(str(ctx.folder)) if sources_mod else set()
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure")):
         cited: list[tuple[str, int]] = []
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             for m in SRC_RE.finditer(line):
                 cited.append((m.group(0), n))
         if not ids:
             if cited:
-                warnings.append(
-                    f"{file}: cites {cited[0][0]} but _reference/sources.yaml "
+                ctx.warnings.append(
+                    f"{f.file}: cites {cited[0][0]} but _reference/sources.yaml "
                     f"registers no SRC- ids — citation check skipped"
                 )
             continue
         for cid, n in cited:
             if cid not in ids:
-                errors.append(
-                    f"{file}:{n}: UNREGISTERED CITATION {cid} — no such id in "
+                ctx.errors.append(
+                    f"{f.file}:{n}: UNREGISTERED CITATION {cid} — no such id in "
                     f"_reference/sources.yaml"
                 )
-        if not cited and not UNFILLED_RE.search(raw):
-            errors.append(
-                f"{file}: NO SOURCE CITATION — procedure cites no SRC- id "
+        if not cited and not f.unfilled:
+            ctx.errors.append(
+                f"{f.file}: NO SOURCE CITATION — procedure cites no SRC- id "
                 f"(the drafter contract mandates Source Materials)"
             )
 
@@ -457,55 +529,21 @@ BRITISH_RE = re.compile(
     re.IGNORECASE)
 
 
-def check_british_spellings(folder: Path, manifest: dict,
-                            warnings: list[str]) -> None:
+def check_british_spellings(ctx: Ctx) -> None:
     """American English, always (drafter contract). Sources may speak British;
     the fragment must not. WARNING — editorial, not blocking."""
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None or UNFILLED_RE.search(raw):
-            continue
-        file = comp.get("file", "")
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             m = BRITISH_RE.search(line)
             if m:
-                warnings.append(
-                    f"{file}:{n}: BRITISH SPELLING ('{m.group(0)}') — the "
+                ctx.warnings.append(
+                    f"{f.file}:{n}: BRITISH SPELLING ('{m.group(0)}') — the "
                     f"drafter contract requires American English"
                 )
 
 
-def _sibling_procedures(folder: Path) -> list[tuple[str, str, str]]:
-    """(area, slug, title) for every procedure in every SIBLING area — the
-    other manifests under the same components/ parent. Unreadable manifests
-    are skipped: this feeds an advisory check, not a gate."""
-    out: list[tuple[str, str, str]] = []
-    parent = folder.resolve().parent
-    # Only the canonical engagement layout (components/<area>) has siblings;
-    # an area parked anywhere else must not scan its unrelated neighbors.
-    if parent.name != "components" or not parent.is_dir():
-        return out
-    for sib in sorted(parent.iterdir()):
-        if not sib.is_dir() or sib.resolve() == folder.resolve() \
-                or sib.name.startswith(("_", ".")):
-            continue
-        mpath = sib / "manifest.json"
-        if not mpath.is_file():
-            continue
-        try:
-            data = json.loads(mpath.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        for comp in data.get("components", []):
-            if comp.get("role") == "procedure":
-                title = (comp.get("heading") or "").strip()
-                if title:
-                    out.append((sib.name, comp.get("slug", "?"), title))
-    return out
-
-
-def check_cross_area_ownership(folder: Path, manifest: dict,
-                               warnings: list[str]) -> None:
+def check_cross_area_ownership(ctx: Ctx) -> None:
     """One process is never documented in two L1s (the client-taxonomy
     boundary rule) — but [[slug]] tokens only resolve within an area, so a
     drafter describing a SIBLING AREA's activity has no reference to reach
@@ -514,36 +552,43 @@ def check_cross_area_ownership(folder: Path, manifest: dict,
     Advisory (a legitimate one-sentence handoff mention also matches); the
     fix is the drafter's ownership rule — one handoff sentence, no steps.
     Single-word titles are skipped (too collision-prone to be signal)."""
-    if folder.resolve().parent.name != "components":
+    if ctx.folder.resolve().parent.name != "components":
         # Silent inertness is the failure mode this line exists to prevent:
         # an area run outside the engagement layout gets NO cross-L1
         # protection, and nothing else says so. A note, not a WARNING — a
         # deliberately standalone area is legitimate.
-        print(f"note: cross-area ownership check inactive — {folder} is "
+        print(f"note: cross-area ownership check inactive — {ctx.folder} is "
               f"not under a components/ engagement root, so sibling areas "
               f"are not visible")
         return
-    sibs = [(a, s, t) for a, s, t in _sibling_procedures(folder)
-            if len(t.split()) >= 2]
+    # ctx.siblings is doc_model's one sibling scanner (the pre-M28 private
+    # duplicate here had already drifted from it).
+    sibs = [(area, slug, title)
+            for area, info in ctx.siblings.items()
+            for slug, title in info["slugs"].items()
+            if len(title.split()) >= 2]
     if not sibs:
         return
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None or UNFILLED_RE.search(raw):
-            continue
-        file = comp.get("file", "")
-        text = strip_fences(raw).lower()
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        lines = f.blanked.lower().splitlines()
         for area_name, slug, title in sibs:
-            if title.lower() in text:
-                warnings.append(
-                    f"{file}: names '{title}' — an activity owned by "
-                    f"{area_name}/{slug} (another area): describe the "
-                    f"handoff in one sentence; never document another "
-                    f"area's procedure"
-                )
+            needle = title.lower()
+            for n, line in enumerate(lines, start=1):
+                if needle in line:
+                    ctx.warnings.append(
+                        f"{f.file}:{n}: names '{title}' — an activity owned by "
+                        f"{area_name}/{slug} (another area): describe the "
+                        f"handoff in one sentence; never document another "
+                        f"area's procedure"
+                    )
+                    break  # one warning per sibling title per file
 
 
-_TABLE_SEP_ROW_RE = re.compile(r"^\s*\|?[\s|:\-]+\|?\s*$")
+# A markdown table separator row. It must carry at least one `|` or `:` —
+# a bare `---` is a thematic break, not a table (M28: it used to match, so a
+# prose line containing '|' above a horizontal rule read as a table header).
+_TABLE_SEP_ROW_RE = re.compile(r"^(?=.*[|:])[\s|:\-]+$")
 
 
 def _cell_count(line: str) -> int:
@@ -556,19 +601,15 @@ def _cell_count(line: str) -> int:
     return len(re.split(r"(?<!\\)\|", line))
 
 
-def check_table_shape(folder: Path, manifest: dict,
-                      warnings: list[str]) -> None:
+def check_table_shape(ctx: Ctx) -> None:
     """A table row with MORE cells than its header is almost always a bare
     `|` in cell text shearing the row (drafter contract: escape it `\\|`).
     The render ships the sheared shape silently — a phantom column and every
     later cell one over — so it is flagged here. Fewer cells than the header
     is not flagged: writers legitimately leave trailing cells off."""
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None or UNFILLED_RE.search(raw):
-            continue
-        file = comp.get("file", "")
-        lines = strip_fences(raw).splitlines()
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        lines = f.blanked.splitlines()
         for i, line in enumerate(lines):
             if "|" not in line or i + 1 >= len(lines):
                 continue
@@ -580,38 +621,34 @@ def check_table_shape(folder: Path, manifest: dict,
             while j < len(lines) and lines[j].strip() and "|" in lines[j]:
                 extra = _cell_count(lines[j]) - width
                 if extra > 0:
-                    warnings.append(
-                        f"{file}:{j + 1}: SHEARED TABLE ROW — {extra} more "
+                    ctx.warnings.append(
+                        f"{f.file}:{j + 1}: SHEARED TABLE ROW — {extra} more "
                         f"cell(s) than the header; a bare '|' in cell text "
                         f"splits the row (escape it as '\\|')"
                     )
                 j += 1
 
 
-def check_hedge_prose(folder: Path, manifest: dict,
-                      warnings: list[str]) -> None:
+def check_hedge_prose(ctx: Ctx) -> None:
     """Uncertainty lives in callouts, never in body prose (drafter contract).
     A hedge phrase on a non-callout line of a filled procedure fragment would
     survive into the client export — callouts strip, prose does not."""
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None or UNFILLED_RE.search(raw):
-            continue
-        file = comp.get("file", "")
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             if line.lstrip().startswith(">"):
                 continue
             m = HEDGE_RE.search(line)
             if m:
-                warnings.append(
-                    f"{file}:{n}: HEDGE IN PROSE ('{m.group(0)}') — "
+                ctx.warnings.append(
+                    f"{f.file}:{n}: HEDGE IN PROSE ('{m.group(0)}') — "
                     f"uncertainty belongs in a GAP callout (strippable), not "
                     f"body prose; state what is established and raise a gap "
                     f"for the rest"
                 )
 
 
-def check_touches(folder: Path, errors: list[str]) -> None:
+def check_touches(ctx: Ctx) -> None:
     """M22 check 2 — `sources.yaml` `touches` ⊆ manifest procedure slugs.
 
     The validator itself lives in `sources.py` (it owns the file) so this gate
@@ -621,31 +658,30 @@ def check_touches(folder: Path, errors: list[str]) -> None:
     authority to check against must not fail an area."""
     if sources_mod is None:
         return
-    for e in sources_mod.touches_errors(str(folder)):
-        errors.append(e)
+    for e in sources_mod.touches_errors(str(ctx.folder)):
+        ctx.errors.append(e)
 
 
-def check_derived_markers(folder: Path, manifest: dict,
-                          errors: list[str]) -> None:
+def check_derived_markers(ctx: Ctx) -> None:
     """Marker presence (r3) + M22 check 3: the marker's kind and writer must
     match the manifest entry. This is the DETECTION layer for one-writer-per-
     file — a drafter that overwrote a sibling's derived view is named here."""
-    for comp in _components(manifest, role="derived"):
+    for comp in _components(ctx.manifest, role="derived"):
         file = comp.get("file", "")
-        raw = _read(folder, comp)
+        raw = ctx.read(comp)
         if raw is None:
-            errors.append(
+            ctx.errors.append(
                 f"manifest.json: derived file {file!r} declared but missing on disk"
             )
             continue
         if not DERIVED_MARKER_RE.search(raw):
-            errors.append(
+            ctx.errors.append(
                 f"{file}: derived file missing its `<!-- derived: KIND; writer: W -->` marker"
             )
             continue
         m = DERIVED_MARKER_FULL_RE.search(raw)
         if not m:
-            errors.append(
+            ctx.errors.append(
                 f"{file}: UNPARSEABLE OWNERSHIP MARKER — expected "
                 f"`<!-- derived: KIND; writer: W -->`"
             )
@@ -654,74 +690,70 @@ def check_derived_markers(folder: Path, manifest: dict,
         want_kind = str(comp.get("derived_kind") or "").strip()
         want_writer = str(comp.get("writer") or "").strip()
         if kind.lower() != want_kind.lower():
-            errors.append(
+            ctx.errors.append(
                 f"{file}: OWNERSHIP MARKER MISMATCH — marker kind {kind!r} but "
                 f"manifest derived_kind {want_kind!r}"
             )
         if writer.lower() != want_writer.lower():
-            errors.append(
+            ctx.errors.append(
                 f"{file}: OWNERSHIP MARKER MISMATCH — marker writer {writer!r} "
                 f"but manifest writer {want_writer!r}"
             )
 
 
-def check_heading_contract(folder: Path, manifest: dict,
-                           errors: list[str]) -> None:
+def check_heading_contract(ctx: Ctx) -> None:
     """M22 check 4 — an H1 in a procedure fragment. The assembled document's
-    single `#` is the manifest title; component files carry none."""
-    for comp in _components(manifest, role="procedure"):
-        raw = _read(folder, comp)
-        if raw is None:
-            continue
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+    single `#` is the manifest title; component files carry none. Both
+    spellings are caught: an ATX `# ` line, and (M28) a setext `===`
+    underline promoting the paragraph line above it."""
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure")):
+        lines = f.blanked.splitlines()
+        for n, line in enumerate(lines, start=1):
             if H1_RE.match(line):
-                errors.append(
-                    f"{comp.get('file')}:{n}: H1 IN FRAGMENT — every section is "
+                ctx.errors.append(
+                    f"{f.file}:{n}: H1 IN FRAGMENT — every section is "
                     f"`##`; the one `#` is the assembled title (manifest)"
                 )
+            elif SETEXT_H1_RE.match(line) and n >= 2:
+                # A `===` underline is an H1 only under a paragraph line —
+                # not under a heading, list, quote, table or another rule.
+                prev = lines[n - 2].strip()
+                if prev and not prev.startswith(("#", ">", "-", "*", "+", "|")) \
+                        and not SETEXT_H1_RE.match(prev):
+                    ctx.errors.append(
+                        f"{f.file}:{n}: H1 IN FRAGMENT — a setext `===` "
+                        f"underline makes {prev!r} an H1; every section is "
+                        f"`##` (the one `#` is the assembled title)"
+                    )
 
 
-def _fragment_and_agent_derived(manifest: dict) -> list[dict]:
-    """Procedure fragments + agent-owned derived files: the prose a drafter or
-    synthesis agent writes, and the only prose these two checks police."""
-    return (_components(manifest, role="procedure")
-            + _components(manifest, role="derived", writer="agent"))
-
-
-def check_baked_numbers(folder: Path, manifest: dict,
-                        errors: list[str]) -> None:
+def check_baked_numbers(ctx: Ctx) -> None:
     """M22 check 5 — a baked display number in fragment or agent-derived prose.
     The sanctioned cross-reference is `[[slug]]`, resolved at render."""
-    for comp in _fragment_and_agent_derived(manifest):
-        raw = _read(folder, comp)
-        if raw is None:
-            continue
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+    for f in ctx.fragments(_fragment_and_agent_derived(ctx.manifest)):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             for m in BAKED_NUMBER_RE.finditer(line):
-                errors.append(
-                    f"{comp.get('file')}:{n}: BAKED DISPLAY NUMBER "
+                ctx.errors.append(
+                    f"{f.file}:{n}: BAKED DISPLAY NUMBER "
                     f"{m.group(0)!r} — cross-reference with [[slug]] (display "
                     f"numbers are derived at render time)"
                 )
 
 
-def check_quoted_callout_ids(folder: Path, manifest: dict,
-                             errors: list[str]) -> None:
+def check_quoted_callout_ids(ctx: Ctx) -> None:
     """M22 check 6 — a callout ID quoted in agent-owned derived prose (82/84)
     outside a derived-table row. render.py rewrites IDs to their display form
     only inside procedure sections, so a quoted local id silently disagrees with
     the document's numbering. Table rows are the sanctioned carrier (they are
     validated as (slug, id) pairs by check_derived_tables)."""
-    for comp in _components(manifest, role="derived", writer="agent"):
-        raw = _read(folder, comp)
-        if raw is None:
-            continue
-        for n, line in enumerate(strip_fences(raw).splitlines(), start=1):
+    for f in ctx.fragments(_components(ctx.manifest, role="derived",
+                                       writer="agent")):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             if line.lstrip().startswith("|"):
                 continue
             for m in ID_INLINE_RE.finditer(line):
-                errors.append(
-                    f"{comp.get('file')}:{n}: CALLOUT ID {m.group(0)} in "
+                ctx.errors.append(
+                    f"{f.file}:{n}: CALLOUT ID {m.group(0)} in "
                     f"agent-owned prose — reference [[slug]] and describe the "
                     f"item in words (ids are rewritten only in procedures)"
                 )
@@ -808,26 +840,41 @@ def check_merged_sections(file: str, text: str, frag: Frag) -> None:
     fail-LOUD but NOT blocking: the wave is imminent, and erroring would wedge
     every already-drafted area on what was supposed to be a registry edit.
 
-    The warning names the fragment, the merged section and the two headings, so
-    it doubles as the content wave's work list.
+    The warning points at the SECOND heading (the merge point) and names the
+    fragment, the merged section and the two headings, so it doubles as the
+    content wave's work list.
     """
-    for slug, titles in doc_model.duplicate_sections(text).items():
+    dups = doc_model.duplicate_sections(text)
+    if not dups:
+        return
+    # Heading line numbers, via the one section-heading scanner.
+    lines_of: dict[str, list[int]] = {}
+    for n, line in enumerate(text.split("\n"), start=1):
+        s = doc_model.section_of_heading(line)
+        if s is not None:
+            lines_of.setdefault(s, []).append(n)
+    for slug, titles in dups.items():
         merged = doc_model.SECTION_MERGE_SOURCES.get(slug)
-        why = (f" \u2014 {' + '.join(merged)} merged into it (M16 move 1)"
+        why = (f" — {' + '.join(merged)} merged into it (M16 move 1)"
                if merged else "")
+        at = lines_of.get(slug, [0, 0])[1]
         frag.warnings.append(
-            f"{file}: {len(titles)} headings resolve to the one "
+            f"{file}:{at}: {len(titles)} headings resolve to the one "
             f"`{doc_model.section_title(slug)}` section "
             f"({', '.join(repr(t) for t in titles)}){why}: every fact is kept "
             f"and the render is coherent, but this fragment is AWAITING THE "
             f"M16 CONTENT WAVE (see the drafter contract's "
-            f"\"Content wave: 8 \u2192 7 sections\" work order)"
+            f"\"Content wave: 8 → 7 sections\" work order)"
         )
 
 
-def parse_procedure(slug: str, file: str, text: str) -> Frag:
+def parse_procedure(slug: str, file: str, text: str,
+                    blanked: str | None = None) -> Frag:
+    """Parse one procedure fragment's callout grammar into a Frag. `blanked`
+    takes pre-computed blank_fences output (M28's cache); external callers
+    (review_apply, tests) keep passing raw text alone."""
     frag = Frag(slug, file)
-    stripped = strip_fences(text)
+    stripped = blanked if blanked is not None else strip_fences(text)
     lines = stripped.splitlines()
 
     for n, line in enumerate(lines, start=1):
@@ -893,28 +940,114 @@ def parse_procedure(slug: str, file: str, text: str) -> Frag:
     return frag
 
 
+def check_manifest_schema(ctx: Ctx) -> None:
+    """Manifest v1 schema (incl. duplicate order/slug/file)."""
+    for e in doc_model.validate_manifest(ctx.manifest):
+        ctx.errors.append(f"manifest.json: {e}")
+
+
+def check_procedure_parse(ctx: Ctx) -> None:
+    """Per-fragment procedure parse: the callout/ID/gap grammar (parse_procedure)
+    plus the missing-file error. Populates ctx.frags for check_derived_tables."""
+    for comp in _components(ctx.manifest, role="procedure"):
+        slug = comp.get("slug")
+        file = comp.get("file", "")
+        raw = ctx.read(comp)
+        if raw is None:
+            ctx.errors.append(
+                f"manifest.json: procedure file {file!r} not found on disk")
+            continue
+        frag = parse_procedure(slug, file, raw, blanked=ctx.blanked(comp))
+        ctx.errors.extend(frag.errors)
+        ctx.warnings.extend(frag.warnings)
+        ctx.frags[slug] = frag
+
+
+def check_xref_tokens(ctx: Ctx) -> None:
+    """[[slug]] cross-references resolve (dangling = ERROR) — all files.
+    M26: [[area/slug]] cross-area tokens validate against the SIBLING
+    manifest (identity exists from scoping — a scoped-but-unfilled target
+    is valid). Outside a components/ engagement root, any cross token is
+    an ERROR with a layout explanation."""
+    known_slugs = set(doc_model.display_numbers(ctx.manifest))
+    under_root = ctx.folder.resolve().parent.name == "components"
+    for f in ctx.fragments(ctx.manifest.get("components", [])):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
+            for m in XREF_RE.finditer(line):
+                slug = m.group(1)
+                area_ref, local = doc_model.split_xref(slug)
+                if area_ref is None:
+                    if slug not in known_slugs:
+                        ctx.errors.append(
+                            f"{f.file}:{n}: DANGLING [[{slug}]] — no such "
+                            f"procedure"
+                        )
+                    continue
+                if not under_root:
+                    ctx.errors.append(
+                        f"{f.file}:{n}: [[{slug}]] is a cross-area token, but "
+                        f"this area is not under a components/ engagement "
+                        f"root — move the L1s under one components/ dir, or "
+                        f"reword as plain prose"
+                    )
+                    continue
+                if m.group(0).startswith("[[#"):
+                    ctx.errors.append(
+                        f"{f.file}:{n}: [[#{slug}]] — cross-area tokens have "
+                        f"no display number (another area's numbering is "
+                        f"not stable from here); use [[{slug}]]"
+                    )
+                    continue
+                sib = ctx.siblings.get(area_ref)
+                if sib is None:
+                    ctx.errors.append(
+                        f"{f.file}:{n}: DANGLING [[{slug}]] — no sibling area "
+                        f"{area_ref!r} (known: "
+                        f"{', '.join(sorted(ctx.siblings)) or 'none'})"
+                    )
+                elif local not in sib["slugs"]:
+                    ctx.errors.append(
+                        f"{f.file}:{n}: DANGLING [[{slug}]] — area "
+                        f"{area_ref!r} has no procedure {local!r} (its "
+                        f"slugs: {', '.join(sorted(sib['slugs'])) or 'none'})"
+                    )
+
+
+def check_consult_meta(ctx: Ctx) -> None:
+    """consult-meta systems:/roles: slugs exist in _reference/*.yaml (WARNING)."""
+    systems, roles = load_registry_slugs(ctx.folder)
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure")):
+        meta, fence_line = extract_consult_meta(f.raw)
+        for key, registry in (("systems", systems), ("roles", roles)):
+            for slug in (meta.get(key) or []):
+                if slug not in registry:
+                    ctx.warnings.append(
+                        f"{f.file}:{fence_line}: consult-meta {key} slug "
+                        f"{slug!r} not in _reference/{key}.yaml (add entry/alias)"
+                    )
+
+
 # --------------------------------------------------------------------------- #
 # Derived-table (slug, id) check
 # --------------------------------------------------------------------------- #
 
-def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
-                         errors: list[str]) -> None:
+def check_derived_tables(ctx: Ctx) -> None:
     """Each derived-table row that names a Source Procedure [[slug]] and an ID
     must reference a (slug, id) pair that exists in that procedure. Runs after
     aggregate; silently no-ops when derived files are absent."""
-    # {slug: {display-id, ...}} — the render-time global numbering authority.
+    # {slug: {display-id, ...}} — the render-time global numbering authority,
+    # fed from the read-once cache so the fragments are not re-read here.
+    blanked_texts = {f.slug: f.blanked
+                     for f in ctx.fragments(
+                         _components(ctx.manifest, role="procedure"))
+                     if f.slug}
     display_ids_of: dict[str, set[str]] = {}
-    for (slug, _local), disp in doc_model.callout_display_ids(folder).items():
+    for (slug, _local), disp in doc_model.callout_display_ids(
+            ctx.folder, blanked_texts=blanked_texts).items():
         display_ids_of.setdefault(slug, set()).add(disp)
-    for comp in manifest.get("components", []):
-        if comp.get("role") != "derived":
-            continue
-        fpath = folder / comp.get("file", "")
-        if not fpath.is_file():
-            continue
-        text = strip_fences(fpath.read_text(encoding="utf-8"))
+    for f in ctx.fragments(_components(ctx.manifest, role="derived")):
         group_slug = None  # set by `#### [[slug]]` per-procedure group headings
-        for n, line in enumerate(text.splitlines(), start=1):
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
             if line.lstrip().startswith("#"):
                 # Cross-area tokens (M26) are never Source-Procedure refs.
                 hx = [x for x in XREF_RE.findall(line) if "/" not in x]
@@ -944,7 +1077,7 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
                             else (xrefs[-1] if xrefs else None))
             if row_slug is None:
                 continue
-            frag = frags.get(row_slug)
+            frag = ctx.frags.get(row_slug)
             for _id in ids:
                 # Aggregate writes DISPLAY ids (doc_model.callout_display_ids);
                 # a row is sound if its id is either the display id of one of
@@ -954,8 +1087,8 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
                     or _id in display_ids_of.get(row_slug, ())
                 )
                 if not ok:
-                    errors.append(
-                        f"{comp.get('file')}:{n}: derived row references "
+                    ctx.errors.append(
+                        f"{f.file}:{n}: derived row references "
                         f"({row_slug}, {_id}) which is not defined in that procedure"
                     )
 
@@ -964,147 +1097,54 @@ def check_derived_tables(folder: Path, manifest: dict, frags: dict[str, Frag],
 # Main
 # --------------------------------------------------------------------------- #
 
+# The gate, as ONE ordered list (M28). Order is observable — errors/warnings
+# print in append order and tests grep the output — so new checks (M29+) are
+# APPENDED to their severity band unless there is a reason not to. This list
+# is also the numbering authority: the old per-call-site comment numbers
+# (1-17, half-drifted from the docstring and from M22's internal numbers)
+# live only here now.
+CHECKS: list = [
+    # blocking-first: schema, grammar, references, ownership
+    check_manifest_schema,        # 1  manifest v1 schema
+    check_procedure_parse,        # 2  callout/ID/gap grammar + M16.3/M16.1
+    check_xref_tokens,            # 3  [[slug]] + M26 [[area/slug]] tokens
+    check_derived_markers,        # 4  derived marker presence + M22 check 3
+    check_consult_meta,           # 5  consult-meta registry slugs (WARNING)
+    check_derived_tables,         # 6  derived-table (slug, id) pairs
+    check_named_individuals,      # 7  names → roles (ERROR full, WARNING token)
+    check_fragment_substance,     # 8  M19 zero-byte / heading-only
+    check_src_citations,          # 9  M22 check 1 — SRC- citations
+    check_touches,                # 10 M22 check 2 — touches ⊆ manifest slugs
+    check_heading_contract,       # 11 M22 check 4 — no H1 (ATX or setext)
+    check_baked_numbers,          # 12 M22 check 5 — baked display numbers
+    check_quoted_callout_ids,     # 13 M22 check 6 — quoted ids in agent prose
+    # advisory-only from here down (exit stays 0)
+    check_hedge_prose,            # 14 hedges in body prose
+    check_british_spellings,      # 15 British spellings
+    check_table_shape,            # 16 sheared table rows
+    check_cross_area_ownership,   # 17 sibling area's procedure title in prose
+]
+
+
 def reconcile(folder: str) -> int:
     folder = Path(folder)
-    errors: list[str] = []
-    warnings: list[str] = []
 
     try:
         manifest = doc_model.load_manifest(folder)
     except doc_model.ManifestError as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
+        # stdout like every other failure: callers tee stdout, and losing the
+        # exit-2 explanation to an un-teed stderr was the M28 review's finding.
+        print(f"ERROR: {exc}")
         return 2
 
     # M13: say which client-config layer answered, so a surprising name-check
     # result is one line of output away from being explained.
     print(client_config.report_line(folder))
 
-    # 1. manifest v1 schema (incl. duplicate order/slug/file)
-    for e in doc_model.validate_manifest(manifest):
-        errors.append(f"manifest.json: {e}")
-
-    numbers = doc_model.display_numbers(manifest)
-    known_slugs = set(numbers)
-
-    # 2. per-fragment procedure parse
-    frags: dict[str, Frag] = {}
-    for comp in manifest.get("components", []):
-        if comp.get("role") != "procedure":
-            continue
-        slug = comp.get("slug")
-        file = comp.get("file", "")
-        fpath = folder / file
-        if not fpath.is_file():
-            errors.append(f"manifest.json: procedure file {file!r} not found on disk")
-            continue
-        text = fpath.read_text(encoding="utf-8")
-        frag = parse_procedure(slug, file, text)
-        errors.extend(frag.errors)
-        warnings.extend(frag.warnings)
-        frags[slug] = frag
-
-    # 3. [[slug]] cross-references resolve (dangling = ERROR) — all files.
-    #    M26: [[area/slug]] cross-area tokens validate against the SIBLING
-    #    manifest (identity exists from scoping — a scoped-but-unfilled target
-    #    is valid). Outside a components/ engagement root, any cross token is
-    #    an ERROR with a layout explanation.
-    siblings = doc_model.sibling_procedures(folder)
-    under_root = Path(folder).resolve().parent.name == "components"
-    for comp in manifest.get("components", []):
-        file = comp.get("file", "")
-        fpath = folder / file
-        if not fpath.is_file():
-            continue
-        text = strip_fences(fpath.read_text(encoding="utf-8"))
-        for n, line in enumerate(text.splitlines(), start=1):
-            for m in XREF_RE.finditer(line):
-                slug = m.group(1)
-                area_ref, local = doc_model.split_xref(slug)
-                if area_ref is None:
-                    if slug not in known_slugs:
-                        errors.append(
-                            f"{file}:{n}: DANGLING [[{slug}]] — no such "
-                            f"procedure"
-                        )
-                    continue
-                if not under_root:
-                    errors.append(
-                        f"{file}:{n}: [[{slug}]] is a cross-area token, but "
-                        f"this area is not under a components/ engagement "
-                        f"root — move the L1s under one components/ dir, or "
-                        f"reword as plain prose"
-                    )
-                    continue
-                if m.group(0).startswith("[[#"):
-                    errors.append(
-                        f"{file}:{n}: [[#{slug}]] — cross-area tokens have "
-                        f"no display number (another area's numbering is "
-                        f"not stable from here); use [[{slug}]]"
-                    )
-                    continue
-                sib = siblings.get(area_ref)
-                if sib is None:
-                    errors.append(
-                        f"{file}:{n}: DANGLING [[{slug}]] — no sibling area "
-                        f"{area_ref!r} (known: "
-                        f"{', '.join(sorted(siblings)) or 'none'})"
-                    )
-                elif local not in sib["slugs"]:
-                    errors.append(
-                        f"{file}:{n}: DANGLING [[{slug}]] — area "
-                        f"{area_ref!r} has no procedure {local!r} (its "
-                        f"slugs: {', '.join(sorted(sib['slugs'])) or 'none'})"
-                    )
-
-    # 4. derived marker presence + ownership match (M22 check 3)
-    check_derived_markers(folder, manifest, errors)
-
-    # 5. consult-meta slug check vs registry (WARNING)
-    systems, roles = load_registry_slugs(folder)
-    for comp in manifest.get("components", []):
-        if comp.get("role") != "procedure":
-            continue
-        file = comp.get("file", "")
-        fpath = folder / file
-        if not fpath.is_file():
-            continue
-        meta = extract_consult_meta(fpath.read_text(encoding="utf-8"))
-        for key, registry in (("systems", systems), ("roles", roles)):
-            for slug in (meta.get(key) or []):
-                if slug not in registry:
-                    warnings.append(
-                        f"{file}: consult-meta {key} slug {slug!r} not in "
-                        f"_reference/{key}.yaml (add entry/alias)"
-                    )
-
-    # 6. derived-table (slug,id) check (after aggregate)
-    check_derived_tables(folder, manifest, frags, errors)
-
-    # 7. named-individual check (roles.yaml people + _client/org-chart.yaml)
-    check_named_individuals(folder, manifest, errors, warnings)
-
-    # 8. M19 — fragment substance (zero-byte / heading-only)
-    check_fragment_substance(folder, manifest, errors)
-
-    # 9-13. M22 — the constitution: citations, touches, heading contract,
-    # baked display numbers, quoted callout IDs. (Ownership markers = 4.)
-    check_src_citations(folder, manifest, errors, warnings)
-    check_touches(folder, errors)
-    check_heading_contract(folder, manifest, errors)
-    check_baked_numbers(folder, manifest, errors)
-    check_quoted_callout_ids(folder, manifest, errors)
-
-    # 14-15. drafter-contract language rules (advisory only, exit stays 0):
-    # hedge phrases in body prose; British spellings anywhere in a fragment.
-    check_hedge_prose(folder, manifest, warnings)
-    check_british_spellings(folder, manifest, warnings)
-
-    # 16. sheared table rows (bare '|' in cell text) — advisory, exit 0.
-    check_table_shape(folder, manifest, warnings)
-
-    # 17. cross-area ownership (a sibling area's procedure title in this
-    # area's prose) — advisory, exit 0.
-    check_cross_area_ownership(folder, manifest, warnings)
+    ctx = Ctx(folder, manifest)
+    for check in CHECKS:
+        check(ctx)
+    errors, warnings = ctx.errors, ctx.warnings
 
     # report
     if errors:

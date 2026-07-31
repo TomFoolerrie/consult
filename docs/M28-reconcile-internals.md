@@ -1,6 +1,6 @@
 # M28 — reconcile.py internals: read-once, check registry, one parser
 
-> **Status: PROPOSED — scoped from the 2026-07-30 subagent review
+> **Status: BUILT (v1.14.0) — scoped from the 2026-07-30 subagent review
 > (scratchpad `reconcile-review.md`, findings verified against the code);
 > agreed with the user, not yet built.** Pure refactor + defect fixes:
 > behavior-preserving except where a named false-positive/negative is

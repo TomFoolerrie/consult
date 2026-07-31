@@ -468,7 +468,7 @@ def display_numbers(manifest: dict) -> dict[str, str]:
 # callout_display_ids — the ONLY implementation of global callout numbering
 # --------------------------------------------------------------------------- #
 
-def callout_display_ids(folder) -> dict[tuple[str, str], str]:
+def callout_display_ids(folder, blanked_texts=None) -> dict[tuple[str, str], str]:
     """Return {(procedure-slug, local-id): display-id} for the whole area.
 
     Drafters always number callouts locally from 01 — they never know their
@@ -478,6 +478,11 @@ def callout_display_ids(folder) -> dict[tuple[str, str], str]:
     (GAP-01…, PP-01…, zero-padded to 2 digits, growing naturally past 99).
     Procedure files are never rewritten; render and the derived-view builders
     both consume this one map so body and appendices always agree.
+
+    `blanked_texts` ({slug: fence-blanked text}) lets a caller that already
+    read + blanked the fragments (M28: reconcile's read-once cache) supply
+    them; slugs absent from the map fall back to disk. The walk itself stays
+    the one implementation either way.
     """
     from callouts import iter_defined_ids  # sibling module, same directory
 
@@ -487,11 +492,17 @@ def callout_display_ids(folder) -> dict[tuple[str, str], str]:
     mapping: dict[tuple[str, str], str] = {}
     for comp in procedures(manifest):
         slug = comp.get("slug")
-        fpath = folder / (comp.get("file") or "")
-        if not slug or not fpath.is_file():
+        if not slug:
             continue
-        text = fpath.read_text(encoding="utf-8")
-        for prefix, local_id in iter_defined_ids(text):
+        pre_blanked = blanked_texts is not None and slug in blanked_texts
+        if pre_blanked:
+            text = blanked_texts[slug]
+        else:
+            fpath = folder / (comp.get("file") or "")
+            if not fpath.is_file():
+                continue
+            text = fpath.read_text(encoding="utf-8")
+        for prefix, local_id in iter_defined_ids(text, blanked=pre_blanked):
             counters[prefix] = counters.get(prefix, 0) + 1
             mapping[(slug, local_id)] = f"{prefix}-{counters[prefix]:02d}"
     return mapping

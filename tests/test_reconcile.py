@@ -316,9 +316,133 @@ def test_no_people_lists_means_name_check_noop(tmp_path, capsys):
 
 def test_unregistered_consult_meta_slug_is_warning(tmp_path, capsys):
     """A consult-meta slug absent from _reference/*.yaml warns without
-    blocking."""
+    blocking, and (M28) the warning points at the fence's file:line."""
     frag = fragment("Bank Rec", systems=("mystery-tool",))
+    fence_line = frag.splitlines().index("```consult-meta") + 1
     rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
     assert rc == 0
     assert "WARNINGS" in out
     assert "'mystery-tool' not in" in out
+    assert f"10_bank-rec.md:{fence_line}: consult-meta" in out
+
+
+def test_merged_sections_is_warning_with_line(tmp_path, capsys):
+    """M16.1 — two headings resolving to ONE section (`Pre-Requisites` +
+    `Inputs` after the merge) warns, pointing at the second heading (the
+    merge point), and never blocks: aggregate keeps every fact."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="\n### C. Pre-Requisites\n\nAccess to the "
+                               "portal.\n\n### D. Inputs\n\nThe bank "
+                               "statement.\n")
+    line = frag.splitlines().index("### D. Inputs") + 1
+    rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
+    assert rc == 0
+    assert "headings resolve to the one `Before You Start` section" in out
+    assert "AWAITING THE" in out
+    assert f"10_bank-rec.md:{line}:" in out
+
+
+# --------------------------------------------------------------------------- #
+# M22.6 — quoted callout IDs in agent-owned derived prose
+# --------------------------------------------------------------------------- #
+
+AGENT_DERIVED = {"file": "80_deps.md", "heading": "Dependencies & Watch Items",
+                 "order": 80, "role": "derived",
+                 "derived_kind": "dependencies", "writer": "agent"}
+AGENT_MARKER = "<!-- derived: dependencies; writer: agent -->"
+
+
+def test_quoted_callout_id_in_agent_prose_is_error(tmp_path, capsys):
+    """M22.6 — a callout ID quoted in agent-owned derived PROSE is an ERROR
+    (render display-transforms ids only inside procedures)."""
+    area = make_area(tmp_path,
+                     {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS)},
+                     extra_components=[AGENT_DERIVED])
+    (area / "80_deps.md").write_text(
+        f"## Dependencies\n\n{AGENT_MARKER}\n\n"
+        f"The control CTRL-001 covers the [[bank-rec]] handoff.\n",
+        encoding="utf-8")
+    rc, out = run(area, capsys)
+    assert rc == 1
+    assert "CALLOUT ID CTRL-001 in agent-owned prose" in out
+
+
+def test_quoted_callout_id_in_table_row_is_exempt(tmp_path, capsys):
+    """M22.6's table-row exemption: rows are the sanctioned ID carrier —
+    they are validated as (slug, id) pairs by check_derived_tables instead."""
+    area = make_area(tmp_path,
+                     {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS)},
+                     extra_components=[AGENT_DERIVED])
+    (area / "80_deps.md").write_text(
+        f"## Dependencies\n\n{AGENT_MARKER}\n\n"
+        "| ID | Depends on |\n|---|---|\n"
+        "| CTRL-01 ([[#bank-rec]]) | the bank statement export |\n",
+        encoding="utf-8")
+    rc, out = run(area, capsys)
+    assert rc == 0
+    assert "CALLOUT ID" not in out
+
+
+# --------------------------------------------------------------------------- #
+# M28 — edge-case fixes + read-once cache
+# --------------------------------------------------------------------------- #
+
+def test_setext_h1_is_heading_contract_error(tmp_path, capsys):
+    """M22.4 — a setext `Title` + `===` underline is the same H1 defect as an
+    ATX `# ` line (it evaded the contract before M28)."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="\nBank Reconciliation\n===\n")
+    rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
+    assert rc == 1
+    assert "H1 IN FRAGMENT" in out and "setext" in out
+
+
+def test_bare_thematic_break_is_not_a_table_separator(tmp_path, capsys):
+    """A bare `---` under a prose line containing '|' is a thematic break,
+    not a table header separator — no SHEARED TABLE ROW false positive."""
+    frag = fragment("Bank Rec", GOOD_CALLOUTS,
+                    body_extra="\nEither portal A | portal B applies.\n"
+                               "---\n"
+                               "Later C | D | E may follow in prose.\n")
+    rc, out = run(make_area(tmp_path, {"bank-rec": frag}), capsys)
+    assert rc == 0
+    assert "SHEARED TABLE ROW" not in out
+
+
+def test_each_fragment_read_and_blanked_once(tmp_path, capsys, monkeypatch):
+    """M28's read-once property: one disk read and one fence-blanking pass
+    per component file per reconcile() run (the pre-M28 gate re-read every
+    fragment ~13 times)."""
+    from pathlib import Path
+
+    import callouts
+
+    area = make_area(tmp_path,
+                     {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS),
+                      "petty-cash": fragment("Petty Cash", GOOD_CALLOUTS)})
+    reads: dict = {}
+    orig_read = Path.read_text
+
+    def counting_read(self, *a, **kw):
+        p = str(self)
+        if p.endswith(".md"):
+            reads[p] = reads.get(p, 0) + 1
+        return orig_read(self, *a, **kw)
+
+    blank_calls = []
+    orig_blank = callouts.blank_fences
+
+    def counting_blank(text):
+        blank_calls.append(1)
+        return orig_blank(text)
+
+    monkeypatch.setattr(Path, "read_text", counting_read)
+    monkeypatch.setattr(callouts, "blank_fences", counting_blank)
+    monkeypatch.setattr(reconcile, "strip_fences", counting_blank)
+    rc, _ = run(area, capsys)
+    assert rc == 0
+    # 2 fragments + 1 derived file: each read exactly once...
+    assert reads and set(reads.values()) == {1}
+    assert len(reads) == 3
+    # ...and each fence-blanked exactly once.
+    assert len(blank_calls) == 3
