@@ -114,6 +114,45 @@ def _profile_block(out: list[str], folder: Path) -> None:
     _line(out)
 
 
+def _drafter_register_block(out: list[str], parent: Path) -> None:
+    """Engagement registers, listed BY CLASS (M30): citable entries carry the
+    M24 reference-don't-restate rule; context entries are pre-read — facts
+    the drafter aligns with but never cites by register name. Compact by
+    design (ids + first line): the register file itself is the read."""
+    import registers
+    for path, title, entries in registers.load_all(parent):
+        if entries is None:
+            # Pre-M30 freeform seed file — the old whole-file rule still
+            # applies until its content is migrated into entries.
+            _line(out, f"  - {path}  (ENGAGEMENT REGISTER — reference, "
+                       f"never restate: cite the register for shared "
+                       f"values like thresholds, codes, terms and "
+                       f"cutoff rules; hard-code only stable values "
+                       f"essential to executing YOUR steps)")
+            continue
+        _line(out, f"  - {path}  (ENGAGEMENT REGISTER — {title}; entries "
+                   f"by class below, ids are `{path.stem}#<entry-id>`)")
+        cit = [e for e in entries if e.cls == "citable"]
+        ctx = [e for e in entries if e.cls == "context"]
+        if cit:
+            _line(out, "      citable — reference, never restate: cite "
+                       "the register for these shared values; hard-code "
+                       "only stable values essential to executing YOUR "
+                       "steps:")
+            for e in cit:
+                _line(out, f"        {path.stem}#{e.id}: "
+                           f"{registers.first_line(e.text)}")
+        if ctx:
+            _line(out, "      context — facts already established: align; "
+                       "cite the provenance source if you state one, GAP "
+                       "if you can't; NEVER cite the register by name for "
+                       "these:")
+            for e in ctx:
+                _line(out, f"        {path.stem}#{e.id}: "
+                           f"{registers.first_line(e.text)}  "
+                           f"(provenance: {e.provenance})")
+
+
 def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
     """(area-name, title) for every sibling area under the same components/
     parent — the drafter's cross-L1 boundary list."""
@@ -196,15 +235,8 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
         _reading_item(out, folder, str(c.relative_to(folder)),
                       "conventions digest — phrasing already decided")
     parent = folder.resolve().parent
-    if parent.name == "components" and (parent / "_client"
-                                        / "registers").is_dir():
-        for r in sorted((parent / "_client" / "registers").glob("*")):
-            if r.is_file():
-                _line(out, f"  - {r}  (ENGAGEMENT REGISTER — reference, "
-                           f"never restate: cite the register for shared "
-                           f"values like thresholds, codes, terms and "
-                           f"cutoff rules; hard-code only stable values "
-                           f"essential to executing YOUR steps)")
+    if parent.name == "components":
+        _drafter_register_block(out, parent)
     ups = [u for u in (comp.get("upstream") or [])]
     siblings = doc_model.sibling_procedures(folder) if any(
         "/" in u for u in ups) else {}

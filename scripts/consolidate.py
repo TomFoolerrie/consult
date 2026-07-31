@@ -175,17 +175,29 @@ def _queued(folder: Path) -> dict[str, list[dict]]:
 
 def _register_lines(folder: Path) -> list[str]:
     """Engagement registers (components/_client/registers/*), listed in
-    every brief with the M24 rule: values are referenced, never restated."""
+    every brief with the M24 rule: values are referenced, never restated.
+    M30: structured files list their entries (ids + class) so findings and
+    proposals target ENTRIES (`<register>#<entry-id>`), not files."""
     parent = folder.resolve().parent
     if parent.name != "components":
         return []
-    regs = parent / "_client" / "registers"
-    if not regs.is_dir():
-        return []
-    return [f"  - {p}  (ENGAGEMENT REGISTER — the one home of shared "
-            f"facts; a procedure restating one of its values is a "
-            f"`phrasing`/`duplication` finding)"
-            for p in sorted(regs.glob("*")) if p.is_file()]
+    import registers
+    out: list[str] = []
+    for p, title, entries in registers.load_all(parent):
+        if entries is None:
+            out.append(f"  - {p}  (ENGAGEMENT REGISTER — the one home of "
+                       f"shared facts; a procedure restating one of its "
+                       f"values is a `phrasing`/`duplication` finding)")
+            continue
+        out.append(f"  - {p}  (ENGAGEMENT REGISTER — {title}; a procedure "
+                   f"restating a CITABLE value is a `phrasing`/"
+                   f"`duplication` finding; propose NEW entries in your "
+                   f"status as `{p.stem}#<entry-id>` with class + "
+                   f"provenance)")
+        for e in entries:
+            out.append(f"      {p.stem}#{e.id}  [{e.cls}]  "
+                       f"{registers.first_line(e.text)}")
+    return out
 
 
 def _note_command(folder: Path) -> str:

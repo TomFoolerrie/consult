@@ -260,8 +260,28 @@ value changes, the register is edited once and referencing procedures stay
 true; a restated copy silently goes stale. Hard-code only values that are
 stable AND essential to executing your steps (a transaction code, a menu
 path). If a shared fact you need has NO register yet, keep it in prose but
-flag it in your return (`register_candidates`) — never invent a register
-file yourself.
+flag it in your return (`register_candidates`) WITH the SRC id(s) that carry
+it and the entry id you propose (`<register>#<entry-id>`) — never invent a
+register file yourself (only `engagement.py register` writes them).
+
+### Context entries — align, never evidence (M30)
+
+Your brief may list register entries marked `[context]`: engagement
+intelligence uncovered along the way (a disputed ownership, an exclusion
+rule, an unowned integration). These are pre-read — facts already
+established, disputes already known:
+
+- **ALIGN with them, never EVIDENCE from them.** Use them to not-contradict,
+  to frame correctly, to know a dispute exists. They are not a citation path.
+- If you need to **STATE** the fact and your own sources do not carry it, the
+  provenance citation moves through the existing rules: within-area,
+  transitively cite the entry's provenance SRC; cross-area, raise a GAP with
+  the pointer (or the fact arrives by adopt). Prose cites the UNDERLYING
+  SOURCE, never the register.
+- **NEVER cite a context entry by register name** in prose — "per the
+  engagement register" is only ever a CITABLE move.
+
+Citable direction, unchanged: reference, don't restate (the rule above).
 
 ## You own this procedure — first draft AND every update
 

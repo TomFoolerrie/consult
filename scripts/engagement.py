@@ -10,6 +10,8 @@ Usage:
     python3 scripts/engagement.py route  intake/<file> --to a[,b] \
         [--note-for a "pointer"] [--new-area]
     python3 scripts/engagement.py park   intake/<file> --reason "..."
+    python3 scripts/engagement.py register add|update|list ...   (M30 —
+        the ONLY writer of _client/registers/; see registers.py)
 
 The per-area guards (ownership map, taxonomy neighbors, reconcile check 17)
 are PREVENTIVE and see only one area at a time. This module is the
@@ -294,12 +296,6 @@ def interface_spine(root: Path, areas) -> tuple[list[str], list[str]]:
     return spine, findings
 
 
-def _registers(root: Path) -> list[Path]:
-    reg = root / "_client" / "registers"
-    return sorted(p for p in reg.glob("*") if p.is_file()) \
-        if reg.is_dir() else []
-
-
 def audit(root: Path) -> int:
     areas = _areas(root)
     if len(areas) < 2:
@@ -448,16 +444,27 @@ def placement_brief(root: Path, full: bool = False) -> int:
           f"{root}/<area> --from <area>/<slug> --touches <slug> — in the "
           f"note text; the orchestrator runs it)")
     print()
-    regs = _registers(root)
+    import registers as registers_mod
+    regs = registers_mod.load_all(root)
     if regs:
-        print("ENGAGEMENT REGISTERS (existing — propose ENTRIES into these "
-              "in your status; reference-don't-restate is the drafters' "
-              "rule):")
-        for p in regs:
-            print(f"  - {p}")
+        print("ENGAGEMENT REGISTERS (existing — propose ENTRIES as "
+              "`<register>#<entry-id>` in your status, each with class "
+              "(citable|context), text, provenance (per-area SRC ids + "
+              "origin area) and the restating procedures; "
+              "reference-don't-restate is the drafters' rule):")
+        for p, title, entries in regs:
+            if entries is None:
+                print(f"  - {p}  (unstructured, pre-M30)")
+                continue
+            print(f"  - {p}  ({title})")
+            for e in entries:
+                print(f"      {p.stem}#{e.id}  [{e.cls}]  "
+                      f"{registers_mod.first_line(e.text)}")
     else:
-        print("ENGAGEMENT REGISTERS: none yet — propose the file and its "
-              "first entries in your status (the human's word creates it)")
+        print("ENGAGEMENT REGISTERS: none yet — propose the register name, "
+              "entry ids (`<register>#<entry-id>`), class, text and "
+              "provenance in your status (the human's word creates them "
+              "via `engagement.py register add`)")
     print()
     print("MECHANICAL FINDINGS (script-computed — your judgment starts "
           "from these, it does not re-derive them):")
@@ -848,6 +855,13 @@ def intake_status(components_root: Path) -> tuple[list[str],
 
 
 def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] == ["register"]:
+        # M30 — the register verb lives in registers.py (own parser: its
+        # flag set does not overlap this one's); dispatched here so the
+        # documented entry point stays engagement.py.
+        import registers
+        return registers.main(argv[1:])
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("command", choices=["audit", "brief", "note", "adopt",
                                         "route", "park"])

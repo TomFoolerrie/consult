@@ -483,6 +483,11 @@ voice; concise steps; neutral descriptions. Avoid unsupported assumptions, blame
 language, excessive caveats, named individuals in steps, and overuse of tables in
 procedure bodies.
 
+**Engagement registers (M24/M30):** citable entries — reference, never
+restate; `[context]` entries — align, never evidence, never cited by register
+name (prose cites the provenance SOURCE or raises a GAP) — full rule in your
+agent contract ("Context entries — align, never evidence").
+
 ## What you return (COMPACT — no draft text)
 
 - `slug`, `mode` (first-draft | update), `file` written

@@ -249,6 +249,7 @@ writers. This is the first review's rule, restored; region markers are gone.
 |---|---|---|
 | `_reference/*.yaml` | human (seeded by M0 agent, confirmed at gate) | the noun database |
 | `_client/*.yaml` | human only (optional) | client context: org chart, client taxonomy — read by M0 agent + reconcile |
+| `components/_client/registers/*.md` | `engagement.py register` — the ONLY writer, humans included (M30/A2; the human approves each entry in conversation, never in an editor) | engagement registers: citable + context entries |
 | `00–04_*` static | human | Document Profile, How to Use, Control, Sources, Process Overview |
 | `10_<slug>` procedure | fill agent / human | the source of truth |
 | `06_procedure-index` | Python | In-Scope index (pure SELECT) |

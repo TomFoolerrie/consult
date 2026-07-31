@@ -1,7 +1,9 @@
 # M30 — Register machinery: conversational writes, citable vs context entries
 
-> **Status: PROPOSED — shape agreed with the user 2026-07-30, not yet
-> designed in detail, not built.** Companions: M24 (whose
+> **Status: BUILT (v1.16.0)** — registers.py verb (the only writer,
+> refusals per A1/A2), by-class briefs, render citable appendix (context
+> never renders; kits skip it), drafter contract block, orchestrate
+> conversational flow, README ownership row — 17 tests. Companions: M24 (whose
 > promote-to-register move this gives a real execution path), M29 (whose
 > register-reference checks validate what this ticket structures), M12/A3
 > (whose gap-answer deflections become standing context entries), M26

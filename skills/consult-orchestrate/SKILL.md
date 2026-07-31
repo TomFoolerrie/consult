@@ -492,9 +492,10 @@ moves via `engagement.py note` (kind: review, the existing bus):
 2. **promote to register** — a SHARED RECURRING fact (approval threshold,
    date/cutoff rule, system-of-record, master data): proposed in the
    agent's returned status, NOT queued. Relay proposals to the user;
-   on their word, create/extend the file under `components/_client/
-   registers/` and queue notes telling the restating procedures to
-   reference it. Register CONTENT is always the human's decision.
+   on their word, run `engagement.py register add` (see "Registers
+   (M30)" below — NEVER edit register files directly) and queue notes
+   telling the restating procedures to reference it. Register CONTENT
+   is always the human's decision.
 3. **adopt as source** — one-off: another area's sourced documentation
    answers a question inside this area's own scope. The note carries the
    exact command; YOU run it when absorbing the note:
@@ -520,6 +521,49 @@ reviews diffs, not queues. Never edit fragments yourself, and never delete
 a procedure without the human's ownership call. Run per-area consolidation
 (M12) before the audit when both are wanted — its heuristics read cleaner
 signals off internally-consistent areas.
+
+## Registers (M30) — conversational writes, one deterministic writer
+
+**`engagement.py register` is the ONLY writer of `components/_client/
+registers/` — humans included.** The human's authorship is the approval
+conversation, never the text editor; a hand edit is out-of-contract exactly
+like hand-editing a fragment. You never freehand-edit these files either.
+
+The conversational flow:
+
+1. **A proposal arrives** from the existing producers: the placement pass
+   status, a drafter's `register_candidates`, or a consolidator deflection
+   ("shared recurring value — belongs in a register").
+2. **Relay it to the human** in one compact block: register, entry id
+   (`<register>#<entry-id>`), class (citable | context), proposed text,
+   provenance (SRC id(s) + origin area — the proposer supplies them), and
+   which procedures currently restate it. The human answers yes /
+   edit-to-this / no. One word each.
+3. **Apply the two-areas promotion rule at this conversation** (the verb
+   does not enforce it): a CITABLE entry needs evidence that 2+ areas need
+   the fact — the restating-procedures list is that evidence. A one-area
+   fact bounces back to prose, not into the register.
+4. **On approval, run the verb** — never edit the file:
+
+   ```
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" register add \
+       <register> --id <entry-id> --class citable|context \
+       --text "..." --provenance "SRC-004 (p2p), ..." --root components
+   ```
+
+   It refuses id collisions (`register update` is the change verb), refuses
+   ANY entry without provenance (both classes), and is idempotent at
+   identical content. `register list` is the machine-stable view the briefs
+   consume.
+5. **Queue the usual notes** to the restating procedures ("reference the
+   register") — the unchanged M24 tail. Their drafters swap the prose SRC
+   citation for the register reference; the swap never un-consumes the
+   source.
+
+Class semantics: **citable** = publishable shared fact — prose references
+it, render compiles it into the Shared Reference appendix. **context** =
+engagement intelligence drafters align with but never cite by name — it
+never appears in rendered output.
 
 ## Reporting
 

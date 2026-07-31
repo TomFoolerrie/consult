@@ -932,6 +932,41 @@ def render_folder(folder: Path, out: Path, *,
                      if (provenance and trackable and fname) else None)
             emit("")
 
+    # M30 — Shared Reference appendix: when this area's engagement carries
+    # registers with CITABLE entries, they compile into the deliverable at
+    # the very end of the body, so a "per the engagement approval matrix"
+    # pointer finally resolves to something. CONTEXT entries never render —
+    # they are align-only engagement intelligence, not deliverable content.
+    # Kit (subset) renders skip it, same lean-kit rule as the L2 dividers;
+    # both working and final modes carry it (citable = publishable).
+    if not subset:
+        parent = folder.resolve().parent
+        if parent.name == "components":
+            import registers as registers_mod
+            blocks: list[tuple[str, list]] = []
+            for _rp, rtitle, rentries in registers_mod.load_all(parent):
+                cit = [e for e in (rentries or []) if e.cls == "citable"]
+                if cit:
+                    blocks.append((rtitle, cit))
+            if blocks:
+                if divider_state["in_procedures"] \
+                        and not divider_state["backmatter"]:
+                    emit("# Reference & Appendices")
+                    emit("")
+                emit("## Shared Reference — Engagement Registers")
+                emit("")
+                for rtitle, cit in blocks:
+                    emit(f"### {rtitle}")
+                    emit("")
+                    for e in cit:
+                        # One paragraph per entry; the fragments' hard wraps
+                        # rejoin so the converter sees a single run.
+                        text = " ".join(ln.strip()
+                                        for ln in e.text.split("\n")
+                                        if ln.strip())
+                        emit(f"**{e.id}** — {text}")
+                        emit("")
+
     if prov is not None:
         prov.origins = origins
 
