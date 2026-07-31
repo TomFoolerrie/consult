@@ -389,7 +389,9 @@ churning) and never demanded by the advisor. When the user picks the gate's
    finding), then aggregate/reconcile bring you back to the draft-ready gate
    with `consolidated_at_basis` still informative. The tail (synthesize,
    render) has not run yet, so it runs once — that is the whole point of the
-   stage's placement.
+   stage's placement. Relay any `consolidation_rejected` lines the drafters
+   return to the user verbatim — systematically-wrong consolidator findings
+   are tuning data.
 
 Scope note: M12 is within-area. Cross-L1 consistency is the engagement
 audit's job (next section); run consolidation per area first — the audit's

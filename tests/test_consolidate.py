@@ -363,3 +363,91 @@ def test_group_brief_lists_engagement_registers(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "accounting-dates.md" in out
     assert "ENGAGEMENT REGISTER" in out
+
+
+# --------------------------------------------------------------------------- #
+# CROSS-AREA SEAMS in the group brief (M26/M12-A3 item 1)
+# --------------------------------------------------------------------------- #
+
+P2P_FRAG = """## Goods Receipt
+
+### Scope
+
+Receipt of goods at the dock against the open PO.
+The receipt log is the artifact handed downstream.
+{back}
+### Procedure
+
+#### Step 1: Receive
+
+Match the delivery to the PO.
+"""
+
+
+def make_seam_engagement(tmp_path: Path, back_ref=True) -> Path:
+    """components/{ap,p2p}: the make_area fixture as `ap`, plus a `p2p`
+    sibling; ap/bank-rec holds a [[p2p/goods-receipt]] token."""
+    root = tmp_path / "components"
+    area = make_area(root)
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8")
+                    + "\nFeeds from [[p2p/goods-receipt]] daily.\n",
+                    encoding="utf-8")
+    p2p = root / "p2p"
+    p2p.mkdir()
+    (p2p / "manifest.json").write_text(json.dumps({
+        "schema": "consult-mvp-manifest/v1", "area": "p2p", "l1": "finance",
+        "title": "Procure to Pay", "l2_order": ["ops"],
+        "components": [{"file": "10_goods-receipt.md", "role": "procedure",
+                        "slug": "goods-receipt", "heading": "Goods Receipt",
+                        "l2": "ops", "order": 10}]}), encoding="utf-8")
+    back = ("Hands the receipt log to [[ap/bank-rec]] for matching.\n\n"
+            if back_ref else "")
+    (p2p / "10_goods-receipt.md").write_text(P2P_FRAG.format(back=back),
+                                             encoding="utf-8")
+    return area
+
+
+def test_group_brief_seam_block_carries_the_back_reference(tmp_path, capsys):
+    area = make_seam_engagement(tmp_path, back_ref=True)
+    assert consolidate.main(["brief", str(area), "--bucket", "invoices"]) == 0
+    out = capsys.readouterr().out
+    assert "CROSS-AREA SEAMS (M26/M12-A3)" in out
+    assert "[[p2p/goods-receipt]] (in [[bank-rec]])" in out
+    assert "Goods Receipt (Procure to Pay, area p2p)" in out
+    # the counterpart's back-reference line, verbatim and quoted
+    assert ("> Hands the receipt log to [[ap/bank-rec]] for matching."
+            in out)
+    # the instruction: mismatch = seam finding on the LOCAL side
+    assert "ordinary `seam` finding on YOUR side's procedure" in out
+    assert "seam_unverified_counterpart" in out
+
+
+def test_group_brief_seam_block_falls_back_to_scope_lines(tmp_path, capsys):
+    area = make_seam_engagement(tmp_path, back_ref=False)
+    assert consolidate.main(["brief", str(area), "--bucket", "invoices"]) == 0
+    out = capsys.readouterr().out
+    assert "no back-reference to this area found" in out
+    assert "> Receipt of goods at the dock against the open PO." in out
+    assert "> The receipt log is the artifact handed downstream." in out
+    # first 2 non-empty Scope lines only — the step body never rides along
+    assert "Match the delivery to the PO." not in out
+
+
+def test_group_brief_seam_block_absent_without_cross_tokens(tmp_path,
+                                                            capsys):
+    area = make_seam_engagement(tmp_path)
+    # payments bucket (payment-run) holds no cross token — block absent
+    assert consolidate.main(["brief", str(area), "--bucket", "payments"]) == 0
+    assert "CROSS-AREA SEAMS" not in capsys.readouterr().out
+
+
+def test_group_brief_seam_block_absent_outside_components_root(tmp_path,
+                                                               capsys):
+    area = make_area(tmp_path)   # tmp_path/ap — NOT under components/
+    frag = area / "10_bank-rec.md"
+    frag.write_text(frag.read_text(encoding="utf-8")
+                    + "\nFeeds from [[p2p/goods-receipt]] daily.\n",
+                    encoding="utf-8")
+    assert consolidate.main(["brief", str(area), "--bucket", "invoices"]) == 0
+    assert "CROSS-AREA SEAMS" not in capsys.readouterr().out

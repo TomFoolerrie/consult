@@ -45,6 +45,14 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/consolidate.py" brief {area} --cross
   group covers the whole area, no cross agent runs after you: the naming
   tally in your brief is your mechanical majority basis and the cross
   lens (`naming`, `duplication`) is also yours.
+  When the brief carries a **CROSS-AREA SEAMS** block (fragments holding
+  `[[area/slug]]` tokens), verify artifact names, timing and state agree
+  with the counterpart's extracted handoff sentence(s). A mismatch is an
+  ordinary `seam` finding on YOUR side's procedure (peers = the local
+  procedures involved; name the cross-area counterpart in the note text —
+  you can never write a note to another area's procedure). If the
+  counterpart is an unfilled skeleton, say so in your status under
+  `seam_unverified_counterpart` instead of raising a finding.
 - **Cross pass:** do NOT open fragment files — the brief's digest (scope +
   at-a-glance verbatim, step headings + first body line) is your bounded read.
   Your lens is `naming` and `duplication`. A suspicion that needs a full step

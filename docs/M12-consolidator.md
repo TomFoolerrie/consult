@@ -433,7 +433,7 @@ with two homes vs a fact with a broken pointer). M12's single pass raising
 `duplication` and `gap-answer` side by side is the within-area instance of
 that principle; M24 is the engagement-wide instance.
 
-### A3 — Candidate improvements (AGREED 2026-07-30, not yet built)
+### A3 — Candidate improvements (items 1 + 3 BUILT v1.17.0; item 2 is a run, pending)
 
 Reviewed after the M26/M25 builds and the run-4/field experience. The
 test any M12 change must pass, per the user's standing constraint: no new

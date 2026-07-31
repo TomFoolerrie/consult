@@ -72,6 +72,10 @@ producers, so not every item is a reviewer instruction:
   suggested harmonization agrees with (or is neutral to) your sources, make
   the edit; when it contradicts them, do NOT silently harmonize — keep your
   sourced text and add a GAP naming the mismatch with the peer procedure.
+  Every note you reject this way is also reported in your status under
+  `consolidation_rejected` (one line per rejected note: its category + a
+  half-line on why your sources contradict it) — that is the feedback loop
+  that makes systematically-wrong consolidator findings visible.
   **`category: gap-answer` — transitive citation is allowed:** when the note
   names the `SRC-` id backing the sibling's statement, you MAY close your
   GAP citing that same id without re-reading the source (the ledger points
@@ -708,6 +712,9 @@ A short status object/paragraph:
 - `register_candidates`: shared recurring facts you had to state in prose
   because no engagement register covers them yet (thresholds, cutoff rules,
   codes — one line each)
+- `consolidation_rejected`: consolidation notes you rejected because they
+  contradicted your sources (kept sourced text + GAP; one line per note:
+  category + a half-line why)
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
   `revised` (one line on what changed)
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,

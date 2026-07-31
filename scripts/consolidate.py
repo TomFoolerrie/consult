@@ -242,6 +242,93 @@ def _notes_block(out: list[str], folder: Path) -> None:
 # brief --bucket <l2>[,<l2>...]  (a bucket GROUP — the plan computes groups)
 # --------------------------------------------------------------------------- #
 
+def _handoff_lines(counterpart_text: str, this_area: str) -> tuple[str, list[str]]:
+    """The counterpart's HANDOFF SENTENCE(S), extracted by literal line scan
+    (M12-A3 item 1 — deterministic, no judgment): (a) up to 3 lines holding a
+    token pointing back at `this_area` ([[<this-area>/...]]); else (b) the
+    Scope section's first 2 non-empty lines as fallback context."""
+    blanked = callouts.blank_fences(counterpart_text)
+    back: list[str] = []
+    for line in blanked.split("\n"):
+        if any(doc_model.split_xref(t)[0] == this_area
+               for t in callouts.XREF_RE.findall(line)):
+            back.append(line.strip())
+            if len(back) == 3:
+                break
+    if back:
+        return "back-reference", back
+    scope: list[str] = []
+    for sec_slug, _heading, body in _sections(blanked):
+        if sec_slug == "scope":
+            scope = [ln.strip() for ln in body if ln.strip()][:2]
+            break
+    return "scope-fallback", scope
+
+
+def _cross_seam_block(folder: Path, group_comps: list[dict]) -> list[str]:
+    """CROSS-AREA SEAMS lines for the group brief (M26/M12-A3): one sub-item
+    per distinct cross-area token in the group's blanked fragment text, with
+    the counterpart's handoff sentence(s) so the group agent can verify the
+    boundary. Empty outside a components/ root or with no cross tokens."""
+    siblings = doc_model.sibling_procedures(folder)
+    if not siblings:
+        return []
+    this_area = folder.resolve().name
+    tokens: dict[str, list[str]] = {}   # token -> local slugs holding it
+    for c in group_comps:
+        blanked = callouts.blank_fences(_read(folder, c))
+        for t in callouts.XREF_RE.findall(blanked):
+            if "/" in t:
+                tokens.setdefault(t, [])
+                slug = c.get("slug", "?")
+                if slug not in tokens[t]:
+                    tokens[t].append(slug)
+    if not tokens:
+        return []
+    out: list[str] = ["CROSS-AREA SEAMS (M26/M12-A3) — your fragments hand "
+                      "off across an area boundary; the counterpart's handoff "
+                      "sentence(s) are extracted below so you can check the "
+                      "seam without leaving your read:"]
+    for tok in sorted(tokens):
+        area, slug = doc_model.split_xref(tok)
+        holders = ", ".join(f"[[{s}]]" for s in tokens[tok])
+        sib = siblings.get(area)
+        heading = (sib or {}).get("slugs", {}).get(slug)
+        if sib is None or heading is None:
+            out.append(f"  - [[{tok}]] (in {holders}) — counterpart NOT "
+                       f"resolvable via the sibling manifests (reconcile "
+                       f"flags dangling cross tokens; report it, do not "
+                       f"guess)")
+            continue
+        out.append(f"  - [[{tok}]] (in {holders}) — counterpart: {heading} "
+                   f"({sib['title']}, area {area})")
+        cm = doc_model.load_manifest(sib["path"])
+        comp = next((c for c in cm.get("components", [])
+                     if c.get("role") == "procedure"
+                     and c.get("slug") == slug), None)
+        text = _read(sib["path"], comp or {})
+        if not text:
+            out.append("      counterpart fragment file MISSING/empty — "
+                       "report it")
+            continue
+        kind, lines = _handoff_lines(text, this_area)
+        if kind == "back-reference":
+            out.append("      its handoff sentence(s) back toward this "
+                       "area (verbatim):")
+        else:
+            out.append("      no back-reference to this area found — its "
+                       "Scope opening as context (verbatim):")
+        for ln in lines or ["(none — empty counterpart)"]:
+            out.append(f"        > {ln}")
+    out.append("  - verify artifact names, timing and state agree across "
+               "the boundary; a mismatch is an ordinary `seam` finding on "
+               "YOUR side's procedure (peers = the local procedures "
+               "involved; name the cross-area counterpart in the note text "
+               "— you cannot write notes to another area); if the "
+               "counterpart is an unfilled skeleton say so in your status "
+               "under `seam_unverified_counterpart` instead")
+    return out
+
 def bucket_brief(folder: Path, manifest: dict, bucket_arg: str) -> str:
     buckets = _buckets(manifest)
     group = [b.strip() for b in bucket_arg.split(",") if b.strip()]
@@ -290,6 +377,12 @@ def bucket_brief(folder: Path, manifest: dict, bucket_arg: str) -> str:
     for ln in _register_lines(folder):
         _line(out, ln)
     _line(out)
+    group_comps = [c for l2 in group for c in buckets[l2]]
+    seam_lines = _cross_seam_block(folder, group_comps)
+    if seam_lines:
+        for ln in seam_lines:
+            _line(out, ln)
+        _line(out)
     if full_area:
         _line(out, "NAMING TALLY (mechanical majority basis — counted over "
                    "`consult-meta` slug bindings, NEVER over prose; your "
