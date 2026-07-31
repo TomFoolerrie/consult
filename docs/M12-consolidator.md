@@ -1,8 +1,8 @@
 # M12 — Consolidator (cross-procedure consistency pass)
 
 > **Status: BUILT** (v1.8.0; amendments below — A1 packing SHIPPED v1.9.0,
-> A2 `gap-answer` SHIPPED v1.10.0, A3 candidate improvements AGREED
-> 2026-07-30 not yet built). `scripts/consolidate.py` (plan / brief / note /
+> A2 `gap-answer` SHIPPED v1.10.0, A3 items 1+3 SHIPPED v1.17.0,
+> item 2 pending as a run). `scripts/consolidate.py` (plan / brief / note /
 > report / mark), `agents/consult-consolidator.md`, the draft-ready gate's
 > `consolidate` answer wired (`consolidated_at_basis` from
 > `.consolidate.json`), notes bus extended with `category`/`peers`
