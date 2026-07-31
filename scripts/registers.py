@@ -175,9 +175,18 @@ def _load_for_write(root: Path, name: str, must_exist: bool
         return path, _titleize(name), []
     title, entries = parse_register(path)
     if entries is None:
+        # v1.17.2: the old message implied a migration path that does not
+        # exist (run-5 finding #3) — name the two real ones honestly. Both
+        # are HUMAN moves: freeform content is human-authored, so what
+        # survives migration is a content judgment, never mechanical.
         return _err(f"{path} is unstructured (pre-M30 freeform) — the verb "
-                    f"cannot safely write into it; migrate its content into "
-                    f"entries (register add) before touching it")
+                    f"never writes into freeform files, and there is no "
+                    f"automated migration (what survives is a content "
+                    f"judgment). Two paths, both the human's call: "
+                    f"(a) move the freeform file aside, then re-create the "
+                    f"facts worth keeping as entries via `register add` on "
+                    f"the now-empty name; or (b) leave it freeform and put "
+                    f"new entries in a NEW register name")
     return path, title, entries
 
 

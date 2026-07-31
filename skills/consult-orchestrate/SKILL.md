@@ -17,6 +17,16 @@ advisor and doing the one thing it says. You do deterministic Python yourself an
 **dispatch every piece of judgment work to an isolated subagent**. You are the
 only part of the system the user talks to.
 
+## Running as a sub-agent yourself (nested orchestration)
+
+When YOU are a dispatched sub-agent rather than the top-level session,
+completion notifications for the workers you dispatch may not wake you —
+that pattern belongs to the top-level harness (run-5 acceptance finding
+1). In that position, dispatch workers SYNCHRONOUSLY (wait for each
+batch's returns before proceeding) instead of fire-and-poll. Parallelism
+within a batch is still fine when the tool supports awaiting the batch;
+what you must never do is assume a passive wake-up.
+
 ## Context isolation — the rule you must not break
 
 You must keep **your own context flat**. That means:

@@ -83,3 +83,28 @@ area folders (by design — but retention/deletion at engagement end has
 no story). One-line mitigation today: the engagement repo is private and
 single; deletion = delete the repo. Revisit if engagements ever live
 longer than their client-data retention terms.
+
+## From the run-5 acceptance test (2026-07-31, v1.17.1 → fixes in v1.17.2)
+
+### 10. Human decisions don't reach later subagents (run-5 finding 8)
+A consolidator re-proposed a register entry the human had already
+declined in the same session — dispatches don't inherit decisions unless
+they live in a file the next subagent's brief actually reads. Cheap shape
+when taken up: a `declined:` section in the register file itself (the
+verb records a decline; `register list` shows it; briefs carry it) — the
+same folder-state-is-the-state answer as everything else. **Promotes to a
+ticket when:** a declined proposal is re-relayed to the human a second
+time on a real engagement.
+
+### 11. Audit fix-suggestion text is static boilerplate (run-5 finding 6)
+Section-4's "run the placement pass" suggestion fires identically whether
+1 or 40 gaps are plausibly cross-answerable. Minor noise; wording-level
+fix whenever the audit is next touched.
+
+Resolved from the same report in v1.17.2: the missing consult-placement
+agent contract (finding 5 — file added), and the freeform-register error
+message that implied a nonexistent migration path (finding 3 — message
+now names the two real human paths). Finding 1 (nested orchestrator
+wake-up) is addressed as skill guidance (dispatch synchronously when
+running as a sub-agent); findings 2 (environment cuts), 4 and 9 (positive
+signals), and 7 (alias top-ups working as intended) need no change.
