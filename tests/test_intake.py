@@ -240,3 +240,17 @@ def test_brief_carries_the_pointer_note_to_the_drafter(tmp_path, capsys):
     assert brief.main([str(area), "--slug", "x"]) == 0
     out = capsys.readouterr().out
     assert "intake pointer: pp. 4-9 cover the dock" in out
+
+
+def test_greenfield_audit_still_reports_intake(tmp_path, capsys):
+    """v1.17.1 regression: the two-areas early return must not silence the
+    INTAKE block — a greenfield (no scoped areas, fieldwork staged) is
+    exactly when the audit must be loud about unprocessed files."""
+    engroot = tmp_path
+    (engroot / "components").mkdir()
+    (engroot / "intake").mkdir()
+    stage(engroot, name="first-doc.md")
+    engagement.main(["audit", str(engroot / "components")])
+    out = capsys.readouterr().out
+    assert "INTAKE — 1 unprocessed" in out
+    assert "first-doc.md" in out

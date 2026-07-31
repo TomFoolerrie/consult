@@ -296,19 +296,12 @@ def interface_spine(root: Path, areas) -> tuple[list[str], list[str]]:
     return spine, findings
 
 
-def audit(root: Path) -> int:
-    areas = _areas(root)
-    if len(areas) < 2:
-        print(f"{root}: {len(areas)} area(s) found — the audit needs at "
-              f"least two scoped areas under one components/ dir. If your "
-              f"L1s live in separate folders, move each one under a single "
-              f"engagement components/ directory first.")
-        return 2 if not areas else 0
-    print(f"ENGAGEMENT AUDIT — {len(areas)} areas under {root}: "
-          + ", ".join(a for a, _ in areas))
-
+def _print_intake_block(root: Path) -> None:
     # M25 — intake is LOUD until empty: unprocessed and parked evidence can
     # never silently sit (the no-silent-caps standard applied to evidence).
+    # Printed BEFORE the two-areas early return: a greenfield engagement (no
+    # scoped areas yet) is exactly when staged fieldwork must not be silent
+    # (v1.17.1 fix — the first local run found the audit mute on 13 files).
     unprocessed, parked = intake_status(root)
     if unprocessed or parked:
         print(f"\nINTAKE — {len(unprocessed)} unprocessed, "
@@ -318,6 +311,20 @@ def audit(root: Path) -> int:
                   f"route/park by hand)")
         for name, why in parked:
             print(f"  parked: {name} — {why}")
+
+
+def audit(root: Path) -> int:
+    areas = _areas(root)
+    if len(areas) < 2:
+        print(f"{root}: {len(areas)} area(s) found — the audit needs at "
+              f"least two scoped areas under one components/ dir. If your "
+              f"L1s live in separate folders, move each one under a single "
+              f"engagement components/ directory first.")
+        _print_intake_block(root)
+        return 2 if not areas else 0
+    print(f"ENGAGEMENT AUDIT — {len(areas)} areas under {root}: "
+          + ", ".join(a for a, _ in areas))
+    _print_intake_block(root)
 
     lines: list[str] = []
     n1 = twin_l3s(areas, lines)
