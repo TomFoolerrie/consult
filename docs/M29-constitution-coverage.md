@@ -1,8 +1,10 @@
 # M29 — Constitution coverage: enforce the contract-only rules
 
-> **Status: CORE BUILT (v1.15.0) — sweep (Amendment A1, 54 rules) +
-> checks 2–4 shipped; Part 2.1 (register checks) still pending, builds
-> after M30 per the resequencing below.**
+> **Status: BUILT — sweep (Amendment A1, 54 rules) + checks 2–4 shipped
+> (v1.15.0); Part 2.1 (register checks a/b/c) built after M30 shipped:
+> `check_register_references` (reconcile #15, ERROR — unknown
+> register/entry + context-cited-by-name) and
+> `check_register_restatement` (reconcile #22, WARNING).**
 > **Resequenced (system review, 2026-07-30): Part 2.1 (the register
 > checks) builds AFTER M30**, not before — it validates entry structure
 > only M30's verb creates; building it first means validating freeform
@@ -97,16 +99,16 @@ ticket's three checks.
 | Rule | Source contract | Classification | Enforcement point / reason |
 |---|---|---|---|
 | Never fabricate systems/paths/thresholds/etc. (evidence discipline) | drafter (agent §rule 1, skill) | judgment-only | needs the sources; a gate can't verify truth (gate-gaming rule) |
-| Uncertainty in GAP callouts, never hedges in body prose | drafter (agent §rule 4) | enforced | `check_hedge_prose` (reconcile #15, WARNING) |
+| Uncertainty in GAP callouts, never hedges in body prose | drafter (agent §rule 4) | enforced | `check_hedge_prose` (reconcile #16, WARNING) |
 | Individuals NEVER named; roles only | drafter, dependencies, raci | enforced | `check_named_individuals` (#7; full name ERROR, token WARNING) |
 | Populate the consult-meta slug block | drafter (agent §rule 2) | enforced — **built here (M29)** | `check_consult_meta_presence` (#14, ERROR); unknown slugs already `check_consult_meta` (#5, WARNING) |
-| Hard-wrap fragments at ~80 columns | consolidator (anchor rule); drafter house style | enforced — **built here (M29)** | `check_hard_wrap` (#19, WARNING >100 cols; one warning per fragment) |
-| `[[#slug]]` only in table Ref cells, never prose | drafter/derived-table convention | enforced — **built here (M29)** | `check_number_only_xref_in_prose` (#20, WARNING; `/`-tokens skipped — M26 already errors) |
-| American English, always | drafter (agent §rule 3) | enforced | `check_british_spellings` (#16, WARNING, word list) |
+| Hard-wrap fragments at ~80 columns | consolidator (anchor rule); drafter house style | enforced — **built here (M29)** | `check_hard_wrap` (#20, WARNING >100 cols; one warning per fragment) |
+| `[[#slug]]` only in table Ref cells, never prose | drafter/derived-table convention | enforced — **built here (M29)** | `check_number_only_xref_in_prose` (#21, WARNING; `/`-tokens skipped — M26 already errors) |
+| American English, always | drafter (agent §rule 3) | enforced | `check_british_spellings` (#17, WARNING, word list) |
 | No pipeline vocabulary ("callout", "fragment", "manifest") in prose | drafter (agent §rule 3) | mech-candidate | word-list check, same shape as the British check; not built |
 | Expand acronyms on first use per procedure | drafter (agent §rule 3) | judgment-only | acronym-vs-product-name is a judgment read (gate-gaming rule) |
 | Step headings imperative and verb-first | drafter (agent §rule 3) | judgment-only | verb detection is NLP guesswork; drafters would write to the detector (gate-gaming rule) |
-| No bare `\|` in table cells (escape as `\\\|`) | drafter (agent §rule 3) | enforced | `check_table_shape` (#17, SHEARED TABLE ROW WARNING) |
+| No bare `\|` in table cells (escape as `\\\|`) | drafter (agent §rule 3) | enforced | `check_table_shape` (#18, SHEARED TABLE ROW WARNING) |
 | Cross-reference with `[[slug]]`, never number or copied title | drafter (agent §rule 5), dependencies, raci | enforced | `check_baked_numbers` (#12, ERROR) + `check_xref_tokens` (#3, dangling ERROR) |
 | Cite `SRC-` ids; never invent one; every procedure cites | drafter (agent §rule 5) | enforced | `check_src_citations` (#9, M22.1 ERROR; documented no-registry boundary) |
 | Citations parenthetical-only, never woven into sentence meaning | drafter (agent §rule 5) | enforced-at-render + mech-candidate | final-mode scrub WARNs listing woven survivors; an earlier reconcile-side detector is a candidate |
@@ -117,10 +119,10 @@ ticket's three checks.
 | `Detail:` requires `Note:`; CONTROL/SC take `note` only | drafter (M16.3) | enforced | `check_note_detail` (in #2; ERROR / WARNING) |
 | Never renumber existing callout IDs on update | drafter | judgment-only | needs prior-run state (git history); folder-snapshot gate has no authority to compare against |
 | Update mode = targeted edits, never a full rewrite | drafter, dependencies, raci | judgment-only | "how much changed" vs "what the work order touched" is a judgment diff (gate-gaming rule) |
-| Sibling/other-area work: one handoff sentence, never its steps | drafter (scope boundaries) | enforced (advisory) + judgment-only depth | `check_cross_area_ownership` (#18, WARNING); "grew into documentation" is the ticket's named gate-gaming exclusion |
+| Sibling/other-area work: one handoff sentence, never its steps | drafter (scope boundaries) | enforced (advisory) + judgment-only depth | `check_cross_area_ownership` (#19, WARNING); "grew into documentation" is the ticket's named gate-gaming exclusion |
 | Never `[[#area/slug]]` (no cross-area numbers) | drafter (M26) | enforced | `check_xref_tokens` (#3, M26 ERROR) |
-| Reference engagement registers, never restate their values | drafter (M24) | mech-enforceable — deferred | Part 2.1a/b (register existence ERROR + restatement WARNING), builds AFTER M30 |
-| Class-CONTEXT register entries are aligned to, never cited as evidence | M30 §align-never-evidence | enforced-at-verb + contract-side (backstop = Part 2.1c, builds after M30) | the register verb refuses evidence-class use; the citation backstop is Part 2.1c |
+| Reference engagement registers, never restate their values | drafter (M24) | enforced — **built (Part 2.1a/b)** | `check_register_references` (#15, unknown register/entry ERROR) + `check_register_restatement` (#22, restatement WARNING) |
+| Class-CONTEXT register entries are aligned to, never cited as evidence | M30 §align-never-evidence | enforced-at-verb + gate backstop — **built (Part 2.1c)** | the register verb refuses evidence-class use; `check_register_references` (#15) errors a by-name citation of a context entry / all-context register |
 | Write the reprofile heading even when the finding is "none" | drafter (termination contract) | enforced | advisor guard 4.5 re-fires on the missing heading — the drift signal IS the check |
 | Author only profile-listed callout kinds / inline tags | drafter (M14) | enforced | render strips out-of-profile kinds and WARNs on dangling ids; scaffold bakes `sections:` |
 | Body gap refs `[[GAP-NN — label]]` match a callout in the fragment | drafter | enforced | per-fragment dangling-ID check (#2, ERROR); bare `[[GAP — ]]` is BARE GAP TAG (ERROR) |

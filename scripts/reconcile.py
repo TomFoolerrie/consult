@@ -45,6 +45,15 @@ M28 replaced the old per-check comment numbering with that one list):
     - M29 — a DRAFTED procedure fragment (no `unfilled` sentinel) with no
       `consult-meta` fenced block at all: noun binding is silently skipped, so
       the Systems view / Role Dictionary / RACI just omit the procedure
+    - M29 2.1a — a register reference (the `<register>#<entry-id>` id form, or
+      the `the <Title> register` phrase form) naming a register or entry that
+      does not exist under the engagement's components/_client/registers
+      (known registers/entries are named in the message; an unresolved
+      all-lowercase phrase is business-register prose and never flags)
+    - M29 2.1c — a reference resolving to a class-CONTEXT register entry (or a
+      file-level phrase reference to an all-context register): context entries
+      are never cited by name — cite the provenance source or raise a GAP
+      (M30 A2's align-never-evidence backstop)
 
   WARNING (exit stays 0):
     - a `consult-meta` systems:/roles: slug absent from `_reference/*.yaml`
@@ -66,6 +75,10 @@ M28 replaced the old per-check comment numbering with that one list):
       for Ref cells where the title is its own column; in prose it renders a
       cryptic bare number (use `[[slug]]`). Cross-area `[[#area/slug]]` is
       already an M26 ERROR and is not double-reported here
+    - M29 2.1b — a CITABLE register entry's distinctive value (dollar amount,
+      quoted string) restated in a fragment that nowhere references the owning
+      register: reference, don't restate (essential-to-execute values may
+      stay — the human judges; one warning per fragment+entry)
 
 Documented boundaries (deliberate, see docs/M19 + docs/M22):
     - A fragment still carrying the `<!-- unfilled -->` sentinel is exempt from
@@ -86,6 +99,12 @@ Documented boundaries (deliberate, see docs/M19 + docs/M22):
       registry exists to bind to (initial scoping, or a standalone fixture
       area). Once either file is present, a drafted fragment with no block is
       an ERROR: the omission is invisible downstream (the views just omit it).
+    - M29 2.1: the register checks no-op outside a components/ engagement root
+      — registers are engagement-level (M30 rejected per-area shadowing), so a
+      standalone area has no layer to resolve against. Inside a root the
+      answering layer is always the parent's _client/registers. An
+      UNSTRUCTURED pre-M30 register file resolves by name but its entries are
+      unknowable: references into it pass 2.1a and never trigger 2.1c.
 
 Usage:
     python3 scripts/reconcile.py <area-folder>
@@ -121,6 +140,14 @@ try:
     import sources as sources_mod
 except ImportError:  # pyyaml absent → sources.py unimportable; check no-ops
     sources_mod = None
+
+# `registers.py` owns the register entry grammar (M30): its load_all() is the
+# single read seam for components/_client/registers/, so the M29 Part 2.1
+# checks never re-parse register files with their own regex.
+try:
+    import registers as registers_mod
+except ImportError:  # pragma: no cover - registers.py is always present
+    registers_mod = None
 
 # The `unfilled` sentinel grammar is the advisor's fill predicate (guard 4);
 # borrowed rather than restated so the M19/M22 exemption cannot drift from it.
@@ -1137,6 +1164,227 @@ def check_number_only_xref_in_prose(ctx: Ctx) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# M29 Part 2.1 — engagement register references (docs/M29 + docs/M30)
+# --------------------------------------------------------------------------- #
+
+# The id form `<register>#<entry-id>` (M30 A1: the convention agents already
+# use in proposals; prose MAY use it too). Candidate capture is loose (dots
+# allowed) so a known dotted stem still validates; an UNKNOWN stem only errors
+# when it looks like a register name — word chars/hyphens with at least one
+# letter — so `file.md#anchor` link targets never flag. The entry-id half
+# never ends on punctuation, so a sentence's trailing period is not swallowed.
+REG_ID_FORM_RE = re.compile(
+    r"(?<![\w.-])(?P<stem>[A-Za-z0-9][A-Za-z0-9_.-]*)#"
+    r"(?P<eid>[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?)")
+_STEM_SHAPE_RE = re.compile(r"[\w-]*[A-Za-z][\w-]*")
+
+# The phrase form `the <Title> register` (case-insensitive). Title is 1-5
+# words; resolution tries the whole capture then progressively shorter
+# suffixes ("the client Approval Matrix register" still resolves), so only a
+# phrase whose EVERY suffix normalizes to no known stem errors — and then
+# only when the title is proper-noun cased ("the Capex Limits register").
+# An all-lowercase unresolved phrase is prose about a BUSINESS register
+# ("post-hoc review of the payment register" — a subsidiary ledger) and is
+# skipped: the run-4 fixture proved the generic form false-positives, and a
+# false-positive-prone gate is worse than a contract rule (M29's own
+# gate-gaming rule). Resolution to a KNOWN register stays case-insensitive.
+REG_PHRASE_FORM_RE = re.compile(
+    r"\bthe\s+((?:[\w-]+\s+){0,4}[\w-]+)\s+register\b", re.IGNORECASE)
+
+#: Distinctive strings inside a citable entry body: dollar amounts (normalized
+#: against comma/space variants) and explicitly quoted strings.
+_DOLLAR_RE = re.compile(r"\$\s?\d[\d,]*(?:[ ,]\d{3})*(?:\.\d+)?")
+_QUOTED_RE = re.compile(r'"([^"\n]{4,80})"')
+
+
+def _norm_stem(title: str) -> str:
+    """Phrase-form normalization: lowercase, non-alnum runs → one hyphen."""
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def _norm_dollar(s: str) -> str:
+    return "$" + re.sub(r"[^\d.]", "", s).rstrip(".")
+
+
+def load_engagement_registers(ctx: Ctx):
+    """{stem: entries-or-None} via registers.load_all (the M30 read seam), or
+    None when the area is not under a components/ engagement root — the
+    documented no-op boundary for the Part 2.1 checks. Registers are
+    ENGAGEMENT-LEVEL by construction (M30 rejected per-area shadowing), so the
+    one layer that can answer is parent/_client/registers."""
+    root = ctx.folder.resolve().parent
+    if root.name != "components" or registers_mod is None:
+        return None
+    return {p.stem: entries
+            for p, _title, entries in registers_mod.load_all(root)}
+
+
+def _phrase_resolve(title: str, regs: dict) -> str | None:
+    """The known stem a phrase capture resolves to, or None. Tries the whole
+    normalized capture, then drops leading words (suffix match)."""
+    words = title.split()
+    for i in range(len(words)):
+        stem = _norm_stem(" ".join(words[i:]))
+        if stem in regs:
+            return stem
+    return None
+
+
+def _register_refs(blanked: str, regs: dict):
+    """Every register reference in a fragment, both detection forms:
+    [(line, form, stem, eid-or-None, display)]. Unknown stems ride along with
+    eid=None (phrase) or their eid (id form) for the existence check."""
+    out = []
+    for n, line in enumerate(blanked.splitlines(), start=1):
+        url_spans = [m.span() for m in re.finditer(r"\S*://\S*", line)]
+        for m in REG_ID_FORM_RE.finditer(line):
+            if any(s <= m.start() < e for s, e in url_spans):
+                continue
+            stem = m.group("stem")
+            if stem not in regs and not _STEM_SHAPE_RE.fullmatch(stem):
+                continue  # dotted/dashed non-name (a link anchor, a path)
+            out.append((n, "id", stem, m.group("eid"), m.group(0)))
+        for m in REG_PHRASE_FORM_RE.finditer(line):
+            stem = _phrase_resolve(m.group(1), regs)
+            if stem is None and not re.search(r"\b[A-Z]", m.group(1)):
+                continue  # unresolved all-lowercase phrase: business-register
+                # prose ("the payment register"), not a reference — see above
+            out.append((n, "phrase", stem if stem is not None
+                        else _norm_stem(m.group(1)), None, m.group(0)))
+    return out
+
+
+def check_register_references(ctx: Ctx) -> None:
+    """M29 Part 2.1(a) + (c) — register references resolve, and never name a
+    context entry.
+
+    (a) A reference to a register (or register#entry) that does not exist is
+    an ERROR naming the known registers/entries. Two deliberately narrow
+    detection forms only (no general prose NLP): the `<register>#<entry-id>`
+    id form and the `the <Title> register` phrase form.
+
+    (c) A reference resolving to a class-CONTEXT entry is an ERROR — context
+    entries are never cited by name (M30 A2 item 2, the align-never-evidence
+    backstop moved from prompt to gate). A file-level phrase reference to a
+    register whose entries are ALL context errors the same way; a mixed-class
+    register referenced at file level passes.
+
+    BOUNDARIES: no-ops outside a components/ engagement root (registers are
+    engagement-level; there is no layer to resolve against — same boundary as
+    the cross-area checks). An UNSTRUCTURED pre-M30 register file resolves by
+    name and its entries are unknowable: phrase and id references into it pass
+    (a) and never trigger (c). The answering layer is always the engagement's
+    components/_client/registers (M30 rejected per-area shadowing)."""
+    regs = load_engagement_registers(ctx)
+    if regs is None:
+        return
+    known = ", ".join(sorted(regs)) or "none"
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        for n, form, stem, eid, disp in _register_refs(f.blanked, regs):
+            if stem not in regs:
+                ctx.errors.append(
+                    f"{f.file}:{n}: UNKNOWN REGISTER {disp!r} — no register "
+                    f"{stem!r} under components/_client/registers (the "
+                    f"engagement layer; known: {known})"
+                )
+                continue
+            entries = regs[stem]
+            if entries is None:
+                continue  # pre-M30 unstructured file: name resolves, entries
+                # are unknowable — tolerated until migrated (registers.py)
+            if form == "id":
+                hit = next((e for e in entries if e.id == eid), None)
+                if hit is None:
+                    ids = ", ".join(e.id for e in entries) or "none"
+                    ctx.errors.append(
+                        f"{f.file}:{n}: UNKNOWN REGISTER ENTRY {disp} — "
+                        f"register {stem!r} (engagement layer) has entries: "
+                        f"{ids}"
+                    )
+                elif hit.cls == "context":
+                    ctx.errors.append(
+                        f"{f.file}:{n}: CONTEXT ENTRY CITED — {disp} is class "
+                        f"context: context entries are never cited by name — "
+                        f"cite the provenance source (see the register entry) "
+                        f"or raise a GAP"
+                    )
+            elif entries and all(e.cls == "context" for e in entries):
+                ctx.errors.append(
+                    f"{f.file}:{n}: CONTEXT REGISTER CITED — {disp!r} names "
+                    f"register {stem!r}, whose entries are all class context: "
+                    f"context entries are never cited by name — cite the "
+                    f"provenance source (see the register entry) or raise a "
+                    f"GAP"
+                )
+
+
+def _distinctive_strings(body: str) -> list[str]:
+    """A citable entry's distinctive strings: dollar amounts (normalized) and
+    quoted strings. Values under 4 chars or purely numeric without a `$` are
+    dropped (noise discipline)."""
+    out = []
+    for m in _DOLLAR_RE.finditer(body):
+        v = _norm_dollar(m.group(0))
+        if len(v) >= 4:  # `$` + 3 digits minimum
+            out.append(v)
+    for m in _QUOTED_RE.finditer(body):
+        v = m.group(1).strip()
+        if len(v) >= 4 and not re.fullmatch(r"[\d,. ]+", v):
+            out.append(v)
+    return out
+
+
+def check_register_restatement(ctx: Ctx) -> None:
+    """M29 Part 2.1(b) — a citable entry's DISTINCTIVE VALUE restated in
+    fragment prose, in a fragment that nowhere references the owning register
+    (either detection form): WARNING — reference, don't restate. Matching is
+    deliberately conservative (exact dollar amounts normalized across
+    comma/space variants, exact quoted strings — never fuzzy), and a fragment
+    that references the register anywhere may carry the value (the
+    essential-to-execute rule: the human judges). ONE warning per
+    (fragment, entry). Same no-op boundary as check_register_references."""
+    regs = load_engagement_registers(ctx)
+    if not regs:
+        return
+    targets = []  # (stem, eid, [distinctive strings])
+    for stem, entries in sorted(regs.items()):
+        for e in entries or []:
+            if e.cls == "citable":
+                vals = _distinctive_strings(e.text)
+                if vals:
+                    targets.append((stem, e.id, vals))
+    if not targets:
+        return
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        referenced = {stem for _n, _form, stem, _eid, _d
+                      in _register_refs(f.blanked, regs) if stem in regs}
+        lines = f.blanked.splitlines()
+        for stem, eid, vals in targets:
+            if stem in referenced:
+                continue
+            hit = None  # (line, value)
+            for n, line in enumerate(lines, start=1):
+                dollars = {_norm_dollar(m.group(0))
+                           for m in _DOLLAR_RE.finditer(line)}
+                for v in vals:
+                    if (v in dollars if v.startswith("$") else v in line):
+                        hit = (n, v)
+                        break
+                if hit:
+                    break
+            if hit:
+                n, v = hit
+                ctx.warnings.append(
+                    f"{f.file}:{n}: RESTATED REGISTER VALUE {v!r} — restates "
+                    f"{stem}#{eid} (engagement layer): reference the "
+                    f"register, don't restate (essential-to-execute values "
+                    f"may stay: human judges)"
+                )
+
+
+# --------------------------------------------------------------------------- #
 # Derived-table (slug, id) check
 # --------------------------------------------------------------------------- #
 
@@ -1228,13 +1476,16 @@ CHECKS: list = [
     check_baked_numbers,          # 12 M22 check 5 — baked display numbers
     check_quoted_callout_ids,     # 13 M22 check 6 — quoted ids in agent prose
     check_consult_meta_presence,  # 14 M29 — no consult-meta block at all
+    check_register_references,    # 15 M29 2.1a/c — register refs resolve;
+    #                                  context entries never cited by name
     # advisory-only from here down (exit stays 0)
-    check_hedge_prose,            # 15 hedges in body prose
-    check_british_spellings,      # 16 British spellings
-    check_table_shape,            # 17 sheared table rows
-    check_cross_area_ownership,   # 18 sibling area's procedure title in prose
-    check_hard_wrap,              # 19 M29 — prose line past ~100 cols
-    check_number_only_xref_in_prose,  # 20 M29 — [[#slug]] outside a table row
+    check_hedge_prose,            # 16 hedges in body prose
+    check_british_spellings,      # 17 British spellings
+    check_table_shape,            # 18 sheared table rows
+    check_cross_area_ownership,   # 19 sibling area's procedure title in prose
+    check_hard_wrap,              # 20 M29 — prose line past ~100 cols
+    check_number_only_xref_in_prose,  # 21 M29 — [[#slug]] outside a table row
+    check_register_restatement,   # 22 M29 2.1b — restated distinctive value
 ]
 
 
