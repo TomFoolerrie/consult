@@ -202,3 +202,23 @@ formats by class, render gains one derived appendix. The M29 rules
 sweep must classify the align-never-evidence paragraph explicitly
 (enforced-at-verb + contract-side) so discipline drift is visible from
 day one.
+
+## Amendment A2 — system-review fixes (2026-07-30)
+
+1. **One writer, settled: the verb is the ONLY writer of register files
+   — humans included.** The review caught the drift: Part A quietly gave
+   register files two writers (hand edits + the verb) while the
+   ownership doctrine says one. Settled: once the verb exists, ALL
+   register writes go through it — the human's authorship is the
+   approval conversation, not the text editor. Hand edits remain
+   physically possible (it's a file) but are out-of-contract, exactly
+   like hand-editing a fragment. The README ownership table is updated
+   in the SAME COMMIT as the verb.
+2. **The align-never-evidence rule gets a mechanical backstop** (moved
+   from prompt to gate, per the house doctrine the review quoted back at
+   us): a prose reference naming a class-context entry is a reconcile
+   ERROR — context entries are never cited by name. Lands as M29 Part
+   2.1(c), which builds after this ticket.
+3. **Sequencing confirmed:** M28 → M29 (sweep + checks 2–4) → M30 →
+   M29 Part 2.1 (register checks last — they validate structure only
+   this ticket creates).

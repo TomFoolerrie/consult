@@ -2,6 +2,10 @@
 
 > **Status: PROPOSED — agreed direction with the user 2026-07-30, not yet
 > built. Build AFTER M28** (new checks land on the check-registry shape).
+> **Resequenced (system review, 2026-07-30): Part 2.1 (the register
+> checks) builds AFTER M30**, not before — it validates entry structure
+> only M30's verb creates; building it first means validating freeform
+> files. Chain: M28 → M29 (sweep + checks 2–4) → M30 → M29 Part 2.1.
 > The system's standing pattern is moving rules from prompt to gate —
 > everything it does reliably, it does because a script enforces what a
 > contract instructs. This ticket closes the gap for the MUST-rules that
@@ -42,6 +46,11 @@ doing the right thing.
    deliberately conservative (exact distinctive strings — dollar
    thresholds, cutoff phrases — never fuzzy). See M30 for the open
    design question on a formal register reference form.
+   **Builds AFTER M30** (see status note), and gains a third half then:
+   (c) a prose reference naming a class-CONTEXT entry is an ERROR —
+   context entries are never cited by name (the mechanical backstop for
+   M30's align-never-evidence rule, moved from prompt to gate per the
+   house doctrine).
 2. **consult-meta presence** — a DRAFTED fragment (no `unfilled`
    sentinel) with no `consult-meta` block at all silently skips noun
    binding, so the Systems view / Role Dictionary / RACI just omit it —
