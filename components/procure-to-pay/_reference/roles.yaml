@@ -1,0 +1,106 @@
+roles:
+- slug: ap-manager
+  name: AP Manager
+  aliases:
+  - Accounts Payable Manager
+  people:
+  - Marisol Vance
+  reports_to: corporate-controller
+  confidence: high
+- slug: ap-specialist
+  name: Senior AP Specialist
+  aliases:
+  - AP Specialist
+  - Accounts Payable Specialist
+  people:
+  - Priya Raghunathan
+  reports_to: ap-manager
+  confidence: high
+- slug: ap-clerk-vendor-master
+  name: AP Clerk (Vendor Master)
+  aliases:
+  - AP Clerk
+  - Vendor Maintenance
+  people:
+  - Tobias Lindqvist
+  reports_to: ap-manager
+  confidence: high
+- slug: ap-clerk-inbox
+  name: AP Clerk (Inbox / Part-Time)
+  aliases:
+  - AP Clerk PT
+  people:
+  - Bo Whitfield
+  reports_to: ap-manager
+  confidence: high
+- slug: procurement-lead
+  name: Procurement Lead
+  aliases: []
+  people:
+  - Dev Anand Rao
+  reports_to: ''
+  confidence: high
+- slug: buyer
+  name: Buyer
+  aliases: []
+  people:
+  - Yusuf Adeyemi
+  reports_to: procurement-lead
+  confidence: high
+- slug: corporate-controller
+  name: Corporate Controller
+  aliases:
+  - Controller
+  people:
+  - Corinne Baptiste
+  reports_to: cfo
+  confidence: high
+- slug: assistant-controller
+  name: Assistant Controller
+  aliases: []
+  people:
+  - Delphine Arceneaux
+  reports_to: corporate-controller
+  confidence: medium
+- slug: treasury-analyst
+  name: Treasury Analyst
+  aliases: []
+  people:
+  - Renata Kowalczyk
+  reports_to: ''
+  confidence: medium
+- slug: receiving-supervisor
+  name: Receiving Supervisor
+  aliases: []
+  people:
+  - Hal Ostrowski
+  reports_to: ''
+  confidence: high
+- slug: cfo
+  name: Chief Financial Officer
+  aliases:
+  - CFO
+  people:
+  - Emmett Suzuki
+  reports_to: ''
+  confidence: high
+- slug: it-manager
+  name: IT Manager
+  aliases:
+  - NetSuite Administrator
+  people:
+  - Gideon Pruitt
+  reports_to: ''
+  confidence: medium
+- slug: warehouse-manager
+  name: Warehouse Manager
+  aliases: []
+  people: []
+  reports_to: ''
+  confidence: low
+- slug: plant-controller
+  name: Plant Controller
+  aliases: []
+  people: []
+  reports_to: corporate-controller
+  confidence: low

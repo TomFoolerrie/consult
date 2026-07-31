@@ -1,0 +1,262 @@
+{
+  "schema": "consult-mvp-manifest/v1",
+  "area": "procure-to-pay",
+  "l1": "procure-to-pay",
+  "l2_order": [
+    "vendor-management",
+    "procurement",
+    "receiving",
+    "invoice-processing",
+    "payments"
+  ],
+  "title": "Procure To Pay — Desktop Procedures",
+  "subtitle": "Current-state desktop procedures",
+  "components": [
+    {
+      "file": "00_document-profile.md",
+      "role": "static",
+      "heading": "Document Profile",
+      "order": 0
+    },
+    {
+      "file": "04_process-overview.md",
+      "role": "static",
+      "heading": "Process Overview",
+      "order": 5
+    },
+    {
+      "file": "06_procedure-index.md",
+      "role": "derived",
+      "derived_kind": "procedure-index",
+      "writer": "python",
+      "heading": "In-Scope Procedures",
+      "order": 6
+    },
+    {
+      "file": "07_role-dictionary.md",
+      "role": "derived",
+      "derived_kind": "role-dictionary",
+      "writer": "python",
+      "heading": "Role Dictionary",
+      "order": 7
+    },
+    {
+      "file": "08_systems.md",
+      "role": "derived",
+      "derived_kind": "systems",
+      "writer": "python",
+      "heading": "Systems & Data Inputs",
+      "order": 8
+    },
+    {
+      "file": "10_new-supplier-onboarding.md",
+      "role": "procedure",
+      "slug": "new-supplier-onboarding",
+      "heading": "New Supplier Onboarding",
+      "l2": "vendor-management",
+      "order": 10
+    },
+    {
+      "file": "10_vendor-banking-change.md",
+      "role": "procedure",
+      "slug": "vendor-banking-change",
+      "heading": "Vendor Banking Detail Change Control",
+      "l2": "vendor-management",
+      "order": 20
+    },
+    {
+      "file": "10_vendor-master-file-review.md",
+      "role": "procedure",
+      "slug": "vendor-master-file-review",
+      "heading": "Supplier Master File Review & Access Governance",
+      "l2": "vendor-management",
+      "order": 30
+    },
+    {
+      "file": "10_vendor-statement-reconciliation.md",
+      "role": "procedure",
+      "slug": "vendor-statement-reconciliation",
+      "heading": "Vendor Statement Reconciliation",
+      "l2": "vendor-management",
+      "order": 40,
+      "upstream": [
+        "po-invoice-three-way-match",
+        "non-po-invoice-approval-and-coding"
+      ]
+    },
+    {
+      "file": "10_requisition-to-po.md",
+      "role": "procedure",
+      "slug": "requisition-to-po",
+      "heading": "Requisition to Purchase Order",
+      "l2": "procurement",
+      "order": 50
+    },
+    {
+      "file": "10_confirming-purchase-orders.md",
+      "role": "procedure",
+      "slug": "confirming-purchase-orders",
+      "heading": "Confirming (After-the-Fact) Purchase Orders",
+      "l2": "procurement",
+      "order": 60,
+      "upstream": [
+        "requisition-to-po"
+      ]
+    },
+    {
+      "file": "10_blanket-po-management.md",
+      "role": "procedure",
+      "slug": "blanket-po-management",
+      "heading": "Blanket Purchase Order Management",
+      "l2": "procurement",
+      "order": 70,
+      "upstream": [
+        "requisition-to-po"
+      ]
+    },
+    {
+      "file": "10_goods-receipt.md",
+      "role": "procedure",
+      "slug": "goods-receipt",
+      "heading": "Goods Receipt (Standard Dock Process)",
+      "l2": "receiving",
+      "order": 80,
+      "upstream": [
+        "requisition-to-po"
+      ]
+    },
+    {
+      "file": "10_plant-3-consumption-based-receiving.md",
+      "role": "procedure",
+      "slug": "plant-3-consumption-based-receiving",
+      "heading": "Plant 3: Kanban Consumption-Based Receiving",
+      "l2": "receiving",
+      "order": 90,
+      "upstream": [
+        "blanket-po-management"
+      ]
+    },
+    {
+      "file": "10_service-po-receipt-confirmation.md",
+      "role": "procedure",
+      "slug": "service-po-receipt-confirmation",
+      "heading": "Service Purchase Order Receipt Confirmation",
+      "l2": "receiving",
+      "order": 100,
+      "upstream": [
+        "requisition-to-po"
+      ]
+    },
+    {
+      "file": "10_vendor-returns-rma.md",
+      "role": "procedure",
+      "slug": "vendor-returns-rma",
+      "heading": "Vendor Returns & RMA",
+      "l2": "receiving",
+      "order": 110,
+      "upstream": [
+        "goods-receipt"
+      ]
+    },
+    {
+      "file": "10_invoice-capture-and-intake.md",
+      "role": "procedure",
+      "slug": "invoice-capture-and-intake",
+      "heading": "Invoice Capture & Intake",
+      "l2": "invoice-processing",
+      "order": 120
+    },
+    {
+      "file": "10_po-invoice-three-way-match.md",
+      "role": "procedure",
+      "slug": "po-invoice-three-way-match",
+      "heading": "PO Invoice Entry & Three-Way Match",
+      "l2": "invoice-processing",
+      "order": 130,
+      "upstream": [
+        "invoice-capture-and-intake",
+        "goods-receipt",
+        "requisition-to-po"
+      ]
+    },
+    {
+      "file": "10_non-po-invoice-approval-and-coding.md",
+      "role": "procedure",
+      "slug": "non-po-invoice-approval-and-coding",
+      "heading": "Non-PO Invoice Coding & Approval",
+      "l2": "invoice-processing",
+      "order": 140,
+      "upstream": [
+        "invoice-capture-and-intake"
+      ]
+    },
+    {
+      "file": "10_weekly-payment-run.md",
+      "role": "procedure",
+      "slug": "weekly-payment-run",
+      "heading": "Weekly Payment Run (ACH)",
+      "l2": "payments",
+      "order": 150,
+      "upstream": [
+        "po-invoice-three-way-match",
+        "non-po-invoice-approval-and-coding"
+      ]
+    },
+    {
+      "file": "10_wire-transfers.md",
+      "role": "procedure",
+      "slug": "wire-transfers",
+      "heading": "Wire Transfers",
+      "l2": "payments",
+      "order": 160
+    },
+    {
+      "file": "10_check-disbursement.md",
+      "role": "procedure",
+      "slug": "check-disbursement",
+      "heading": "Check Disbursement & Positive Pay",
+      "l2": "payments",
+      "order": 170
+    },
+    {
+      "file": "82_dependencies.md",
+      "role": "derived",
+      "derived_kind": "dependencies",
+      "writer": "agent",
+      "heading": "Key Dependencies",
+      "order": 8200
+    },
+    {
+      "file": "84_raci.md",
+      "role": "derived",
+      "derived_kind": "raci",
+      "writer": "agent",
+      "heading": "RACI Matrix",
+      "order": 8400
+    },
+    {
+      "file": "88_appendix-a.md",
+      "role": "derived",
+      "derived_kind": "appendix-a",
+      "writer": "python",
+      "heading": "Appendix — Pain Points & Improvement Opportunities",
+      "order": 8800
+    },
+    {
+      "file": "90_appendix-b-gaps.md",
+      "role": "derived",
+      "derived_kind": "gap-log",
+      "writer": "python",
+      "heading": "Appendix — Gap / Validation Log",
+      "order": 9000
+    },
+    {
+      "file": "91_appendix-c-screens.md",
+      "role": "derived",
+      "derived_kind": "screenshot-index",
+      "writer": "python",
+      "heading": "Appendix — Screenshot / Evidence Index",
+      "order": 9100
+    }
+  ]
+}

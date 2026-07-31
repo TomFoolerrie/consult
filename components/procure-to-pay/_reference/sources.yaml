@@ -1,0 +1,133 @@
+sources:
+- id: SRC-001
+  file: _sources/new/intake-prior-sop-ap-invoice-processing-v3.md
+  touches:
+  - invoice-capture-and-intake
+  - po-invoice-three-way-match
+  - non-po-invoice-approval-and-coding
+  - weekly-payment-run
+  - wire-transfers
+  - check-disbursement
+  - vendor-statement-reconciliation
+  - vendor-banking-change
+  - vendor-master-file-review
+  hash: 857869adfd595f4a1bcb798e15bcee497daa3b86e307ecc647e3e38c0d77ac0c
+  note: 'intake pointer: Prior SOP FIN-AP-004 — sections 1,4,5,6,7,9: invoice processing,
+    matching, disbursement'
+  state: new
+- id: SRC-002
+  file: _sources/new/intake-2026-05-12-ap-manager-interview.md
+  touches:
+  - invoice-capture-and-intake
+  - po-invoice-three-way-match
+  - non-po-invoice-approval-and-coding
+  - weekly-payment-run
+  - wire-transfers
+  - check-disbursement
+  - vendor-statement-reconciliation
+  - goods-receipt
+  hash: dbcec805cb6653650c7c2568736b89c435e43113bea60c49363a42700d9ea843
+  note: 'intake pointer: AP Manager interview — team roles, invoice entry, match exceptions,
+    vendor master, payments'
+  state: new
+- id: SRC-003
+  file: _sources/new/intake-2026-05-13-procurement-lead-interview.md
+  touches:
+  - new-supplier-onboarding
+  - vendor-banking-change
+  - requisition-to-po
+  - confirming-purchase-orders
+  - blanket-po-management
+  - vendor-statement-reconciliation
+  hash: ed138b62db0747488eb75df161ce0d5f34879b1190cc8a79950bf1975a1027ce
+  note: 'intake pointer: Procurement Lead interview — vendor onboarding, Coupa/NetSuite,
+    PO/requisition flow'
+  state: new
+- id: SRC-004
+  file: _sources/new/intake-2026-05-14-controller-interview.md
+  touches:
+  - vendor-banking-change
+  - vendor-master-file-review
+  - po-invoice-three-way-match
+  - weekly-payment-run
+  - wire-transfers
+  - check-disbursement
+  - vendor-statement-reconciliation
+  hash: 9d0a99fdf0b3eed4bca9673b8244f3e0d56d76e2eb7d87ff38b9fe44ef1e5e02
+  note: 'intake pointer: Controller interview — P2P control environment: SoD, three-way
+    match, dual authorization'
+  state: new
+- id: SRC-005
+  file: _sources/new/intake-2026-05-19-receiving-supervisor-walkthrough.md
+  touches:
+  - goods-receipt
+  - plant-3-consumption-based-receiving
+  - service-po-receipt-confirmation
+  - vendor-returns-rma
+  hash: 068d208be9a1bd80afdc764eb236086a3f6927424370ca66f536a7010b096b1e
+  note: 'intake pointer: Receiving dock walkthrough, Plant 2 — BOL count, damage/shortage
+    handling'
+  state: new
+- id: SRC-006
+  file: _sources/new/intake-2026-05-20-consultant-working-notes.md
+  touches:
+  - new-supplier-onboarding
+  - vendor-banking-change
+  - vendor-master-file-review
+  - vendor-statement-reconciliation
+  - requisition-to-po
+  - confirming-purchase-orders
+  - blanket-po-management
+  - goods-receipt
+  - plant-3-consumption-based-receiving
+  - service-po-receipt-confirmation
+  - vendor-returns-rma
+  - invoice-capture-and-intake
+  - po-invoice-three-way-match
+  - non-po-invoice-approval-and-coding
+  - weekly-payment-run
+  - wire-transfers
+  - check-disbursement
+  hash: 3001b3999e142c6e244b2e585d22a27582f253bf25ddfb184e8069140dae9f26
+  note: 'intake pointer: Consultant P2P field notes — systems glossary (Coupa/NetSuite/Concur/Ephesoft/Chase
+    Connect)'
+  state: new
+- id: SRC-007
+  file: _sources/new/intake-2026-07-30-buyer-reinterview-yusuf.md
+  touches:
+  - goods-receipt
+  - blanket-po-management
+  - plant-3-consumption-based-receiving
+  hash: 15d003ddcd87ee7e0b8a8cd8112f8089fda0fb939b1312b979382c8d3d53d395
+  note: 'intake pointer: Over-receipt tolerance (5%/$500 cap, NetSuite config), blanket
+    PO mechanics'
+  state: new
+- id: SRC-008
+  file: _sources/new/intake-2026-07-30-close-calendar-email.md
+  touches:
+  - goods-receipt
+  - po-invoice-three-way-match
+  - non-po-invoice-approval-and-coding
+  - weekly-payment-run
+  hash: 45758d5909c93f61b9a3ee0038b9b039f0b96ee498550aed4e2175ab7fb2634c
+  note: 'intake pointer: July close calendar — authoritative cutoff dates for P2P'
+  state: new
+- id: SRC-009
+  file: _sources/new/intake-2026-07-30-coupa-approval-chain-export.md
+  touches:
+  - requisition-to-po
+  - confirming-purchase-orders
+  - new-supplier-onboarding
+  - non-po-invoice-approval-and-coding
+  hash: 6470aef34aab20e90082b997c5fdfd4478af7d89f9325f5ce93af3aa28ac3b04
+  note: 'intake pointer: Coupa approval-chain config export — requisition/PO approval
+    thresholds, system-of-record'
+  state: new
+- id: SRC-010
+  file: _sources/new/intake-2026-07-30-plant2-month-end-walkthrough.md
+  touches:
+  - goods-receipt
+  - plant-3-consumption-based-receiving
+  hash: 60e60c83da6ed1fb13257838c8d6c6a3560388314d14234c9e7af7595e212397
+  note: 'intake pointer: Dock/receiving flow, BOL scan retention (NetSuite item receipt)'
+  state: new
