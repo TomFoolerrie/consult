@@ -130,6 +130,22 @@ built.
 
 ## Recommended build order
 
+0. **Package the chain as its own plugin, in its own repository. DONE
+   (`consulting-chain` v1.0.0).** The chain arrived as 26 loose skill zips with
+   no manifest and a manual repackaging rule; CONSULT was already a clean
+   versioned plugin. Housing the chain separately is what buys the separation
+   of concerns — *not* forking CONSULT, which would duplicate 50 commits, 36
+   milestone docs and 39 tests to support an additive change.
+
+   **Separate repo rather than a monorepo**, for three reasons: moving CONSULT
+   under `plugins/` would rewrite paths referenced by 28 docs and 37 tests,
+   against this repo's own stability commitment (`docs/README.md:527`); the
+   chain's portability claim (delete the brand renderers, get a firm-agnostic
+   chain) only holds while it ships alone; and one plugin boundary per failure
+   posture is what keeps the seam honest. The accepted cost is seam drift —
+   the export format lives here, its consumers live there — mitigated by
+   pinning the export format with a golden fixture, per step 1.
+
 1. **`scripts/export_contracts.py` — the bridge (small, deterministic, no new
    agent).** Given an area at/past the draft-ready gate, emit
    `_deliverables/contracts/discovery-output_<area>.md` (and an
