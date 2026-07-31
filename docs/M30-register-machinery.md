@@ -127,3 +127,78 @@ CITATION stays area-local.
 - Drafter contract block for context entries lands with the verb (same
   commit, like the M26 opus pin).
 - M29's checks pass against the structured files.
+
+## Amendment A1 — tier rejection, promotion rule, the citation loop
+## (agreed 2026-07-30)
+
+### L1 (per-area) registers: CONSIDERED AND REJECTED
+
+The proposal: area-level registers as a staging/fact-check gate so the
+engagement register stays quiet. Rejected on the two-homes argument: a
+register entry exists BECAUSE the fact is shared across areas — a fact
+one area knows has its home in that area's prose, so an L1 register
+holds facts with one consumer and gives every fact a second home on the
+way to its third (the procedure states it AND the L1 register holds it;
+one of them drifts). It also re-opens the rejected per-area-shadowing
+door, and its machinery bill (promotion between tiers, shadowing
+semantics, dual brief listings, a which-register-do-I-cite judgment call
+on every drafter) buys nothing the rules below don't.
+
+### The kernel adopted as rules (noise control at the existing gate)
+
+1. **The two-areas promotion rule.** A CITABLE entry requires evidence
+   that 2+ areas need the fact — the proposer names the restating
+   procedures (it already does). One-area facts bounce back to prose at
+   the approval conversation.
+2. **Entry lifecycle (DEFERRED, build only if noise materializes).** A
+   `proposed` → `confirmed` status inside the one register: pending
+   entries visible in `register list`, excluded from the render appendix
+   and from reference-don't-restate enforcement until confirmed. A
+   probation STATE, not a probation PLACE.
+3. **The context class is the low bar.** A real-but-unsettled fact
+   (disputed ownership, uncertain threshold) is a context entry, not a
+   lower tier.
+
+### The citation loop — entry cites sources; prose cites the entry
+
+Bootstrap sequence (prose usually exists before the entry):
+
+1. **Fact enters prose normally** — sourced, cited to the local SRC id;
+   the drafter flags it in `register_candidates` WITH its SRC ids (the
+   placement pass likewise proposes with per-area SRC ids + restating
+   procedures).
+2. **Approval stamps provenance.** The verb writes what the proposer
+   supplied; provenance is the entry's citation chain to the ledger.
+   **The verb REFUSES a citable entry without provenance** (same
+   discipline as `--peers` on consolidation notes) — an unprovenanced
+   citable entry is the evidence-free channel by another name.
+3. **The tail swaps citations.** Approval queues the usual notes; the
+   restating drafters' edits replace the prose SRC citation with the
+   register reference (operative values stay when essential to executing
+   the step — existing rule). One fact, one home, one citation chain.
+4. **Late drafters cite at first draft** — their brief lists the entry,
+   so bootstrap churn only ever touches areas drafted before the entry
+   existed, healed once by the note tail.
+
+**The never-un-consumes rule (state it so nobody "fixes" it):** swapping
+a prose SRC citation for a register reference never un-consumes the
+source — consumption is the durable per-source record of a read that
+happened; the register reference is downstream of it.
+
+**Entry ids in proposals:** agents name entries as
+`<register>#<entry-id>` at proposal time (the verb requires ids anyway).
+Prose MAY use the same form; M29's checks can then validate to entry
+level. This is the trivial upgrade path to the still-deferred `[[reg:]]`
+token — the convention costs nothing now.
+
+### Complexity accounting (why this passes the standing test)
+
+New state files: zero. New gates: zero (approval rides a conversation
+the human is already in; the advisor loop untouched). New agent
+judgment: ONE rule — the drafter's align-vs-evidence call on context
+entries — and it carries the safety payload. Everything else is
+deterministic-layer: the verb's refusals are if-statements, the brief
+formats by class, render gains one derived appendix. The M29 rules
+sweep must classify the align-never-evidence paragraph explicitly
+(enforced-at-verb + contract-side) so discipline drift is visible from
+day one.
