@@ -1,5 +1,6 @@
 ---
 name: consult-consolidator
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   M12 judgment subagent — the cross-procedure consistency pass over one drafted area.
   Reads either one bucket group's fragments in full (seam/sequence lens; the group —

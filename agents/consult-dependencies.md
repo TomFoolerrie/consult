@@ -1,5 +1,6 @@
 ---
 name: consult-dependencies
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   M5 judgment subagent that authors one area's Key Dependencies view (82_dependencies.md)
   from the upstream/downstream language in each procedure's A. Scope (supplied

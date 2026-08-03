@@ -1,5 +1,6 @@
 ---
 name: consult-intake
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   Intake classifier for ONE engagement batch (M25): reads every document staged
   at the engagement root's intake/ top level plus each scoped area's manifest

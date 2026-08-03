@@ -1,5 +1,6 @@
 ---
 name: consult-placement
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   M24 knowledge-placement subagent — ONE judgment pass over the whole
   engagement (run from the components/ root, on the user's word). Its first

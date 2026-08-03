@@ -1,5 +1,6 @@
 ---
 name: consult-raci
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   M5 judgment subagent that authors one area's RACI table (84_raci.md) from the per-
   procedure Preparer/Reviewer + step prose in M3's extract bundle and the canonical roles

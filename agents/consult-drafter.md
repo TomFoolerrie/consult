@@ -1,5 +1,6 @@
 ---
 name: consult-drafter
+model: sonnet  # pinned: the proven worker tier — do not inherit the session model
 description: >-
   Durable owner of ONE procedure component — first drafter AND update drafter. Given its
   section skeleton (or its own prior draft), the procedure's tagged _sources/, and the
