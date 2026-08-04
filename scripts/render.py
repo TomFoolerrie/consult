@@ -57,7 +57,18 @@ Modes (M9):
                             render as the embedded image with an italic
                             caption below (manual drop-in of a PNG at that
                             path is a first-class alternative to the ingest
-                            script). Never writes the .render.json signal (M21):
+                            script). v1.18 client-readiness grooming: the
+                            screenshot-index appendix never ships (evidence
+                            lives inline; pending count goes to the
+                            scorecard), register lead-in prose is stripped,
+                            zero-row registers are skipped whole, lexicon
+                            terms (_client/lexicon.yaml) normalize spelling
+                            variants, and a READINESS scorecard reports
+                            placeholders / blank required register cells /
+                            doubled spaces / doubled punctuation — counts
+                            reported, never refused; --strict exits 1 when
+                            the scorecard is dirty. Never writes the
+                            .render.json signal (M21):
                             final mode is a terminal export produced FROM an
                             accepted state, not a transition into a new one —
                             same reasoning as --slugs below.
@@ -67,6 +78,11 @@ Modes (M9):
                             from the FULL manifest so kit docs match the full
                             draft. Never writes the .render.json signal.
   --track-changes           kit docs open with tracked changes already on.
+
+Folder renders (both modes, v1.18): a blank fill-by-hand Document Control
+table opens the front matter; the TOC field collects H1-H2 and settings.xml
+carries <w:updateFields/> so Word populates it on open; every Reference &
+Appendices section after the first opens a fresh page.
 
 The assembled Markdown/structure is then handed to
 `cfgi_markdown_to_word.convert_assembled` (folder) or `.convert` (single file).
@@ -623,6 +639,108 @@ def _final_transform(text: str, slug: str, folder: Path,
 
 
 # --------------------------------------------------------------------------- #
+# Final-mode register grooming + readiness scorecard (v1.18)
+# --------------------------------------------------------------------------- #
+_ITALIC_LINE_RE = re.compile(r"^_[^_].*_$")
+
+
+def _strip_register_leadin(text: str) -> str:
+    """Drop a derived section's leading italic context sentence (final mode
+    only). The lead-ins orient a REVIEWER ("canonical roles, with the
+    procedures each appears in"); between the heading and the table the client
+    wants the table."""
+    lines = text.split("\n")
+    for idx, ln in enumerate(lines):
+        if not ln.strip():
+            continue
+        if _ITALIC_LINE_RE.match(ln.strip()):
+            del lines[idx]
+        break
+    return "\n".join(lines)
+
+
+def _table_data_rows(text: str) -> int:
+    """Count table DATA rows (not headers, not separators) in a body."""
+    lines = text.split("\n")
+    n = 0
+    for i, ln in enumerate(lines):
+        if not ln.lstrip().startswith("|") or _TABLE_SEP_RE.match(ln):
+            continue
+        if i + 1 < len(lines) and "-" in lines[i + 1] \
+                and _TABLE_SEP_RE.match(lines[i + 1]):
+            continue          # header row (a separator sits directly under it)
+        n += 1
+    return n
+
+
+#: Register columns a client deliverable must not ship blank, by derived kind:
+#: {cell index: column name} (index into the row's cells, 0 = first column).
+_REQUIRED_COLS = {
+    "role-dictionary": {1: "Reports To"},
+    "systems": {1: "Role in Process"},
+    "appendix-a": {1: "Impact", 2: "Severity"},
+}
+
+_PLACEHOLDER_RE = re.compile(
+    r"\bTBD\b|Pending user input|Pending synthesis", re.IGNORECASE)
+_DOUBLE_SPACE_RE = re.compile(r"(?<=\S)  +(?=\S)")
+_DOUBLE_PUNCT_RE = re.compile(r"(?<!\.)\.\.(?!\.)|,,|;;")
+
+
+def _readiness_scan(body: str, where: str, derived_kind, readiness: dict) -> None:
+    """Final-mode readiness checks, run on what the client would read.
+
+    Counts reported, never refused — the render always completes; `--strict`
+    lets a caller turn a dirty scorecard into a nonzero exit."""
+    blanks = _REQUIRED_COLS.get(derived_kind or "")
+    lines = body.split("\n")
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        m = _PLACEHOLDER_RE.search(ln)
+        if m:
+            readiness["placeholders"].append(f"{where}: {m.group(0)!r}")
+        if s.startswith("|"):
+            if blanks and not _TABLE_SEP_RE.match(ln) and not (
+                    i + 1 < len(lines) and "-" in lines[i + 1]
+                    and _TABLE_SEP_RE.match(lines[i + 1])):
+                cells = [c.strip() for c in s.strip("|").split("|")]
+                for idx, col in blanks.items():
+                    if idx < len(cells) and cells[idx] in ("", "—", "-"):
+                        row = cells[0][:48] if cells else "?"
+                        readiness["blank_cells"].append(
+                            f"{where}: blank {col!r} ({row}…)")
+            continue
+        if s.startswith("#"):
+            continue
+        if _DOUBLE_SPACE_RE.search(ln.rstrip()):
+            readiness["double_spaces"].append(f"{where}: {s[:60]!r}")
+        if _DOUBLE_PUNCT_RE.search(ln):
+            readiness["double_punct"].append(f"{where}: {s[:60]!r}")
+
+
+def _lexicon_normalizers(folder: Path):
+    """Compiled (pattern, canonical) pairs from `_client/lexicon.yaml`."""
+    pairs = []
+    for term in client_config.lexicon(folder):
+        pairs.append((re.compile(rf"(?<!\w){re.escape(term)}(?!\w)",
+                                 re.IGNORECASE), term))
+    return pairs
+
+
+def _apply_lexicon(text: str, normalizers, stats: dict) -> str:
+    """Normalize case-variants of lexicon terms to their canonical spelling.
+    Idempotent: an already-canonical match is left alone (and not counted)."""
+    for rx, canon in normalizers:
+        def _sub(m):
+            if m.group(0) == canon:
+                return m.group(0)
+            stats["lexicon_normalized"] += 1
+            return canon
+        text = rx.sub(_sub, text)
+    return text
+
+
+# --------------------------------------------------------------------------- #
 # Provenance (M9 stamps it; M10 consumes it)
 # --------------------------------------------------------------------------- #
 def _add_bookmark(p, name: str, bid: int) -> None:
@@ -792,8 +910,13 @@ def render_folder(folder: Path, out: Path, *,
              "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
              "dangling_refs": {}, "dangling_ref_count": 0,
              "screens_embedded": 0, "screens_placeholder": 0,
+             "lexicon_normalized": 0, "empty_registers_skipped": [],
+             "readiness": {"placeholders": [], "blank_cells": [],
+                           "double_spaces": [], "double_punct": [],
+                           "cover_fields": []},
              "profile": profile.report_line()}
 
+    lexicon_normalizers = _lexicon_normalizers(folder) if mode == "final" else []
     subset = slugs is not None
     if subset:
         unknown = [s for s in slugs if s not in numbers]
@@ -827,6 +950,21 @@ def render_folder(folder: Path, out: Path, *,
                   enumerate(manifest.get("l2_order", []) or [], start=1)}
     divider_state = {"l2": None, "front": False, "in_procedures": False,
                      "backmatter": False}
+    # Reference & Appendices sections each open a fresh page — EXCEPT the
+    # first, which stays under the chapter heading (breaking it too would
+    # strand the H1 alone on a page). Heading texts, matched by the converter.
+    break_headings: set[str] = set()
+
+    # Document Control front matter: a blank fill-by-hand table under its own
+    # chapter heading, straight after the cover + TOC. Emitted glue, never a
+    # fragment — there is nothing to draft, only version history to record.
+    if do_cover and not subset:
+        emit("# Document Control")
+        emit("")
+        emit("| Version | Date | Author | Summary of Changes |")
+        emit("|---|---|---|---|")
+        emit("|  |  |  |  |")
+        emit("")
 
     def emit_divider(section, role, slug):
         if subset:
@@ -857,7 +995,12 @@ def render_folder(folder: Path, out: Path, *,
         slug = _attr(section, "slug") or ""
         if subset and not (role == "procedure" and slug in slugs):
             continue
-        if mode == "final" and _attr(section, "derived_kind") == "gap-log":
+        # gap-log: open gaps are working-draft scaffolding. screenshot-index:
+        # the evidence lives inline at its steps in a final render (captured
+        # images embed; the scorecard counts any still pending), so the
+        # status appendix never ships to a client.
+        if mode == "final" and _attr(section, "derived_kind") in (
+                "gap-log", "screenshot-index"):
             continue
         heading = (_attr(section, "heading") or "").strip()
         raw_body = _attr(section, "body") or ""
@@ -912,6 +1055,19 @@ def render_folder(folder: Path, out: Path, *,
         body = _clean_body(raw_body, labels)
         if mode == "final":
             body = body.strip("\n")
+        derived_kind = _attr(section, "derived_kind")
+        if mode == "final" and derived_kind:
+            # Register grooming: the italic reviewer lead-in goes, and a
+            # register with no rows at all is skipped whole rather than
+            # shipping a heading over an empty shell.
+            body = _strip_register_leadin(body).strip("\n")
+            if _table_data_rows(body) == 0:
+                stats["empty_registers_skipped"].append(heading)
+                continue
+        if mode == "final":
+            body = _apply_lexicon(body, lexicon_normalizers, stats)
+            _readiness_scan(body, slug or heading or "front-matter",
+                            derived_kind, stats["readiness"])
         is_profile = heading.lower() in _PROFILE_HEADINGS
 
         # Lift the Document Profile onto the cover card (only when a cover is
@@ -920,7 +1076,13 @@ def render_folder(folder: Path, out: Path, *,
             profile_md = body
             continue
 
+        first_backmatter = (divider_state["in_procedures"]
+                            and not divider_state["backmatter"]
+                            and role != "procedure")
         emit_divider(section, role, slug)
+        if divider_state["backmatter"] and role != "procedure" \
+                and not first_backmatter:
+            break_headings.add(_heading_for(section, numbers))
         emit(f"## {_heading_for(section, numbers)}")
         emit("")
         if body.strip("\n"):
@@ -953,6 +1115,8 @@ def render_folder(folder: Path, out: Path, *,
                         and not divider_state["backmatter"]:
                     emit("# Reference & Appendices")
                     emit("")
+                else:
+                    break_headings.add("Shared Reference — Engagement Registers")
                 emit("## Shared Reference — Engagement Registers")
                 emit("")
                 for rtitle, cit in blocks:
@@ -972,10 +1136,20 @@ def render_folder(folder: Path, out: Path, *,
 
     body_md = "\n".join(body_lines)
     doc_id = uuid.uuid4().hex[:12]
+    if mode == "final" and do_cover and profile_md.strip():
+        # Cover readiness: a profile-card row shipping a blank or TBD value.
+        for ln in profile_md.split("\n"):
+            s = ln.strip()
+            if not s.startswith("|") or _TABLE_SEP_RE.match(ln):
+                continue
+            cells = [c.strip() for c in s.strip("|").split("|")]
+            if len(cells) >= 2 and cells[0].lower() != "field" \
+                    and cells[1].upper() in ("", "TBD", "—", "-"):
+                stats["readiness"]["cover_fields"].append(cells[0])
     cfgi.convert_assembled(
         body_md, out, title=title, subtitle=subtitle, profile_md=profile_md,
         include_toc=not subset, landscape=landscape, do_cover=do_cover,
-        prov=prov, track_changes=track_changes,
+        prov=prov, track_changes=track_changes, break_headings=break_headings,
     )
     stats["docx"] = str(out)
 
@@ -1044,6 +1218,9 @@ def main(argv=None) -> int:
                     help="comma-separated procedure slugs — subset (kit) render")
     ap.add_argument("--track-changes", action="store_true",
                     help="emit the docx with tracked changes on by default")
+    ap.add_argument("--strict", action="store_true",
+                    help="final mode: exit nonzero when the readiness "
+                         "scorecard is not clean (the render still completes)")
     ap.add_argument("--include-toc", action="store_true",
                     help="single-file input only: insert a Table of Contents "
                          "(folder renders ALWAYS carry one; kit/subset "
@@ -1069,6 +1246,34 @@ def main(argv=None) -> int:
                   f"scrubbed {stats['citations_scrubbed']} SRC/GAP citation(s); "
                   f"{stats['screens_embedded']} screenshot(s) embedded, "
                   f"{stats['screens_placeholder']} placeholder(s) remain")
+            if stats["lexicon_normalized"]:
+                print(f"lexicon: normalized {stats['lexicon_normalized']} "
+                      f"spelling variant(s) to canonical form")
+            if stats["empty_registers_skipped"]:
+                print("skipped empty register(s): "
+                      + ", ".join(stats["empty_registers_skipped"]))
+            # Readiness scorecard — counts reported, never refused.
+            r = stats["readiness"]
+            labels = [("cover_fields", "blank cover field(s)"),
+                      ("placeholders", "placeholder string(s)"),
+                      ("blank_cells", "blank required register cell(s)"),
+                      ("double_spaces", "doubled space(s) in prose "
+                       "(possible dropped word)"),
+                      ("double_punct", "doubled punctuation mark(s)")]
+            dirty = sum(len(r[k]) for k, _ in labels) \
+                + stats["screens_placeholder"]
+            if dirty:
+                print(f"READINESS: {dirty} item(s) need attention before "
+                      f"client delivery:")
+                if stats["screens_placeholder"]:
+                    print(f"  - {stats['screens_placeholder']} screenshot(s) "
+                          f"still pending capture (placeholder rendered)")
+                for key, label in labels:
+                    for item in r[key]:
+                        print(f"  - {label}: {item}")
+            else:
+                print("READINESS: clean — no placeholders, blank required "
+                      "cells, or punctuation defects detected")
             if stats["dangling_gap_ref_count"]:
                 print(f"WARNING: {stats['dangling_gap_ref_count']} SRC/GAP "
                       f"reference(s) survive in ordinary prose — they are "
@@ -1093,6 +1298,12 @@ def main(argv=None) -> int:
             print("  keep the section, or hide it with `body_omit` plus its "
                   "register (scaffold.py --sync-profile adds a register to a "
                   "scaffolded area), or reword the prose before shipping")
+        if a.strict and a.mode == "final" and (
+                dirty or stats["dangling_gap_ref_count"]
+                or stats["dangling_ref_count"]):
+            print("--strict: readiness scorecard is not clean, exiting 1 "
+                  "(the render above completed and is on disk)")
+            return 1
     else:
         if a.mode != "working" or a.slugs or a.track_changes:
             raise SystemExit("error: --mode/--slugs/--track-changes require an area folder")

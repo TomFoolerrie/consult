@@ -203,6 +203,19 @@ def load(area) -> ClientConfig:
     return cfg
 
 
+def lexicon(area) -> list[str]:
+    """Canonical spellings for product/system names (`_client/lexicon.yaml`,
+    `lexicon:` key — a plain list, or a mapping with a `terms:` list). Final
+    renders normalize case-variants of each term to the spelling given here
+    ("Blackline" -> "BlackLine"). No file anywhere -> empty list, no-op."""
+    raw = load(area).get("lexicon")
+    if isinstance(raw, dict):
+        raw = raw.get("terms")
+    if not isinstance(raw, list):
+        return []
+    return [str(t).strip() for t in raw if str(t).strip()]
+
+
 def conventions(area) -> list[Path]:
     """Resolved `conventions/` files for an area, name-sorted (drafters)."""
     cfg = load(area)

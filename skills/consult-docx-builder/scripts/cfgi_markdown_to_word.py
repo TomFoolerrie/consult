@@ -196,12 +196,15 @@ def add_page_num(p) -> None:
 
 
 def add_toc(p) -> None:
+    # Depth 1-2 only: chapters and sections. Level 3 (the A-E procedure
+    # subsections) repeats identically under every procedure, which turns the
+    # TOC into pages of "A. Scope / B. Before You Start / ..." noise.
     r = p.add_run()
     b = OxmlElement("w:fldChar")
     b.set(qn("w:fldCharType"), "begin")
     i = OxmlElement("w:instrText")
     i.set(qn("xml:space"), "preserve")
-    i.text = 'TOC \\o "1-3" \\h \\z \\u'
+    i.text = 'TOC \\o "1-2" \\h \\z \\u'
     s = OxmlElement("w:fldChar")
     s.set(qn("w:fldCharType"), "separate")
     e = OxmlElement("w:fldChar")
@@ -727,6 +730,38 @@ _SETTINGS_AFTER_TRACK_CHANGES = {
 }
 
 
+# CT_Settings children that come AFTER w:updateFields in the schema sequence
+# (same order-validation trap as trackChanges above: an out-of-sequence
+# element is silently dropped by Word's open-time repair).
+_SETTINGS_AFTER_UPDATE_FIELDS = {
+    "hdrShapeDefaults", "footnotePr", "endnotePr", "compat", "rsids",
+    "mathPr", "attachedSchema", "themeFontLang", "clrSchemeMapping",
+    "doNotIncludeSubdocsInStats", "doNotAutoCompressPictures", "forceUpgrade",
+    "captions", "readModeInkLockDown", "smartTagType", "shapeDefaults",
+    "doNotEmbedSmartTags", "decimalSymbol", "listSeparator",
+}
+
+
+def enable_update_fields(doc) -> None:
+    """Set `<w:updateFields w:val="true"/>` so Word refreshes fields on open.
+
+    The TOC is emitted as a real field, and python-docx cannot evaluate it —
+    that needs Word's layout engine. Without this flag the field ships
+    UNEVALUATED and the reader sees an empty Table of Contents until someone
+    presses F9; with it, Word populates entries and page numbers the moment
+    the document opens. Idempotent (a present element is left alone)."""
+    settings = doc.settings.element
+    if settings.find(qn("w:updateFields")) is not None:
+        return
+    uf = OxmlElement("w:updateFields")
+    uf.set(qn("w:val"), "true")
+    for child in settings:
+        if child.tag.rsplit("}", 1)[-1] in _SETTINGS_AFTER_UPDATE_FIELDS:
+            child.addprevious(uf)
+            return
+    settings.append(uf)
+
+
 def enable_track_changes(doc) -> None:
     """Force tracked changes ON (belt and suspenders).
 
@@ -906,6 +941,9 @@ def _next_nonblank(lines: List[str], i: int) -> int:
 
 def build_cover(doc, title: str, subtitle: str, profile_rows: List[List[str]]) -> None:
     title = title or "Process Documentation"
+    # A run of 2+ spaces in a title is a lost separator ("Fixed Assets
+    # Desktop Procedures" wants a dash between its halves), never intent.
+    title = re.sub(r"[ \t]{2,}", " - ", title)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = p.add_run("_" * 86)
@@ -946,6 +984,7 @@ def build_cover(doc, title: str, subtitle: str, profile_rows: List[List[str]]) -
 # Main conversion
 # --------------------------------------------------------------------------- #
 def _emit_toc(doc) -> None:
+    enable_update_fields(doc)
     # The page title is deliberately NOT a Heading style: the TOC field
     # collects Heading 1-3, so a Heading-styled title makes the table list
     # ITSELF as its first entry ("Table of Contents .... 2"). A Normal
@@ -964,7 +1003,8 @@ def _emit_toc(doc) -> None:
 
 
 def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
-                h1_page_break: bool = False) -> None:
+                h1_page_break: bool = False,
+                break_headings: Optional[set] = None) -> None:
     """Render assembled Markdown body lines into `doc`.
 
     Shared by the single-file `convert` and the pre-assembled folder
@@ -1050,6 +1090,11 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
             style = f"Heading {min(level, 4)}"      # straight-through: #->H1 ... ####->H4
             p = para(doc, txt, style)
             if level == 1 and h1_page_break:
+                p.paragraph_format.page_break_before = True
+            # Named section breaks: the caller (render.py) lists the H2
+            # headings that must open a fresh page — the Reference &
+            # Appendices sections, so each register starts its own page.
+            if level == 2 and break_headings and txt in break_headings:
                 p.paragraph_format.page_break_before = True
             # H1->H2 weight remap: under the flat-H2 template the section
             # weight formerly carried by H1 moves to H2, so the green rule is
@@ -1183,7 +1228,8 @@ def convert(inp: Path, out: Path, include_toc: bool = False,
 def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
                       profile_md: str = "", include_toc: bool = False,
                       landscape: bool = False, do_cover: bool = True,
-                      prov=None, track_changes: bool = False) -> None:
+                      prov=None, track_changes: bool = False,
+                      break_headings: Optional[set] = None) -> None:
     """Render pre-assembled folder content produced by scripts/render.py.
 
     Additive hook for the M4 folder path. Title/subtitle come from the
@@ -1205,7 +1251,7 @@ def convert_assembled(body_md: str, out: Path, *, title: str, subtitle: str,
     if include_toc:
         _emit_toc(doc)
     render_body(doc, body_md.split("\n"), do_cover=False, prov=prov,
-                h1_page_break=True)
+                h1_page_break=True, break_headings=break_headings)
     if track_changes:
         enable_track_changes(doc)
     doc.save(str(out))

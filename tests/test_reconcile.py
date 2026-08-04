@@ -588,3 +588,47 @@ def test_cross_area_number_only_token_is_not_double_reported(tmp_path, capsys):
     assert rc == 1
     assert "no display number" in out          # the M26 error
     assert "outside a table row" not in out    # not double-reported
+
+
+# --------------------------------------------------------------------------- #
+# v1.18 — required register fields (blank Reports To / description / Impact)
+# --------------------------------------------------------------------------- #
+
+def test_blank_register_fields_warn(tmp_path, capsys):
+    """A role with no reports_to and a PAIN POINT with no Impact: are
+    advisory WARNINGs — the register cell would ship blank."""
+    roles = ("roles:\n"
+             "  - slug: controller\n"
+             "    name: Controller\n"
+             "    people:\n"
+             "      - Jane Doe\n")
+    pp = ("> **PAIN POINT — PP-001:** Statements are rekeyed by hand.\n"
+          "> - **Severity:** Medium\n")
+    area = make_area(
+        tmp_path,
+        {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS + "\n" + pp)},
+        roles_yaml=roles)
+    rc, out = run(area, capsys)
+    assert rc == 0                       # advisory, never blocking
+    assert "'controller' has no reports_to" in out
+    assert "PAIN POINT without `Impact:`" in out
+    assert "without `Severity:`" not in out
+
+
+def test_explicit_not_applicable_passes(tmp_path, capsys):
+    """An explicit 'Not applicable' reports_to and a filled Impact are
+    clean — unknown is the defect, not absence."""
+    roles = ("roles:\n"
+             "  - slug: controller\n"
+             "    name: Controller\n"
+             "    reports_to: Not applicable\n")
+    pp = ("> **PAIN POINT — PP-001:** Statements are rekeyed by hand.\n"
+          "> - **Impact:** Slow close and keying errors.\n"
+          "> - **Severity:** Medium\n")
+    area = make_area(
+        tmp_path,
+        {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS + "\n" + pp)},
+        roles_yaml=roles)
+    rc, out = run(area, capsys)
+    assert "has no reports_to" not in out
+    assert "PAIN POINT without" not in out

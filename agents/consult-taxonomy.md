@@ -312,6 +312,10 @@ roles:
     reports_to: controller
     confidence: high | medium | low
 ```
+A blank `description` or `reports_to` is honest when no source states it — but
+it ships as a blank register cell, so reconcile WARNs on it until a source
+supplies the value or a human writes an explicit `Not applicable`. Never invent
+one to silence the warning.
 
 ### `sources.yaml` (SRC registry + tags)
 ```yaml

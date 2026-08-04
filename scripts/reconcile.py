@@ -1460,6 +1460,80 @@ def check_derived_tables(ctx: Ctx) -> None:
 # is also the numbering authority: the old per-call-site comment numbers
 # (1-17, half-drifted from the docstring and from M22's internal numbers)
 # live only here now.
+def check_required_register_fields(ctx: Ctx) -> None:
+    """v1.18 — fields a client deliverable must not ship blank, caught at the
+    review round instead of discovered in the final export.
+
+    Advisory (WARNING) on three sources the derived registers are built from:
+
+    - a `roles.yaml` entry with no `reports_to` (an explicit
+      "Not applicable" / "None" passes — unknown is the defect, not absence);
+    - a `systems.yaml` entry with no `description`/`role` text;
+    - a PAIN POINT callout with no `Impact:` (or `Severity:`) sub-field — the
+      register row would carry an em dash where the reader expects why the
+      pain point matters.
+    """
+    ref = ctx.folder / "_reference"
+    if yaml is not None and ref.is_dir():
+        for fname, field, what in (
+                ("roles.yaml", ("reports_to", "reports-to"), "Reports To"),
+                ("systems.yaml", ("description", "role"), "Role in Process")):
+            f = ref / fname
+            if not f.is_file():
+                continue
+            try:
+                data = yaml.safe_load(f.read_text(encoding="utf-8"))
+            except yaml.YAMLError:
+                continue
+            # Unwrap the conventional top-level key (`roles:` / `systems:`).
+            top = fname.split(".")[0]
+            if isinstance(data, dict) and isinstance(
+                    data.get(top), (list, dict)):
+                data = data[top]
+            entries = (data.items() if isinstance(data, dict)
+                       else [(e.get("slug", "?"), e) for e in data
+                             if isinstance(e, dict)]
+                       if isinstance(data, list) else [])
+            for slug, entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                if not any(str(entry.get(k, "") or "").strip()
+                           for k in field):
+                    ctx.warnings.append(
+                        f"_reference/{fname}: {slug!r} has no "
+                        f"{'/'.join(field)} — the {what!r} register cell "
+                        f"ships blank (state it, or say 'Not applicable')")
+    for f in ctx.fragments(_components(ctx.manifest, role="procedure"),
+                           skip_unfilled=True):
+        label, label_line, fields = None, 0, set()
+
+        def close():
+            if label == "PAIN POINT":
+                for need in ("impact", "severity"):
+                    if need not in fields:
+                        ctx.warnings.append(
+                            f"{f.file}:{label_line}: PAIN POINT without "
+                            f"`{need.title()}:` — its register row ships "
+                            f"blank; say why it matters (or how much)")
+        for n, line in enumerate(f.blanked.splitlines(), start=1):
+            m = CALLOUT_RE.match(line)
+            if m:
+                close()
+                label = re.sub(r"\s+", " ", m.group("label")).strip()
+                label_line, fields = n, set()
+                continue
+            if label is None:
+                continue
+            if not line.lstrip().startswith(">"):
+                close()
+                label = None
+                continue
+            fld = callout_field(line)
+            if fld:
+                fields.add(fld.lower())
+        close()
+
+
 CHECKS: list = [
     # blocking-first: schema, grammar, references, ownership
     check_manifest_schema,        # 1  manifest v1 schema
@@ -1486,6 +1560,8 @@ CHECKS: list = [
     check_hard_wrap,              # 20 M29 — prose line past ~100 cols
     check_number_only_xref_in_prose,  # 21 M29 — [[#slug]] outside a table row
     check_register_restatement,   # 22 M29 2.1b — restated distinctive value
+    check_required_register_fields,  # 23 v1.18 — blank Reports To /
+    #                                   system description / PP Impact
 ]
 
 

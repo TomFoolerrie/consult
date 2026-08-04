@@ -96,7 +96,9 @@ Named output:
 python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx
 ```
 
-Insert a generated Table of Contents:
+Insert a generated Table of Contents (a real Word TOC field, depth H1–H2;
+`<w:updateFields/>` is set so Word populates entries and page numbers the
+moment the document opens — no manual F9):
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/cfgi_markdown_to_word.py" input.md -o output.docx --include-toc

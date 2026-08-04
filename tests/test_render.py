@@ -599,8 +599,8 @@ def test_l2_chapter_dividers_open_each_subprocess_on_a_fresh_page(tmp_path):
     # This fixture's only front matter is the cover-lifted Document Profile,
     # so no Introduction chapter — an empty chapter head would be worse than
     # none.
-    assert [p.text for p in h1] == ["1. Invoices", "2. Payments",
-                                    "Reference & Appendices"]
+    assert [p.text for p in h1] == ["Document Control", "1. Invoices",
+                                    "2. Payments", "Reference & Appendices"]
     assert all(p.paragraph_format.page_break_before for p in h1)
     # Chapter weight must reach the RUNS: styled_run stamps body-default
     # direct formatting that overrides the paragraph style, so a style-table
@@ -771,3 +771,196 @@ def test_escaped_pipe_in_table_cell_does_not_shear_the_row(tmp_path):
     assert len(t.columns) == 3
     assert t.cell(1, 1).text == "ERP (SAP|S4 job schedule)"
     assert t.cell(1, 2).text == "1.1, 1.2"
+
+
+# --------------------------------------------------------------------------- #
+# v1.18 — TOC depth/refresh, Document Control, final-mode register grooming,
+# lexicon, readiness scorecard, back-matter page breaks
+# --------------------------------------------------------------------------- #
+
+ROLE_DICT_MD = """## Role Dictionary
+
+<!-- derived: role-dictionary; writer: python -->
+
+_Canonical functional roles with the procedures each appears in._
+
+| Functional Role | Reports To | Standard Responsibilities |
+|---|---|---|
+| AP Clerk |  | Enters invoices |
+"""
+
+SCREENS_IDX_MD = """## Appendix C - Screenshots
+
+<!-- derived: screenshot-index; writer: python -->
+
+_Index of the screenshots referenced in this document._
+
+| SC ID | Caption | Status |
+|---|---|---|
+| SC-01 | Vendor screen | Pending user input |
+"""
+
+
+def make_area_with_registers(tmp_path: Path) -> Path:
+    """make_area plus a role-dictionary and a screenshot-index register."""
+    area = make_area(tmp_path)
+    man = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    man["components"] += [
+        {"file": "80_roles-dict.md", "heading": "Role Dictionary",
+         "role": "derived", "derived_kind": "role-dictionary",
+         "writer": "python", "order": 80},
+        {"file": "91_screens.md", "heading": "Appendix C - Screenshots",
+         "role": "derived", "derived_kind": "screenshot-index",
+         "writer": "python", "order": 91},
+    ]
+    (area / "manifest.json").write_text(json.dumps(man, indent=1),
+                                        encoding="utf-8")
+    (area / "80_roles-dict.md").write_text(ROLE_DICT_MD, encoding="utf-8")
+    (area / "91_screens.md").write_text(SCREENS_IDX_MD, encoding="utf-8")
+    return area
+
+
+def test_toc_depth_1_2_and_update_fields_on_open(tmp_path):
+    """The TOC field collects H1-H2 only and settings.xml carries
+    <w:updateFields/> so Word populates the field on open (no F9)."""
+    area = make_area(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    doc = Document(str(out))
+    instr = "".join(t.text or ""
+                    for t in doc.element.body.iter(qn("w:instrText")))
+    assert 'TOC \\o "1-2"' in instr
+    uf = doc.settings.element.find(qn("w:updateFields"))
+    assert uf is not None
+    assert uf.get(qn("w:val")) == "true"
+
+
+def test_cover_title_lost_separator_normalized():
+    """A multi-space run in the title is a lost separator -> ' - '."""
+    from docx import Document as Doc
+    doc = Doc()
+    cfgi.build_cover(doc, "Fixed Assets  Desktop Procedures", "", [])
+    assert "Fixed Assets - Desktop Procedures" in doc_text(doc)
+
+
+def test_document_control_front_matter(tmp_path):
+    """Folder renders open with a blank fill-by-hand Document Control table;
+    kit (subset) renders never carry it."""
+    area = make_area(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    txt = doc_text(Document(str(out)))
+    assert "Document Control" in txt
+    assert "Summary of Changes" in txt
+    kit = tmp_path / "kit.docx"
+    render.render_folder(area, kit, slugs=["vendor-onboarding"],
+                         emit_signal=False)
+    assert "Summary of Changes" not in doc_text(Document(str(kit)))
+
+
+def test_final_suppresses_screenshot_index_and_strips_leadin(tmp_path):
+    """Final mode: the screenshot appendix never ships; register lead-in
+    prose is stripped; a blank required cell lands on the scorecard."""
+    area = make_area_with_registers(tmp_path)
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    txt = doc_text(Document(str(out)))
+    assert "Appendix C - Screenshots" not in txt
+    assert "Canonical functional roles" not in txt
+    assert "Functional Role" in txt          # the table itself is kept
+    assert any("Reports To" in x
+               for x in stats["readiness"]["blank_cells"])
+
+
+def test_working_keeps_screenshot_index_and_leadin(tmp_path):
+    """Working mode is untouched by the final-mode register grooming."""
+    area = make_area_with_registers(tmp_path)
+    out = tmp_path / "draft.docx"
+    render.render_folder(area, out, emit_signal=False)
+    txt = doc_text(Document(str(out)))
+    assert "Appendix C - Screenshots" in txt
+    assert "Canonical functional roles" in txt
+
+
+def test_final_skips_empty_register(tmp_path):
+    """A register with a header and zero data rows is skipped whole in a
+    final render (no heading over an empty shell), and reported."""
+    area = make_area_with_registers(tmp_path)
+    (area / "80_roles-dict.md").write_text(
+        "## Role Dictionary\n\n"
+        "<!-- derived: role-dictionary; writer: python -->\n\n"
+        "_Canonical functional roles._\n\n"
+        "| Functional Role | Reports To | Standard Responsibilities |\n"
+        "|---|---|---|\n", encoding="utf-8")
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    assert "Functional Role" not in doc_text(Document(str(out)))
+    assert stats["empty_registers_skipped"] == ["Role Dictionary"]
+
+
+def test_final_lexicon_normalizes_spelling(tmp_path):
+    """`_client/lexicon.yaml` terms normalize case-variants in final mode."""
+    area = make_area(tmp_path)
+    (area / "_client" / "lexicon.yaml").write_text(
+        "lexicon:\n  - BlackLine\n", encoding="utf-8")
+    p = area / "30_cash-application.md"
+    p.write_text(p.read_text(encoding="utf-8")
+                 + "\nSign-off is recorded in Blackline.\n", encoding="utf-8")
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    txt = doc_text(Document(str(out)))
+    assert "BlackLine" in txt
+    assert "Blackline" not in txt
+    assert stats["lexicon_normalized"] == 1
+    # Working mode never rewrites prose.
+    draft = tmp_path / "draft.docx"
+    stats_w = render.render_folder(area, draft, emit_signal=False)
+    assert "Blackline" in doc_text(Document(str(draft)))
+    assert stats_w["lexicon_normalized"] == 0
+
+
+def test_final_readiness_scorecard_flags_defects(tmp_path):
+    """Placeholders and doubled spaces (the dropped-verb signature) land on
+    the readiness scorecard."""
+    area = make_area(tmp_path)
+    p = area / "30_cash-application.md"
+    p.write_text(p.read_text(encoding="utf-8")
+                 + "\nThe operator  posts the entry. Timing TBD.\n",
+                 encoding="utf-8")
+    out = tmp_path / "final.docx"
+    stats = render.render_folder(area, out, mode="final", emit_signal=False)
+    r = stats["readiness"]
+    assert any("TBD" in x for x in r["placeholders"])
+    assert any("cash-application" in x for x in r["double_spaces"])
+
+
+def test_backmatter_sections_page_break_after_first(tmp_path):
+    """Reference & Appendices sections each open a fresh page, except the
+    first (which stays under the chapter heading)."""
+    area = make_area_with_registers(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    doc = Document(str(out))
+    breaks = {}
+    for p in doc.paragraphs:
+        if p.style.name == "Heading 2" and p.text in (
+                "Role Dictionary", "Appendix B - Gap Log",
+                "Appendix C - Screenshots"):
+            breaks[p.text] = bool(p.paragraph_format.page_break_before)
+    assert breaks["Role Dictionary"] is False
+    assert breaks["Appendix B - Gap Log"] is True
+    assert breaks["Appendix C - Screenshots"] is True
+
+
+def test_strict_final_exits_one_when_dirty(tmp_path, capsys):
+    """--strict turns a dirty final scorecard into exit 1 (the docx is
+    still written); working mode is unaffected by the flag."""
+    area = make_area(tmp_path)
+    out = tmp_path / "final.docx"
+    rc = render.main([str(area), "-o", str(out), "--mode", "final",
+                      "--strict"])
+    assert rc == 1          # SC-01 screenshots are still pending capture
+    assert out.is_file()
+    assert "READINESS" in capsys.readouterr().out
+    rc = render.main([str(area), "-o", str(tmp_path / "w.docx"), "--strict"])
+    assert rc == 0

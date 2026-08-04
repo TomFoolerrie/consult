@@ -23,8 +23,10 @@ import reconcile
 import sources
 
 
-SYSTEMS_YAML = "systems:\n  - slug: netsuite\n    name: NetSuite\n"
-ROLES_YAML = "roles:\n  - slug: controller\n    name: Controller\n"
+SYSTEMS_YAML = ("systems:\n  - slug: netsuite\n    name: NetSuite\n"
+                "    description: ERP of record\n")
+ROLES_YAML = ("roles:\n  - slug: controller\n    name: Controller\n"
+              "    reports_to: CFO\n")
 
 SOURCES_YAML = """\
 sources:

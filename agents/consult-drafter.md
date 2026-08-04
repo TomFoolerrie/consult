@@ -483,6 +483,11 @@ Severity is a **per-item** read (how painful the client made it sound), not a
 cross-procedure ranking — you only see this one procedure. Do not attempt to rank
 against other procedures.
 
+`Impact:` and `Severity:` are never omitted — a missing sub-field ships as a
+blank register cell in the client deliverable (reconcile WARNs on it). When the
+source is silent on impact, write `TBD` (the final-render scorecard surfaces it
+for the human) — never invent a consequence the source did not state.
+
 **Inline in `Procedure`** — at the step they attach to:
 ```
 > **VALIDATION REQUIRED — GAP-01:** <the specific fact/decision to confirm>
