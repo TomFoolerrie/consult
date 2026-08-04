@@ -10,12 +10,19 @@ people are involved they share the same kit; every ask names its contact):
 
     _review/kits/
       index.md                       kit -> send-to checklist, grouped by person
-      <num>_<slug>/
+      <num>_<short>/
         README.md                    instructions (usable as the email body)
-        <num>_<slug>.docx            the procedure render, tracked changes ON
-        gaps_<slug>.xlsx             ALL of this procedure's gap rows; the
+        <num>_<short>.docx           the procedure render, tracked changes ON
+        gaps_<short>.xlsx            ALL of this procedure's gap rows; the
                                      Contact column names who each row is for
-        screenshots_<slug>.docx      its SC items + paste boxes
+        screenshots_<short>.docx     its SC items + paste boxes
+
+    <short> is the slug shortened to whole words within ~24 characters
+    (v1.18.2): kit paths carry the slug twice, and on a OneDrive-synced
+    engagement the full path can cross Word's ~255-character ceiling — Word
+    then opens the file under a renamed copy. Names are display labels only;
+    review-apply and screens-ingest resolve by the doc id stamped inside
+    each docx, so shortening is loss-free.
 
 Contacts are deterministic string-work over data the pipeline already has:
   - procedure contact = the At a Glance card "Preparer" row → roles.yaml
@@ -324,19 +331,49 @@ def build_kits(area: str, out_dir: str | None = None) -> int:
         except ValueError:
             return (99,)
 
+    def _short(slug: str, limit: int = 24) -> str:
+        """Filename-budget slug: whole hyphen-separated words up to `limit`.
+
+        Kit paths carry the slug in BOTH the folder and every file inside it,
+        and on a OneDrive-synced engagement the full path can cross Word's
+        ~255-character ceiling — Word then opens the file under a renamed
+        copy. Folder and file names are display labels only (review-apply
+        finds its map via the doc id stamped INSIDE the docx), so shortening
+        is loss-free. `vendor-master-data-maintenance` -> `vendor-master-data`.
+        """
+        if len(slug) <= limit:
+            return slug
+        parts = slug.split("-")
+        short = parts[0][:limit]
+        for part in parts[1:]:
+            if len(short) + 1 + len(part) > limit:
+                break
+            short += "-" + part
+        return short
+
     kits: dict[str, dict] = {}
+    used_keys: set[str] = set()
     for slug, p in procs.items():
         contact = (p["owner"]
                    or (p["role"] and f"({p['role']} — no person mapped)")
                    or "(unassigned)")
+        fname = _short(slug)
+        # Two long slugs can shorten identically; the display number keeps
+        # keys unique, but an unnumbered procedure falls back to the full
+        # slug rather than colliding.
+        if not p["number"] and fname in used_keys:
+            fname = slug
         kits[slug] = {
-            "key": f"{p['number'].replace('.', '-')}_{slug}" if p["number"] else slug,
+            "key": (f"{p['number'].replace('.', '-')}_{fname}"
+                    if p["number"] else fname),
+            "fname": fname,
             "slug": slug, "label": p["label"], "number": p["number"],
             "contact": contact, "assigned": bool(p["owner"]),
             "extra_contacts": [],
             "proc": p, "gap_rows": [], "screen_items": [],
             "doc": "", "xlsx": "", "screens_doc": "", "gaps": 0, "screens": 0,
         }
+        used_keys.add(kits[slug]["key"])
     for g in gaps:
         kits[g["slug"]]["gap_rows"].append(g)
     for s in screens:
@@ -355,14 +392,14 @@ def build_kits(area: str, out_dir: str | None = None) -> int:
         kdir.mkdir(parents=True)
         slug = kit["slug"]
 
-        kit["doc"] = f"{kit['number']}_{slug}.docx"
+        kit["doc"] = f"{kit['number']}_{kit['fname']}.docx"
         render_mod.render_folder(
             folder, kdir / kit["doc"], mode="working", slugs=[slug],
             track_changes=True, emit_signal=False)
 
         if kit["gap_rows"]:
             kit["gaps"] = len(kit["gap_rows"])
-            kit["xlsx"] = f"gaps_{slug}.xlsx"
+            kit["xlsx"] = f"gaps_{kit['fname']}.xlsx"
             rows = [[g["disp"], g["proc_label"], g["text"], g["nature"],
                      g["owner"], g["escalation"], "", "",
                      f"{g['slug']}#{g['local']}"]
@@ -372,7 +409,7 @@ def build_kits(area: str, out_dir: str | None = None) -> int:
 
         if kit["screen_items"]:
             kit["screens"] = len(kit["screen_items"])
-            kit["screens_doc"] = f"screenshots_{slug}.docx"
+            kit["screens_doc"] = f"screenshots_{kit['fname']}.docx"
             items = sorted(kit["screen_items"], key=lambda s: s["disp"])
             smap = write_screenshot_template(
                 kdir / kit["screens_doc"], kit["label"], kit["contact"],

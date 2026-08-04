@@ -154,3 +154,35 @@ def test_build_kits_requires_manifest(tmp_path):
     d.mkdir()
     with pytest.raises(SystemExit, match="no manifest.json"):
         kits.build_kits(str(d))
+
+
+# --------------------------------------------------------------------------- #
+# v1.18.2 — filename budget: long slugs shorten to whole words in kit paths
+# --------------------------------------------------------------------------- #
+
+def test_long_slug_shortened_in_kit_paths(tmp_path):
+    """Kit folder/file names carry the slug twice; a long slug is cut to
+    whole hyphen words (~24 chars) so OneDrive-deep paths stay under Word's
+    ~255-char full-path ceiling. Display labels and IDs are untouched."""
+    area = make_area(tmp_path)
+    man = json.loads((area / "manifest.json").read_text(encoding="utf-8"))
+    long_slug = "vendor-master-data-maintenance-and-banking-change"
+    for c in man["components"]:
+        if c.get("slug") == "vendor-onboarding":
+            c["slug"] = long_slug
+            break
+    (area / "manifest.json").write_text(json.dumps(man, indent=1),
+                                        encoding="utf-8")
+    # The gap-log's [[#vendor-onboarding]] token must follow the rename.
+    gl = area / "90_appendix-b-gaps.md"
+    gl.write_text(gl.read_text(encoding="utf-8").replace(
+        "vendor-onboarding", long_slug), encoding="utf-8")
+    assert kits.build_kits(str(area)) == 0
+    out = area / "_review" / "kits"
+    dirs = sorted(d.name for d in out.iterdir() if d.is_dir())
+    key = "1-1_vendor-master-data"
+    assert key in dirs, dirs
+    kdir = out / key
+    assert (kdir / "1.1_vendor-master-data.docx").is_file()
+    files = {f.name for f in kdir.iterdir()}
+    assert not any(long_slug in f for f in files)
