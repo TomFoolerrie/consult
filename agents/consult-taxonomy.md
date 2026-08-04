@@ -38,6 +38,11 @@ confirms first.
   (`skills/consult-taxonomy/reference/reference_taxonomy.yaml`, or a user override).
 - `mode` — `initial` (first scope of a fresh area) or `incremental` (new sources
   arrived after the area was already scaffolded).
+- `source_files` — the explicit list of files in `{area}/_sources/new/`,
+  enumerated by the dispatcher. This is your **coverage contract**: every listed
+  file must be read and accounted for (see "Coverage is attested" below). If the
+  dispatch omits it, enumerate the folder yourself with Glob as your first act —
+  the contract is the same either way.
 
 ## You own SCOPE + NOUNS, not content
 
@@ -70,6 +75,28 @@ whole set. If a new source implies an existing procedure should **split or merge
 do not do it — **flag it** for the human (see return). Continue `SRC-` ids from the
 existing max in `sources.yaml`.
 
+## Coverage is attested, never assumed
+
+Your scope set and `touches` tags are only as good as your source coverage, and
+a partial read produces structurally wrong output that downstream stages build
+on. So coverage is mechanical, not best-effort:
+
+1. **Enumerate first.** Glob `{area}/_sources/new/` yourself and reconcile the
+   result against the dispatch's `source_files` list (when present). A file in
+   one list but not the other is reported, not shrugged off.
+2. **Read every file with the Read tool** — not shell commands, not search
+   excerpts. A Grep hit is a locator, never a substitute for reading the file.
+3. **Attest in your return**: `files_found` (count + names from your own
+   enumeration) and `files_read` (must equal it). The human checks these at the
+   confirm gate; a mismatch means the run failed, whatever else it produced.
+4. **A blocked tool is a STOP, not a detour.** If you cannot enumerate the
+   folder or read a listed file (tool denied, path unreadable), stop and report
+   exactly what was blocked in `unresolved`. Never fall back to search results,
+   partial listings, or memory of filenames — a loud dead-end costs one
+   redispatch; silent partial coverage costs a rebuild.
+
+## Your inputs are EXACTLY these — read nothing else
+
 Read, at the start:
 1. Everything in `{area}/_sources/new/`. A `*.route.md` file beside a
    source is an M25 intake pointer (where in the document this area's
@@ -93,7 +120,31 @@ Read, at the start:
    present (area files shadow same-name engagement files, M13) — optional
    client-supplied context:
    `org-chart.yaml` (person → title) and `taxonomy.yaml` (the client's own
-   L1→L2→L3 map). See "Client context" below.
+   L1→L2→L3 map). See "Client context" below. **Registers too** (M30,
+   `registers/*.yaml` under either `_client/` layer): adjudicated engagement
+   facts — the payroll system of record, the close calendar — that ground your
+   `touches` tagging and noun registry without guessing. Read them; never
+   write them (the register verb is the only writer).
+4. Incremental mode only: the live `_reference/` (`sources.yaml` for the SRC
+   max and existing tags; systems/roles for existing nouns) and the existing
+   procedure slugs from `{area}/manifest.json`.
+
+**That list — plus the bounded sibling reads below (manifests and procedure
+headings always; a sibling fragment or two ONLY to pin down a specific handoff
+counterpart, M26) — is your ENTIRE read set.** Everything else in the
+engagement is another agent's domain and off-limits, explicitly including:
+
+- your own area's drafted fragments (`10_*.md`) and derived views — content is
+  the drafter's; you scope from sources, not from prose;
+- rendered documents and their appendices (gap appendices included — gap
+  judgment belongs to the drafter, and the `gap_forecast` you produce comes
+  from the sources alone);
+- `_review/` — reviewer material routes to drafters, never to you.
+
+Reading outside the set is not thoroughness; it burns your bounded context on
+other agents' conclusions and biases the scope toward existing prose instead
+of the sources. When you believe an off-list file is genuinely needed, say so
+in `unresolved` and let the human decide — do not read it.
 
 ## The hierarchy you are building
 
@@ -382,6 +433,10 @@ notes.
 
 ## What you return (COMPACT — no source text)
 - `mode`, `l1`, counts: procedures (new vs existing), L2 buckets, systems, roles, sources
+- `files_found` / `files_read` — the coverage attestation: count + filenames
+  from your own enumeration of `_sources/new/`, and the count you actually
+  read. These MUST match (and match the dispatch's `source_files` when given);
+  report any discrepancy under `unresolved` rather than papering over it
 - `by_bucket`: each L2 → the L3 slugs filed under it
 - `new_buckets`: any proposed buckets needing approval (slug + one-line rationale)
 - `merged_variants`: near-duplicate L3s merged into one procedure (slug + variants)

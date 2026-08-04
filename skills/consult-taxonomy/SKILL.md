@@ -83,14 +83,24 @@ Schema examples live beside this skill:
 
 ## Method
 
-### 1. Read
-- Everything in `{area}/_sources/new/` (the unconsumed inputs).
+### 1. Read — this list is exclusive, and coverage is attested
+- Everything in `{area}/_sources/new/` (the unconsumed inputs). **Enumerate
+  the folder with Glob first, reconcile against the dispatch's `source_files`
+  list when given, Read every file, and attest `files_found`/`files_read` in
+  your return.** A blocked tool while gathering inputs is a STOP-and-report
+  (`unresolved`), never a cue to proceed from search hits or partial listings.
 - The `taxonomy`: find your L1 by `slug`, read its L2 buckets and their slugs.
 - `{area}/_client/` and `components/_client/` if present, area shadowing per
-  file (org chart + client taxonomy — see above).
+  file (org chart + client taxonomy + `registers/*.yaml` — adjudicated
+  engagement facts that ground `touches` tagging; read-only, M30).
 - **incremental only:** also read the live `_reference/` (systems/roles/sources)
   and the existing procedure slugs from `{area}/manifest.json`, so you propose a
   *delta* against what already exists.
+- Plus the bounded sibling reads (manifests/headings; a fragment or two only to
+  pin a specific M26 handoff counterpart). **Nothing else** — not your own
+  area's fragments, not rendered documents or their gap appendices, not
+  `_review/`. Those are other agents' domains; an off-list file you think you
+  need goes in `unresolved` for the human, unread.
 
 ### 2. Propose the procedure set → `.proposed/procedures.yaml`
 One entry per L3 activity:
