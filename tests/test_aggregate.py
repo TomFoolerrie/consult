@@ -201,7 +201,7 @@ def test_run_derived_rows_use_display_ids_and_tokens(tmp_path):
     gaps = (area / "90_appendix-b-gaps.md").read_text(encoding="utf-8")
     assert "| GAP-01 ([[#bank-rec]]) |" in gaps
     appendix = (area / "88_appendix-a.md").read_text(encoding="utf-8")
-    assert "PP-01 ([[#bank-rec]])" in appendix
+    assert "**PP-01** ([[#bank-rec]])" in appendix
     # IO's local `Addresses: PP-001` is translated to the display ID.
     assert "PP-001" not in appendix
     index = (area / "06_procedure-index.md").read_text(encoding="utf-8")
@@ -355,7 +355,7 @@ def test_appendix_a_pairs_each_improvement_with_its_pain_point(tmp_path):
     appendix = (area / "88_appendix-a.md").read_text(encoding="utf-8")
 
     paired = [ln for ln in appendix.splitlines()
-              if "PP-01 ([[#bank-rec]])" in ln]
+              if "**PP-01** ([[#bank-rec]])" in ln]
     assert len(paired) == 1
     row = paired[0]
     assert "Matching transactions is fully manual" in row
@@ -365,7 +365,7 @@ def test_appendix_a_pairs_each_improvement_with_its_pain_point(tmp_path):
     # the addressed IO appears ONLY beside its pain point; the stray one gets
     # the general section with a first-cell id reconcile can verify
     assert "### Improvement Opportunities — general" in appendix
-    assert "| IO-02 ([[#bank-rec]]) | Move sign-off into" in appendix
+    assert "| **IO-02** ([[#bank-rec]]) | Move sign-off into" in appendix
     assert "IO-02" not in row
 
 

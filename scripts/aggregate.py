@@ -554,7 +554,7 @@ def build_appendix_a(ctx) -> str:
                              f"{cell(_body(ctx, io['p'], io['c']))}{also}")
             io_cell = "  ".join(parts) if parts else "—"
             lines.append(
-                f"| {disp} ([[#{p['slug']}]]) — {cell(_body(ctx, p, c))} | "
+                f"| **{disp}** ([[#{p['slug']}]]) — {cell(_body(ctx, p, c))} | "
                 f"{cell(_pick(f, 'Impact'))} | {cell(_pick(f, 'Severity'))} | "
                 f"{io_cell} |"
             )
@@ -572,7 +572,7 @@ def build_appendix_a(ctx) -> str:
                   "|---|---|"]
         for io in stray:
             lines.append(
-                f"| {io['disp']} ([[#{io['p']['slug']}]]) | "
+                f"| **{io['disp']}** ([[#{io['p']['slug']}]]) | "
                 f"{cell(_body(ctx, io['p'], io['c']))} |")
     return "\n".join(lines)
 
