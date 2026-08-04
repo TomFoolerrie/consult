@@ -1,7 +1,7 @@
 {
   "name": "consult-skill-suite",
   "description": "Modular skill suite for producing governed, evidence-backed SOP and desktop procedure deliverables.",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "author": {
     "name": "CFGI"
   }

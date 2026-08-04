@@ -424,6 +424,12 @@ HEADING_RUN_FMT = {
 def para(doc, text: str, style: Optional[str] = None,
          color: str = PALETTE["black"], size: int = BODY_SIZE):
     p = doc.add_paragraph(style=style)
+    # Body flow text is JUSTIFIED (house style): plain paragraphs and list
+    # items only. Everything else keeps its own alignment — headings and
+    # subtitles pass a style, and table cells, callout boxes, the cover and
+    # captions never come through this function.
+    if style is None or style.startswith("List"):
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     fmt = HEADING_RUN_FMT.get(style or "")
     for s in segs(text):
         if fmt:

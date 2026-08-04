@@ -406,6 +406,13 @@ def build_role_dictionary(ctx) -> str:
     lines.append("|---|---|---|")
     for slug in sorted(roles):
         r = roles[slug]
+        # `reports_to` is authored as a role SLUG (taxonomy contract); the
+        # reader-facing cell shows that role's display name. A value that is
+        # no known slug (an external title, "Not applicable") passes through
+        # as written.
+        rep = str(r.get("reports_to", r.get("reports-to", "")) or "").strip()
+        if rep in roles:
+            rep = roles[rep].get("name", rep)
         resp = r.get("responsibilities", "")
         if isinstance(resp, list):
             resp = "; ".join(str(x) for x in resp)
@@ -418,7 +425,7 @@ def build_role_dictionary(ctx) -> str:
             resp = f"{resp} ({refs})".strip() if resp else refs
         lines.append(
             f"| {cell(r.get('name', slug))} | "
-            f"{cell(str(r.get('reports_to', r.get('reports-to', ''))))} | "
+            f"{cell(rep)} | "
             f"{cell(resp)} |"
         )
     return "\n".join(lines)

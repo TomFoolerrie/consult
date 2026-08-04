@@ -964,3 +964,29 @@ def test_strict_final_exits_one_when_dirty(tmp_path, capsys):
     assert "READINESS" in capsys.readouterr().out
     rc = render.main([str(area), "-o", str(tmp_path / "w.docx"), "--strict"])
     assert rc == 0
+
+
+def test_body_prose_is_justified_tables_are_not(tmp_path):
+    """Body flow text (plain paragraphs, list items) is justified; table
+    cell text and headings keep their own alignment."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    area = make_area(tmp_path)
+    out = tmp_path / "d.docx"
+    render.render_folder(area, out, emit_signal=False)
+    doc = Document(str(out))
+    body = [p for p in doc.paragraphs
+            if p.text.strip() and (p.style.name in ("Normal",)
+                                   or p.style.name.startswith("List"))
+            and not p.text.startswith("Table of Contents")]
+    assert body, "expected body paragraphs"
+    justified = [p for p in body
+                 if p.alignment == WD_ALIGN_PARAGRAPH.JUSTIFY]
+    assert justified, "body flow text must be justified"
+    for p in doc.paragraphs:
+        if p.style.name.startswith("Heading"):
+            assert p.alignment != WD_ALIGN_PARAGRAPH.JUSTIFY
+    for t in doc.tables:
+        for row in t.rows:
+            for c in row.cells:
+                for p in c.paragraphs:
+                    assert p.alignment != WD_ALIGN_PARAGRAPH.JUSTIFY

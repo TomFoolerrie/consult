@@ -367,3 +367,34 @@ def test_appendix_a_pairs_each_improvement_with_its_pain_point(tmp_path):
     assert "### Improvement Opportunities — general" in appendix
     assert "| IO-02 ([[#bank-rec]]) | Move sign-off into" in appendix
     assert "IO-02" not in row
+
+
+# --------------------------------------------------------------------------- #
+# v1.18.1 — Reports To resolves a role slug to its display name
+# --------------------------------------------------------------------------- #
+
+def test_role_dictionary_reports_to_resolves_slug_to_name(tmp_path):
+    """`reports_to` is authored as a role SLUG (taxonomy contract); the
+    register cell shows that role's display name. A value that is no known
+    slug (an external title, 'Not applicable') passes through as written."""
+    roles_yaml = """\
+roles:
+  - slug: controller
+    name: Controller
+    reports_to: cfo
+  - slug: cfo
+    name: Chief Financial Officer
+    reports_to: Not applicable
+"""
+    area = make_area(tmp_path,
+                     {"bank-rec": fragment("Bank Rec", GOOD_CALLOUTS)},
+                     registries=False)
+    ref = area / "_reference"
+    ref.mkdir()
+    (ref / "systems.yaml").write_text(SYSTEMS_YAML, encoding="utf-8")
+    (ref / "roles.yaml").write_text(roles_yaml, encoding="utf-8")
+    assert aggregate.run(str(area)) == 0
+    body = (area / "07_role-dictionary.md").read_text(encoding="utf-8")
+    assert "| Controller | Chief Financial Officer |" in body
+    assert "| cfo |" not in body
+    assert "| Chief Financial Officer | Not applicable |" in body
