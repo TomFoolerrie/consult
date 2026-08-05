@@ -2,8 +2,9 @@
 """brief.py — deterministic work order for a subagent's pass over one area.
 
 Usage:
-    python3 scripts/brief.py <area> --slug <procedure-slug>     # drafter
-    python3 scripts/brief.py <area> --kind raci|dependencies    # synthesis
+    python3 scripts/brief.py <area> --slug <procedure-slug>              # drafter
+    python3 scripts/brief.py <area> --slug <slug> --mode update          # drafter, mode-scoped
+    python3 scripts/brief.py <area> --kind raci|dependencies             # synthesis
 
 Why this exists (design note): the orchestrator's advisor works because
 orchestration is a state machine; a drafting pass is one sitting of judgment
@@ -16,6 +17,14 @@ points use (client_config, sources, notes_util, doc_model), and prints a
 reading list + finish checklist. It decides NOTHING about mode or content:
 the dispatch prompt stays authoritative for the trigger; the fragment stays
 the agent's judgment.
+
+M31 (mode-scoped reading contract): `--mode` RELAYS the dispatch's trigger —
+the brief still never decides it. With `--mode update` the reading list is
+scoped to the delta: already-consumed sources and upstream seams become
+CONDITIONAL reads, each line printing its mechanical condition, and the
+drafter must disclose every skipped read in its return status. Without the
+flag (or with `--mode first-draft`) the list is the full read-everything
+set, unchanged.
 
 Read-only by contract: this script never writes, so any agent may run it
 without touching the one-writer rule.
@@ -181,7 +190,13 @@ def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
     return out
 
 
-def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
+# The seam lives in these sections — upstream fragments are read for the
+# handoff only, so these are the only upstream sections a drafter opens.
+SEAM_SECTIONS = "Scope, At a Glance, Outputs & Evidence"
+
+
+def drafter_brief(folder: Path, manifest: dict, slug: str,
+                  mode: str | None = None) -> str:
     procs = _procedures(manifest)
     comp = next((c for c in procs if c.get("slug") == slug), None)
     if comp is None:
@@ -200,11 +215,26 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
                f"{'unfilled skeleton (first-draft expected)' if sentinel else 'drafted (update expected)'}"
                f" — your dispatch names the trigger; if it disagrees with "
                f"this state, say so in your return instead of guessing")
+    if mode:
+        mismatch = (mode == "update" and sentinel) or \
+                   (mode == "first-draft" and not sentinel)
+        _line(out, f"  mode (relayed from your dispatch): {mode}"
+                   + ("  [MISMATCH vs fragment state above — report it, "
+                      "do not guess]" if mismatch else ""))
     _line(out)
 
     _profile_block(out, folder)
 
-    _line(out, "READING LIST (complete — nothing else is required input):")
+    update_mode = mode == "update"
+    if update_mode:
+        _line(out, "READING LIST (complete — nothing else is required "
+                   "input; UPDATE MODE: lines marked CONDITIONAL are "
+                   "skipped by default — read one only when its printed "
+                   "condition holds, and disclose every skip in your "
+                   "return status under `skipped_reads`):")
+    else:
+        _line(out, "READING LIST (complete — nothing else is required "
+                   "input):")
     _reading_item(out, folder, frag, "your skeleton/draft")
     tagged = [e for e in _sources_entries(folder)
               if slug in (e.get("touches") or [])]
@@ -213,7 +243,11 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
             sid, f = e.get("id", "?"), e.get("file", "")
             done = slug in (e.get("consumed") or [])
             note = f"{sid}, tagged to you"
-            if done:
+            if done and update_mode:
+                note += ("; already consumed by you — CONDITIONAL: read "
+                         "only if your dispatch names it or your delta "
+                         f"touches a claim cited to {sid}")
+            elif done:
                 note += ("; already consumed by you — re-read only if your "
                          "dispatch names it")
             entry_note = str(e.get("note") or "").strip()
@@ -245,8 +279,13 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
         if uarea is None:
             ucomp = next((c for c in procs if c.get("slug") == u), None)
             if ucomp:
-                _reading_item(out, folder, ucomp.get("file", ""),
-                              f"upstream seam ({u}) — READ-ONLY context")
+                unote = (f"upstream seam ({u}) — READ-ONLY context; seam "
+                         f"sections only: {SEAM_SECTIONS}")
+                if update_mode:
+                    unote += ("; CONDITIONAL: read only if your delta "
+                              "changes your own seam sections (Scope, "
+                              "Before You Start, Outputs & Evidence)")
+                _reading_item(out, folder, ucomp.get("file", ""), unote)
             continue
         # M26 cross-area seam: the counterpart fragment is READ-ONLY seam
         # context — align artifact names, timing and state, and write the
@@ -273,11 +312,16 @@ def drafter_brief(folder: Path, manifest: dict, slug: str) -> str:
                        and not UNFILLED_RE.search(
                            upath.read_text(encoding="utf-8")))
         if drafted:
-            _line(out, f"  - {upath}  (CROSS-AREA upstream seam "
-                       f"[[{u}]] — READ-ONLY: align artifact names, "
-                       f"timing and state; write your handoff sentence "
-                       f"with the [[{u}]] token; never document that "
-                       f"area's work)")
+            xnote = (f"  - {upath}  (CROSS-AREA upstream seam "
+                     f"[[{u}]] — READ-ONLY: align artifact names, "
+                     f"timing and state; write your handoff sentence "
+                     f"with the [[{u}]] token; never document that "
+                     f"area's work; seam sections only: {SEAM_SECTIONS}")
+            if update_mode:
+                xnote += ("; CONDITIONAL: read only if your delta "
+                          "changes your own seam sections (Scope, "
+                          "Before You Start, Outputs & Evidence)")
+            _line(out, xnote + ")")
         else:
             _line(out, f"  - [[{u}]] — CROSS-AREA upstream: scoped, not "
                        f"yet drafted — seam context UNAVAILABLE; draft "
@@ -387,12 +431,19 @@ def main(argv=None) -> int:
     g.add_argument("--slug", help="procedure slug (drafter brief)")
     g.add_argument("--kind", choices=sorted(SYNTH_KINDS),
                    help="derived kind (synthesis brief)")
+    ap.add_argument("--mode", choices=("first-draft", "update"),
+                    help="relay the dispatch's trigger (drafter briefs "
+                         "only); `update` scopes the reading list to the "
+                         "delta — the brief never decides the mode itself")
     a = ap.parse_args(argv)
+
+    if a.mode and not a.slug:
+        raise _fail("--mode applies to drafter briefs only (--slug)")
 
     folder, manifest = _load_area(a.area)
     try:
         if a.slug:
-            print(drafter_brief(folder, manifest, a.slug))
+            print(drafter_brief(folder, manifest, a.slug, mode=a.mode))
         else:
             print(synthesis_brief(folder, manifest, a.kind))
     except client_config.ClientConfigError as e:

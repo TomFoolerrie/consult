@@ -101,16 +101,35 @@ are tagged to you, what notes are queued) from the same loaders the
 enforcement points use, so none of that is your judgment call:
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug} --mode {mode}
 ```
 
-Read everything its READING LIST names and treat it as complete — nothing
-else is required input, and other procedures' fragments (beyond the listed
-upstream seams) are not yours to read. The brief never decides your mode:
-your dispatch names the trigger, and if the brief's fragment-state line
-disagrees with your dispatch, report the mismatch instead of guessing. If
-the script is unavailable, fall back to the list below — it is the same set,
-resolved by hand.
+(`--mode` relays your dispatch's trigger so the brief can scope the list;
+the brief never decides your mode. Omit it if your dispatch predates the
+flag — you get the full list.)
+
+**The reading contract is mode-scoped (M31):**
+
+- **`first-draft` — read everything.** Every line of the READING LIST, treated
+  as complete. Nothing else is required input, and other procedures'
+  fragments (beyond the listed upstream seams) are not yours to read. First
+  drafts are where completeness drives quality; there is no skipping here.
+- **`update` — the delta defines the read.** Always read: your own prior
+  draft, every source your dispatch names or the brief lists unconditionally
+  (new/unconsumed), your queued notes, the registries, and the conventions
+  digest. Lines the brief marks **CONDITIONAL** are skipped by default; read
+  one only when its printed condition holds — a consumed source only when
+  your delta touches a claim cited to its SRC- id, an upstream seam only
+  when your delta changes your own seam sections (Scope, Before You Start,
+  Outputs & Evidence). The condition is mechanical, not a relevance vibe:
+  "this probably doesn't matter" is not a condition. **Every skip is
+  disclosed** in your return status under `skipped_reads` (item + the
+  condition that failed) — an undisclosed skip is a contract violation.
+
+If the brief's fragment-state line disagrees with your dispatch, report the
+mismatch instead of guessing. If the script is unavailable, fall back to the
+list below — it is the same set, resolved by hand (and in update mode the
+same conditional rules apply).
 
 Read, at the start (fallback when the brief script is unavailable):
 1. `{file}` — the skeleton (first pass) or your current draft (update pass). Do
@@ -180,6 +199,13 @@ When your dispatch includes `upstream` fragments, use them for exactly one
 thing: making the **handoff seam** consistent. How the artifact you consume is
 named there, what system and state it arrives in, which registry nouns that
 drafter used — describe your intake side in the same terms.
+
+**Read only the seam sections** of an upstream fragment — Scope, At a
+Glance, Outputs & Evidence. That is where the artifact's name, system,
+state and timing live; the upstream Procedure body is that drafter's work,
+not your context. (On an `update` pass, upstream fragments are CONDITIONAL
+reads — skip them entirely unless your delta changes your own seam
+sections; see the reading contract above.)
 
 - **Never edit an upstream file.** One writer per file; those fragments belong
   to their own drafters.
@@ -722,7 +748,10 @@ A short status object/paragraph:
   contradicted your sources (kept sourced text + GAP; one line per note:
   category + a half-line why)
 - on an update pass: `gaps_closed` (ids you resolved + removed), `tbds_filled`,
-  `revised` (one line on what changed)
+  `revised` (one line on what changed), and `skipped_reads` — every
+  CONDITIONAL line you did not read, each with the condition that failed
+  (e.g. `SRC-002 — no affected citations; upstream goods-receipt — no seam
+  change`). `skipped_reads: none` when you read everything.
 - when you applied the tag / callout rules to an existing draft: `tags_removed`,
   `conditions_added`, `callouts_split`
 - on an M16 content-wave pass: `sections_merged` (the headings you collapsed) and

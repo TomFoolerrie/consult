@@ -183,3 +183,59 @@ def test_drafter_brief_lists_engagement_registers(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "approval-matrix.md" in out
     assert "ENGAGEMENT REGISTER" in out and "never restate" in out
+
+def test_mode_update_scopes_consumed_sources(tmp_path, capsys):
+    area = make_area(tmp_path)
+    assert brief.main([str(area), "--slug", "bank-rec",
+                       "--mode", "update"]) == 0
+    out = capsys.readouterr().out
+    assert "mode (relayed from your dispatch): update" in out
+    assert "MISMATCH" not in out                # bank-rec is drafted
+    # the consumed source becomes a conditional read with its condition
+    assert "CONDITIONAL" in out
+    assert "touches a claim cited to SRC-001" in out
+    # the header names the disclosure duty
+    assert "skipped_reads" in out
+
+
+def test_mode_update_upstream_is_conditional_and_seam_scoped(tmp_path,
+                                                             capsys):
+    area = make_area(tmp_path)
+    assert brief.main([str(area), "--slug", "payment-run",
+                       "--mode", "update"]) == 0
+    out = capsys.readouterr().out
+    # payment-run is an unfilled skeleton — update mode mismatches
+    assert "MISMATCH vs fragment state" in out
+    # upstream seam: section-scoped and conditional in update mode
+    assert "seam sections only: Scope, At a Glance, Outputs & Evidence" in out
+    assert "read only if your delta changes your own seam sections" in out
+
+
+def test_mode_first_draft_keeps_full_list(tmp_path, capsys):
+    area = make_area(tmp_path)
+    assert brief.main([str(area), "--slug", "bank-rec",
+                       "--mode", "first-draft"]) == 0
+    out = capsys.readouterr().out
+    assert "mode (relayed from your dispatch): first-draft" in out
+    assert "MISMATCH vs fragment state" in out  # bank-rec is drafted
+    assert "CONDITIONAL" not in out
+    assert "already consumed by you — re-read only if your dispatch" in out
+
+
+def test_no_mode_flag_is_unchanged_and_seam_scope_always_prints(tmp_path,
+                                                                capsys):
+    area = make_area(tmp_path)
+    assert brief.main([str(area), "--slug", "payment-run"]) == 0
+    out = capsys.readouterr().out
+    assert "mode (relayed" not in out
+    assert "CONDITIONAL" not in out
+    # the seam-sections read scope applies in every mode (M31 trim)
+    assert "seam sections only: Scope, At a Glance, Outputs & Evidence" in out
+
+
+def test_mode_rejected_for_synthesis_briefs(tmp_path, capsys):
+    area = make_area(tmp_path)
+    with pytest.raises(SystemExit) as e:
+        brief.main([str(area), "--kind", "raci", "--mode", "update"])
+    assert e.value.code == 2
+    assert "--mode applies to drafter briefs only" in capsys.readouterr().err

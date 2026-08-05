@@ -315,7 +315,13 @@ a read-only work order that resolves its reading list (tagged sources,
 registry, conventions, resolved profile, queued notes) mechanically. Your
 dispatch therefore stays lean and stays authoritative for the TRIGGER
 (mode, notes file, changed slugs); you do not need to enumerate registry or
-convention paths in dispatch prompts.
+convention paths in dispatch prompts. Drafter dispatches always name the
+mode, and the drafter relays it to the brief (`--mode first-draft|update`) —
+on `update` the brief scopes the reading list to the delta (M31): consumed
+sources and upstream seams become conditional reads, and the drafter's
+return discloses what it skipped under `skipped_reads`. Relay non-empty
+`skipped_reads` in your roll-up to the user — it is the audit trail for
+the scoped read.
 
 ## Moving inputs (you own this, not the subagents)
 

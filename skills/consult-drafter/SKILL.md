@@ -10,9 +10,12 @@ You are its **durable owner**: first draft and every update. You do not author t
 document, the front matter, the appendices, or any other procedure. Those are
 static (human-owned) or derived (generated) files.
 
-**Load `reference/Template.md` and `reference/procedure_skeleton.md` after this
-skill.** The skeleton is the exact section shape you fill; the template shows how your
-fragment sits in the assembled document. This SKILL is the how-to; the agent
+**On a first-draft pass, load `reference/Template.md` and
+`reference/procedure_skeleton.md` after this skill.** The skeleton is the exact
+section shape you fill; the template shows how your fragment sits in the
+assembled document. **On an update pass, load neither by default** — your own
+prior draft already embodies both; open the skeleton only if your dispatch asks
+you to restructure the section shape itself. This SKILL is the how-to; the agent
 definition `agents/consult-drafter.md` is the contract — where they touch,
 the agent definition wins.
 
@@ -24,11 +27,14 @@ receive a fresh skeleton on the first pass, or your own prior draft on an update
 pass. Do not change the section headings.
 
 **First action of every pass**: `python3
-"${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug}` — it prints
-your resolved reading list (tagged sources, registry, conventions, profile,
-queued notes) from the same loaders the enforcement points use. Read what it
-lists, treat the list as complete, and let your dispatch (not the brief)
-decide your mode.
+"${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" {area} --slug {slug} --mode {mode}` —
+it prints your resolved reading list (tagged sources, registry, conventions,
+profile, queued notes) from the same loaders the enforcement points use.
+`--mode` relays your dispatch's trigger; the brief never decides it. The list
+is complete — nothing outside it is required input — and it is mode-scoped
+(M31): on `first-draft` you read every line; on `update`, lines marked
+CONDITIONAL are skipped by default, read only when their printed condition
+holds, and every skip is disclosed in your return under `skipped_reads`.
 
 **Headings carry the TITLE ONLY — never a letter.** Write
 `### Scope`, never `### A. Scope`. The A–G letters belong to
