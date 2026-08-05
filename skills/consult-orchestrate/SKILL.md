@@ -323,6 +323,30 @@ return discloses what it skipped under `skipped_reads`. Relay non-empty
 `skipped_reads` in your roll-up to the user — it is the audit trail for
 the scoped read.
 
+**Follow-up goes to the agent that did the work (same invocation only).**
+Where your harness supports messaging a completed subagent, a correction to
+a drafter's own return — a reconcile ERROR attributed to its file, a
+contract miss (blank callout field, un-removed sentinel), a small patch to
+its own output — goes to THAT agent, not a fresh dispatch: its context is
+cache-warm and it already holds the sources, the draft, and the reasoning
+that produced it, so the follow-up costs a fraction of re-paying the
+context floor and lands better. Three limits, all hard:
+
+1. **Same orchestrator invocation only.** Never resume an agent from an
+   earlier sitting — a cold transcript re-prices in full and costs more
+   than a fresh floor.
+2. **Follow-up on its own return only.** A new trigger — new notes, new
+   sources, the next pass — is always a fresh dispatch with a full brief,
+   even minutes later: the mode/notes contract is per-dispatch, and the
+   source/notes ledger assumes trigger-shaped dispatches.
+3. **Mechanical fixes only.** If the agent's INTERPRETATION was wrong (a
+   reviewer or reconcile shows it misread a source or a boundary),
+   dispatch fresh even though it costs the floor — a resumed agent
+   defends its prior reading; clean eyes re-derive.
+
+If the harness cannot message completed subagents, dispatch fresh as
+before — this is an optimization, never a requirement.
+
 ## Moving inputs (you own this, not the subagents)
 
 - After a `fill` batch, call `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sources.py" mark-processed <area>
