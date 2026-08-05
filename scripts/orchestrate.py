@@ -18,6 +18,10 @@ Precedence (M7 table) — evaluated top to bottom, FIRST MATCH WINS:
 
   1  confirm          _reference/.proposed/ exists           (HUMAN GATE)
   2  apply_review     _review/<live-slug>.notes.yaml present
+                      (M32 step-aside: defers to guard 5 when unassessed
+                      sources also wait AND every queued item's kind is
+                      merge-safe — see MERGE_SAFE_NOTE_KINDS — so one
+                      drafter batch carries notes + sources together)
  2b  review_triage    notes naming no live slug / _unassigned  (HUMAN GATE)
   3  taxonomy         no manifest.json AND _sources/new/*     (mode=initial)
   4  fill             manifest AND any procedure `unfilled`
@@ -172,6 +176,23 @@ try:
     from sources import assess_new_sources as _assess_new_sources  # type: ignore
 except Exception:  # pragma: no cover - sources.py ships beside us
     _assess_new_sources = None
+
+# NOTE KINDS are owned by notes_util (the M6 bus contract). Borrowed for the
+# guard-2 step-aside (M32) only: the advisor reads each queued item's `kind`
+# to decide whether the notes are merge-safe, never to route or apply them.
+try:
+    from notes_util import load_items_from as _load_note_items  # type: ignore
+except Exception:  # pragma: no cover - notes_util ships beside us
+    _load_note_items = None
+
+#: The guard-2 step-aside ALLOWLIST (M32): queued notes defer to incremental
+#: taxonomy — so one drafter batch carries notes + new sources together —
+#: only when EVERY queued item's kind is in this set. These kinds never
+#: change the procedure set, so tagging sources first cannot mis-tag.
+#: Anything else (consolidation, rename, retirement, an unknown or missing
+#: kind, an unreadable file) keeps the old order: safe-by-default, new kinds
+#: are slow-and-right until proven merge-safe and added here.
+MERGE_SAFE_NOTE_KINDS = frozenset({"review", "source"})
 
 # The DOCUMENT PROFILE is owned by client_config (M13 resolution, M14 profile).
 # Borrowed for guard 4.5 only: the advisor reads the profile to see which
@@ -368,6 +389,24 @@ class AreaState:
         """Path to _review/_unassigned.notes.yaml if present, else None."""
         p = os.path.join(self.folder, "_review", "_unassigned.notes.yaml")
         return p if os.path.isfile(p) else None
+
+    def queued_note_kinds(self):
+        """Every `kind:` across the APPLICABLE queued notes (M32) — the
+        guard-2 step-aside asks whether all queued work is merge-safe. Pure
+        read. Conservative on any defect: an unreadable file, a kind-less
+        item, or an unavailable loader contributes "?" so the caller stays
+        on the old ordering."""
+        kinds: set[str] = set()
+        applicable, _ = self.review_notes()
+        for p in applicable:
+            if _load_note_items is None:
+                return {"?"}
+            try:
+                for it in _load_note_items(p):
+                    kinds.add(str(it.get("kind") or "?").strip() or "?")
+            except Exception:
+                kinds.add("?")
+        return kinds
 
     def new_source_assessment(self):
         """`(unassessed, assessed)` for `_sources/new/` — guard 5's partition
@@ -737,6 +776,7 @@ def decide(folder: str) -> dict:
             ],
         )
 
+    merge_deferred_notes = None
     if st.has_manifest:
         if notes:
             details = {"notes": [rel(n) for n in notes]}
@@ -744,11 +784,50 @@ def decide(folder: str) -> dict:
                 details["orphan_notes"] = [rel(n) for n in orphans]
             if unassigned:
                 details["unassigned"] = rel(unassigned)
-            return result(
-                "apply_review",
-                "review notes present — dispatch consult-drafter (update) per slug",
-                **details,
-            )
+            # Guard-2 step-aside (M32): when UNASSESSED sources are also
+            # waiting and every queued item's kind is merge-safe (allowlist
+            # above), defer to guard 5 — taxonomy folds the sources into the
+            # same notes files as `kind: source` rows, so ONE drafter batch
+            # carries notes + sources together instead of two. Precedent:
+            # guard 2 already steps aside for guard 3 when no manifest
+            # exists. Self-extinguishing: taxonomy assesses the sources,
+            # guard 5 stops matching, guard 2 fires next pass with the
+            # merged notes files.
+            unassessed_now, _ = (st.new_source_assessment()
+                                 if _dir_has_files(st.sources_new)
+                                 else ([], []))
+            if unassessed_now:
+                kinds = st.queued_note_kinds()
+                if kinds and kinds <= MERGE_SAFE_NOTE_KINDS:
+                    merge_deferred_notes = details["notes"]
+                else:
+                    # Structural (or unknown-kind) notes must land before
+                    # tagging — two batches are genuinely required. Say so
+                    # in the result so the driver can disclose the second
+                    # spend BEFORE dispatching this one.
+                    details["also_pending_sources"] = [
+                        rel(u) if isinstance(u, str) else u
+                        for u in unassessed_now]
+                    details["second_batch_required"] = (
+                        "queued notes include structural kinds (%s) that "
+                        "must apply before sources are tagged — after this "
+                        "batch, taxonomy + confirm + a SECOND drafter batch "
+                        "will run for the new sources"
+                        % ", ".join(sorted(kinds - MERGE_SAFE_NOTE_KINDS)))
+                    return result(
+                        "apply_review",
+                        "review notes present — dispatch consult-drafter "
+                        "(update) per slug; NOTE: unassessed sources also "
+                        "wait, a second batch follows (see "
+                        "second_batch_required)",
+                        **details,
+                    )
+            if merge_deferred_notes is None:
+                return result(
+                    "apply_review",
+                    "review notes present — dispatch consult-drafter (update) per slug",
+                    **details,
+                )
         if orphans:
             return orphan_triage(
                 orphans,
@@ -869,20 +948,28 @@ def decide(folder: str) -> dict:
     #     new/ that is unregistered, or registered at a different hash, is
     #     unassessed. A source registered at its current hash has already been
     #     read and proposed against — and by the time this guard is reached,
-    #     guard 2 has ruled out any pending note and guard 4 any `unfilled`
-    #     skeleton, so NOTHING can consume it: re-dispatching taxonomy proposes
-    #     nothing new and re-spends a dispatch per lap. That is the gate below.
+    #     guard 2 has ruled out any pending note (or deliberately stepped
+    #     aside for this guard — the M32 merge path) and guard 4 any
+    #     `unfilled` skeleton, so NOTHING can consume it: re-dispatching
+    #     taxonomy proposes nothing new and re-spends a dispatch per lap.
+    #     That is the gate below.
     # M25: route sidecars (`*.route.md`) are metadata, not sources — a folder
     # holding only them has nothing to assess and must not gate.
     unassessed, assessed = (st.new_source_assessment()
                             if _dir_has_files(st.sources_new) else ([], []))
     if unassessed or assessed:
         if unassessed:
-            return result("taxonomy",
-                          "manifest exists and _sources/new/ holds %d unassessed "
-                          "source file(s) (no unfilled)" % len(unassessed),
+            extra = {}
+            reason = ("manifest exists and _sources/new/ holds %d unassessed "
+                      "source file(s) (no unfilled)" % len(unassessed))
+            if merge_deferred_notes:
+                extra["merged_with_notes"] = merge_deferred_notes
+                reason += ("; queued review notes DEFERRED to merge with "
+                           "these sources (M32) — after taxonomy + confirm, "
+                           "ONE apply_review batch carries both")
+            return result("taxonomy", reason,
                           mode="incremental",
-                          unassessed=unassessed)
+                          unassessed=unassessed, **extra)
         stranded = sorted(assessed, key=lambda e: e["id"])
         ids = ", ".join(e["id"] for e in stranded)
         return unresolvable(

@@ -347,6 +347,32 @@ context floor and lands better. Three limits, all hard:
 If the harness cannot message completed subagents, dispatch fresh as
 before — this is an optimization, never a requirement.
 
+**Follow-ups correct; they never add scope.** A new ask that arrives
+mid-batch (from the user or from your own judgment — e.g. "also reassess
+each PP/IO against the revised steps") is NEW WORK, not a correction: do
+not fire it as a warm follow-up round. Fold it into the next
+trigger-shaped dispatch that touches those procedures, so it rides a batch
+that was going to run anyway.
+
+## Merged batches (M32) — notes + new sources in one drafter pass
+
+When queued review notes and unassessed `_sources/new/` files coexist, the
+advisor decides the order and its result tells you what to relay:
+
+- **`taxonomy` with `details.merged_with_notes`** — the notes are
+  merge-safe (`review`/`source` kinds only) and have been DEFERRED: run
+  taxonomy → confirm gate → one `apply_review` batch then carries both the
+  notes and the new-source items together. Tell the user one sentence:
+  "notes deferred to merge with the new sources — one drafter batch after
+  the confirm gate instead of two."
+- **`apply_review` with `details.second_batch_required`** — the notes
+  include structural kinds (consolidation/rename/retirement) that must
+  land before sources are tagged, so two batches are genuinely required.
+  **Disclose this BEFORE dispatching**: relay `second_batch_required`
+  verbatim so the user knows a second drafter batch follows, and give them
+  the chance to hold. Never explain the second spend only after the first
+  one is already running.
+
 ## Moving inputs (you own this, not the subagents)
 
 - After a `fill` batch, call `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/sources.py" mark-processed <area>

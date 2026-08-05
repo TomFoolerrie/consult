@@ -433,3 +433,68 @@ def test_checkpoint_noop_outside_git(tmp_path):
     out = orchestrate.checkpoint(area, "fill")
     assert out["committed"] is False
     assert "not inside a git work tree" in out["reason"]
+
+
+# --------------------------------------------------------------------------- #
+# M32 — guard-2 step-aside: merge notes with new sources into one batch
+# --------------------------------------------------------------------------- #
+
+def _notes_file(area, slug, kinds):
+    import yaml
+    items = []
+    for k in kinds:
+        it = {"kind": k, "note": f"{k} item"}
+        if k == "source":
+            it["src"] = "SRC-001"
+        if k == "consolidation":
+            it["category"] = "duplicate-steps"
+            it["peers"] = "b"
+        items.append(it)
+    _touch(area, "_review", f"{slug}.notes.yaml",
+           content=yaml.safe_dump({"items": items}))
+
+
+def test_merge_safe_notes_defer_to_incremental_taxonomy(tmp_path):
+    """M32: review/source-kind notes + unassessed sources -> taxonomy first,
+    carrying the deferred notes, so ONE drafter batch handles both later."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _notes_file(area, "a", ["review", "source"])
+    _touch(area, "_sources", "new", "interview.md")
+    d = orchestrate.decide(area)
+    assert d["action"] == "taxonomy"
+    assert d["details"]["mode"] == "incremental"
+    assert d["details"]["merged_with_notes"] == [
+        os.path.join("_review", "a.notes.yaml")]
+    assert "DEFERRED" in d["reason"]
+
+
+def test_structural_notes_keep_old_order_and_disclose_second_batch(tmp_path):
+    """M32: a consolidation-kind item anywhere keeps apply_review first, and
+    the result names the second batch BEFORE the spend."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _notes_file(area, "a", ["review", "consolidation"])
+    _touch(area, "_sources", "new", "interview.md")
+    d = orchestrate.decide(area)
+    assert d["action"] == "apply_review"
+    assert "consolidation" in d["details"]["second_batch_required"]
+    assert d["details"]["also_pending_sources"]
+
+
+def test_defective_notes_stay_conservative(tmp_path):
+    """M32: an unreadable/kind-less notes file blocks the step-aside —
+    safe-by-default."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _touch(area, "_review", "a.notes.yaml", content="items:\n  - note: no kind\n")
+    _touch(area, "_sources", "new", "interview.md")
+    d = orchestrate.decide(area)
+    assert d["action"] == "apply_review"
+
+
+def test_no_sources_means_no_step_aside(tmp_path):
+    """M32: merge-safe notes WITHOUT unassessed sources apply immediately —
+    behavior unchanged from pre-M32."""
+    area = make_area(tmp_path, [{"slug": "a", "filled": True}])
+    _notes_file(area, "a", ["review"])
+    d = orchestrate.decide(area)
+    assert d["action"] == "apply_review"
+    assert "second_batch_required" not in d["details"]
