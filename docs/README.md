@@ -1,8 +1,13 @@
-# CONSULT MVP — Build Tickets
+# CONSULT — Build Tickets
 
-Shared architecture for the MVP rebuild. Every ticket (M0–M23) references the
+Shared architecture for the CONSULT engine. Every ticket (M0–M32) references the
 contracts defined here so the individual tickets don't restate them. Read this
 first.
+
+> These tickets began as an MVP rebuild plan and grew into the full v1 build
+> record (M0–M32). They remain the authoritative spec for each contract; the
+> version-by-version story of what shipped lives in
+> [`../CHANGELOG.md`](../CHANGELOG.md).
 
 > **Revision history.**
 > - *r1 → r2* (adversarial review): numbers never baked into content
