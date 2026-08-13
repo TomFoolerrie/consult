@@ -8,9 +8,10 @@ produces a CFGI-branded `.docx` whose every claim traces back to a source, with
 the cross-cutting sections (Roles, Systems, Dependencies, RACI, Appendices)
 kept mechanically consistent rather than hand-maintained.
 
-> This is an **MVP**. The design is complete and reviewed; the engine scripts
-> are built. See [`docs/`](docs/) for the full architecture and per-milestone
-> design tickets.
+> **v1 is built and tested** — the deterministic engine, the four skills, and
+> the seven subagents are all in place, exercised by 800+ passing tests. See
+> [`docs/`](docs/) for the full architecture and the per-milestone design
+> tickets (M0–M32).
 
 ## The core idea — two databases, everything else is a view
 
@@ -86,37 +87,69 @@ transcripts or draft text into its own context.
    judgment views (Key Dependencies, RACI matrix).
 5. **Render** — the docx builder assembles everything into a CFGI-branded
    `.docx`, prefixing numbers and resolving `[[slug]]` tokens at render time.
-6. **Review loop** — reviewer markup flows back through `review_extract.py` to
-   the owning drafters, and the area re-renders.
+6. **Review loop** — Python emits per-owner **review kits** (`kits.py`: the
+   reviewable `.docx`, gap workbooks, screenshot templates); reviewer markup and
+   returned kits flow back through `review_extract.py` / `review_apply.py` /
+   `gaps_ingest.py` / `screens_ingest.py` onto the M6 notes bus, and the
+   orchestrator re-dispatches only the owning drafters before re-rendering.
+
+Two capabilities sit **above** a single area, run on the user's word:
+
+- **Intake** (`consult-intake`) classifies a batch of documents staged at the
+  engagement root and routes each to the area(s) it informs.
+- **Knowledge placement** (`consult-placement`) is one judgment pass over the
+  whole engagement enforcing "one fact, one home" across areas.
+
+A **consolidation** pass (`consult-consolidator`) can also run over a single
+drafted area for cross-procedure consistency (naming, sequencing, duplication),
+emitting review notes without touching fragments.
 
 ## Plugin layout
 
 ```
 consult/
   .claude-plugin/plugin.json     plugin manifest
-  agents/                        4 isolated subagent definitions
+  agents/                        7 isolated subagent definitions
     consult-taxonomy.md          scope one L1 area + stand up the registry
     consult-drafter.md           own ONE procedure (first draft + updates)
     consult-dependencies.md      author the Key Dependencies view
     consult-raci.md              author the RACI matrix
+    consult-consolidator.md      cross-procedure consistency pass (M12)
+    consult-intake.md            classify + route an engagement doc batch (M25)
+    consult-placement.md         one-fact-one-home placement pass (M24)
   skills/
     consult-orchestrate/         the single entry point (drives everything)
     consult-taxonomy/            scoping brief
     consult-drafter/             procedure-fill brief
     consult-docx-builder/        CFGI Word render brief
   scripts/                       the deterministic engine
-    doc_model.py                 shared spine (manifest, slugs, display numbers)
-    reconcile.py                 ID / token / marker integrity gate
-    scaffold.py                  A–H skeletons from confirmed taxonomy
-    aggregate.py                 mechanical views (Systems, Roles, Appendices…)
-    scope_delta.py               detect scope changes from new sources
+    doc_model.py                 shared spine (manifest, slugs, display numbers, sections)
     orchestrate.py               read-only state advisor (next action)
-    sources.py                   SRC- registry + new→processed lifecycle
+    scaffold.py                  section skeletons from confirmed taxonomy
+    aggregate.py                 mechanical views (Systems, Roles, Appendices…)
+    reconcile.py                 ID / token / marker integrity gate
+    scope_delta.py               per-kind change signal for re-derivation
     render.py                    assemble + build the CFGI .docx
-    review_extract.py            Word tracked-changes/comments → _review/
-    split_doc.py                 legacy single-file .md → folder import
+    sources.py                   SRC- registry + new→processed lifecycle
     callouts.py                  callout grammar parsing
-  docs/                          design tickets M0–M8 + architecture README
+    notes_util.py                the _review/{slug}.notes.yaml notes bus
+    client_config.py             engagement config + document-profile resolution
+    engagement.py                cross-area knowledge-placement + register verbs
+    registers.py                 engagement-wide register machinery (M30)
+    brief.py                     deterministic per-area work order for a subagent
+    people.py                    person → role → rank resolution (review kits)
+    consolidate.py               plan/mark the cross-procedure consistency pass
+    kits.py                      per-procedure review-kit emitter (docx + workbooks)
+    review_extract.py            Word tracked-changes/comments → notes bus
+    review_apply.py              deterministic tracked-changes apply
+    gaps_ingest.py               gap-workbook return trip → notes bus
+    screens_ingest.py            screenshot-template return trip → notes bus
+    xlsx_min.py                  dependency-free .xlsx writer/reader for kits
+    migrate_sections.py          one-time mechanical section-heading migration
+    split_doc.py                 legacy single-file .md → folder import
+    console_compat.py            narrow-console stdout shim
+  docs/                          design tickets M0–M32 + architecture README
+  tests/                         800+ pytest cases across the engine
   requirements.txt
 ```
 
@@ -133,11 +166,13 @@ pip install -r requirements.txt   # python-docx, pyyaml
 
 ## Status
 
-Design **complete and reviewed** — three adversarial passes hardened the
-two-database model, the one-writer-per-file rule, and the fail-loud parsing
-contract. The engine scripts under `scripts/` are built and compile. This is
-an **MVP**: expect rough edges, and see [`docs/README.md`](docs/README.md) for
-the authoritative architecture, contracts, and build order.
+**v1 complete and under test.** The two-database model, the one-writer-per-file
+rule, and the fail-loud parsing contract were hardened across three adversarial
+passes and thirty-plus milestones (M0–M32); the deterministic engine, the four
+skills, and the seven subagents are all built and exercised by **800+ passing
+tests** (`python3 -m pytest`). See [`docs/README.md`](docs/README.md) for the
+authoritative architecture, contracts, and build order, and
+[`docs/known-risks.md`](docs/known-risks.md) for the open edges.
 
 ## History
 
