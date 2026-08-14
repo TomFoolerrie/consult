@@ -15,6 +15,14 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M33 — the brain kernel** (`2.0.0-alpha.2`): `scripts/kernel.py` —
+  declared entity types loaded from `kernel/types/*.yaml` with a fail-loud
+  loader; generic type-declaration-driven `parse_entity` (byte-equal to
+  the v1 parsers over the frozen p2p corpus); `can_serve` serviceability
+  checks. Ships `activity` (v1 written down) and `process-step` (the IPO
+  backbone, sub-steps ratified). Frozen test corpus + acceptance gate
+  added (`tests/fixtures/p2p-complete/`, `tests/test_kernel_m33.py`);
+  suite 827 passing, zero v1 tests edited.
 - Repo staged for v2: `v2` integration branch cut from `main`; v1.20.0
   preserved on the `v1.20-stable` branch; plugin version moved to
   `2.0.0-alpha.1`.

@@ -1,6 +1,27 @@
 # M33 — The brain kernel: typed entities, relations, evidence, identity
 
-> **Status: DRAFT — contract under review.** The first v2 ticket. Companions:
+> **Status: BUILT (2.0.0-alpha.2)** — `scripts/kernel.py` (loader,
+> parse_entity, can_serve) + `kernel/types/{activity,process-step}.yaml`;
+> acceptance gate `tests/test_kernel_m33.py` 21/21 green over the frozen
+> p2p corpus; full suite 827 passed, zero v1 tests edited. Build record:
+> [`M33-build-plan.md`](M33-build-plan.md) (WP1–WP5).
+>
+> **Amendment A3 (build notes, 2026-08-14):** (1) parse_entity is GENERIC,
+> driven by the type declaration, with every grammar primitive imported
+> from the v1 modules — no activity special-case, byte-equal over the
+> corpus; (2) the section-registry/callout-table MOVE into the kernel is
+> deferred to M36 — in M33 `doc_model`/`callouts` remain the tables' home,
+> the kernel loads its declarations from YAML, and the parity tests are
+> the anti-drift bond between the two (re-export shims therefore
+> unnecessary this ticket); (3) activity part kinds derived from the M16
+> declared jobs; (4) process-step callout homes: CONTROL→controls,
+> GAP/PP/IO→issues, SC→transformation; pain kind keeps v1's PAIN POINT/PP
+> (continuity ruling); (5) sub-step grammar proposal recorded at
+> [`notes/substep-grammar-proposal.md`](notes/substep-grammar-proposal.md)
+> — adopted as the working sketch, ratified when the drafter contract is
+> written (M37).
+>
+> The first v2 ticket. Companions:
 > M34 (centralized sources — the engagement-level evidence layer this
 > kernel's evidence concept assumes), M35 (the deliverable-definition
 > language reads the type declarations this ticket creates), M36 (the
