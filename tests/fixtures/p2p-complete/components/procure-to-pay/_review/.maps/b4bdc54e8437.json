@@ -1,0 +1,723 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "b4bdc54e8437",
+ "area": "procure-to-pay",
+ "docx": "4.4_vendor-statement-reconciliation.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "4f5b70d18fb64972c83be2a1cdd3eaa09e8fc079",
+  "10_vendor-banking-change.md": "856819501c1c9a3bd00c1f366909a2ea2ba9fdc3",
+  "10_vendor-master-data-maintenance.md": "179e60a8c990e0673c071e31e1902a528f0d0082",
+  "10_requisition-and-approval.md": "8f393bc1f14a45739754527d7066a7fb5b1e2a8f",
+  "10_po-issuance-and-change-orders.md": "a715477ab46349c5ef3e81c488c7050f40982ceb",
+  "10_confirming-po.md": "3af8661b6c40d3bababc62bb28fe57777b8a74cc",
+  "10_goods-receipt.md": "b391918c4dc0b703865ee0d076ad6311f69ed960",
+  "10_return-to-vendor.md": "d7d911f757db738c3455d20adf25e702fb574556",
+  "10_invoice-intake-and-capture.md": "acf38e87058a4a95bbff2396523eca395abc056c",
+  "10_po-invoice-entry-and-three-way-match.md": "ba4105aaff874453c4ad733d81fd2ef51cf1549f",
+  "10_non-po-invoice-entry-and-approval.md": "5bb2d1ed0ad4385052d35a0ef2c47da4e77bd697",
+  "10_vendor-statement-reconciliation.md": "f486c9284db023705109cd84a39b406c0350cef6",
+  "10_weekly-payment-run.md": "72079731f9b64e1bf917c7a5184f3e49e41c57c5",
+  "10_wire-and-manual-payment.md": "78eba0213112c662f922d4641990c841d9665d38",
+  "10_positive-pay-exception-handling.md": "c3fdeb9ceefbb17827932eec49d084724d0508c4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    4,
+    4
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "1ca735f8f2034b14e96863b66d73e82391947573"
+  },
+  "cw_00001": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    8,
+    8
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0e9cbd1111d7904db60326c067380f0caaf6062a"
+  },
+  "cw_00002": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    9,
+    9
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6a3dc1e83f09d9e8728bf0bd467987087773d3a4"
+  },
+  "cw_00003": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    10,
+    10
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "049804ad4a57ced41b0567dee5876f546fe4857a"
+  },
+  "cw_00004": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    11,
+    11
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "305b2bc4d62194cdd49df3dce16d229e0c97a500"
+  },
+  "cw_00005": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    12,
+    12
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "866f1a7e27db917c0d10a7db35ed1a1e622f2141"
+  },
+  "cw_00006": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    13,
+    13
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "ed7fa831978a603ee16e33124dfc50c643a3338b"
+  },
+  "cw_00007": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    17,
+    17
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "e1ffc10aed02e6c040b65bcaee1b5b56a7e56574"
+  },
+  "cw_00008": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    18,
+    18
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f4121ad38cdb04b710f50d564d85d701f89f7493"
+  },
+  "cw_00009": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    19,
+    19
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c998d5120541df0f0dae0a2c6117bd07f24ce55c"
+  },
+  "cw_00010": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    23,
+    23
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a57d90ab93a4ba21c8682bed0a9057db4475c728"
+  },
+  "cw_00011": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0cb6b3dd93b79102f0873b7676cfbf713e39c9ff"
+  },
+  "cw_00012": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a38032db02ed64047d720104e82b601dea6ffed5"
+  },
+  "cw_00013": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "9ff06a730e9d1009ac4e0430d8b9bf6d91ccc50b"
+  },
+  "cw_00014": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    33,
+    35
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "e90c57e21c513ec36854ba9d7461efcbdf57d64c"
+  },
+  "cw_00015": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    33,
+    35
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00016": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    33,
+    35
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00017": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    39,
+    39
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "6f3a4e8eb25a1302d4973dc2af8b5a929ca2ff29"
+  },
+  "cw_00018": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    41,
+    43
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "53aac97bff9c403e7f97d8914b6f1b266235ac70"
+  },
+  "cw_00019": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    41,
+    43
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00020": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    41,
+    43
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "4584537ad0de4e3bc019e4af5f9b84a08f766a59"
+  },
+  "cw_00021": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    47
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "e7d2a77e63785f880085b1220f45bb005bac565f"
+  },
+  "cw_00022": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    49,
+    49
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f8a0c32d590fb681bb3ffafda0b094874b7a1fb4"
+  },
+  "cw_00023": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    50,
+    50
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "07eb71c3c99bf9a14ceafcd8599e463a512a5271"
+  },
+  "cw_00024": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    52,
+    52
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "cc90d5861e1762683558ad520e2bfa3403c3b8f3"
+  },
+  "cw_00025": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    56,
+    56
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "78de49c78fdca6cda1e8995bcca59ead2ef2c327"
+  },
+  "cw_00026": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    58,
+    58
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7593dc0f1217a78a65873cb59fb7135e16b32bda"
+  },
+  "cw_00027": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    62,
+    62
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "c94f96da1ee41c4d641e69bc253cc10be92ba47a"
+  },
+  "cw_00028": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    64,
+    64
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "79ff34374ea05b5c028e49d7e4eeeb532593c52b"
+  },
+  "cw_00029": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    65,
+    65
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d3544e873a096583e383ecd4415cf81d10890c01"
+  },
+  "cw_00030": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "551423308e802d0386d53eff6c7c626ab313aad6"
+  },
+  "cw_00031": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00032": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    67,
+    69
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00033": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "9ea17d1dadc167354beaf88f47db46eac1f2f7bb"
+  },
+  "cw_00034": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00035": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    71,
+    73
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7bd816d7898f7552236e299a14269297dd4d1150"
+  },
+  "cw_00036": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    75,
+    75
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "acf8681fdc64820237aafbffb7830275a0a3dc77"
+  },
+  "cw_00037": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    82
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "9d23620c1652f3d556d51d6b6bf1fc4dcdaf0ea4"
+  },
+  "cw_00038": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    82
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "2a088f906340fcbac43a3389da0acab5a46afa97"
+  },
+  "cw_00039": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    82
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "af135702b2a050237c806886fb02b34bc1907361"
+  },
+  "cw_00040": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    82
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "83f093e392963d50d971a10b03d8556d3a4e8f6f"
+  },
+  "cw_00041": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    84,
+    87
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c1b02e49f46c2e10a764a0adabbcfee1911ffb05"
+  },
+  "cw_00042": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    84,
+    87
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "4ad6cc9a0151cee77be3e8b7bf6a5ac86b091a0d"
+  },
+  "cw_00043": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    84,
+    87
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "e3bc9d294505637b2eb664ee83ed356be5051216"
+  },
+  "cw_00044": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    84,
+    87
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "83f093e392963d50d971a10b03d8556d3a4e8f6f"
+  },
+  "cw_00045": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    91,
+    91
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "de468ce3c3baa98c534f8bf2dfd09bd1650f2d42"
+  },
+  "cw_00046": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    92,
+    92
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "57ec85b632e8a4a824a8d33bfeaf60989c1c972a"
+  },
+  "cw_00047": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    93,
+    93
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5731b1fd118fb1404fd3bac1713cd79228538eb8"
+  },
+  "cw_00048": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    97,
+    99
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c5ece3a387c75bcbcb95ee6bde9fc9ee68ad158e"
+  },
+  "cw_00049": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    97,
+    99
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "94c620252735cac80d21c9bab51eb2d3c60955b8"
+  },
+  "cw_00050": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    97,
+    99
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "ce03f9ef247e6c5e0186c1b3ff7e9a46b3d13b1f"
+  },
+  "cw_00051": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    101,
+    103
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a401d04b4892d35c6db5118e223f0830bd6c0e6c"
+  },
+  "cw_00052": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    101,
+    103
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "e5f3425dba07c34347c4c2edcabfe2822de17856"
+  },
+  "cw_00053": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    101,
+    103
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00054": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    105,
+    106
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "c369e36d235ab01ed3deadaa8238b189596d695b"
+  },
+  "cw_00055": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    105,
+    106
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "156338a2ff7c290874a8dc8759802e27b7de7436"
+  },
+  "cw_00056": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    108,
+    109
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "be17efd51555be554024740a429387316c2e48af"
+  },
+  "cw_00057": {
+   "file": "10_vendor-statement-reconciliation.md",
+   "slug": "vendor-statement-reconciliation",
+   "l2": "invoice-processing",
+   "lines": [
+    108,
+    109
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "8b3b26e5d7765e77fbfe8f71091ee949648fc6c9"
+  }
+ }
+}

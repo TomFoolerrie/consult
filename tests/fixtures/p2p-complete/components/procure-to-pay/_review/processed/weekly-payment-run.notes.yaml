@@ -1,0 +1,11 @@
+# _review/weekly-payment-run.notes.yaml
+# Procedure-anchored notes (the M6 bus: every item carries `kind`).
+# Consumed by consult-drafter (mode: update).
+procedure: "weekly-payment-run"
+items:
+  - kind: "review"
+    type: "comment"
+    location: "gap workbook row (GAP-42)"
+    anchor: "The payment-run calendar. The Accounts Payable Manager: proposal Wednesday afternoon, ACH file generated and uploaded Thursday morning (SRC-001). The Corporate Controller: proposal Tuesday, review Wednesday, funding and release Thursday, settlement Friday (SRC-003). The prior SOP: proposal prepared Monday, released Wednesday (§7.1 of the prior SOP, SRC-006). The Corporate Controller noted that if the Accounts Payable Manager's calendar is what operates, the Controller is reviewing the proposal the same morning it is released — \"which if true is a finding\" — and asked that the actual calendar be checked with the AP team (SRC-003, SRC-005). Confirm the operating calendar day by day."
+    note: "GAP-01 answered: Confirmed current practice: proposal built Wednesday afternoon, Corporate Controller reviews Thursday morning, ACH file uploaded and dual-released Thursday before the 2:00 pm cutoff; checks print Thursday afternoon. The prior SOP's Monday/Wednesday calendar predates the 2024 NetSuite upgrade and is obsolete. Review and release do NOT happen the same morning."
+    source: "gaps_marisol-vance.xlsx"

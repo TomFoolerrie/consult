@@ -1,0 +1,42 @@
+{
+ "schema": "consult-screens-map/v1",
+ "doc_id": "06e0192a3def",
+ "docx": "screenshots_tobias-lindqvist.docx",
+ "entries": {
+  "scr_000": {
+   "slug": "new-vendor-onboarding",
+   "local": "SC-01",
+   "disp": "SC-01"
+  },
+  "scr_001": {
+   "slug": "new-vendor-onboarding",
+   "local": "SC-02",
+   "disp": "SC-02"
+  },
+  "scr_002": {
+   "slug": "new-vendor-onboarding",
+   "local": "SC-03",
+   "disp": "SC-03"
+  },
+  "scr_003": {
+   "slug": "vendor-master-data-maintenance",
+   "local": "SC-01",
+   "disp": "SC-06"
+  },
+  "scr_004": {
+   "slug": "vendor-master-data-maintenance",
+   "local": "SC-02",
+   "disp": "SC-07"
+  },
+  "scr_005": {
+   "slug": "non-po-invoice-entry-and-approval",
+   "local": "SC-01",
+   "disp": "SC-23"
+  },
+  "scr_006": {
+   "slug": "non-po-invoice-entry-and-approval",
+   "local": "SC-02",
+   "disp": "SC-24"
+  }
+ }
+}

@@ -1,0 +1,229 @@
+{
+  "schema": "consult-mvp-manifest/v1",
+  "area": "procure-to-pay",
+  "l1": "procure-to-pay",
+  "l2_order": [
+    "vendor-management",
+    "procurement",
+    "receiving",
+    "invoice-processing",
+    "payments"
+  ],
+  "title": "Procure To Pay — Desktop Procedures",
+  "subtitle": "Current-state desktop procedures",
+  "components": [
+    {
+      "file": "00_document-profile.md",
+      "role": "static",
+      "heading": "Document Profile",
+      "order": 0
+    },
+    {
+      "file": "04_process-overview.md",
+      "role": "static",
+      "heading": "Process Overview",
+      "order": 5
+    },
+    {
+      "file": "06_procedure-index.md",
+      "role": "derived",
+      "derived_kind": "procedure-index",
+      "writer": "python",
+      "heading": "In-Scope Procedures",
+      "order": 6
+    },
+    {
+      "file": "07_role-dictionary.md",
+      "role": "derived",
+      "derived_kind": "role-dictionary",
+      "writer": "python",
+      "heading": "Role Dictionary",
+      "order": 7
+    },
+    {
+      "file": "08_systems.md",
+      "role": "derived",
+      "derived_kind": "systems",
+      "writer": "python",
+      "heading": "Systems & Data Inputs",
+      "order": 8
+    },
+    {
+      "file": "10_new-vendor-onboarding.md",
+      "role": "procedure",
+      "slug": "new-vendor-onboarding",
+      "heading": "New Vendor Onboarding",
+      "l2": "vendor-management",
+      "order": 10
+    },
+    {
+      "file": "10_vendor-banking-change.md",
+      "role": "procedure",
+      "slug": "vendor-banking-change",
+      "heading": "Vendor Banking Change",
+      "l2": "vendor-management",
+      "order": 20
+    },
+    {
+      "file": "10_vendor-master-data-maintenance.md",
+      "role": "procedure",
+      "slug": "vendor-master-data-maintenance",
+      "heading": "Vendor Master Data Maintenance",
+      "l2": "vendor-management",
+      "order": 30
+    },
+    {
+      "file": "10_requisition-and-approval.md",
+      "role": "procedure",
+      "slug": "requisition-and-approval",
+      "heading": "Requisition and Approval",
+      "l2": "procurement",
+      "order": 40
+    },
+    {
+      "file": "10_po-issuance-and-change-orders.md",
+      "role": "procedure",
+      "slug": "po-issuance-and-change-orders",
+      "heading": "PO Issuance and Change Orders",
+      "l2": "procurement",
+      "order": 50
+    },
+    {
+      "file": "10_confirming-po.md",
+      "role": "procedure",
+      "slug": "confirming-po",
+      "heading": "Confirming (After-the-Fact) PO",
+      "l2": "procurement",
+      "order": 60
+    },
+    {
+      "file": "10_goods-receipt.md",
+      "role": "procedure",
+      "slug": "goods-receipt",
+      "heading": "Goods Receipt",
+      "l2": "receiving",
+      "order": 70
+    },
+    {
+      "file": "10_return-to-vendor.md",
+      "role": "procedure",
+      "slug": "return-to-vendor",
+      "heading": "Return to Vendor",
+      "l2": "receiving",
+      "order": 80,
+      "upstream": [
+        "goods-receipt"
+      ]
+    },
+    {
+      "file": "10_invoice-intake-and-capture.md",
+      "role": "procedure",
+      "slug": "invoice-intake-and-capture",
+      "heading": "Invoice Intake and Capture",
+      "l2": "invoice-processing",
+      "order": 90
+    },
+    {
+      "file": "10_po-invoice-entry-and-three-way-match.md",
+      "role": "procedure",
+      "slug": "po-invoice-entry-and-three-way-match",
+      "heading": "PO Invoice Entry and Three-Way Match",
+      "l2": "invoice-processing",
+      "order": 100,
+      "upstream": [
+        "invoice-intake-and-capture",
+        "goods-receipt"
+      ]
+    },
+    {
+      "file": "10_non-po-invoice-entry-and-approval.md",
+      "role": "procedure",
+      "slug": "non-po-invoice-entry-and-approval",
+      "heading": "Non-PO Invoice Entry and Approval",
+      "l2": "invoice-processing",
+      "order": 110,
+      "upstream": [
+        "invoice-intake-and-capture"
+      ]
+    },
+    {
+      "file": "10_vendor-statement-reconciliation.md",
+      "role": "procedure",
+      "slug": "vendor-statement-reconciliation",
+      "heading": "Vendor Statement Reconciliation",
+      "l2": "invoice-processing",
+      "order": 120
+    },
+    {
+      "file": "10_weekly-payment-run.md",
+      "role": "procedure",
+      "slug": "weekly-payment-run",
+      "heading": "Weekly Payment Run",
+      "l2": "payments",
+      "order": 130,
+      "upstream": [
+        "po-invoice-entry-and-three-way-match",
+        "non-po-invoice-entry-and-approval"
+      ]
+    },
+    {
+      "file": "10_wire-and-manual-payment.md",
+      "role": "procedure",
+      "slug": "wire-and-manual-payment",
+      "heading": "Wire and Manual Payment",
+      "l2": "payments",
+      "order": 140
+    },
+    {
+      "file": "10_positive-pay-exception-handling.md",
+      "role": "procedure",
+      "slug": "positive-pay-exception-handling",
+      "heading": "Positive Pay Exception Handling",
+      "l2": "payments",
+      "order": 150,
+      "upstream": [
+        "weekly-payment-run"
+      ]
+    },
+    {
+      "file": "82_dependencies.md",
+      "role": "derived",
+      "derived_kind": "dependencies",
+      "writer": "agent",
+      "heading": "Key Dependencies",
+      "order": 8200
+    },
+    {
+      "file": "84_raci.md",
+      "role": "derived",
+      "derived_kind": "raci",
+      "writer": "agent",
+      "heading": "RACI Matrix",
+      "order": 8400
+    },
+    {
+      "file": "88_appendix-a.md",
+      "role": "derived",
+      "derived_kind": "appendix-a",
+      "writer": "python",
+      "heading": "Appendix A — Risks, Pain Points & Improvement Opportunities",
+      "order": 8800
+    },
+    {
+      "file": "90_appendix-b-gaps.md",
+      "role": "derived",
+      "derived_kind": "gap-log",
+      "writer": "python",
+      "heading": "Appendix B — Gap / Validation Log",
+      "order": 9000
+    },
+    {
+      "file": "91_appendix-c-screens.md",
+      "role": "derived",
+      "derived_kind": "screenshot-index",
+      "writer": "python",
+      "heading": "Appendix C — Screenshot / Evidence Index",
+      "order": 9100
+    }
+  ]
+}

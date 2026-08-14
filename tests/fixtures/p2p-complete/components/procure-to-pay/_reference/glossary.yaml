@@ -1,0 +1,94 @@
+glossary:
+- term: AP Inbox
+  definition: The shared Outlook mailbox (ap-invoices@) to which suppliers are directed
+    by the purchase order terms and conditions, and through which roughly ninety percent
+    or more of invoices arrive.
+- term: AP - Bills Pending Review
+  definition: The NetSuite saved search, held on the Senior AP Specialist's dashboard,
+    listing captured bills awaiting entry and review.
+- term: Validation queue
+  definition: The Ephesoft queue holding documents whose extraction confidence score
+    falls below the configured threshold; these are keyed by hand rather than auto-posted.
+- term: Three-way match
+  definition: The match between the approved purchase order, the recorded goods receipt
+    and the supplier invoice. All three documents must be present before the payable
+    is eligible for release.
+- term: Match Exception - Hold
+  definition: The NetSuite bill status applied when one of the three match legs fails,
+    holding the bill until the broken leg (receipt, price or coding) is resolved.
+- term: Matching tolerance
+  definition: The variance between the invoice and the purchase order accepted without
+    further approval, applied at the line level; variances above it are placed on
+    hold and referred to the responsible Buyer. The live value is contested across
+    the sources and was never confirmed against the system configuration.
+- term: Confirming PO
+  definition: A purchase order raised after the fact for goods or services a vendor
+    has already supplied without a requisition — typically an emergency plant call-out.
+    Nominally requires written justification from the Plant Manager.
+- term: The cage
+  definition: The fenced area in the back corner of the Plant 2 receiving dock where
+    deliveries that cannot be tied to an open purchase order are held until someone
+    claims them.
+- term: Punchout
+  definition: A catalog requisition path in which the requester shops on the supplier's
+    own site and returns to Coupa with a cart that becomes a requisition.
+- term: Hosted catalog
+  definition: A supplier catalog loaded into Coupa from which requesters order directly,
+    used for MRO and IT items.
+- term: SIM (Supplier Information Management)
+  definition: The Coupa portal through which an invited supplier self-registers, entering
+    its own banking details, W-9, insurance certificates and diversity classification.
+- term: OFAC SDN screening
+  definition: A manual lookup of a prospective supplier against the U.S. Treasury
+    Specially Designated Nationals list during onboarding diligence; the result is
+    screenshotted and attached to the Coupa supplier record.
+- term: TIN match
+  definition: Verification through the IRS that the name on a supplier's W-9 matches
+    its taxpayer identification number.
+- term: AFE (Authorization for Expenditure)
+  definition: The capital authorization number that must be present in a custom Coupa
+    field before a capital requisition will route for approval at all.
+- term: Blanket PO
+  definition: A purchase order used for recurring spend — janitorial, the gas supplier,
+    tooling consignment — carrying an annual not-to-exceed value and released against
+    by receipt.
+- term: NTE (not-to-exceed)
+  definition: The annual ceiling on a blanket purchase order. When the ceiling is
+    reached releases block; a Coupa burn-down report exists but no one runs it on
+    a schedule.
+- term: cXML
+  definition: The electronic transmission method by which purchase orders are sent
+    to enabled suppliers (roughly sixty of them); the remainder receive a PDF by email.
+- term: Return Authorization (RMA)
+  definition: 'The return process for damaged or incorrect goods: the Buyer obtains
+    an RMA number from the vendor, receiving records a Return Authorization in NetSuite
+    against the original receipt, and the goods ship back on the vendor''s account.
+    A vendor credit memo is expected to follow.'
+- term: Class
+  definition: The NetSuite segment used to code plant when a non-PO invoice is coded
+    manually, alongside general ledger account and department.
+- term: NACHA file
+  definition: The ACH payment file generated from NetSuite for the weekly run and
+    uploaded to Chase Connect, where a separate individual releases it.
+- term: Wire Transfer Request Form
+  definition: The PDF form held on the finance shared drive under Finance/Treasury/Forms,
+    signed by the requester and their Functional Vice President, required before a
+    wire is initiated in the banking portal.
+- term: Positive pay
+  definition: The check fraud control under which an issue file of checks written
+    transmits to the depository institution at check print; items presented that do
+    not match return as exceptions for disposition, with a no-decision defaulting
+    to return.
+- term: ACH debit block and filter list
+  definition: A block on the operating account permitting only two authorized originators
+    — the payroll processor and the health plan — to debit the account; all other
+    debit attempts are rejected.
+- term: Signature plate
+  definition: The check signature plate, kept in the safe with the combination held
+    only by the Accounts Payable Manager and the Corporate Controller. Blank check
+    stock is held in a locked drawer in the AP room.
+- term: Received-not-invoiced (RNI) accrual
+  definition: The systematic month-end accrual taken from a NetSuite saved search
+    of open receipts with no bill, posting on day two of close. The client files this
+    accrual under Record to Report, not Procure to Pay, but it consumes the goods
+    receipt population directly.

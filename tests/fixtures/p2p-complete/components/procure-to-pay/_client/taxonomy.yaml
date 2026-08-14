@@ -1,0 +1,44 @@
+# _client/taxonomy.yaml — Nordhaven Industrial Group
+# Client's own process map, in client language. Boundary authority for L1 placement.
+# Note: the client explicitly files employee travel & expense OUTSIDE Procure to Pay.
+
+taxonomy:
+  - l1: Procure to Pay
+    l2:
+      - name: Vendor Management
+        l3:
+          - New Vendor Onboarding
+          - Vendor Banking Change
+          - Vendor Master Data Maintenance
+      - name: Procurement
+        l3:
+          - Requisition and Approval
+          - PO Issuance and Change Orders
+      - name: Receiving
+        l3:
+          - Goods Receipt
+          - Return to Vendor
+      - name: Invoice Processing
+        l3:
+          - PO Invoice Entry and Three-Way Match
+          - Non-PO Invoice Handling
+          - Vendor Statement Reconciliation
+      - name: Payments
+        l3:
+          - Weekly Payment Run
+          - Wire and Manual Payment
+          - Positive Pay Exception Handling
+
+  - l1: Travel & Expense
+    l2:
+      - name: Employee Reimbursement
+        l3:
+          - T&E Expense Report Reimbursement
+          - Corporate Card Administration
+
+  - l1: Record to Report
+    l2:
+      - name: Close and Reconciliation
+        l3:
+          - Bank Reconciliation
+          - Received-Not-Invoiced Accrual

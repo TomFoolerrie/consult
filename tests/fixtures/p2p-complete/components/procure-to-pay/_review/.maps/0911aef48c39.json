@@ -1,0 +1,723 @@
+{
+ "schema": "consult-review-map/v1",
+ "doc_id": "0911aef48c39",
+ "area": "procure-to-pay",
+ "docx": "4.1_invoice-intake-and-capture.docx",
+ "basis": {
+  "00_document-profile.md": "f371b9e01f57bcefd2fda973f00a96db666dda06",
+  "04_process-overview.md": "6bc0ab6884240ab5a38a1e57ceaa078434b8da89",
+  "10_new-vendor-onboarding.md": "4f5b70d18fb64972c83be2a1cdd3eaa09e8fc079",
+  "10_vendor-banking-change.md": "856819501c1c9a3bd00c1f366909a2ea2ba9fdc3",
+  "10_vendor-master-data-maintenance.md": "179e60a8c990e0673c071e31e1902a528f0d0082",
+  "10_requisition-and-approval.md": "8f393bc1f14a45739754527d7066a7fb5b1e2a8f",
+  "10_po-issuance-and-change-orders.md": "a715477ab46349c5ef3e81c488c7050f40982ceb",
+  "10_confirming-po.md": "3af8661b6c40d3bababc62bb28fe57777b8a74cc",
+  "10_goods-receipt.md": "b391918c4dc0b703865ee0d076ad6311f69ed960",
+  "10_return-to-vendor.md": "d7d911f757db738c3455d20adf25e702fb574556",
+  "10_invoice-intake-and-capture.md": "acf38e87058a4a95bbff2396523eca395abc056c",
+  "10_po-invoice-entry-and-three-way-match.md": "ba4105aaff874453c4ad733d81fd2ef51cf1549f",
+  "10_non-po-invoice-entry-and-approval.md": "5bb2d1ed0ad4385052d35a0ef2c47da4e77bd697",
+  "10_vendor-statement-reconciliation.md": "f486c9284db023705109cd84a39b406c0350cef6",
+  "10_weekly-payment-run.md": "72079731f9b64e1bf917c7a5184f3e49e41c57c5",
+  "10_wire-and-manual-payment.md": "78eba0213112c662f922d4641990c841d9665d38",
+  "10_positive-pay-exception-handling.md": "c3fdeb9ceefbb17827932eec49d084724d0508c4"
+ },
+ "entries": {
+  "cw_00000": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    4,
+    4
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "d38d280a2a222727f4d4b5606eef0b037de03df8"
+  },
+  "cw_00001": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    8,
+    8
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "7833e62c07647de1fe037a5831592223e5917d06"
+  },
+  "cw_00002": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    9,
+    9
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f44cf91aa15bbce11557e686e796016f5d6ceebb"
+  },
+  "cw_00003": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    10,
+    10
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "0280fa7507d9e06aceb44ae325faf1bafef91e34"
+  },
+  "cw_00004": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    11,
+    11
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "264311e0856fc1ce943b7fdb46c321693353894d"
+  },
+  "cw_00005": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    12,
+    12
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5ca26a5131f4ccb96db0fdecd679fa8ff6d0d554"
+  },
+  "cw_00006": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    13,
+    13
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f7d670eba729ca7b17e2c24b527092d085560e4c"
+  },
+  "cw_00007": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    17,
+    17
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "4a884fab9054a28551e8f081d4b77da0b2b77860"
+  },
+  "cw_00008": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    18,
+    18
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "efa9624179ae374d994821f9cb11449dcc43c7d1"
+  },
+  "cw_00009": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    19,
+    19
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "82897fdb0e3e436ebf8b23f5ed9058599039945a"
+  },
+  "cw_00010": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    20,
+    20
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "535e0e3578676e5f919aa392613d3d2723985feb"
+  },
+  "cw_00011": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    24,
+    24
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "444b551945943f05ba4d0ef122107fdd14a45056"
+  },
+  "cw_00012": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    25,
+    25
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "5cbbcda972d2ca23baa6f22aca09f5dca0222301"
+  },
+  "cw_00013": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    31,
+    31
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "fb2d9504768eb032fe8c0bd45ee62bb2d0ad290e"
+  },
+  "cw_00014": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    33,
+    33
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a910d1a5caab4e926bbb41f0db0b9933fa10c216"
+  },
+  "cw_00015": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    34,
+    34
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6be64e200f41668200466af8ca6a8cb546d945b8"
+  },
+  "cw_00016": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    36,
+    38
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "d6469790ad8d7a9ab347f1f3882510fae168bc93"
+  },
+  "cw_00017": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    36,
+    38
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a71640509125b7f70eee44118299094d4f3bfd7e"
+  },
+  "cw_00018": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    36,
+    38
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00019": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    42,
+    42
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "4f0e44ba35b7c39b2febb7441ea5ea9a497132b6"
+  },
+  "cw_00020": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    44,
+    44
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a2a6d25b0a85cf5ed48b5efb759933cbbb1015c8"
+  },
+  "cw_00021": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    45,
+    45
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "2557b7daee96d56e2db17b20ce792b5790acc702"
+  },
+  "cw_00022": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "b757db47babe66b8a5da620997c29aedb9ddeb17"
+  },
+  "cw_00023": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "10890c4c75456855d0c2ee25bee0ee426d490bc8"
+  },
+  "cw_00024": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    47,
+    49
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "48fdad04759154d782d0526bea4d78b54684d167"
+  },
+  "cw_00025": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    53,
+    53
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "97c9ed9f3a3d327bc05e50a9d35ba0eab161c693"
+  },
+  "cw_00026": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    55,
+    55
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "a2a6d25b0a85cf5ed48b5efb759933cbbb1015c8"
+  },
+  "cw_00027": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    56,
+    56
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "c6a60e887bd98c3687ea51b46c364b5f27fa576c"
+  },
+  "cw_00028": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    57,
+    57
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "d7548ea0c85e9fa7957e7477c8a13abea34a4020"
+  },
+  "cw_00029": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    59,
+    61
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "facee01d5901442995bf4301f9a4e24774bab6f1"
+  },
+  "cw_00030": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    59,
+    61
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "93a72a7da5f73e5a69e11db58097c5ad3eddaa43"
+  },
+  "cw_00031": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    59,
+    61
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "b8a20d8b3a3d6fe07ac095e0c42e9e2b7deb404a"
+  },
+  "cw_00032": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    65,
+    65
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "2a9f845ed6b0615e6a5f642d21b896dd6de27345"
+  },
+  "cw_00033": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    67,
+    67
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "8ff8886b98547ea61c0a2c74fd69e61c4593a236"
+  },
+  "cw_00034": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    68,
+    68
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "993085a743c1ee0833083e7cd5cfd377cc39a464"
+  },
+  "cw_00035": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    70,
+    70
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "58fce359894b2fbc0ddabb5f95dbc86999c929c3"
+  },
+  "cw_00036": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    74,
+    74
+   ],
+   "kind": "para",
+   "sub": 0,
+   "hash": "004f208d7448ea14c86d7d8097f510ae9e793d31"
+  },
+  "cw_00037": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    76,
+    76
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "740c8edb7213065b5641ebc0223c79c4f810999b"
+  },
+  "cw_00038": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    77,
+    77
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "6a5f14b9e050fad9f47228ea2b87a41dd61f36de"
+  },
+  "cw_00039": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    79,
+    79
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "a557239da25885ba5545cdc0e0a4bc293311a718"
+  },
+  "cw_00040": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    83,
+    86
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "00df8fe06c358d2b06d58c493a7c773713c480a4"
+  },
+  "cw_00041": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    83,
+    86
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00042": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    83,
+    86
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "0817c62278e309961e34c384c0a83ba07335bbaa"
+  },
+  "cw_00043": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    83,
+    86
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "83f093e392963d50d971a10b03d8556d3a4e8f6f"
+  },
+  "cw_00044": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "6cebe5db3061c3174693e6e27e67fdbd6348ef7f"
+  },
+  "cw_00045": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "27db35153cf269a03cf8e54c9488b54868e1ecb8"
+  },
+  "cw_00046": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "7232e550cce1da7749719d64b4c88992c380dfc0"
+  },
+  "cw_00047": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    88,
+    91
+   ],
+   "kind": "callout",
+   "sub": 3,
+   "hash": "b7ce505a46a370635d400f5f5f095dd3d5c92c42"
+  },
+  "cw_00048": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    95,
+    95
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "22b0b458a84f9a593b2a5ab9a10eb083d284e1c8"
+  },
+  "cw_00049": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    96,
+    96
+   ],
+   "kind": "bullet",
+   "sub": 0,
+   "hash": "f09239288838df0a4185f85baff10a32a8598ee0"
+  },
+  "cw_00050": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "5cd0503223b5b8f3bf8e9400cb8b35401a99fae0"
+  },
+  "cw_00051": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "6a01212774c3430fc17cfc76b6c785dd17daf71a"
+  },
+  "cw_00052": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    100,
+    102
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00053": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    104,
+    106
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "f4bdcd3ce1a8b1e3acf6d8545df531bd793fadb2"
+  },
+  "cw_00054": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    104,
+    106
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "a9c72d4e47443339db160b3a12c642695ef5d31e"
+  },
+  "cw_00055": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    104,
+    106
+   ],
+   "kind": "callout",
+   "sub": 2,
+   "hash": "5b96b96af1de082231da8db795ff1c1c2932da57"
+  },
+  "cw_00056": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    108,
+    109
+   ],
+   "kind": "callout",
+   "sub": 0,
+   "hash": "072e6c2a06c5461da2c75b12caf7aa9c6a25b9e8"
+  },
+  "cw_00057": {
+   "file": "10_invoice-intake-and-capture.md",
+   "slug": "invoice-intake-and-capture",
+   "l2": "invoice-processing",
+   "lines": [
+    108,
+    109
+   ],
+   "kind": "callout",
+   "sub": 1,
+   "hash": "0edf365475e2d2e689be9c1309a6f99b0054f1dc"
+  }
+ }
+}
