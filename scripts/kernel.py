@@ -501,3 +501,64 @@ def parse_entity(text: str, tdecl: TypeDecl, slug: str | None = None) -> Entity:
 # WP4 — can_serve(view_requirements, area) -> [error strings] (the
 # serviceability half; pure function over declarations + area state).
 # --------------------------------------------------------------------------- #
+
+def can_serve(requirements: dict, area) -> list[str]:
+    """Answer "can this area serve a view with these requirements?" with a
+    list of precise error strings — [] means serviceable.
+
+    Pure over declarations + area state: type/part/callout checks go against
+    the loaded TypeDecl; channel checks additionally require the channel's
+    registry file to exist under `<area>/_reference/`. Unserviceable
+    requirements never raise — errors are the return value. (Deliberately
+    NOT a query engine; M35 owns the binding language.)"""
+    errors: list[str] = []
+    area = Path(area)
+
+    known_keys = {"entities", "parts", "callouts", "channels"}
+    for key in requirements:
+        if key not in known_keys:
+            errors.append(f"unknown requirement key '{key}' "
+                          f"(known: {', '.join(sorted(known_keys))})")
+
+    tdecl = None
+    type_name = requirements.get("entities")
+    if type_name is not None:
+        try:
+            tdecl = load_type(type_name)
+        except (TypeDeclError, OSError):
+            errors.append(f"no type declaration '{type_name}' "
+                          f"(kernel/types/{type_name}.yaml)")
+
+    for part in requirements.get("parts", []) or []:
+        if tdecl is None:
+            errors.append(f"part '{part}': cannot check against unknown "
+                          f"type '{type_name}'")
+        elif part not in {p.slug for p in tdecl.parts}:
+            errors.append(f"part '{part}' not declared by type "
+                          f"'{tdecl.name}'")
+
+    for callout in requirements.get("callouts", []) or []:
+        if tdecl is None:
+            errors.append(f"callout '{callout}': cannot check against "
+                          f"unknown type '{type_name}'")
+        elif not any(callout in (c.prefix, c.label)
+                     for c in tdecl.callouts):
+            errors.append(f"callout '{callout}' not declared by type "
+                          f"'{tdecl.name}'")
+
+    for channel in requirements.get("channels", []) or []:
+        if tdecl is None:
+            errors.append(f"channel '{channel}': cannot check against "
+                          f"unknown type '{type_name}'")
+            continue
+        decl = next((c for c in tdecl.channels if c.name == channel), None)
+        if decl is None:
+            errors.append(f"channel '{channel}' not declared by type "
+                          f"'{tdecl.name}'")
+            continue
+        registry = area / "_reference" / decl.registry
+        if not registry.is_file():
+            errors.append(f"channel '{channel}': registry "
+                          f"_reference/{decl.registry} missing in {area}")
+
+    return errors
