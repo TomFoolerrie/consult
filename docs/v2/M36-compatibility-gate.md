@@ -5,14 +5,23 @@
 > `desktop-procedure.yaml` this makes real). This is the charter's merge
 > gate: v2 does not reach `main` until this ticket is green. Charter:
 > [`README.md`](README.md).
+>
+> **Amendment A1 (2026-08-14, visual-review ruling — Decision 7):** the
+> render proof is softened one notch, from raw byte identity to
+> **normalized-XML semantic identity**. Raw docx bytes are brittle for the
+> wrong reasons (timestamps, revision ids, zip entry ordering can differ
+> with zero real change), and no byte-level docx comparison exists in the
+> v1 suite today — the golden harness is new either way. The normalized
+> comparison keeps every real protection: same text, same structure, same
+> ordering, same numbering, same styles.
 
 ## The one-sentence contract
 
 The v1 desktop-procedure deliverable runs as a **user-space deliverable
 definition on the kernel** — `desktop-procedure.yaml` over the `activity`
 type — and the entire v1 surface is **behavior-identical**: all 803 v1
-tests pass unchanged, and the procure-to-pay fixture renders byte-identical
-docx XML.
+tests pass unchanged, and the procure-to-pay fixture renders
+**semantically identical** docx XML (normalized comparison, per A1).
 
 If v1's own deliverable cannot be expressed in the definition language, no
 user's can. This ticket is where that claim gets paid.
@@ -46,12 +55,15 @@ all `_client/` semantics. A drafter cannot tell M36 happened.
 1. **The v1 suite: 803 tests, zero edits.** Test files are read-only in
    this ticket (mechanical import-path fixes allowed only if a shim
    retirement forces them, each one listed in the ticket's landing note).
-2. **Byte-compatible render.** The p2p fixture (v1 layout, per M34) renders
-   through the definition path; the docx `document.xml` (and styles/
-   numbering parts) diff empty against a v1-built reference committed as a
-   golden artifact. Timestamp-bearing docx metadata is normalized by the
-   comparison harness, and the harness itself is validated by a test that
-   corrupts one run and confirms the diff catches it.
+2. **Semantically identical render (A1).** The p2p fixture (v1 layout, per
+   M34) renders through the definition path; the docx `document.xml` (and
+   styles/numbering parts), NORMALIZED (volatile metadata stripped:
+   timestamps, revision ids, zip ordering; text, element structure,
+   ordering, numbering, and style references all retained), diffs empty
+   against a v1-built reference committed as a golden artifact. The
+   harness itself is validated by a test that corrupts one run — a changed
+   word, a reordered section, a renumbered item — and confirms the diff
+   catches each.
 3. **Advisor equivalence.** The state advisor, replayed over the fixture's
    recorded state sequence, returns the identical action at every step.
 4. **Plan equivalence** (already sketched in M35's acceptance, hardened

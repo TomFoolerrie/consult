@@ -13,6 +13,15 @@
 > sources); the kernel ships TWO type declarations — the IPO `process-step`
 > (v2-native, sketched below) and the v1 `activity` (compatibility) — and
 > the charter's pipeline-inversion decisions are folded in.
+>
+> **Amendment A2 (2026-08-14, visual-review rulings):** (1) the
+> transformation's detail layer is promoted to **structured sub-steps**
+> (Decision 5 approved); (2) callout authorship clarified: CTRL/GAP/PAIN
+> are recorded by the OWNING DRAFTER at capture time — they are part of
+> drafting, never a synthesis pass; the strict callout grammar (typed
+> label, ID, required fields, PAIN verbatim + SRC id) is what bounds the
+> drafter's freedom, and model tier stays per-agent config (v1's
+> `model: sonnet` pin carries over as the default).
 
 ## The problem this solves
 
@@ -95,13 +104,17 @@ charter's IPO decision. Sketch to firm up at build time:
 Rules that come with the type:
 
 - **The step-granularity rule (charter):** a step is the unit at which
-  owner, system, or control changes; anything finer is detail inside
-  `transformation`.
-- **The detail layer is optional.** Navigation clicks, screen paths,
-  screenshots live in a marked sub-block of `transformation` (grammar
-  decided at build time — likely a fenced `detail` block, so it blanks like
-  any fence). The brain never demands it; a deliverable definition may
-  request it; its absence is never a gap.
+  owner, system, or control changes — that is where accountability shifts,
+  so that is what the brain indexes. Anything finer is a sub-step. The
+  surveyor's brief coaches drafters on where the breaks go.
+- **Sub-steps are structured and optional (A2).** The "how" inside a step
+  — the ordered actions, screen paths, keystrokes, screenshots — lives as
+  an ordered sub-step list inside `transformation` (same owner, same
+  system throughout, by the granularity rule; exact grammar decided at
+  build time). The brain never demands them; a deliverable definition
+  chooses its altitude — the desktop procedure unfolds sub-steps, a
+  controls matrix reads only the step line. Absence of sub-steps is never
+  a gap.
 - **IPO edges are relation data.** An input naming its producing step and
   an output naming its consuming step are `references` relations — which is
   what makes cross-step dependency derivation mechanical (the charter's

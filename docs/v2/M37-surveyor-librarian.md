@@ -75,7 +75,10 @@ point in the flow, returning a strictly larger result:
    mechanics).
 3. **Information requests** — for thin/empty nodes: what to ask the
    client, phrased as requests ("the AP aging process: who runs it, from
-   which system — a walkthrough or the SOP if one exists"). Written as
+   which system — a walkthrough or the SOP if one exists"). The request
+   list is fed from TWO altitudes (ruling, 2026-08-14): node-level
+   coverage (thin / claimed / conflicted) and step-level GAP callouts —
+   one list, two feeders. Written as
    entities? No — **written as the surveyor's structured return**, and
    materialized by the *information-request deliverable definition*
    (shipped with this ticket: an M35 definition binding

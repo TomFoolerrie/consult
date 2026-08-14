@@ -67,9 +67,13 @@ cross-step dependency derivation mechanical (inputs/outputs ARE the arrows),
 which pressures `consult-dependencies` to shrink from judgment agent toward
 derived view.
 
-**The step-granularity rule (to pressure-test at design time):** a step is
-the unit at which **owner, system, or control changes**; anything finer is
-detail inside a transformation.
+**The step-granularity rule (RATIFIED, visual review 2026-08-14):** a step
+is the unit at which **owner, system, or control changes** — where
+accountability shifts. The "how" inside a step is an ordered list of
+**sub-steps** (structured, optional, same owner/system throughout);
+deliverables choose their altitude — the desktop procedure unfolds
+sub-steps, a controls matrix reads only step lines. The surveyor coaches
+drafters on where the breaks go.
 
 ### The taxonomy agent multiplies: surveyor + librarian
 
@@ -144,10 +148,17 @@ engagement config (M13) are the embryo of this layer.
 
 v2 is not done — and does not merge to `main` — until the existing v1
 desktop procedure is re-expressed as a **user-space deliverable definition**
-running on the kernel, producing byte-compatible output under the existing
-800+ v1 tests, unchanged. If v1's own deliverable cannot be expressed in the
-definition language, no user's can. The completed procure-to-pay run on
+running on the kernel, producing **semantically identical** output
+(normalized-XML comparison, per M36 A1) under the existing 800+ v1 tests,
+unchanged. If v1's own deliverable cannot be expressed in the definition
+language, no user's can. The completed procure-to-pay run on
 `claude/repo-primer-bidlgp` is the standing regression fixture.
+
+**The old-engagement question (RESOLVED, visual review 2026-08-14):** new
+engagements are born step-shaped; existing v1 engagements live on the
+adapter indefinitely. Converting one real engagement (e.g. the P2P run) is
+an optional **validation exercise** once M37 lands — a good test, never a
+migration requirement.
 
 ## Ticket spine (provisional — specs to be written)
 
@@ -158,7 +169,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate; ships the IPO `process-step` type sketch (spec drafted) |
 | [M34](M34-centralized-sources.md) | Centralized sources: one engagement-root ledger, per-consumer consumption, intake becomes tagging (spec drafted) |
 | [M35](M35-deliverable-definitions.md) | Deliverable-definition language: shape/bindings/skin, four-stage fail-loud loader, compile-to-plan (spec drafted) |
-| [M36](M36-compatibility-gate.md) | **Compatibility gate:** v1 re-expressed as a definition over the kernel; 803 tests + byte-identical render (spec drafted) |
+| [M36](M36-compatibility-gate.md) | **Compatibility gate:** v1 re-expressed as a definition over the kernel; 803 tests + semantically identical render (spec drafted) |
 | [M37](M37-surveyor-librarian.md) | Surveyor + librarian: taxonomy as brain entities, derived coverage, info-request deliverable, lens-conflict rule (spec drafted) |
 | [M38](M38-second-deliverable.md) | Second deliverable — process & controls matrix over an IPO fixture; zero engine edits (spec drafted) |
 | [M39](M39-analysis-verbs.md) | Analysis verbs → findings register class, consult-analyst, findings report (spec drafted) |
