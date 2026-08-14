@@ -79,7 +79,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 
 | Ticket | Scope |
 |---|---|
-| M33 | Brain kernel: typed entities, fields, relations, evidence, extracted from doc_model/sources/callouts |
+| [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate (spec drafted) |
 | M34 | Deliverable-definition language + fail-loud loader (document profile promoted to user space) |
 | M35 | **Compatibility gate:** A–H + docx renderer re-expressed as definition #1; v1 tests pass unchanged |
 | M36 | Second deliverable type (generality proof) |
