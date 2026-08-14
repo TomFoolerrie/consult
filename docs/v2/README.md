@@ -157,7 +157,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 |---|---|
 | [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate; ships the IPO `process-step` type sketch (spec drafted) |
 | [M34](M34-centralized-sources.md) | Centralized sources: one engagement-root ledger, per-consumer consumption, intake becomes tagging (spec drafted) |
-| M35 | Deliverable-definition language + fail-loud loader (document profile promoted to user space) |
+| [M35](M35-deliverable-definitions.md) | Deliverable-definition language: shape/bindings/skin, four-stage fail-loud loader, compile-to-plan (spec drafted) |
 | M36 | **Compatibility gate:** A–H + docx renderer re-expressed as a definition over the kernel; v1 tests pass unchanged |
 | M37 | Surveyor + librarian: taxonomy as brain entities, derived coverage map, information-request deliverable, lens-conflict rule |
 | M38 | Second deliverable type (generality proof) |
