@@ -1,10 +1,18 @@
 # M33 — The brain kernel: typed entities, relations, evidence, identity
 
 > **Status: DRAFT — contract under review.** The first v2 ticket. Companions:
-> M34 (the deliverable-definition language reads the type declarations this
-> ticket creates), M35 (the compatibility gate that re-expresses v1's A–H
-> deliverable on this kernel), M36 (the second deliverable type this kernel
-> exists to make cheap). Charter: [`README.md`](README.md).
+> M34 (centralized sources — the engagement-level evidence layer this
+> kernel's evidence concept assumes), M35 (the deliverable-definition
+> language reads the type declarations this ticket creates), M36 (the
+> compatibility gate that re-expresses v1's A–H deliverable on this kernel),
+> M37 (surveyor/librarian — taxonomy nodes become kernel entities), M38
+> (the second deliverable type this kernel exists to make cheap). Charter:
+> [`README.md`](README.md).
+>
+> **Amendment A1 (2026-08-14):** evidence is engagement-scoped (centralized
+> sources); the kernel ships TWO type declarations — the IPO `process-step`
+> (v2-native, sketched below) and the v1 `activity` (compatibility) — and
+> the charter's pipeline-inversion decisions are folded in.
 
 ## The problem this solves
 
@@ -26,15 +34,15 @@ A–H desktop procedure" across four modules:
 A second deliverable shape (a controls matrix, a process narrative, a
 findings report) cannot be added without editing all four. **The kernel is
 the extraction of what those modules agree on**, with the activity-specific
-parts demoted from code to a *declaration* — so that M34's user-supplied
-deliverable definitions and M36's second deliverable type consume the same
+parts demoted from code to a *declaration* — so that M35's user-supplied
+deliverable definitions and M38's second deliverable type consume the same
 substrate v1 does.
 
 **This ticket is an extraction, not an invention.** Every concept below
 already exists in v1; the work is naming the general form, putting it in one
 module, and declaring v1's specifics as the shipped default instance. No new
 knowledge-modeling ideas ride along. Anything the three known consumers (v1's
-procedure deliverable, M36's second type, the analysis verbs) do not demand
+procedure deliverable, M38's second type, the analysis verbs) do not demand
 is out of scope — recorded under Deferred, not built.
 
 ## The five kernel concepts
@@ -47,7 +55,7 @@ five concepts and nothing else:
 An **entity type** declares what a class of hand-authored knowledge item
 looks like:
 
-- a **type name** (`activity` is the shipped default; M36 adds a second),
+- a **type name** (`process-step` and `activity` are the shipped two, below),
 - an ordered set of **part declarations** — the general form of the M23
   section registry: each part has a slug (identity), a canonical title,
   title/slug aliases, and a content kind (`prose` | `table` | `list`),
@@ -60,13 +68,52 @@ looks like:
 - its **relation kinds** (see concept 3).
 
 Type declarations live in **`kernel/types/<name>.yaml`** inside the plugin.
-The v1 activity type ships as `kernel/types/activity.yaml` — the seven
+**Two types ship** (A1); the loader treats shipped and user types
+identically, and a user project may add its own.
+
+**`kernel/types/activity.yaml` — the v1 compatibility type.** The seven
 sections, their aliases (including the frozen A–H letter aliases and the
 M16 past-title aliases, verbatim from `SECTION_TITLES` /
 `SECTION_TITLE_ALIASES` / `SECTION_LETTER_ALIASES`), the seven callout
-labels, and the systems/roles binding channels. **The YAML is the general
-mechanism; `activity.yaml` is v1 written down.** A user project may add
-type declarations; the loader treats shipped and user types identically.
+labels, and the systems/roles binding channels. This is v1 written down; it
+is what the M36 compatibility gate runs on, and it is the golden-comparison
+target below.
+
+**`kernel/types/process-step.yaml` — the v2-native type (the backbone).**
+The deliverable-neutral shape of a unit of process understanding, per the
+charter's IPO decision. Sketch to firm up at build time:
+
+| part slug | content kind | job |
+|---|---|---|
+| `scope` | prose | what this step is, its trigger/cadence, its owner, what adjoins |
+| `inputs` | list | each input: artifact, where it comes from (step/party/system) |
+| `transformation` | prose | what is decided / calculated / checked, by whom, in which system |
+| `outputs` | list | each output: artifact, where it goes, what is retained as evidence |
+| `controls` | prose | the control activities riding this step |
+| `issues` | prose | exceptions, defects, gaps |
+
+Rules that come with the type:
+
+- **The step-granularity rule (charter):** a step is the unit at which
+  owner, system, or control changes; anything finer is detail inside
+  `transformation`.
+- **The detail layer is optional.** Navigation clicks, screen paths,
+  screenshots live in a marked sub-block of `transformation` (grammar
+  decided at build time — likely a fenced `detail` block, so it blanks like
+  any fence). The brain never demands it; a deliverable definition may
+  request it; its absence is never a gap.
+- **IPO edges are relation data.** An input naming its producing step and
+  an output naming its consuming step are `references` relations — which is
+  what makes cross-step dependency derivation mechanical (the charter's
+  pressure on `consult-dependencies`).
+- Callout vocabulary and binding channels start as the v1 seven + systems/
+  roles (they are governance, not presentation, and carry over); pruning or
+  extending them is a build-time decision inside this ticket.
+
+`process-step.yaml` has **no v1 golden target** — its acceptance is that it
+loads, parses, and serves views through the same code paths as `activity`,
+plus a hand-built fixture. Re-authoring real content into IPO shape is
+M37+/migration territory, not this ticket.
 
 Fail-loud loader rules (same posture as `validate_manifest`):
 
@@ -78,7 +125,7 @@ Fail-loud loader rules (same posture as `validate_manifest`):
 
 What is deliberately NOT in a type declaration: display transforms (letters,
 numbers), docx styling, agent briefs. Those are deliverable-definition
-(M34) and renderer concerns. **The kernel never learns to render.**
+(M35) and renderer concerns. **The kernel never learns to render.**
 
 ### 2. Entities — identity, parts, one writer
 
@@ -96,7 +143,7 @@ with local IDs. The kernel provides the one parser:
 - The **manifest** stays the single ordering and membership authority. The
   v1 manifest schema is untouched in this ticket; `role: procedure` is read
   as "entity of type `activity`" through one adapter function. (A
-  generalized manifest schema, if ever needed, is an M34+ decision — the
+  generalized manifest schema, if ever needed, is an M35+ decision — the
   kernel consumes manifests, it does not redefine them.)
 - The **one-writer-per-file rule is unchanged and unweakened**: the kernel
   reads and validates; it never writes an entity. Writers remain the
@@ -122,13 +169,24 @@ registry top-up (unchanged), a `mentions` of an undefined ID is an ERROR
 type-declaration edit plus an extractor, not a fourth grammar invented ad
 hoc — that is the rule this concept exists to impose.
 
-### 4. Evidence — the SRC chain, kernel-level
+### 4. Evidence — the SRC chain, kernel-level and engagement-scoped
 
-`sources.py`'s registry is already the right shape; the kernel change is
-**keying consumption to entity slugs rather than procedure slugs** (a
-rename-level generalization — `note_src_ids`, `mark_processed`, and
-`touches` validation gain no new semantics). The kernel states the evidence
-contract once, where every consumer can cite it:
+`sources.py`'s registry is already the right shape; two changes (the second
+per A1):
+
+- **consumption keys to entity slugs** rather than procedure slugs (a
+  rename-level generalization — `note_src_ids`, `mark_processed`, and
+  `touches` validation gain no new semantics);
+- **the registry's home is the engagement root**, per the charter's
+  centralized-sources decision. This ticket defines the kernel API as
+  engagement-scoped (source identity is engagement-global; consumption
+  records are per-consumer); the physical flattening of `_sources/` trees,
+  the per-consumer processed lifecycle, and intake-as-tagging are **M34's
+  build**, which implements against this API. Until M34 lands, the kernel
+  reads v1's per-area layout through the same adapter posture as manifests.
+
+The kernel states the evidence contract once, where every consumer can cite
+it:
 
 > Every hand-authored claim traces to a SRC id. Registers carry provenance.
 > Context aligns, never evidences. A claim without a citation path is a GAP,
@@ -141,7 +199,7 @@ produce today: derived content, one writer (`python` | `agent`), never
 hand-maintained. The kernel addition is small but load-bearing: a view
 **declares which entity types, parts, callout kinds, and binding channels
 it reads** (today implicit in each builder's code). That declaration is
-what lets M34's deliverable definitions ask "can this brain serve this
+what lets M35's deliverable definitions ask "can this brain serve this
 binding?" and fail loud at load time instead of rendering half-empty — the
 kernel provides `can_serve(view_requirements, engagement) -> [errors]` as a
 pure function over the declarations.
@@ -158,7 +216,7 @@ harness rather than a casualty:
   vocabulary tables in `callouts.py`.
 - **WRAPS** (kernel functions call the v1 implementation unchanged):
   manifest load/validate, `display_numbers`, `resolve_tokens`, `assemble`,
-  the SRC registry. These migrate fully in M35 when render/aggregate move
+  the SRC registry. These migrate fully in M36 when render/aggregate move
   onto the kernel; wrapping first keeps this diff reviewable.
 - **STAYS untouched**: every agent definition, every skill brief, the
   orchestrator/advisor, render, kits, review loop, all `_client/` and
@@ -167,7 +225,7 @@ harness rather than a casualty:
   changes.
 - **Back-compat shims**: `doc_model.SECTION_TITLES` etc. remain importable,
   re-exported from the kernel's activity type, so nothing off-spine breaks
-  silently. Removed only after M35.
+  silently. Removed only after M36.
 
 ## Acceptance sketch (firm up at build time)
 
@@ -181,10 +239,9 @@ harness rather than a casualty:
 - Loader refuses, with a message naming file and key: a duplicate part
   slug, an alias collision, a callout homed to an undeclared part, an
   unknown top-level key, a binding channel without a registry file.
-- A second toy type (`kernel/types/_test_note.yaml`, test fixture only —
-  two parts, one callout kind) loads and parses through the SAME code
-  paths — the generality smoke test, so M36 is not the first time a second
-  type exists.
+- `process-step.yaml` loads and parses through the SAME code paths as
+  `activity` (the generality proof lives in-ticket): a hand-built IPO
+  fixture round-trips parts, callouts, meta, and IPO-edge relations.
 - `can_serve` returns precise errors for a requirement naming an unknown
   type, part, callout kind, or channel; empty list for the v1 view set.
 - **The full v1 suite (803 tests) passes unchanged.** New kernel tests are
@@ -203,16 +260,17 @@ exercise gets cut, not documented.
 
 ## Deferred (recorded, not built)
 
-- **Generalized manifest schema** (`type:` on components) — M34+ decides
+- **Generalized manifest schema** (`type:` on components) — M35+ decides
   when a second real type forces it; the adapter suffices until then.
 - **Cross-entity-type relations** (an analysis finding referencing an
-  activity) — needed by M37; the `references` kind is designed not to
+  activity) — needed by M39; the `references` kind is designed not to
   preclude it (endpoints are slugs, not activity slugs), but no second
-  entity type exists in engagement state until M36.
+  entity type exists in engagement state until content is authored
+  IPO-shaped (M37+).
 - **Registry generalization beyond systems/roles** (user-declared noun
-  channels with their own YAML schemas) — M34's binding language decides
+  channels with their own YAML schemas) — M35's binding language decides
   how much of this users can declare; the kernel's channel list is already
   data, so the option is bought.
 - **Kernel-level query language** — `can_serve` + the extractors are the
-  API; a general query layer waits until M34's bindings show what queries
+  API; a general query layer waits until M35's bindings show what queries
   actually look like.

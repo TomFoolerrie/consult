@@ -24,16 +24,88 @@ What v1 got right and v2 keeps unchanged in spirit:
 - **One writer per file; isolated subagents; a read-only state advisor.**
 - **Contract-first M-tickets, one capability at a time, tests as the law.**
 
+## The pipeline inversion
+
+v1's pipeline is *route sources to areas, draft documents*. v2's is:
+
+> **intake (tag) → survey (taxonomy + coverage + information requests) →
+> capture (fill the brain, IPO-shaped, evidence-linked) → project (any
+> deliverable definition)**
+
+Four decisions, agreed 2026-08-14:
+
+### Centralized sources
+
+One `_sources/` tree and one SRC registry at the **engagement root**; area
+folders hold **no source files**, only consumption records ("this area read
+SRC-004 into this step"). *Processed* becomes per-consumer, not per-file — a
+transcript spanning two areas is consumed twice, moved never. Intake
+(`consult-intake`) stops copy-routing and becomes pure tagging; its judgment
+(what does this document inform?) survives unchanged. Per-area "which sources
+are mine to read" scoping — the discipline that keeps drafter context flat —
+becomes a tag query instead of a folder listing. The M29 cross-area
+citation-locality tension dissolves: there are no "another area's sources,"
+only sources, with consumption records showing who read what.
+
+### Process understanding is the backbone; IPO is the neutral shape
+
+The brain's core entity is the **process step**, shaped as
+**inputs → transformation → outputs** (what arrives and from where; what is
+decided/calculated/checked, by whom, in which system; what exists afterward
+and where it goes) plus the governance layer v1 already captures: controls,
+exceptions/gaps, evidence. v1's seven-section model is a *presentation*
+schema; in v2 it is a deliverable-definition mapping over the IPO core
+("Before You Start" projects inputs; "Outputs & Evidence" projects outputs).
+Desktop-procedure specifics — navigation clicks, screenshots — are an
+**optional detail layer** on a transformation: present when sources carry it
+and a deliverable requests it, never demanded by the brain. IPO edges make
+cross-step dependency derivation mechanical (inputs/outputs ARE the arrows),
+which pressures `consult-dependencies` to shrink from judgment agent toward
+derived view.
+
+**The step-granularity rule (to pressure-test at design time):** a step is
+the unit at which **owner, system, or control changes**; anything finer is
+detail inside a transformation.
+
+### The taxonomy agent multiplies: surveyor + librarian
+
+v1's taxonomy agent secretly does two jobs; v2 names and splits them.
+
+- **The surveyor (upfront):** proposes the business taxonomy AND assesses
+  evidence sufficiency per node — outputting a **coverage map** and an
+  **information-request list** *before any drafting tokens are spent*. The
+  info-request list is itself an early deliverable definition. The
+  sufficiency pass is the natural home for v0's unpaid lens-conflict debt
+  (two sources disagree → raise a gap, never guess).
+- **The librarian (ongoing):** curates the brain's organization as knowledge
+  accumulates — a new source revealing a missing L3, a step that should
+  split, two areas claiming one process. Unifies v1's scoping-reassessment
+  (M6) and placement (M24) embryos.
+
+The taxonomy stops being per-area config and becomes **first-class brain
+entities** — taxonomy nodes with slugs, evidence links, and coverage status,
+organizing the steps beneath them. Human gates stay where they are: taxonomy
+confirmation remains the human's call; what multiplies is the agent work
+feeding the gates.
+
+### The one hard guardrail
+
+The coverage map is **derived** — computed from evidence links per taxonomy
+node — never a hand-maintained status file. A hand-edited coverage file is
+v0's `state.json` reborn, and it is how this architecture would die.
+
 ## The three layers
 
 ### 1. The brain kernel (deliverable-agnostic)
 
 The kernel contains **no domain schema**. It knows only:
 
-- **Typed entities** with declared fields (an "activity" with A–H sections is
-  a schema *instance*, not the schema).
+- **Typed entities** with declared fields (the IPO process step is the
+  shipped default *instance*; the v1 A–H activity is another instance kept
+  for the compatibility gate — neither is the schema).
 - **Relations** between entities (typed, slug-addressed).
-- **Evidence links** — every claim traces to a SRC- registered source.
+- **Evidence links** — every claim traces to a SRC- registered source in the
+  **engagement-level** registry (centralized sources).
 - **Identity** — stable slugs assigned once at creation.
 - **Derived views** — regenerated projections, never hand-maintained.
 - **Reconcile gates** — integrity checks over IDs, tokens, bindings.
@@ -79,11 +151,13 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 
 | Ticket | Scope |
 |---|---|
-| [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate (spec drafted) |
-| M34 | Deliverable-definition language + fail-loud loader (document profile promoted to user space) |
-| M35 | **Compatibility gate:** A–H + docx renderer re-expressed as definition #1; v1 tests pass unchanged |
-| M36 | Second deliverable type (generality proof) |
-| M37 | Analysis verbs → findings registers |
+| [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate; ships the IPO `process-step` type sketch (spec drafted) |
+| M34 | Centralized sources: engagement-level `_sources/` + SRC registry, per-consumer consumption records, intake becomes tagging |
+| M35 | Deliverable-definition language + fail-loud loader (document profile promoted to user space) |
+| M36 | **Compatibility gate:** A–H + docx renderer re-expressed as a definition over the kernel; v1 tests pass unchanged |
+| M37 | Surveyor + librarian: taxonomy as brain entities, derived coverage map, information-request deliverable, lens-conflict rule |
+| M38 | Second deliverable type (generality proof) |
+| M39 | Analysis verbs → findings registers |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
