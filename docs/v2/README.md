@@ -156,7 +156,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | Ticket | Scope |
 |---|---|
 | [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate; ships the IPO `process-step` type sketch (spec drafted) |
-| M34 | Centralized sources: engagement-level `_sources/` + SRC registry, per-consumer consumption records, intake becomes tagging |
+| [M34](M34-centralized-sources.md) | Centralized sources: one engagement-root ledger, per-consumer consumption, intake becomes tagging (spec drafted) |
 | M35 | Deliverable-definition language + fail-loud loader (document profile promoted to user space) |
 | M36 | **Compatibility gate:** A–H + docx renderer re-expressed as a definition over the kernel; v1 tests pass unchanged |
 | M37 | Surveyor + librarian: taxonomy as brain entities, derived coverage map, information-request deliverable, lens-conflict rule |
