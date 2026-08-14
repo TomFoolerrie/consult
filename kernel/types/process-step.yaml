@@ -1,0 +1,43 @@
+# kernel/types/process-step.yaml — the v2-native type (the backbone).
+#
+# The deliverable-neutral shape of a unit of process understanding, per the
+# charter's IPO decision (M33 spec, Amendment A1 parts table). Born-v2:
+# no legacy corpus, so no title/letter/slug aliases. Callouts carry over
+# the v1 vocabulary (continuity ruling: PAIN POINT keeps label + PP prefix),
+# homed against THIS type's part slugs.
+
+type: process-step
+
+parts:
+  - slug: scope
+    title: Scope
+    kind: prose
+  - slug: inputs
+    title: Inputs
+    kind: list
+  - slug: transformation
+    title: Transformation
+    kind: prose
+  - slug: outputs
+    title: Outputs
+    kind: list
+  - slug: controls
+    title: Controls
+    kind: prose
+  - slug: issues
+    title: Issues
+    kind: prose
+
+# The v1 callout vocabulary, re-homed to process-step parts.
+# Continuity ruling: pain keeps label PAIN POINT, prefix PP, home issues.
+callouts:
+  - {label: CONTROL, prefix: CTRL, home: controls}
+  - {label: VALIDATION REQUIRED, prefix: GAP, home: issues}
+  - {label: PAIN POINT, prefix: PP, home: issues}
+  - {label: IMPROVEMENT OPPORTUNITY, prefix: IO, home: issues}
+  - {label: SCREENSHOT PLACEHOLDER, prefix: SC, home: transformation}
+
+# The consult-meta binding channels (same registries as activity).
+channels:
+  - {name: systems, registry: systems.yaml}
+  - {name: roles, registry: roles.yaml}
