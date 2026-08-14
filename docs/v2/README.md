@@ -158,10 +158,10 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M33](M33-brain-kernel.md) | Brain kernel: typed entities, relations, evidence, identity — extracted from doc_model/callouts/sources/aggregate; ships the IPO `process-step` type sketch (spec drafted) |
 | [M34](M34-centralized-sources.md) | Centralized sources: one engagement-root ledger, per-consumer consumption, intake becomes tagging (spec drafted) |
 | [M35](M35-deliverable-definitions.md) | Deliverable-definition language: shape/bindings/skin, four-stage fail-loud loader, compile-to-plan (spec drafted) |
-| M36 | **Compatibility gate:** A–H + docx renderer re-expressed as a definition over the kernel; v1 tests pass unchanged |
-| M37 | Surveyor + librarian: taxonomy as brain entities, derived coverage map, information-request deliverable, lens-conflict rule |
-| M38 | Second deliverable type (generality proof) |
-| M39 | Analysis verbs → findings registers |
+| [M36](M36-compatibility-gate.md) | **Compatibility gate:** v1 re-expressed as a definition over the kernel; 803 tests + byte-identical render (spec drafted) |
+| [M37](M37-surveyor-librarian.md) | Surveyor + librarian: taxonomy as brain entities, derived coverage, info-request deliverable, lens-conflict rule (spec drafted) |
+| [M38](M38-second-deliverable.md) | Second deliverable — process & controls matrix over an IPO fixture; zero engine edits (spec drafted) |
+| [M39](M39-analysis-verbs.md) | Analysis verbs → findings register class, consult-analyst, findings report (spec drafted) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
