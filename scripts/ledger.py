@@ -49,6 +49,7 @@ import yaml
 # rather than reimplemented. sources.py itself is untouched by M34.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from doc_model import ManifestError, load_manifest, procedures  # noqa: E402
+from notes_util import NOTES_SUFFIX, NotesError, load_items_from  # noqa: E402
 from sources import _hash_file, _slug_list  # noqa: E402
 
 LEDGER_DIRNAME = "_sources"
@@ -407,6 +408,136 @@ def status(root) -> dict:
 #     touches map — all areas — is covered by consumed.
 #   `outstanding` above is the read side and needs no change.
 # --------------------------------------------------------------------------- #
+
+def _area_note_src_ids(root, area: str, slug: str) -> set[str]:
+    """The SRC ids named by `kind: source` items in a slug's CONSUMED notes.
+
+    `sources.note_src_ids` one scope up, and deliberately the ARCHIVE only:
+    `components/<area>/_review/processed/<slug>.notes.yaml` exists because an
+    apply_review batch succeeded, so it is the durable evidence that a drafter
+    read this source for this slug. Items of any other kind contribute nothing —
+    a reviewer comment that merely mentions an id must never retire a source.
+    """
+    path = (_root(root) / "components" / area / "_review" / "processed"
+            / f"{slug}{NOTES_SUFFIX}")
+    out: set[str] = set()
+    try:
+        items = load_items_from(path)
+    except NotesError as exc:
+        # A malformed note on the bus is a defect, not a warning: nothing moves.
+        raise LedgerError(f"{path}: unreadable review notes: {exc}") from exc
+    for item in items:
+        if item.get("kind") == "source":
+            sid = str(item.get("src") or "").strip()
+            if sid:
+                out.add(sid)
+    return out
+
+
+def _fully_consumed(touches: dict[str, list[str]],
+                    consumed: dict[str, list[str]]) -> bool:
+    """THE MOVE RULE, at engagement scope: the ENTIRE touches map — every area,
+    not merely the one just credited — is covered by consumed.
+
+    An empty touches map never satisfies it: a source informing no procedure has
+    nothing to "fully consume", so it stays outstanding for a human (v1's rule).
+    """
+    if not any(touches.values()):
+        return False
+    for area, slugs in touches.items():
+        done = set(consumed.get(area, []))
+        if not set(slugs) <= done:
+            return False
+    return True
+
+
+def credit(root, area: str, filled=(), updated=()) -> int:
+    """Record what `area` consumed, and retire whatever is now fully read.
+
+    v1's evidence rules verbatim, one scope up (see `sources.mark_processed`):
+
+    * `filled` slugs credit UNCONDITIONALLY — a first-draft fill that succeeded
+      is itself the evidence that the source was read for that procedure.
+    * `updated` slugs credit ONLY with evidence: an archived `kind: source` note
+      at `components/<area>/_review/processed/<slug>.notes.yaml` whose `src`
+      names THAT entry's id. Non-source notes credit nothing.
+    * Consumption ACCUMULATES into `entry["consumed"][area]` and NEVER resets —
+      a later pass (even an empty one) may only ever grow the map, because
+      un-consuming a source would silently re-dispatch reading already done.
+
+    Returns the number of files this call moved `_sources/new/` →
+    `_sources/processed/` — which happens, per the move rule, only when the
+    whole touches map across ALL areas is covered (file position is display;
+    the ledger is truth).
+    """
+    filled_set = {s for s in _slug_list(filled)}
+    updated_set = {s for s in _slug_list(updated)}
+
+    data = _load_ledger(root)                   # unreadable ledger raises here
+    ledger_entries = data["sources"]
+
+    if ledger_entries and not any(
+            area in _area_map(e.get("touches"), "touches",
+                              str(e.get("id") or ""))
+            for e in ledger_entries):
+        raise LedgerError(
+            f"credit for area {area!r}, which no ledger entry touches — "
+            f"a credit that can never land is a defect, not a no-op"
+        )
+
+    # Pass 1 — READ ONLY. Every note read happens before anything moves, so a
+    # malformed note leaves the ledger exactly as it was.
+    evidence: dict[str, set[str]] = {}
+
+    def credits(slug: str) -> set[str]:
+        if slug not in evidence:
+            evidence[slug] = _area_note_src_ids(root, area, slug)
+        return evidence[slug]
+
+    plan: list[tuple[dict, dict, dict]] = []
+    for entry in ledger_entries:
+        sid = str(entry.get("id") or "").strip()
+        touches = _area_map(entry.get("touches"), "touches", sid)
+        consumed = _area_map(entry.get("consumed"), "consumed", sid)
+        gained: list[str] = []
+        already = set(consumed.get(area, []))
+        for slug in touches.get(area, []):
+            if slug in already:
+                continue
+            if slug in filled_set:
+                gained.append(slug)                 # fill: unconditional
+            elif slug in updated_set and sid and sid in credits(slug):
+                gained.append(slug)                 # update: note evidence
+        if gained:
+            consumed = _merge_area_map(consumed, {area: gained})
+        plan.append((entry, touches, consumed))
+
+    # Pass 2 — MUTATE: persist the accumulated credit, then retire what the move
+    # rule allows.
+    moved = 0
+    for entry, touches, consumed in plan:
+        entry["consumed"] = consumed
+        if entry.get("state") == "processed":
+            continue
+        if not _fully_consumed(touches, consumed):
+            continue
+        name = os.path.basename(str(entry.get("file") or "").replace(os.sep, "/"))
+        src = new_dir(root) / name
+        if src.is_file():
+            processed_dir(root).mkdir(parents=True, exist_ok=True)
+            dest = processed_dir(root) / name
+            shutil.move(str(src), str(dest))
+            # M25: the intake pointer sidecar retires with its source, so a lone
+            # sidecar can never keep _sources/new/ "non-empty".
+            side = Path(str(src) + ROUTE_SIDECAR_SUFFIX)
+            if side.is_file():
+                shutil.move(str(side), str(dest) + ROUTE_SIDECAR_SUFFIX)
+            moved += 1
+        entry["state"] = "processed"
+        entry["file"] = f"{LEDGER_DIRNAME}/processed/{name}"
+
+    _dump_ledger(root, data)
+    return moved
 
 
 # --------------------------------------------------------------------------- #
