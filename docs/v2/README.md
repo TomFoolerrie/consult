@@ -56,9 +56,13 @@ and where it goes) plus the governance layer v1 already captures: controls,
 exceptions/gaps, evidence. v1's seven-section model is a *presentation*
 schema; in v2 it is a deliverable-definition mapping over the IPO core
 ("Before You Start" projects inputs; "Outputs & Evidence" projects outputs).
-Desktop-procedure specifics — navigation clicks, screenshots — are an
-**optional detail layer** on a transformation: present when sources carry it
-and a deliverable requests it, never demanded by the brain. IPO edges make
+**Pain points are first-class observations**: what interviewees voice as
+pains, worries, or risks is captured in their framing — attributed and
+evidenced, recorded by drafters as a callout, never assessed by them
+(assessment is the analysis layer's job; these callouts are its raw
+material). Desktop-procedure specifics — navigation clicks, screenshots —
+are an **optional detail layer** on a transformation: present when sources
+carry it and a deliverable requests it, never demanded by the brain. IPO edges make
 cross-step dependency derivation mechanical (inputs/outputs ARE the arrows),
 which pressures `consult-dependencies` to shrink from judgment agent toward
 derived view.

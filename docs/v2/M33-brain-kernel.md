@@ -90,7 +90,7 @@ charter's IPO decision. Sketch to firm up at build time:
 | `transformation` | prose | what is decided / calculated / checked, by whom, in which system |
 | `outputs` | list | each output: artifact, where it goes, what is retained as evidence |
 | `controls` | prose | the control activities riding this step |
-| `issues` | prose | exceptions, defects, gaps |
+| `issues` | prose | exceptions, defects, gaps, voiced pain points & risks |
 
 Rules that come with the type:
 
@@ -109,6 +109,17 @@ Rules that come with the type:
 - Callout vocabulary and binding channels start as the v1 seven + systems/
   roles (they are governance, not presentation, and carry over); pruning or
   extending them is a build-time decision inside this ticket.
+- **Pain points are a callout kind** (`PAIN-` prefix, homed to `issues`):
+  what an interviewee voiced as a pain, worry, or risk — captured in THEIR
+  framing, attributed (who voiced it, via the roles channel), and
+  evidenced (SRC id). **Observation, never assessment**: the drafter
+  records that it was said; whether it is real, material, or an
+  improvement opportunity is the analysis layer's job (M39), which mines
+  these callouts as its raw material. This is the same
+  align-never-evidence-style discipline line as M30's context entries —
+  the drafter contract carries it verbatim, and the distinction from GAP
+  is crisp: a GAP is something the DOCUMENT is missing; a PAIN is
+  something the BUSINESS is feeling.
 
 `process-step.yaml` has **no v1 golden target** — its acceptance is that it
 loads, parses, and serves views through the same code paths as `activity`,
