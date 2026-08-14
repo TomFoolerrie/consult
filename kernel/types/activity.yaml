@@ -1,0 +1,74 @@
+# kernel/types/activity.yaml — the v1 compatibility type: v1 WRITTEN DOWN.
+#
+# Every entry below is byte-derived from the v1 tables and must stay
+# identical to them (the M33 parity tests diff this loaded declaration
+# against those tables directly):
+#   - parts + title_aliases:  doc_model.SECTION_TITLES / SECTION_TITLE_ALIASES
+#   - letter_aliases:         doc_model.SECTION_LETTER_ALIASES
+#   - slug_aliases:           doc_model.SECTION_SLUG_ALIASES
+#   - callouts:               callouts.LABEL_TO_PREFIX / home_section
+# Do not edit here without editing the v1 tables (M36 inverts the direction).
+
+type: activity
+
+parts:
+  - slug: scope
+    title: Scope
+    kind: prose
+    title_aliases: ["Process Overview"]
+  - slug: quick-reference
+    title: At a Glance
+    kind: table
+    title_aliases: ["Quick Reference"]
+  - slug: before-you-start
+    title: Before You Start
+    kind: list
+    title_aliases: ["Pre-Requisites", "Inputs"]
+  - slug: steps
+    title: Procedure
+    kind: prose
+    title_aliases: ["Step-by-Step Procedure"]
+  - slug: outputs
+    title: Outputs & Evidence
+    kind: list
+    title_aliases: ["Outputs"]
+  - slug: controls
+    title: Key Controls
+    kind: prose
+    title_aliases: ["Controls"]
+  - slug: issues
+    title: Known Issues & Improvement Opportunities
+    kind: prose
+    title_aliases: ["Known Issues / Improvement Notes"]
+
+# The historical A–H letter positions, FROZEN as profile aliases
+# (doc_model.SECTION_LETTER_ALIASES verbatim — C and D both point at the
+# merged before-you-start; G still means outputs).
+letter_aliases:
+  A: scope
+  B: quick-reference
+  C: before-you-start
+  D: before-you-start
+  E: steps
+  F: controls
+  G: outputs
+  H: issues
+
+# Past slugs -> slug (doc_model.SECTION_SLUG_ALIASES verbatim).
+slug_aliases:
+  overview: scope
+  prerequisites: before-you-start
+  inputs: before-you-start
+
+# The v1 callout vocabulary (callouts.LABEL_TO_PREFIX + home_section).
+callouts:
+  - {label: CONTROL, prefix: CTRL, home: controls}
+  - {label: VALIDATION REQUIRED, prefix: GAP, home: steps}
+  - {label: PAIN POINT, prefix: PP, home: issues}
+  - {label: IMPROVEMENT OPPORTUNITY, prefix: IO, home: issues}
+  - {label: SCREENSHOT PLACEHOLDER, prefix: SC, home: steps}
+
+# The consult-meta binding channels (aggregate's hard-coded pair).
+channels:
+  - {name: systems, registry: systems.yaml}
+  - {name: roles, registry: roles.yaml}
