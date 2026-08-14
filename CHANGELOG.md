@@ -9,6 +9,16 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [Unreleased — 2.0.0]
+The v2 line: generalize from desktop procedures to a deliverable-agnostic
+process-knowledge model ("the brain") projected through user-supplied
+deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
+Milestones accumulate here as they land (M33+).
+
+- Repo staged for v2: `v2` integration branch cut from `main`; v1.20.0
+  preserved on the `v1.20-stable` branch; plugin version moved to
+  `2.0.0-alpha.1`.
+
 ## [1.20.0] — M32
 - Advisor guard-2 step-aside: when review notes and unassessed sources both
   wait and every queued note is merge-safe, they fold into **one** drafter
