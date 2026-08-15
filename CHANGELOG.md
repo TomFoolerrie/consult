@@ -15,6 +15,16 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M37 — surveyor + librarian** (`2.0.0-alpha.7`): the taxonomy
+  becomes brain entities (`taxonomy-node` type, files under
+  `_taxonomy/`); coverage is a pure, cache-free function (four statuses;
+  conflicted = the lens-conflict record, v0's debt paid); the
+  information-request deliverable ships (coverage's named consumer);
+  the surveyor and librarian briefs replace taxonomy/placement for
+  central mode (tag refinement, never minting; propose, never execute);
+  drafter gains the conflicting-sources rule; intake becomes tagging;
+  22 central-mode skill passages; advisor dispatch hints
+  (initial→surveyor, incremental→librarian). Suite 1024 passing.
 - **M36 — the compatibility gate: GREEN** (`2.0.0-alpha.6`): v1's
   desktop procedure runs as a deliverable definition on the kernel with
   all four proofs holding — 803 v1 tests untouched, the docx assembled

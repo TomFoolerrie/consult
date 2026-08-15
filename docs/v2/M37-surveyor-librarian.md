@@ -1,6 +1,33 @@
 # M37 — Surveyor + librarian: taxonomy as brain entities, derived coverage, information requests
 
-> **Status: DRAFT — contract under review.** Companions: M33 (taxonomy nodes
+> **Status: BUILT (2.0.0-alpha.7)** — `kernel/types/taxonomy-node.yaml`,
+> `scripts/coverage_map.py` (pure, cache-free, pinned),
+> `kernel/deliverables/information-request.yaml` (the coverage verb's
+> named consumer), `agents/consult-surveyor.md` + `consult-librarian.md`
+> (taxonomy/placement banners, bodies retained for v1), drafter rule 6
+> (lens-conflict) + intake tagging rewrite, 22 SKILL central-mode
+> passages, advisor dispatch hints. Gates:
+> `tests/test_surveyor_m37.py` 8/8 + `tests/test_dispatch_hints_m37.py`
+> 11/11; suite 1024 passed. Build records:
+> [`M37-build-plan.md`](M37-build-plan.md),
+> [`notes/m37-briefs-self-review.md`](notes/m37-briefs-self-review.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) the mode-split ruling:
+> the surveyor rides the pinned `taxonomy` action — initial mode
+> dispatches the surveyor brief, incremental mode the librarian (the M6
+> reassessment path IS incremental) — encoded in the advisor's central
+> dispatch hint; (2) lens-conflict detection is declaration-coupled: the
+> node type declares exactly ONE callout kind, so a node callout naming
+> ≥2 SRC ids IS the conflict record (no literals; the audit needed zero
+> entries); (3) `thin` = the documented claimed-or-sourced alias in the
+> coverage binding vocabulary; (4) machinery gaps recorded for follow-up:
+> no node-file promotion path at the confirm gate (staged under
+> `.proposed/_taxonomy/`, promotion is the human's move), no
+> human-typable ledger read verb, the notes bus cannot carry structural
+> (add-an-L3) proposals first-class, node level/parent relation deferred;
+> (5) v1 areas reporting process-step bindings as "not yet" is correct
+> behavior — the entity-population table gained a directory-resident
+> lookup for taxonomy-node instead of an untruthful widening. Companions: M33 (taxonomy nodes
 > become kernel entities of a shipped type), M34 (the one ledger the
 > coverage join runs over), M35 (the information-request list is a shipped
 > deliverable definition), M6/M24/M25 (the v1 embryos this ticket unifies),
