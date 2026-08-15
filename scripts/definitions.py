@@ -29,6 +29,8 @@ from __future__ import annotations
 
 import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 
+import json
+
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -290,17 +292,116 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Stage 3 — serviceability
+# Stage 3 — serviceability (a REPORT, never an exception)
 #
-# ===================== WP-D2 OWNS THIS STAGE ============================== #
-# `serviceability(defn, area)` (kernel.can_serve per binding, aggregated,
-# gap strings carrying the binding name) is NOT implemented here — it is a
-# REPORT, never an exception, and it needs a real engagement area. It is
-# deliberately absent so the gate's WP-D2 classes fail loudly rather than
-# passing on a stub. Do NOT add it to load_definition_file's stage run:
-# loading must stay engagement-free.
-# ========================================================================== #
+# NOT part of load_definition_file's stage run: loading stays engagement-free,
+# and "not yet" is an answer, not a refusal.
 # --------------------------------------------------------------------------- #
+
+#: The keys kernel.can_serve understands. A binding may carry compile-time
+#: verbs too (order, group_by) — those are WP-D2/D3 concerns and would trip
+#: can_serve's own unknown-key check, so they are DROPPED before the call.
+_CAN_SERVE_KEYS = ("entities", "parts", "callouts", "channels")
+
+#: The manifest component `role` that holds each entity type's entities in an
+#: engagement area. v1's areas carry exactly one entity population — the
+#: hand-authored procedures — and those ARE the `activity` entities (the M33
+#: compatibility type). Any other declared type has zero entities in a v1-
+#: shaped area until an area learns to hold them.
+_TYPE_MANIFEST_ROLE = {"activity": "procedure"}
+
+
+def _area_entity_count(area: Path, type_name: str) -> int:
+    """How many entities of `type_name` this area actually holds.
+
+    WHY THIS LIVES HERE AND NOT IN kernel.can_serve: can_serve (M33, closed)
+    is pure over DECLARATIONS plus channel-registry files on disk — it never
+    counts entities, so a type that declares fine but has no instances in the
+    area reads as "serviceable" to it. That is the engagement half of
+    serviceability, and M35 owns it. Read-only: the manifest only."""
+    try:
+        manifest = json.loads(
+            (area / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        # Loader-grade problem: propagate naturally rather than mis-report it
+        # as an unserved binding.
+        raise
+    role = _TYPE_MANIFEST_ROLE.get(type_name)
+    if role is None:
+        return 0
+    components = manifest.get("components") or []
+    return sum(1 for c in components
+               if isinstance(c, dict) and c.get("role") == role)
+
+
+def serviceability(defn: Definition, area) -> list[str]:
+    """Can this engagement area serve every binding of this definition?
+
+    Returns a list of gap strings — [] means fully served. NEVER raises for an
+    unserved binding: "not yet" is a report. Each gap names the BINDING, so a
+    definition with several bindings stays diagnosable.
+
+    Two halves, deliberately:
+      * declaration half — kernel.can_serve over the binding's admitted keys
+        (types/parts/callouts declared, channel registries present on disk);
+      * engagement half — the area must actually HOLD entities of the bound
+        type (see _area_entity_count for why can_serve cannot answer this)."""
+    area = Path(area)
+    gaps: list[str] = []
+
+    for bname, spec in defn.bindings.items():
+        requirements = {k: spec[k] for k in _CAN_SERVE_KEYS if k in spec}
+        for err in kernel.can_serve(requirements, area):
+            gaps.append(f'binding "{bname}": {err}')
+
+        tname = requirements.get("entities")
+        if isinstance(tname, str) and tname.strip():
+            tname = tname.strip()
+            if _area_entity_count(area, tname) == 0:
+                gaps.append(
+                    f'binding "{bname}": area {area.name} holds no entities '
+                    f'of type "{tname}"')
+
+    return gaps
+
+
+# --------------------------------------------------------------------------- #
+# Compile — definition + area -> Plan (deterministic, READ-ONLY)
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class PlanView:
+    """One derived view the plan will build. `kind` is the view block's id
+    (D1's convention: the id IS the derived kind); `writer` is python|agent."""
+    kind: str
+    writer: str
+
+
+@dataclass
+class Plan:
+    """A compiled deliverable: the ordered views the brain must build, plus
+    the full ordered block shape (D3/M36 assemble from this)."""
+    name: str
+    views: list[PlanView] = field(default_factory=list)
+    blocks: list[Block] = field(default_factory=list)
+
+
+def compile_plan(defn: Definition, area) -> Plan:
+    """Compile a loaded definition against an area into a Plan.
+
+    Deterministic and READ-ONLY: it walks defn.shape in declaration order and
+    touches nothing on disk — no writes, no cache files. `area` is taken for
+    the signature the pipeline needs (and so future compile steps can resolve
+    area-relative selections) without being read here.
+
+    View blocks become PlanViews in shape order; entity-part and static blocks
+    carry through as plan blocks. `.blocks` is the full ordered shape."""
+    plan = Plan(name=defn.name)
+    for block in defn.shape:
+        plan.blocks.append(block)
+        if block.kind == "view":
+            plan.views.append(PlanView(kind=block.id, writer=block.writer))
+    return plan
 
 
 # --------------------------------------------------------------------------- #
