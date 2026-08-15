@@ -280,6 +280,69 @@ def register(root, filename: str, touches: dict) -> str:
     return sid
 
 
+def _by_id(ledger_entries: list[dict], src_id: str) -> dict:
+    sid = str(src_id or "").strip()
+    for entry in ledger_entries:
+        if str(entry.get("id") or "").strip() == sid:
+            return entry
+    raise LedgerError(f"{sid!r}: no such entry in the ledger")
+
+
+def retag(root, src_id: str, area: str, slugs) -> list[str]:
+    """REPLACE one entry's `touches[area]` slice with `slugs` (M34 confirm gate).
+
+    The taxonomy pass may re-tag a source it already registered: in v1 that was a
+    `.proposed/sources.yaml` merge into the area registry, and `touches` is the
+    dispatch authority, so editing it at the CONFIRM GATE is the sanctioned M6
+    veto. Hence REPLACE, not merge: a slug the human deleted at the gate must
+    actually stop dispatching a drafter, which a union could never express.
+
+    Only THIS area's slice moves — other areas' tags are untouched, and `slugs`
+    is validated against `components/<area>/manifest.json` exactly as
+    `register` validates (F14: a typo'd slug makes a source unretirable).
+
+    `consumed` is deliberately NOT pruned when a slug leaves `touches`: dropping
+    consumption records is the parked WP-B decision (touches-shrink pruning), and
+    a stale consumed slug costs nothing (it can only ever suppress a re-read of
+    something already read), while erasing one silently re-dispatches work.
+
+    Returns the area's new slice.
+    """
+    wanted = _slug_list(slugs)
+    data = _load_ledger(root)
+    entry = _by_id(data["sources"], src_id)
+    sid = str(entry.get("id") or "")
+    _validate_touches(root, os.path.basename(str(entry.get("file") or "")) or sid,
+                      {area: wanted})
+    touches = _area_map(entry.get("touches"), "touches", sid)
+    touches[area] = wanted
+    entry["touches"] = touches
+    entry.setdefault("consumed", {})
+    _dump_ledger(root, data)
+    return list(wanted)
+
+
+def annotate(root, src_id: str, note: str) -> str:
+    """Fold `note` into an entry's `note:` field, idempotently.
+
+    The v1 entry shape carries free prose (`note:`) that reaches the drafter's
+    brief; centrally there is nowhere else for M25's per-area relevance pointer
+    or adopt's provenance sentence to live, so intake writes it here instead of
+    the sidecar/registry route. Appending the SAME text twice is a no-op (a
+    re-drop must not grow the note), matching `scaffold.stamp_sources`' fold.
+    Returns the resulting note.
+    """
+    text = str(note or "").strip()
+    data = _load_ledger(root)
+    entry = _by_id(data["sources"], src_id)
+    current = str(entry.get("note") or "").strip()
+    if not text or text in current:
+        return current
+    entry["note"] = (current + " | " if current else "") + text
+    _dump_ledger(root, data)
+    return str(entry["note"])
+
+
 # --------------------------------------------------------------------------- #
 # Outstanding-ness — a ledger query, never a folder listing
 # --------------------------------------------------------------------------- #

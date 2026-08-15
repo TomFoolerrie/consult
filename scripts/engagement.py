@@ -624,6 +624,39 @@ def adopt(area: Path, from_ref: str, touches: list[str]) -> int:
     import hashlib
     digest = hashlib.sha256(content).hexdigest()
 
+    provenance = (f"internal: drafted {from_area} procedure "
+                  f"'{comp.get('heading', from_slug)}' adopted as a "
+                  f"second-hand source (M24). Frozen copy — the living "
+                  f"text is {from_area}/{comp.get('file', '')}.")
+
+    central = sources_mod.central_root(str(area))
+    if central:
+        # M34: ONE minter. The adopted bytes stage in the engagement's central
+        # `_sources/new/` and the entry is minted by `ledger.register`, tagged
+        # to THIS area's touched slugs — never by adopt's own max+1, which at
+        # engagement scope would collide with an id the ledger already holds.
+        import ledger
+        root = Path(central)
+        known = {str(e.get("hash") or ""): str(e.get("id") or "")
+                 for e in ledger.entries(root)}
+        name = f"adopted-{from_area}-{from_slug}.md"
+        dest = ledger.new_dir(root) / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if not dest.is_file() or dest.read_bytes() != content:
+            dest.write_bytes(content)
+        try:
+            sid = ledger.register(root, name, {area.name: list(touches)})
+            ledger.annotate(root, sid, provenance)
+        except ledger.LedgerError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        if digest in known:
+            print(f"already adopted (hash match) as {sid} — no-op")
+        else:
+            print(f"adopted {from_area}/{from_slug} → {dest}  ({sid}, "
+                  f"hash-stamped, state: new)")
+        return _adopt_notes(area, sid, from_area, from_slug, touches)
+
     try:
         data = sources_mod._load_sources(str(area))
     except FileNotFoundError:
@@ -651,15 +684,20 @@ def adopt(area: Path, from_ref: str, touches: list[str]) -> int:
         entries.append({
             "id": sid, "file": rel, "touches": list(touches),
             "hash": digest, "state": "new",
-            "note": (f"internal: drafted {from_area} procedure "
-                     f"'{comp.get('heading', from_slug)}' adopted as a "
-                     f"second-hand source (M24). Frozen copy — the living "
-                     f"text is {from_area}/{comp.get('file', '')}."),
+            "note": provenance,
         })
         sources_mod._dump_sources(str(area), data)
         print(f"adopted {from_area}/{from_slug} → {dest}  ({sid}, "
               f"hash-stamped, state: new)")
 
+    return _adopt_notes(area, sid, from_area, from_slug, touches)
+
+
+def _adopt_notes(area: Path, sid: str, from_area: str, from_slug: str,
+                 touches: list[str]) -> int:
+    """adopt's `kind: source` notes — identical in both layouts (the notes bus
+    is per-area in v1 AND in central mode; only the ledger moved)."""
+    import notes_util
     queued = 0
     for t in touches:
         queued += notes_util.append_items(area, t, [{
@@ -728,11 +766,40 @@ def _sha256_file(path: Path) -> str:
         return ""
 
 
+def _central_root(file: Path) -> Path | None:
+    """The engagement root staging `file` in the M34 ledger, or None for v1.
+
+    ONE detection seam (`sources.central_root`) asked about the file's own
+    parent chain: central mode's drop point is `<root>/_sources/new/` TOP
+    LEVEL, so the file's grandparent must BE the `_sources/` dir the seam
+    found. Anything else (an `intake/` file, a file under `processed/` or
+    `parked/`) is not a central drop and answers None."""
+    import sources as sources_mod
+    if file.parent.name != "new" or file.parent.parent.name != "_sources":
+        return None
+    found = sources_mod.central_root(str(file.parent))
+    if not found:
+        return None
+    root = Path(found).resolve()
+    return root if file.parent.parent.parent.resolve() == root else None
+
+
 def _intake_context(file: Path) -> tuple[Path, Path]:
     """(engagement root, components dir) for a staged intake file, or raise
     SystemExit(2). The file must sit at intake/ TOP LEVEL (routed/ and
-    parked/ files are already processed)."""
+    parked/ files are already processed).
+
+    CENTRAL MODE (M34): the drop point is `<root>/_sources/new/` top level
+    instead — the ledger owns that folder, so intake stages straight into it
+    and route tags in place. Same refuse-reprocessed posture: a file already
+    moved on (parked/, processed/) is not a top-level drop and is refused."""
     file = file.resolve()
+    central = _central_root(file)
+    if central is not None:
+        if not file.is_file():
+            print(f"error: {file} is not a file", file=sys.stderr)
+            raise SystemExit(2)
+        return central, central / "components"
     if file.parent.name != "intake" or not file.is_file():
         print(f"error: {file} is not a top-level file in an intake/ folder "
               f"(already routed/parked files are not re-routable — copy "
@@ -759,6 +826,45 @@ def _ledger_hashes(area: Path) -> set[str]:
             if isinstance(e, dict)} - {""}
 
 
+def _route_central(root: Path, file: Path, to_areas: list[str],
+                   pointers: dict[str, str]) -> int:
+    """route in central mode (M34): TAGGING, not copying.
+
+    One `ledger.register` call with AREA-LEVEL tags (`{area: []}` — tagged to
+    the area, no slugs yet; the taxonomy pass refines them at the confirm gate
+    via `ledger.retag`). No per-area copies, no `.route.md` sidecars, no move:
+    the file stays in `<root>/_sources/new/` because the ledger, not the
+    folder, records who owes it a read. The per-area relevance pointers are
+    folded into the entry's `note:` (`ledger.annotate`) — centrally there is
+    one entry for all areas, so one readable note carries all of them.
+    Idempotent by content hash: a re-route merges tags into the same entry.
+    """
+    import ledger
+    already = {str(e.get("hash") or "") for e in ledger.entries(root)}
+    digest = _sha256_file(file)
+    try:
+        sid = ledger.register(root, file.name, {a: [] for a in to_areas})
+        note = "; ".join(f"{a}: {pointers[a].strip()}" for a in to_areas
+                         if (pointers.get(a) or "").strip())
+        if note:
+            ledger.annotate(root, sid, "intake pointer: " + note)
+    except ledger.LedgerError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    tags = ", ".join(to_areas)
+    if digest and digest in already:
+        print(f"already registered (hash match) as {sid} — tags merged, "
+              f"nothing copied")
+    print(f"routed {file.name} -> {tags}")
+    print(f"  {sid}: tagged to {tags} (area-level; the taxonomy pass names "
+          f"the procedure slugs at confirm)")
+    print(f"  file stays at {file.relative_to(root)} — the ledger records the "
+          f"read each area owes, not the folder")
+    if note:
+        print(f"  note: intake pointer: {note}")
+    return 0
+
+
 def route(file: Path, to_areas: list[str], pointers: dict[str, str],
           new_area: bool = False) -> int:
     """Copy a staged intake file to each target area's _sources/new/, write
@@ -779,6 +885,9 @@ def route(file: Path, to_areas: list[str], pointers: dict[str, str],
                   f"--new-area. The classifier parks instead.",
                   file=sys.stderr)
             return 2
+    central = _central_root(file.resolve())
+    if central is not None:
+        return _route_central(central, file.resolve(), to_areas, pointers)
     digest = _sha256_file(file)
     lines = []
     for aname in to_areas:
@@ -821,11 +930,20 @@ def route(file: Path, to_areas: list[str], pointers: dict[str, str],
 
 
 def park(file: Path, reason: str) -> int:
-    _intake_context(file)
+    root, _ = _intake_context(file)
     if not (reason or "").strip():
         print("error: park requires --reason (parked is LOUD by contract — "
               "a file nobody can place still says why)", file=sys.stderr)
         return 2
+    if _central_root(file.resolve()) is not None:
+        import ledger
+        try:
+            ledger.park(root, file.resolve().name, reason.strip())
+        except ledger.LedgerError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        print(f"parked {file.name} — {reason.strip()}")
+        return 0
     parked = file.parent / "parked"
     parked.mkdir(exist_ok=True)
     import shutil
@@ -839,7 +957,22 @@ def park(file: Path, reason: str) -> int:
 def intake_status(components_root: Path) -> tuple[list[str],
                                                   list[tuple[str, str]]]:
     """(unprocessed names, [(parked name, reason)]) — empty lists when there
-    is no intake/ folder beside components/."""
+    is no intake/ folder beside components/.
+
+    CENTRAL MODE (M34): the same two lists come from `ledger.status(root)` —
+    staged-but-unregistered names, and parked files with their durable reasons
+    — so `_print_intake_block` stays loud-until-empty without knowing which
+    layout it is printing."""
+    import sources as sources_mod
+    central = sources_mod.central_root(str(components_root))
+    if central:
+        import ledger
+        try:
+            st = ledger.status(central)
+        except ledger.LedgerError as exc:
+            print(f"warning: {exc}", file=sys.stderr)
+            return [], []
+        return list(st["unregistered"]), [tuple(p) for p in st["parked"]]
     intake = components_root.resolve().parent / "intake"
     if not intake.is_dir():
         return [], []

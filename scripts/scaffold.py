@@ -529,6 +529,69 @@ def render_derived(kind: str, writer: str, heading: str) -> str:
 # promotion (merge) + sources stamping
 # --------------------------------------------------------------------------- #
 
+def _central_root(area: Path) -> Path | None:
+    """The M34 engagement root above this area, or None for a v1 area.
+
+    ONE detection seam (`sources.central_root`), asked lazily so a tree without
+    sources.py/ledger.py still scaffolds exactly as before."""
+    try:
+        import sources as sources_mod
+    except ImportError:            # pragma: no cover - sources ships beside us
+        return None
+    found = sources_mod.central_root(str(area))
+    return Path(found) if found else None
+
+
+def promote_tag_refinements(area: Path, root: Path) -> dict:
+    """Central mode: `.proposed/sources.yaml` is a TAG REFINEMENT, not a merge.
+
+    In v1 the taxonomy pass proposed source entries and the confirm gate merged
+    them into the area's own registry. Centrally the entry already exists (the
+    intake `route`/`adopt` verbs registered it, engagement-globally), so the
+    only thing a proposal can legitimately change is THIS AREA's `touches`
+    slice — which is exactly the M6 confirm-gate veto. Each proposed entry is
+    matched to a ledger entry by `hash` first (bytes are identity) then by
+    `id`, and its `touches` list REPLACES that entry's slice for this area
+    (`ledger.retag`). A proposed entry matching nothing is reported and
+    dropped: the gate may not mint sources behind intake's back.
+
+    Returns `{"retagged": [...], "unmatched": [...]}`.
+    """
+    import ledger
+    proposed_file = area / "_reference" / ".proposed" / "sources.yaml"
+    report = {"retagged": [], "unmatched": []}
+    proposed = [e for e in (_load_yaml(proposed_file).get("sources") or [])
+                if isinstance(e, dict)]
+    if not proposed:
+        return report
+    live = ledger.entries(root)
+    by_hash = {str(e.get("hash") or ""): e for e in live if e.get("hash")}
+    by_id = {str(e.get("id") or "").strip(): e for e in live if e.get("id")}
+    for entry in proposed:
+        if "touches" not in entry:
+            continue                    # nothing to refine
+        match = (by_hash.get(str(entry.get("hash") or ""))
+                 or by_id.get(str(entry.get("id") or "").strip()))
+        if match is None:
+            report["unmatched"].append(str(entry.get("id") or
+                                           entry.get("file") or "?"))
+            continue
+        sid = str(match.get("id") or "").strip()
+        try:
+            slugs = ledger.retag(root, sid, area.name, entry.get("touches"))
+        except ledger.LedgerError as exc:
+            raise SystemExit(f"error: {exc}")
+        report["retagged"].append("%s:%s" % (sid, ",".join(slugs) or "-"))
+    if report["retagged"]:
+        print("central mode: tag refinements applied to the engagement ledger "
+              "— " + "; ".join(report["retagged"]))
+    for sid in report["unmatched"]:
+        print(f"warning: proposed source {sid} matches no ledger entry by hash "
+              f"or id — tag refinement dropped (register it through "
+              f"engagement.py route/adopt first)", file=sys.stderr)
+    return report
+
+
 def promote_reference(area: Path) -> None:
     """MERGE `_reference/.proposed/` registry files into live `_reference/`.
 
@@ -541,7 +604,13 @@ def promote_reference(area: Path) -> None:
     live = area / "_reference"
     live.mkdir(parents=True, exist_ok=True)
 
-    for fname in REGISTRY_FILES:
+    # M34: centrally there IS no per-area source registry to merge into — the
+    # proposal's sources become ledger tag refinements instead (below).
+    central = _central_root(area)
+    promoted = tuple(f for f in REGISTRY_FILES
+                     if central is None or f != "sources.yaml")
+
+    for fname in promoted:
         pfile = proposed / fname
         if not pfile.is_file():
             continue
@@ -554,6 +623,9 @@ def promote_reference(area: Path) -> None:
         out[key] = merged
         _dump_yaml(live_file, out)
 
+    if central is not None:
+        promote_tag_refinements(area, central)
+
 
 def stamp_sources(area: Path) -> None:
     """Stamp `hash` + `state` on every source in the live sources.yaml.
@@ -562,7 +634,17 @@ def stamp_sources(area: Path) -> None:
     A source with no hash yet gets sha256 of its file bytes and state `new`;
     an already-stamped source keeps its state (the orchestrator flips it to
     `processed` later, not us).
+
+    CENTRAL MODE (M34): a NO-OP with a stated reason. `ledger.register` hashes
+    the bytes at registration (and refuses a file it cannot read), so there is
+    nothing left to stamp — and the M25 pointer sidecar this used to fold is
+    gone too: central `route` writes the pointer straight into the entry's
+    `note:`.
     """
+    if _central_root(area) is not None:
+        print("central mode: hashes stamped at registration — stamp_sources "
+              "is a no-op")
+        return
     sfile = area / "_reference" / "sources.yaml"
     if not sfile.is_file():
         return
@@ -697,7 +779,19 @@ def _is_drafted(area: Path, rel: str) -> bool:
     return not UNFILLED_RE.search(fp.read_text(encoding="utf-8"))
 
 
-def default_source_note(sid: str, rel_file: str) -> str:
+def default_source_note(sid: str, rel_file: str, central: bool = False) -> str:
+    """The wording a drafter gets when the proposal supplied none.
+
+    `central` (M34) names the ENGAGEMENT ledger instead of the area's
+    `_reference/sources.yaml`, because centrally that file does not exist and
+    an id resolved against it would send the drafter to nothing. The v1 string
+    is untouched (it is pinned by the characterization tripwires)."""
+    if central:
+        return ("New source %s informs this procedure. Read it (resolve %s "
+                "through the engagement source ledger, _sources/sources.yaml "
+                "— it is %s) and work in what it adds: revise contradicted "
+                "text and delete any GAP it closes."
+                % (sid, sid, rel_file or "listed there"))
     return ("New source %s informs this procedure. Read it (resolve %s through "
             "_reference/sources.yaml — it is %s) and work in what it adds: "
             "revise contradicted text and delete any GAP it closes."
@@ -733,9 +827,20 @@ def write_promoted_notes(area: Path, slug_files: dict[str, str],
     used: set[tuple] = set()
     report = {"written": [], "skeleton": [], "deduped": [], "dropped": []}
 
-    sfile = area / "_reference" / "sources.yaml"
-    data = _load_yaml(sfile) if sfile.is_file() else {}
-    for entry in (data.get("sources") or []):
+    # M34 central mode: the same v1-SHAPED entries come from the ledger slice
+    # for this area (`ledger.area_view` flattens the namespaced maps and DERIVES
+    # state), so the loop below is unchanged — including the processed-skip,
+    # which now reads the derived state (processed only when EVERY area has
+    # consumed the source, so this area cannot be muted by another's progress).
+    central = _central_root(area)
+    if central is not None:
+        import ledger
+        source_entries = ledger.area_view(central, area.name)
+    else:
+        sfile = area / "_reference" / "sources.yaml"
+        data = _load_yaml(sfile) if sfile.is_file() else {}
+        source_entries = data.get("sources") or []
+    for entry in source_entries:
         if not isinstance(entry, dict) or entry.get("state") == "processed":
             continue
         sid = str(entry.get("id") or "").strip()
@@ -758,7 +863,9 @@ def write_promoted_notes(area: Path, slug_files: dict[str, str],
             note = wording.get((slug, sid))
             used.add((slug, sid))
             item = {"kind": "source", "src": sid,
-                    "note": note or default_source_note(sid, str(entry.get("file") or ""))}
+                    "note": note or default_source_note(
+                        sid, str(entry.get("file") or ""),
+                        central=central is not None)}
             if notes_util.append_items(area, slug, [item]):
                 report["written"].append("%s→%s" % (sid, slug))
 
@@ -943,8 +1050,20 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     # promoted, so a malformed proposal leaves the live folder untouched and the
     # human re-confirms after fixing it. Ids are validated against the union of
     # the live registry and the delta (the delta's own sources are not live yet).
+    # M34: centrally the live half of that union is the ENGAGEMENT ledger (all
+    # of it, not just this area's slice — a note may legitimately cite a source
+    # another area registered), unioned with the delta's own proposals.
     known_src_ids = set()
-    for f in (area / "_reference" / "sources.yaml", proposed / "sources.yaml"):
+    central_root = _central_root(area)
+    src_files = [proposed / "sources.yaml"]
+    if central_root is None:
+        src_files.insert(0, area / "_reference" / "sources.yaml")
+    else:
+        import ledger
+        known_src_ids |= {str(e.get("id")).strip()
+                          for e in ledger.entries(central_root)
+                          if e.get("id")}
+    for f in src_files:
         for e in (_load_yaml(f).get("sources") or []):
             if isinstance(e, dict) and e.get("id"):
                 known_src_ids.add(str(e["id"]).strip())
