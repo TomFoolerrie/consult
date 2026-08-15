@@ -177,6 +177,16 @@ try:
 except Exception:  # pragma: no cover - sources.py ships beside us
     _assess_new_sources = None
 
+# M34: the ONE central-mode detection seam, borrowed the same defensive way.
+# Non-None means the engagement carries a central ledger (`_sources/sources.yaml`
+# at its root), so the STAGING dir every source guard reads is the root's
+# `_sources/new/`, not the area's. None (or an unimportable sources.py) means v1:
+# every path below is byte-identical to pre-M34.
+try:
+    from sources import central_root as _central_root  # type: ignore
+except Exception:  # pragma: no cover - sources.py ships beside us
+    _central_root = None
+
 # NOTE KINDS are owned by notes_util (the M6 bus contract). Borrowed for the
 # guard-2 step-aside (M32) only: the advisor reads each queued item's `kind`
 # to decide whether the notes are merge-safe, never to route or apply them.
@@ -227,6 +237,22 @@ def _load_json(path: str):
             return json.load(fh)
     except (OSError, ValueError):
         return None
+
+
+def _area_local_entry(entry: dict, area: str) -> dict:
+    """A source entry with `touches`/`consumed` guaranteed FLAT for `area`.
+
+    v1 entries already carry flat area-local lists and pass through unchanged
+    (copied, never mutated). A central-mode ledger entry carries NAMESPACED MAPS
+    (`{area: [slugs]}`) covering every area it touches, so this takes this area's
+    slice — the only slugs this area's guards may reason about."""
+    out = dict(entry)
+    for key in ("touches", "consumed"):
+        value = out.get(key)
+        if isinstance(value, dict):
+            out[key] = list(value.get(area) or [])
+    out.setdefault("id", "")
+    return out
 
 
 def _dir_has_files(path: str) -> bool:
@@ -289,7 +315,11 @@ class AreaState:
         self.manifest = load_manifest(folder) if self.has_manifest else None
 
         self.proposed_dir = os.path.join(folder, "_reference", ".proposed")
-        self.sources_new = os.path.join(folder, "_sources", "new")
+        # M34: in central mode the staging dir is the ENGAGEMENT's `_sources/new/`
+        # (one drop point for every area); in v1 it is the area's own.
+        self.central_root = _central_root(folder) if _central_root else None
+        self.sources_new = os.path.join(self.central_root or folder,
+                                        "_sources", "new")
 
         # procedure + derived components from the manifest
         self.procedures = []   # list of (slug, abspath)
@@ -970,8 +1000,40 @@ def decide(folder: str) -> dict:
             return result("taxonomy", reason,
                           mode="incremental",
                           unassessed=unassessed, **extra)
-        stranded = sorted(assessed, key=lambda e: e["id"])
+        # M34 shape bridge: v1 assessed entries carry FLAT area-local
+        # `touches`/`consumed`; central mode returns RAW ledger entries whose
+        # touches/consumed are NAMESPACED MAPS ({area: [slugs]}). Flatten to this
+        # area's slice so the message material below (and any consumer of
+        # `stranded_sources`) sees one shape. v1 entries pass through untouched.
+        area_name = os.path.basename(os.path.abspath(folder))
+        stranded = sorted((_area_local_entry(e, area_name) for e in assessed),
+                          key=lambda e: e["id"])
         ids = ", ".join(e["id"] for e in stranded)
+        if st.central_root:
+            remediation = (
+                "per SRC- id: (a) re-issue its notes — re-run the taxonomy/"
+                "confirm pass, whose promote step writes one `kind: source` "
+                "note per drafted procedure it touches; (b) correct its "
+                "`touches` for this area in the ENGAGEMENT LEDGER "
+                "(_sources/sources.yaml at %s) so it names the procedures it "
+                "really informs — edit it through `scripts/ledger.py` rather "
+                "than by hand (the area has no _reference/sources.yaml in "
+                "central mode); or (c) retire it by crediting the reads it is "
+                "owed — `scripts/sources.py mark-processed %s` retires it from "
+                "archived evidence, and a source fully consumed across EVERY "
+                "area it touches moves to _sources/processed/ automatically."
+                % (st.central_root, folder))
+        else:
+            remediation = (
+                "per SRC- id: (a) re-issue its notes — re-run the taxonomy/confirm "
+                "pass, whose promote step writes one `kind: source` note per drafted "
+                "procedure it touches; (b) edit its `touches` in "
+                "_reference/sources.yaml to name the procedures it really informs "
+                "(the sanctioned veto, and the fix when `touches` is empty or "
+                "typo'd); or (c) retire it by hand — move the file to "
+                "_sources/processed/ and set `state: processed`. If its notes were "
+                "already applied and archived, `scripts/sources.py mark-processed "
+                "%s` retires it from that archived evidence." % folder)
         return unresolvable(
             "_sources/new/ holds %d already-assessed source(s) (%s) that nothing "
             "can consume: every procedure they touch is drafted, and no "
@@ -984,15 +1046,7 @@ def decide(folder: str) -> dict:
             "`apply_review` needs a note on the bus — the source notes that "
             "would have carried these sources to their drafters are not on disk "
             "(deleted, or never written because `touches` names nothing drafted)",
-            "per SRC- id: (a) re-issue its notes — re-run the taxonomy/confirm "
-            "pass, whose promote step writes one `kind: source` note per drafted "
-            "procedure it touches; (b) edit its `touches` in "
-            "_reference/sources.yaml to name the procedures it really informs "
-            "(the sanctioned veto, and the fix when `touches` is empty or "
-            "typo'd); or (c) retire it by hand — move the file to "
-            "_sources/processed/ and set `state: processed`. If its notes were "
-            "already applied and archived, `scripts/sources.py mark-processed "
-            "%s` retires it from that archived evidence." % folder,
+            remediation,
             stranded_sources=stranded,
             stranded_ids=[e["id"] for e in stranded],
         )

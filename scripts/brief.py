@@ -62,6 +62,19 @@ try:
 except ImportError:  # pragma: no cover - pyyaml ships in requirements
     yaml = None
 
+# M34 central mode: the ONE detection seam (sources.central_root) plus the
+# v1-SHAPED slice of the engagement ledger it points at. Borrowed the same
+# defensive way as UNFILLED_RE above — if either is unavailable, `_sources_entries`
+# runs exactly the v1 per-area read it ran before M34.
+try:
+    from sources import central_root as _central_root  # type: ignore
+except Exception:  # pragma: no cover - sources.py ships beside us
+    _central_root = None
+try:
+    from ledger import area_view as _area_view  # type: ignore
+except Exception:  # pragma: no cover - ledger.py ships beside us
+    _area_view = None
+
 SYNTH_KINDS = {"raci": "84_raci.md", "dependencies": "82_dependencies.md"}
 REGISTRY_FILES = ("systems.yaml", "roles.yaml", "sources.yaml",
                   "glossary.yaml")
@@ -87,6 +100,15 @@ def _procedures(manifest: dict) -> list[dict]:
 
 
 def _sources_entries(folder: Path) -> list[dict]:
+    # M34: ask the ONE detection seam. In central mode the area owns no
+    # `_reference/sources.yaml` — the engagement ledger does — and `area_view`
+    # hands back the v1 entry shape (flat area-local touches/consumed + derived
+    # state), so the reading-list block below needs no change.
+    if _central_root is not None and _area_view is not None:
+        root = _central_root(str(folder))
+        if root:
+            return _area_view(root, Path(folder).name)
+    folder = Path(folder)
     p = folder / "_reference" / "sources.yaml"
     if yaml is None or not p.is_file():
         return []
