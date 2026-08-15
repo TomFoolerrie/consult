@@ -270,6 +270,16 @@ def load_l1_buckets(taxonomy_path: Path, l1_slug: str) -> list[str]:
     return []
 
 
+class ScaffoldError(Exception):
+    """A refusal raised by the taxonomy skeleton verbs (M41 Part B).
+
+    Not `SystemExit`: `seed_taxonomy` / `promote_taxonomy` are called as
+    library functions (by the orchestrator skill at the confirm gate) as well
+    as from the CLI, and a caller that names a cycle deserves an exception it
+    can catch. `main()` converts it to the usual `error: ...` exit.
+    """
+
+
 def compute_l2_order(procedures: list[dict], tax_buckets: list[str],
                      existing_l2_order: list[str]) -> list[str]:
     """The area's ordered L2 buckets = the ordering authority display_numbers reads.
@@ -293,6 +303,176 @@ def compute_l2_order(procedures: list[dict], tax_buckets: list[str],
         if l2 not in order:
             order.append(l2)
     return order
+
+
+# --------------------------------------------------------------------------- #
+# the business-cycle skeleton: seed + promote taxonomy nodes (M41 Part B)
+#
+# A cycle IS an L1 category of the reference taxonomy and its typical sub-areas
+# ARE that category's L2 subcategories — so no second cycle library is shipped:
+# one source of truth for name→slug, the same file `load_l1_buckets` reads.
+# Seeding projects that data into STAGED taxonomy-node fragments at the
+# surveyor's own staging path, and promotion is the move M37 Amendment A1
+# recorded as missing (the human had to hand-move files at the confirm gate).
+# The gate does not move: `promote_taxonomy` is what the human's go RUNS.
+# --------------------------------------------------------------------------- #
+
+#: The surveyor's staging path for node fragments, relative to the area
+#: (agents/consult-surveyor.md, "THE NODES"): a DIRNAME convention, not shape.
+PROPOSED_TAXONOMY = ("_reference", ".proposed", "_taxonomy")
+#: The live home — filename stem IS the node slug (the filesystem carries
+#: identity; there is no index file to drift).
+LIVE_TAXONOMY = "_taxonomy"
+
+TAXONOMY_NODE_TYPE = "taxonomy-node"
+
+
+def proposed_taxonomy_dir(area: Path) -> Path:
+    return area.joinpath(*PROPOSED_TAXONOMY)
+
+
+def live_taxonomy_dir(area: Path) -> Path:
+    return area / LIVE_TAXONOMY
+
+
+def effective_taxonomy_path(area: Path) -> Path:
+    """The reference taxonomy THIS engagement is read against.
+
+    The client's own tree wins when they shipped one (`_client/taxonomy.yaml`,
+    area layer shadowing the engagement layer — the M13 order), else the
+    industry-standard backbone. The file, not the parsed block: everything here
+    reads it through `_load_yaml`, so a path keeps `--taxonomy` and the default
+    the same kind of thing.
+    """
+    for client_dir in (area / client_config.CLIENT_DIR,
+                       area.parent / client_config.CLIENT_DIR):
+        candidate = client_dir / "taxonomy.yaml"
+        if candidate.is_file() and "taxonomy" in _load_yaml(candidate):
+            return candidate
+    return DEFAULT_TAXONOMY
+
+
+def load_l1_subcategories(taxonomy_path: Path, l1_slug: str) -> tuple[str, list[dict]]:
+    """`(L1 display name, [subcategory entries])` for one cycle — REFUSING.
+
+    `load_l1_buckets` warns and proceeds on an unknown L1 because there the
+    reference is advisory about an area a proposal already describes. Here the
+    caller NAMED the cycle and asked for its shape, so an L1 the reference does
+    not carry is a refusal by name: there is nothing to seed, and proceeding
+    would silently stage an empty skeleton.
+    """
+    tax = _load_yaml(taxonomy_path)
+    cats = (tax.get("taxonomy") or {}).get("categories") or []
+    for cat in cats:
+        if cat.get("slug") == l1_slug:
+            subs = [sc for sc in (cat.get("subcategories") or [])
+                    if isinstance(sc, dict) and sc.get("slug")]
+            return str(cat.get("name") or l1_slug), subs
+    known = ", ".join(str(c.get("slug")) for c in cats if c.get("slug")) or "none"
+    raise ScaffoldError(
+        f"cycle {l1_slug!r} is not a category of the reference taxonomy "
+        f"({taxonomy_path}) — nothing to seed. Known cycles: {known}. "
+        f"Fix the slug (or add the category to the client's own "
+        f"_client/taxonomy.yaml) and re-run."
+    )
+
+
+def render_taxonomy_node(title: str, scope: str) -> str:
+    """One staged node fragment in the surveyor's template shape.
+
+    Assembled FROM the type declaration: the single prose part's title and the
+    `consult-meta` channel names come from `kernel/types/taxonomy-node.yaml`, so
+    a declaration that renames the part or adds a channel changes what is
+    seeded without an edit here. The binding lists are EMPTY on purpose — a
+    seeded node has read no evidence, and inventing a registry slug to fill
+    them is exactly the skeleton worship the ticket warns about.
+    """
+    import kernel
+    tdecl = kernel.load_type(TAXONOMY_NODE_TYPE)
+    out = [f"# {title}", ""]
+    for part in tdecl.parts:
+        out += [f"### {part.title}", "", scope, ""]
+    out.append("```consult-meta")
+    width = max((len(c.name) for c in tdecl.channels), default=0)
+    for chan in tdecl.channels:
+        out.append("%s: %s[]" % (chan.name, " " * (width - len(chan.name))))
+    out += ["```", ""]
+    return "\n".join(out)
+
+
+def seed_scope_sentence(l1_name: str, l2_name: str) -> str:
+    """The one-line, reference-DERIVED scope. Deliberately thin and openly
+    provisional: the node's real boundaries are the surveyor's to write from
+    evidence, and a confident-sounding seeded paragraph would be read as
+    findings."""
+    return (f"Standard {l1_name} sub-area: {l2_name}. Seeded from the reference "
+            f"taxonomy; boundaries to be confirmed against engagement evidence.")
+
+
+def seed_taxonomy(area, l1_slug: str, taxonomy_path=None) -> dict:
+    """Stage one node fragment per L2 sub-area of the named cycle.
+
+    Idempotent by SLUG, in both directions that matter: a slug already staged
+    (an agent refined it) or already live (the human confirmed it) is skipped,
+    never overwritten — the skeleton is the weakest claim in the system and
+    yields to every other. Returns `{"seeded": [...], "skipped": [...],
+    "taxonomy": str, "l1": str}`.
+    """
+    area = Path(area)
+    tpath = Path(taxonomy_path) if taxonomy_path else effective_taxonomy_path(area)
+    l1_name, subs = load_l1_subcategories(tpath, l1_slug)
+
+    staged_dir = proposed_taxonomy_dir(area)
+    live_dir = live_taxonomy_dir(area)
+    report = {"l1": l1_slug, "taxonomy": str(tpath), "seeded": [], "skipped": []}
+    for sub in subs:
+        slug = str(sub["slug"])
+        name = str(sub.get("name") or _titleize(slug))
+        if (live_dir / f"{slug}.md").exists() or (staged_dir / f"{slug}.md").exists():
+            report["skipped"].append(slug)
+            continue
+        staged_dir.mkdir(parents=True, exist_ok=True)
+        (staged_dir / f"{slug}.md").write_text(
+            render_taxonomy_node(name, seed_scope_sentence(l1_name, name)),
+            encoding="utf-8")
+        report["seeded"].append(slug)
+    return report
+
+
+def promote_taxonomy(area) -> dict:
+    """MOVE staged node fragments into the live `_taxonomy/` — the confirm-gate
+    verb M37 A1 recorded as missing.
+
+    `promote_reference`'s discipline, node-shaped: a live node is never
+    overwritten (a collision refuses BY NAME, before anything moves, so the
+    staging set stays reviewable as a whole), and nothing else under
+    `.proposed/` is read, moved or removed — the registry files and
+    `notes.yaml` remain the confirm gate's business. An empty (or absent)
+    staging set is a graceful no-op, so the human's go is safe to repeat.
+    Returns `{"promoted": [...]}`.
+    """
+    area = Path(area)
+    staged_dir = proposed_taxonomy_dir(area)
+    live_dir = live_taxonomy_dir(area)
+    staged = sorted(staged_dir.glob("*.md")) if staged_dir.is_dir() else []
+    if not staged:
+        return {"promoted": []}
+
+    collisions = [p.stem for p in staged if (live_dir / p.name).exists()]
+    if collisions:
+        raise ScaffoldError(
+            "refusing to promote: live taxonomy node(s) already exist for "
+            + ", ".join(collisions)
+            + f" — nothing was moved. The live node is the confirmed truth; "
+              f"reconcile the proposal into it by hand (or delete the staged "
+              f"file) and re-run.")
+
+    live_dir.mkdir(parents=True, exist_ok=True)
+    promoted = []
+    for p in staged:
+        shutil.move(str(p), str(live_dir / p.name))
+        promoted.append(p.stem)
+    return {"promoted": promoted}
 
 
 # --------------------------------------------------------------------------- #
@@ -1309,9 +1489,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sync-profile", action="store_true",
                     help="reconcile the live manifest's derived components with "
                          "the resolved profile (no .proposed/ round needed)")
+    ap.add_argument("--seed-taxonomy", action="store_true",
+                    help="stage one taxonomy-node fragment per L2 sub-area of "
+                         "the named cycle (--l1) — the business-cycle skeleton")
+    ap.add_argument("--promote-taxonomy", action="store_true",
+                    help="move staged _taxonomy/ node fragments into the live "
+                         "_taxonomy/ (run at the human confirm gate)")
     ap.add_argument("--area", required=True, help="path to the area folder")
     ap.add_argument("--l1", default=None, help="L1 taxonomy slug (else read from manifest/area.yaml)")
-    ap.add_argument("--taxonomy", default=str(DEFAULT_TAXONOMY), help="path to the reference taxonomy")
+    ap.add_argument("--taxonomy", default=None,
+                    help="path to the reference taxonomy (default: the "
+                         "engagement's _client/taxonomy.yaml if it ships one, "
+                         f"else {DEFAULT_TAXONOMY})")
     ap.add_argument("--title", default=None, help="document title override")
     ap.add_argument("--subtitle", default=None, help="document subtitle override")
     args = ap.parse_args(argv)
@@ -1320,18 +1509,48 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("error: pass --confirm or --sync-profile, not both "
                          "(a confirm already rebuilds the derived set from "
                          "the profile)")
-    if not args.confirm and not args.sync_profile:
+    verbs = [args.confirm, args.sync_profile, args.seed_taxonomy,
+             args.promote_taxonomy]
+    if not any(verbs):
         raise SystemExit(
             "refusing to run without --confirm: this is the human confirm gate. "
             "Review _reference/.proposed/ first, then re-run with --confirm."
         )
+    if sum(1 for v in verbs if v) > 1:
+        raise SystemExit("error: pass exactly one of --confirm, "
+                         "--sync-profile, --seed-taxonomy, --promote-taxonomy")
 
     area = Path(args.area).resolve()
     if not area.is_dir():
         raise SystemExit(f"error: area folder not found: {area}")
+    taxonomy = Path(args.taxonomy) if args.taxonomy else None
+    try:
+        if args.seed_taxonomy:
+            report = seed_taxonomy(area, resolve_l1(area, args.l1), taxonomy)
+            print(f"seeded taxonomy nodes for l1={report['l1']} "
+                  f"(reference: {report['taxonomy']})")
+            print("  staged: " + (", ".join(report["seeded"]) or "none"))
+            if report["skipped"]:
+                print("  skipped (already staged or live): "
+                      + ", ".join(report["skipped"]))
+            print("  review the staged fragments, then promote them at the "
+                  "confirm gate (--promote-taxonomy)")
+            return 0
+        if args.promote_taxonomy:
+            report = promote_taxonomy(area)
+            if not report["promoted"]:
+                print(f"no staged taxonomy nodes at "
+                      f"{proposed_taxonomy_dir(area)} — nothing to promote")
+            else:
+                print("promoted taxonomy nodes: "
+                      + ", ".join(report["promoted"]))
+            return 0
+    except ScaffoldError as exc:
+        raise SystemExit(f"error: {exc}")
     if args.sync_profile:
         return sync_profile(area)
-    return confirm(area, args.l1, Path(args.taxonomy), args.title, args.subtitle)
+    return confirm(area, args.l1, Path(taxonomy or DEFAULT_TAXONOMY),
+                   args.title, args.subtitle)
 
 
 if __name__ == "__main__":
