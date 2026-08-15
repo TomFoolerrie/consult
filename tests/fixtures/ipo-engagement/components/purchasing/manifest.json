@@ -1,0 +1,62 @@
+{
+  "schema": "consult-mvp-manifest/v1",
+  "area": "purchasing",
+  "l1": "purchasing",
+  "l2_order": [
+    "invoice-handling",
+    "schedule-payment",
+    "reconcile-statements"
+  ],
+  "title": "Purchasing — Process & Controls",
+  "subtitle": "Invoice-to-pay current state (IPO fixture engagement)",
+  "components": [
+    {
+      "file": "20_process-controls-matrix.md",
+      "role": "derived",
+      "derived_kind": "process-controls-matrix",
+      "writer": "python",
+      "heading": "Process & Controls Matrix",
+      "order": 20
+    },
+    {
+      "file": "10_receive-invoice.md",
+      "role": "procedure",
+      "slug": "receive-invoice",
+      "heading": "Receive Invoice",
+      "l2": "invoice-handling",
+      "order": 10
+    },
+    {
+      "file": "10_match-po.md",
+      "role": "procedure",
+      "slug": "match-po",
+      "heading": "Match Invoice to PO",
+      "l2": "invoice-handling",
+      "order": 11
+    },
+    {
+      "file": "10_approve-exceptions.md",
+      "role": "procedure",
+      "slug": "approve-exceptions",
+      "heading": "Approve Exceptions",
+      "l2": "invoice-handling",
+      "order": 12
+    },
+    {
+      "file": "10_schedule-payment.md",
+      "role": "procedure",
+      "slug": "schedule-payment",
+      "heading": "Schedule Payment",
+      "l2": "schedule-payment",
+      "order": 13
+    },
+    {
+      "file": "10_reconcile-statements.md",
+      "role": "procedure",
+      "slug": "reconcile-statements",
+      "heading": "Reconcile Vendor Statements",
+      "l2": "reconcile-statements",
+      "order": 14
+    }
+  ]
+}

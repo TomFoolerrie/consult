@@ -1,0 +1,74 @@
+systems:
+- slug: ap-inbox
+  name: AP Inbox (ap-invoices@)
+  aliases:
+  - AP Inbox
+  - the AP Inbox
+  - ap-invoices@
+  - the shared mailbox
+  - the designated accounts payable electronic mailbox
+  description: Shared Outlook mailbox that receives roughly ninety percent of supplier
+    invoices. Vendors are directed to it by the purchase order terms. Triaged each
+    morning by the AP Clerk.
+  limitations: ''
+  confidence: high
+- slug: ephesoft
+  name: Ephesoft
+  aliases:
+  - Ephesoft
+  - the OCR
+  - the capture application
+  - the document capture application
+  description: Document capture / OCR application every invoice image passes through.
+    Extracts supplier, invoice number, date, total and PO reference and pushes the
+    result into NetSuite as a pending bill.
+  limitations: PO number extraction is unreliable when the vendor does not place the
+    PO reference in a standard position on the invoice face. The extraction confidence
+    threshold is unconfirmed — ninety percent per the SOP, approximately seventy-five
+    percent per AP, configuration never pulled.
+  confidence: high
+- slug: netsuite
+  name: NetSuite
+  aliases:
+  - NetSuite
+  - NS
+  - the ERP
+  - the enterprise resource planning system
+  description: General ledger and system of record for bills, item receipts, purchase
+    orders, the three-way match, the payment run and the NACHA file build.
+  limitations: The live three-way match tolerance could not be confirmed — AP and the
+    SOP give different figures and no one interviewed had pulled the configuration.
+    Variance dispositions in the hold queue carry no system-enforced approval.
+  confidence: high
+- slug: chase-connect
+  name: Chase Connect
+  aliases:
+  - Chase Connect
+  - the banking portal
+  - the payments portal
+  description: Commercial banking portal used for NACHA file upload and release. Upload
+    and release are held under separate user IDs with separate tokens.
+  limitations: ''
+  confidence: high
+- slug: excel
+  name: Microsoft Excel
+  aliases:
+  - Excel
+  - the Excel export
+  - spreadsheet
+  description: Working medium for the weekly payment proposal review and for the vendor
+    statement reconciliation worksheets. Not a system of record.
+  limitations: Retention location of the Controller-approved payment proposal export
+    could not be established.
+  confidence: medium
+- slug: finance-shared-drive
+  name: Finance Shared Drive
+  aliases:
+  - the shared drive
+  - the finance shared drive
+  - Finance/Treasury/Forms
+  description: Network file share holding the vendor statement reconciliation worksheets
+    and the cash position sheet.
+  limitations: Presence of the statement reconciliation worksheets on the drive is
+    asserted by AP and unverified by the Controller.
+  confidence: medium

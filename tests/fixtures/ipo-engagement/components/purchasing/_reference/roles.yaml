@@ -1,0 +1,80 @@
+roles:
+- slug: corporate-controller
+  name: Corporate Controller
+  aliases:
+  - Controller
+  - the Controller
+  - Corporate Controller
+  people:
+  - Corinne Baptiste
+  reports_to: ''
+  confidence: high
+- slug: ap-manager
+  name: Accounts Payable Manager
+  aliases:
+  - AP Manager
+  - the AP Manager
+  - Accounts Payable Manager
+  people:
+  - Marisol Vance
+  reports_to: corporate-controller
+  confidence: high
+- slug: senior-ap-specialist
+  name: Senior Accounts Payable Specialist
+  aliases:
+  - Senior AP Specialist
+  - AP Specialist
+  - my senior
+  people:
+  - Priya Raghunathan
+  reports_to: ap-manager
+  confidence: high
+- slug: ap-clerk
+  name: Accounts Payable Clerk
+  aliases:
+  - AP Clerk
+  - the clerk
+  - Accounts Payable Clerk
+  people:
+  - Tobias Lindqvist
+  reports_to: ap-manager
+  confidence: high
+- slug: treasury-analyst
+  name: Treasury Analyst
+  aliases:
+  - Treasury Analyst
+  - treasury
+  - Treasury
+  people:
+  - Renata Kowalczyk
+  reports_to: corporate-controller
+  confidence: high
+- slug: buyer
+  name: Buyer
+  aliases:
+  - Buyer
+  - the buyer
+  - purchasing
+  people:
+  - Yusuf Adeyemi
+  reports_to: ''
+  confidence: high
+- slug: receiving-supervisor
+  name: Receiving Supervisor
+  aliases:
+  - Receiving Supervisor
+  - the dock
+  - receiving
+  people:
+  - Hal Ostrowski
+  reports_to: ''
+  confidence: medium
+- slug: supplier
+  name: Supplier
+  aliases:
+  - supplier
+  - vendor
+  - the vendor
+  people: []
+  reports_to: ''
+  confidence: high

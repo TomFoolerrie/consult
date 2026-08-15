@@ -1,0 +1,55 @@
+sources:
+- id: SRC-001
+  file: _sources/processed/2026-06-02-ap-manager-interview.md
+  hash: fc1bda20d16ab7d78fe18c7e278e7229964ba4633d6d5d654760589c53ab0a56
+  registered: '2026-06-02'
+  touches:
+    purchasing:
+    - receive-invoice
+    - match-po
+    - approve-exceptions
+    - schedule-payment
+    - reconcile-statements
+  consumed:
+    purchasing:
+    - receive-invoice
+    - match-po
+    - approve-exceptions
+    - schedule-payment
+    - reconcile-statements
+  state: processed
+  note: AP Manager walkthrough of the whole invoice-to-pay flow; the primary lens for
+    every step in this area.
+- id: SRC-002
+  file: _sources/processed/2026-06-04-ap-invoice-sop-extract.md
+  hash: 1ed492a5e22ea14cd983d9f9b1a067c618011efd40e471448172e3b8c13d1174
+  registered: '2026-06-04'
+  touches:
+    purchasing:
+    - receive-invoice
+    - match-po
+    - approve-exceptions
+  consumed:
+    purchasing:
+    - receive-invoice
+    - match-po
+    - approve-exceptions
+  state: processed
+  note: Written SOP AP-004 (rev. 2024-11), sections 3-6. The design lens; disagrees
+    with AP practice on the OCR threshold, the match tolerance and where capture exceptions
+    belong.
+- id: SRC-003
+  file: _sources/processed/2026-06-09-controller-walkthrough.md
+  hash: 0a8024340a07b4b0568aeee8a6790dfff35e32bd52f36d6084f77b36f5ed42bb
+  registered: '2026-06-09'
+  touches:
+    purchasing:
+    - schedule-payment
+    - reconcile-statements
+  consumed:
+    purchasing:
+    - schedule-payment
+    - reconcile-statements
+  state: processed
+  note: Controller and Treasury walkthrough of the Friday run and statement reconciliation;
+    the second lens on the capture-exception boundary.
