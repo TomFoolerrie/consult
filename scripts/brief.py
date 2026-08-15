@@ -470,6 +470,22 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
         _line(out, "NOTES QUEUED for you: none")
     _line(out)
 
+    # The M41 objective block (M42 Part B4): appended as the LAST context
+    # section, immediately before the finish checklist — the checklist is the
+    # dispatch's exit instruction and stays the final words, while "what this
+    # engagement is FOR" belongs with the inputs it aims (reading list, notes).
+    # Purely additive: no existing section is reshaped or reordered.
+    try:
+        _line(out, objective_block(folder).rstrip("\n"))
+    except client_config.ClientConfigError as exc:
+        # The engagement.py precedent (M41 WP-O3): LOUD, never fatal — a
+        # malformed objective must not take the drafter dispatch down.
+        _line(out, f"ENGAGEMENT OBJECTIVE: UNREADABLE — {exc}")
+        _line(out, "  fix the `objective:` block before trusting this "
+                   "dispatch's scope judgments; do not guess the goal, and "
+                   "say in your return that the objective was unreadable.")
+    _line(out)
+
     _line(out, "BEFORE YOU FINISH:")
     _line(out, "  1. The final-mode read-through (your contract: reread as "
                "if every callout, tag and citation were deleted)")
