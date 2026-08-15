@@ -11,6 +11,18 @@ guarantee.
 
 ## [Unreleased — 2.1.0]
 
+- **M42 — the callout doctrine** (`2.1.0-alpha.5`): what earns a
+  callout, written once and encoded everywhere — the boundary rule
+  never records a control (structure is not a fact), the four-field
+  CTRL minting bar (performer / comparison / trigger / evidence; weak
+  statements stay prose + one GAP), the operation-blocking GAP bar
+  (the ask agenda belongs to the surveyor, enforced in its contract as
+  a named miss), PAIN voiced-only, sub-steps carry no callouts
+  (cross-owner performer = split signal), and the interaction contract
+  (one fact one home, cross-referenced, joined only by the analyst).
+  Librarian gains callout-population grooming (propose-never-edit);
+  the drafter brief carries the engagement objective. Suite 1104
+  passing.
 - **M41 — the engagement objective + seeded skeleton**
   (`2.1.0-alpha.4`): the `objective:` config block (goal, target
   deliverables, in-scope cycles — validated, not decorative); the

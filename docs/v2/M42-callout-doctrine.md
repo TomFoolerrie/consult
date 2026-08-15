@@ -1,6 +1,39 @@
 # M42 — The callout doctrine: CTRL, GAP, PAIN — differentiation, sub-steps, interaction
 
-> **Status: SPEC** — origin: user rulings 2026-08-15. The worry: drafter
+> **Status: BUILT (2.1.0-alpha.5)** — the minting bars + worked example
+> in `agents/consult-drafter.md` (doctrine placed before the callout
+> grammar), the ask-agenda ownership in `consult-surveyor.md` (+ hard
+> rule 11), the callout-grooming trigger in `consult-librarian.md`
+> (+ `callout_grooming` return field), the objective block in
+> `brief.drafter_brief` (byte-stable insertion; malformed objective →
+> named UNREADABLE line, never a crashed dispatch). Gates:
+> `tests/test_doctrine_m42.py` 13/13; suite 1104 passed, 1 pinned
+> xfail. Build records: [`M42-build-plan.md`](M42-build-plan.md),
+> [`notes/m42-drafter-self-review.md`](notes/m42-drafter-self-review.md),
+> [`notes/m42-population-self-review.md`](notes/m42-population-self-review.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) PAIN↔CTRL
+> cross-references ride SUB-FIELDS (`- **Reported pain:** PP-…` on the
+> CTRL; `- **Control:** CTRL-…` on the PAIN) because the citation rule
+> restricts in-prose parentheticals to SRC-/GAP- ids for final-render
+> scrubbing — a mechanism this ticket had to mint; whether those two
+> field names are canonical (register-visible) is an OPEN ruling.
+> (2) The drafter contract still has NO v2 process-step drafting path —
+> its body is the v1 seven-section document, so A5's sub-step rule is
+> stated in the abstract; writing the process-step path into the
+> contract is a named follow-up (the largest recorded gap between the
+> v2 kernel and its capture agent). (3) Doctrine sits BEFORE the callout
+> grammar (test-shaped ordering: the extraction test reads the file's
+> first CTRL block; an explicit forward pointer bridges it). (4) The
+> notes-bus opener (`SCOPE PROPOSAL`) does not fit grooming notes and
+> the five-move table lacks a `groom` move — recorded, not minted here.
+> (5) Surveyor gained two discharge checks beyond A3's letter
+> (gap-forecast items needing a request; doubted facts on `enough`
+> nodes) — additions, flagged in the self-review. (6) GAP id widths in
+> the worked example (GAP-002) differ from the v1 template (GAP-01);
+> exemplary only. (7) The mechanical hygiene feeder for the librarian's
+> grooming trigger stays deferred (M43 candidate). Origin: user rulings
+> 2026-08-15. The worry: drafter
 > judgment on controls/gaps "will be surface level and a lot of noise."
 > The resolution reached in discussion, ratified: the WRITE stays with
 > the drafter; the judgment about the callout POPULATION moves up
