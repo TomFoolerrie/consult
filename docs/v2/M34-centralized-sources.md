@@ -1,6 +1,27 @@
 # M34 — Centralized sources: one ledger, per-consumer consumption, intake as tagging
 
-> **Status: DRAFT — contract under review.** Companions: M33 (whose
+> **Status: LEDGER CORE BUILT (2.0.0-alpha.3); consumer wiring pending.**
+> `scripts/ledger.py` (register/park/status/entries/outstanding/credit +
+> dual-layout adapter + centralize); acceptance gate
+> `tests/test_ledger_m34.py` 17/17 green; full suite 844 passed, zero v1
+> tests edited. Build record: [`M34-build-plan.md`](M34-build-plan.md)
+> (WP-A/B/C). The consumer wiring — orchestrate/brief/scaffold/intake
+> reading the central ledger, retiring `intake/` and the route sidecar —
+> is the ticket's second build, deliberately separate so the v1 engine
+> stays untouched until the ledger is proven.
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) API-first fail-loud —
+> `LedgerError` replaces v1's print/return-1 posture; (2) centralize
+> COPIES bytes and leaves the v1 area trees intact as historical record
+> (deletion is a separate human decision); deterministic minting (sorted
+> area order, registry order within, duplicate hashes join the first
+> mint); remap persisted at `_sources/remap.yaml`; legacy `touches` NOT
+> re-validated at fold time (a legacy typo must not strand a migration —
+> post-fold registrations are validated as normal). (3) Open decisions
+> parked for the consumer-wiring build: whether shrinking `touches` at a
+> confirm gate prunes `consumed` (v1 prunes per-area; the ledger
+> currently never subtracts), and the nested-path staging shape (status
+> walks `new/` recursively; credit resolves basenames). Companions: M33 (whose
 > engagement-scoped evidence API this ticket physically implements), M25
 > (whose intake judgment survives and whose copy-routing this ticket
 > retires), M29 (whose cross-area citation-locality tension this ticket

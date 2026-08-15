@@ -15,6 +15,15 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M34 — centralized sources, ledger core** (`2.0.0-alpha.3`):
+  `scripts/ledger.py` — the engagement-root SRC ledger: global minting
+  with hash idempotence, loud per-area touches validation, park/status,
+  the v1 consumption evidence rules one scope up (filled unconditional,
+  updated needs an archived kind:source note, never-un-consumes), the
+  all-areas move rule (file position is display; the ledger is truth),
+  the read-only dual-layout adapter for v1 areas, and the `centralize`
+  fold (hash dedupe, merged maps, remap table). Consumer wiring is the
+  ticket's second build. Gate 17/17; suite 844 passing.
 - **M33 — the brain kernel** (`2.0.0-alpha.2`): `scripts/kernel.py` —
   declared entity types loaded from `kernel/types/*.yaml` with a fail-loud
   loader; generic type-declaration-driven `parse_entity` (byte-equal to
