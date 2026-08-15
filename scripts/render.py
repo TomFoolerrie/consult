@@ -410,15 +410,20 @@ def _blank_callouts(text: str, labels) -> str:
     return "\n".join(out)
 
 
-def _apply_profile(text: str, profile) -> str:
+def _apply_profile(text: str, profile, extra_hidden=()) -> str:
     """Strip everything the document profile excludes from one procedure body,
     then stamp the section letters the profile's order assigns (M23).
 
     Hiding first, lettering second: a section's letter is its position in
     `sections:`, which `body_omit` does not change, so hiding one never shifts
     another's letter.
+
+    M36 (WP-G1): `extra_hidden` carries the part slugs THIS BLOCK does not put
+    in the body — a plan-driven render's binding `parts:` selection and its
+    `Block.body_omit`. Empty on the v1 path (and on any block that binds every
+    declared part), so v1 renders byte-identically.
     """
-    text = _blank_sections(text, profile.hidden_sections())
+    text = _blank_sections(text, profile.hidden_sections() | set(extra_hidden))
     text = _blank_callouts(text, profile.dropped_callouts())
     return _letter_sections(text, profile.letters())
 
@@ -824,8 +829,21 @@ def _heading_for(section, numbers) -> str:
 def render_folder(folder: Path, out: Path, *,
                   landscape: bool = False, do_cover: bool = True,
                   mode: str = "working", slugs: list[str] | None = None,
-                  track_changes: bool = False, emit_signal: bool = True) -> dict:
-    """Render an area folder. Returns a stats dict (counts + doc_id/map)."""
+                  track_changes: bool = False, emit_signal: bool = True,
+                  shape=None) -> dict:
+    """Render an area folder. Returns a stats dict (counts + doc_id/map).
+
+    M36 (WP-G1) — `shape` is the ONE seam the plan-driven path needs. None (the
+    v1 CLI path, unchanged and golden-pinned) means the AREA's manifest decides
+    which sections exist and in what order. A shape object means a compiled
+    deliverable definition decides: it is asked
+    `shape.arrange(sections) -> [(section, extra_hidden_part_slugs), …]` and its
+    answer replaces the manifest walk — block order, block set, block titles,
+    injected static text, per-block part selection. Everything below the seam
+    (numbering, token resolution, callout display ids, profile enforcement,
+    modes, dividers, provenance) is shared verbatim, which is what makes
+    "assembled from the definition" and "assembled from the manifest" the same
+    document. See scripts/render_glue.py for the shape the glue builds."""
     folder = Path(folder)
     # M14 enforcement point 2. Resolved before any body is touched so a
     # malformed profile fails the render rather than shipping a wrong shape.
@@ -990,7 +1008,14 @@ def render_folder(folder: Path, out: Path, *,
             emit("# Reference & Appendices")
             emit("")
 
-    for section in _sections(assembled):
+    # The section list: the manifest's (v1) or the plan's (M36). Each entry
+    # pairs a section with the part slugs its BLOCK keeps out of the body.
+    if shape is None:
+        arranged = [(s, ()) for s in _sections(assembled)]
+    else:
+        arranged = shape.arrange(_sections(assembled))
+
+    for section, extra_hidden in arranged:
         role = _attr(section, "role")
         slug = _attr(section, "slug") or ""
         if subset and not (role == "procedure" and slug in slugs):
@@ -1013,7 +1038,7 @@ def render_folder(folder: Path, out: Path, *,
                 raw_body = _rewrite_callout_ids(raw_body, submap)
             # The profile decides shape BEFORE final mode counts what it
             # strips, so a hidden section's gaps are never double-reported.
-            raw_body = _apply_profile(raw_body, profile)
+            raw_body = _apply_profile(raw_body, profile, extra_hidden)
             # M16: the two body-view projections. Both are no-ops on a fragment
             # that uses none of the new grammar, and both run AFTER the profile
             # so a hidden section's callouts are already blank.
