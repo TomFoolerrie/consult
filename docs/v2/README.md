@@ -168,7 +168,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 |---|---|
 | [M33](M33-brain-kernel.md) | Brain kernel: declared types, generic parse_entity, can_serve; ships `activity` + `process-step` (**BUILT**, 2.0.0-alpha.2, gate 21/21) |
 | [M34](M34-centralized-sources.md) | Centralized sources: ledger + adapter + centralize + full consumer wiring (**BUILT**, alpha.4, gates 34/34; agent prose lands with M37) |
-| [M35](M35-deliverable-definitions.md) | Deliverable-definition language: shape/bindings/skin, four-stage fail-loud loader, compile-to-plan (spec drafted) |
+| [M35](M35-deliverable-definitions.md) | Deliverable-definition language: four-stage loader, compile-to-plan, profile alias, shipped desktop-procedure.yaml (**BUILT**, alpha.5, gates 26/26) |
 | [M36](M36-compatibility-gate.md) | **Compatibility gate:** v1 re-expressed as a definition over the kernel; 803 tests + semantically identical render (spec drafted) |
 | [M37](M37-surveyor-librarian.md) | Surveyor + librarian: taxonomy as brain entities, derived coverage, info-request deliverable, lens-conflict rule (spec drafted) |
 | [M38](M38-second-deliverable.md) | Second deliverable — process & controls matrix over an IPO fixture; zero engine edits (spec drafted) |

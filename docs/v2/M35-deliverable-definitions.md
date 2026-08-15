@@ -1,6 +1,28 @@
 # M35 — The deliverable-definition language: shape, bindings, skin
 
-> **Status: DRAFT — contract under review.** Companions: M33 (the type
+> **Status: BUILT (2.0.0-alpha.5)** — `scripts/definitions.py` (four-stage
+> loader, serviceability-as-report, compile_plan, resolve_definition with
+> the M14 profile alias) + `kernel/deliverables/desktop-procedure.yaml`
+> (v1 written down) + `scripts/render_glue.py` (executable-plan proof).
+> Gates: `tests/test_definitions_m35.py` 17/17 +
+> `tests/test_definitions_d3_m35.py` 9/9; suite 959 passed, zero v1 tests
+> edited. Build record: [`M35-build-plan.md`](M35-build-plan.md) (WP-D1–D3).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) a view block's `id` IS
+> its derived kind, writer declared on the block; (2) admitted binding
+> verbs limited to named consumers (entities, parts, callouts, channels,
+> order, group_by) — the spec's illustrative verbs (join, cells, coverage,
+> of) wait for their M37/M38 consumers; (3) `kernel.can_serve` is
+> declaration-pure, so the engagement-half entity-population check lives
+> in `definitions.serviceability` with a type→manifest-role mapping that
+> should graduate to a type-declaration key when M37 lands a second
+> engagement entity type; (4) profile shading is subtractive-only,
+> in-memory `body_omit` (not language syntax), authored definitions win
+> whole; (5) render_glue proves EXECUTABILITY with v1 fidelity — assembly
+> FROM plan.blocks (writer dispatch, part selection, static injection) is
+> M36's owed half, stated verbatim in the module docstring; (6) known gap
+> carried to M36: the shipped definition has no appendix-controls block,
+> so a profile opting that register in is a silent no-op. Companions: M33 (the type
 > declarations and `can_serve` this language is written against), M14 (the
 > document profile — the embryo this ticket promotes to a full language,
 > kept as a compatibility alias), M13 (whose `_client/` resolution the

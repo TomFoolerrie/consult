@@ -15,6 +15,15 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M35 — the deliverable-definition language** (`2.0.0-alpha.5`):
+  `scripts/definitions.py` — deliverables as user files (shape /
+  bindings / skin) with a four-stage fail-loud loader (syntax,
+  vocabulary vs type declarations, serviceability as a "not yet"
+  report, skin vs renderer capabilities), compile-to-plan, `_client/
+  deliverables/` shadowing, and the M14 profile as a subtractive alias.
+  Ships `kernel/deliverables/desktop-procedure.yaml` (v1 written down)
+  and `render_glue.py` proving compiled plans executable against the
+  real docx path. Suite 959 passing.
 - **M34 — consumer wiring, central mode complete** (`2.0.0-alpha.4`):
   the engine is dual-layout behind one seam (`sources.central_root`) —
   advisor guards, briefs, the confirm gate, and the intake/adopt verbs
