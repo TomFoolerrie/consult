@@ -15,6 +15,14 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M34 — consumer wiring, central mode complete** (`2.0.0-alpha.4`):
+  the engine is dual-layout behind one seam (`sources.central_root`) —
+  advisor guards, briefs, the confirm gate, and the intake/adopt verbs
+  all read the engagement ledger in central mode (route = register+tag,
+  no copies, no sidecars; confirm gate = tag refinement via
+  `ledger.retag`; `ledger.assess` answers guard 5 at engagement scope);
+  v1 engagements byte-identical, guarded by 48 new characterization
+  tripwires. Suite 933 passing.
 - **M34 — centralized sources, ledger core** (`2.0.0-alpha.3`):
   `scripts/ledger.py` — the engagement-root SRC ledger: global minting
   with hash idempotence, loud per-area touches validation, park/status,

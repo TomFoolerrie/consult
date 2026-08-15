@@ -1,6 +1,32 @@
 # M34 — Centralized sources: one ledger, per-consumer consumption, intake as tagging
 
-> **Status: LEDGER CORE BUILT (2.0.0-alpha.3); consumer wiring pending.**
+> **Status: BUILT (2.0.0-alpha.4)** — ledger core + consumer wiring.
+> Engine is fully dual-layout behind one seam (`sources.central_root`);
+> gates: `tests/test_ledger_m34.py` 17/17, `tests/test_central_mode_m34.py`
+> 17/17, plus 48 v1 characterization tripwires and 26 central scaffold
+> tests; suite 933 passed, zero v1 tests edited. Build records:
+> [`M34-build-plan.md`](M34-build-plan.md) (WP-A/B/C) and
+> [`M34-wiring-plan.md`](M34-wiring-plan.md) (WP-W0–W3).
+>
+> **Amendment A2 (wiring notes, 2026-08-15):** (1) `ledger.assess` added —
+> guard 5's actual question ("has taxonomy read these exact bytes?") at
+> engagement scope; the spec's claim that the guard "reads the same query"
+> as outstanding-ness was wrong and is corrected by this API. (2) The
+> confirm gate becomes TAG REFINEMENT in central mode (`ledger.retag`:
+> REPLACE of one area's touches slice, empty = untag, consumed never
+> pruned) — consequently **sources enter central engagements only through
+> `route`/`adopt`**; the taxonomy pass can no longer mint registry entries
+> at the gate. Carry this into the M37 surveyor brief. (3) `ledger.annotate`
+> added for intake pointers/adoption provenance (route sidecars retired).
+> (4) Behavior differences vs v1, accepted: `route --new-area` requires
+> the area folder to exist first (fail loud beats a tag nothing can
+> consume); re-routing same bytes reports "tags merged" instead of
+> refusing. (5) Layering: `brief`/`scaffold` may import `ledger` for the
+> sanctioned pair (`central_root` + `area_view`) — the one-seam rule means
+> no scattered mode logic, not a module whitelist. (6) Standing hazard:
+> `central_root` walks to filesystem root — never create
+> `_sources/sources.yaml` above a v1 tree. (7) Skill/agent prose stays v1
+> until M37 replaces the taxonomy/intake briefs wholesale.
 > `scripts/ledger.py` (register/park/status/entries/outstanding/credit +
 > dual-layout adapter + centralize); acceptance gate
 > `tests/test_ledger_m34.py` 17/17 green; full suite 844 passed, zero v1
