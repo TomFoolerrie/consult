@@ -70,6 +70,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_model  # noqa: E402  (M2 deliverable)
 import matrix_views  # noqa: E402  (M38: the matrix writer, registered below)
+import plan_views  # noqa: E402  (M40: the three view writers, registered below)
 
 
 # ---------------------------------------------------------------------------
@@ -674,6 +675,11 @@ PY_BUILDERS = {
     # through this registry (the sanctioned extension mechanism; nothing in the
     # loader/compiler/renderer learns the deliverable's name).
     matrix_views.MATRIX_KIND: matrix_views.build_process_controls_matrix,
+    # M40: the three views the information-request and findings-report
+    # definitions have always named and no writer served — same mechanism.
+    plan_views.REQUESTS_KIND: plan_views.build_information_requests,
+    plan_views.VALIDATIONS_KIND: plan_views.build_open_validations,
+    plan_views.FINDINGS_KIND: plan_views.build_findings_by_theme,
     "procedure-index": build_procedure_index,
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,
