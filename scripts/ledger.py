@@ -550,3 +550,253 @@ def credit(root, area: str, filled=(), updated=()) -> int:
 #     touches/consumed maps per area, place each file in new/ or processed/ by
 #     the DERIVED state, persist the remap table under _sources/).
 # --------------------------------------------------------------------------- #
+
+REMAP_FILENAME = "remap.yaml"        # <root>/_sources/remap.yaml: the migration
+                                     # record {"<area>/SRC-nnn": "SRC-mmm"},
+                                     # what register-provenance strings written
+                                     # under the v1 layout are rewritten through
+V1_REGISTRY_REL = ("_reference", "sources.yaml")
+
+
+def _remap_path(root) -> Path:
+    return sources_dir(root) / REMAP_FILENAME
+
+
+def _v1_registry_path(area_path) -> Path:
+    return Path(area_path).joinpath(*V1_REGISTRY_REL)
+
+
+def _v1_entries(area_path) -> list[dict]:
+    """The raw entries of a v1 per-area registry, in registry order, or [].
+
+    Deliberately the TOLERANT read (`sources._read_sources_tolerant` semantics):
+    the adapter is a reader over someone else's layout, so a missing or malformed
+    v1 registry reads as "this area registers nothing" rather than exploding a
+    caller that only wanted to look."""
+    path = _v1_registry_path(area_path)
+    if not path.is_file():
+        return []
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (yaml.YAMLError, OSError):
+        return []
+    if not isinstance(data, dict):
+        return []
+    return [e for e in (data.get("sources") or []) if isinstance(e, dict)]
+
+
+def _prefixed(area_name: str, sid: str) -> str:
+    """A v1 area-local id presented at engagement scope: `<area>/SRC-nnn`.
+
+    This is the whole reason the adapter exists: `SRC-004` is ambiguous across
+    areas (M34 problem 3), so the adapter qualifies it the way v1's register
+    provenance did by hand."""
+    return f"{area_name}/{sid}"
+
+
+def entries_for_area(area_path) -> list[dict]:
+    """A v1 per-area registry read through this module's API — READ-ONLY.
+
+    `components/<area>/_reference/sources.yaml` entries, in registry order, with
+    ids presented as `<area-dir-name>/SRC-nnn` and every other key passed through
+    verbatim (v1's `touches`/`consumed` stay area-local LISTS — this adapter
+    presents the v1 shape, it does not pretend the entries are namespaced maps;
+    `centralize` is what converts shape).
+
+    THE ADAPTER NEVER WRITES. Not the registry, not the area's `_sources/` tree,
+    not the root ledger — the p2p fixture is frozen and must read byte-identically
+    forever (M36's compatibility gate). Entries are copies, so a caller mutating
+    what it got back cannot reach back into the file either.
+    """
+    area = Path(area_path)
+    name = area.name
+    out: list[dict] = []
+    for entry in _v1_entries(area):
+        presented = dict(entry)
+        presented["id"] = _prefixed(name, str(entry.get("id") or "").strip())
+        out.append(presented)
+    return out
+
+
+def outstanding_for_area(area_path) -> dict[str, list[str]]:
+    """`{"<area>/SRC-nnn": [slugs still owed a read]}` for a v1 area.
+
+    v1 semantics exactly — `touches` minus `consumed` per entry, both area-local
+    lists — answered from the REGISTRY, never from which `_sources/` subfolder a
+    file happens to sit in (file position is display; the ledger is truth, in
+    either layout). A fully-consumed area answers `{}`.
+    """
+    out: dict[str, list[str]] = {}
+    for entry in entries_for_area(area_path):
+        tagged = _slug_list(entry.get("touches"))
+        done = set(_slug_list(entry.get("consumed")))
+        remaining = [s for s in tagged if s not in done]
+        if remaining:
+            out[str(entry["id"])] = remaining
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# centralize — the one-time fold of a v1 engagement into this ledger
+# --------------------------------------------------------------------------- #
+
+def _v1_area_paths(root) -> list[Path]:
+    """`components/<area>/` folders carrying a v1 registry, sorted by area name.
+
+    Sorted because the fold must be DETERMINISTIC: re-running centralize on the
+    same engagement has to mint the same ids, or every remap table and provenance
+    string ever written from it becomes a lie."""
+    components = _root(root) / "components"
+    if not components.is_dir():
+        return []
+    return sorted((p for p in components.iterdir()
+                   if p.is_dir() and _v1_registry_path(p).is_file()),
+                  key=lambda p: p.name)
+
+
+def _v1_physical_file(area_path: Path, entry: dict) -> Path | None:
+    """The bytes behind a v1 entry: its recorded `file` (relative to the area),
+    falling back to `_sources/{new,processed}/<basename>` when the recorded path
+    is stale (`sources._source_relpath`'s tolerance, since a v1 registry's `file`
+    can lag the last move)."""
+    recorded = str(entry.get("file") or "").replace("\\", "/")
+    if recorded:
+        candidate = area_path / recorded
+        if candidate.is_file():
+            return candidate
+    name = os.path.basename(recorded) if recorded else ""
+    if not name:
+        return None
+    for sub in ("processed", "new", "parked"):
+        candidate = area_path / "_sources" / sub / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def centralize(root) -> dict[str, str]:
+    """Fold a v1 engagement's per-area source trees into THIS ledger, once.
+
+    Returns the remap table `{"<area>/SRC-nnn": "SRC-mmm"}` — every v1 area-local
+    id (as the adapter presents it) mapped to the central id that now holds those
+    bytes. Also persisted to `<root>/_sources/remap.yaml`, because register
+    provenance strings written under the v1 layout (`SRC-004 (p2p)`) outlive the
+    migration and need a lookup table to be rewritten through.
+
+    What the fold does:
+
+    * **Dedupe by content hash.** The whole point: M25's route verb COPIED a
+      cross-area transcript, so the same bytes hold two area-local ids, two
+      `touches` sets and two independent lifecycles. Same hash means one source:
+      one central entry, one file on disk, N tags.
+    * **Merge the maps per area.** Each v1 area-local `touches`/`consumed` LIST
+      becomes that area's slice of the namespaced map. Consumption history from
+      every area survives intact — nothing is re-dispatched for reading.
+    * **Remint centrally**, in a deterministic order: areas in sorted name order,
+      and within an area the registry's own order; an id is minted the FIRST time
+      a hash is seen, and later copies join that entry. (So for areas p2p, r2r
+      the fold mints p2p's registry top-to-bottom first, then r2r's new bytes.)
+      Minting continues from any ids the central ledger already holds, so folding
+      into a partly-centralized engagement cannot collide.
+    * **Place each file by the DERIVED state** — `processed/` only when the
+      MERGED touches map is fully covered by the merged consumed map (WP-B's
+      `_fully_consumed`, all areas), else `new/`. This is where the fold earns
+      its keep: a file v1 had filed under one area's `processed/` returns to
+      `new/` when another area never read it. File position is display; the
+      ledger is truth.
+
+    The v1 area trees and registries are LEFT IN PLACE, untouched — they are the
+    historical record of what each area was told it held, and deleting them is a
+    separate, human decision (the fold copies bytes, it does not move them). The
+    v1 `touches` slugs are taken as given rather than re-validated against the
+    manifests: this is a migration of what an engagement already recorded, and
+    refusing to fold a legacy typo would leave the engagement stranded between
+    layouts. Registration-time validation (`_validate_touches`) still guards
+    everything minted from here on.
+    """
+    data = _load_ledger(root)
+    ledger_entries = data["sources"]
+
+    by_hash: dict[str, dict] = {}
+    for entry in ledger_entries:
+        digest = str(entry.get("hash") or "")
+        if digest:
+            by_hash.setdefault(digest, entry)
+
+    remap: dict[str, str] = {}
+    bytes_for: dict[str, Path] = {}         # central id -> a copy of the bytes
+
+    for area_path in _v1_area_paths(root):
+        area = area_path.name
+        for v1 in _v1_entries(area_path):
+            old_id = str(v1.get("id") or "").strip()
+            if not old_id:
+                raise LedgerError(
+                    f"{_v1_registry_path(area_path)}: an entry has no id "
+                    f"(cannot be remapped — fix the v1 registry first)"
+                )
+            physical = _v1_physical_file(area_path, v1)
+            digest = str(v1.get("hash") or "").strip()
+            if not digest and physical is not None:
+                digest = _hash_file(str(physical))
+            if not digest:
+                raise LedgerError(
+                    f"{_v1_registry_path(area_path)}: {old_id} has no hash and "
+                    f"no readable file — nothing to dedupe or fold"
+                )
+
+            touches = {area: _slug_list(v1.get("touches"))}
+            consumed = {area: _slug_list(v1.get("consumed"))}
+
+            entry = by_hash.get(digest)
+            if entry is None:
+                sid = _mint(ledger_entries)
+                entry = {
+                    "id": sid,
+                    "file": f"{LEDGER_DIRNAME}/new/"
+                            f"{os.path.basename(str(v1.get('file') or ''))}",
+                    "hash": digest,
+                    "registered": str(v1.get("registered")
+                                      or date.today().isoformat()),
+                    "touches": touches,
+                    "consumed": consumed,
+                }
+                ledger_entries.append(entry)
+                by_hash[digest] = entry
+            else:
+                sid = str(entry.get("id") or "")
+                entry["touches"] = _merge_area_map(
+                    _area_map(entry.get("touches"), "touches", sid), touches)
+                entry["consumed"] = _merge_area_map(
+                    _area_map(entry.get("consumed"), "consumed", sid), consumed)
+
+            remap[_prefixed(area, old_id)] = str(entry["id"])
+            if physical is not None:
+                bytes_for.setdefault(str(entry["id"]), physical)
+
+    # Place the bytes by the DERIVED state, then write the ledger and the remap.
+    new_dir(root).mkdir(parents=True, exist_ok=True)
+    for entry in ledger_entries:
+        sid = str(entry.get("id") or "")
+        source = bytes_for.get(sid)
+        if source is None:
+            continue                        # already-central entry: leave it be
+        touches = _area_map(entry.get("touches"), "touches", sid)
+        consumed = _area_map(entry.get("consumed"), "consumed", sid)
+        done = _fully_consumed(touches, consumed)
+        sub = "processed" if done else "new"
+        dest_dir = processed_dir(root) if done else new_dir(root)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        name = os.path.basename(str(entry.get("file") or "")) or source.name
+        dest = dest_dir / name
+        if not dest.is_file():
+            shutil.copy2(str(source), str(dest))
+        entry["file"] = f"{LEDGER_DIRNAME}/{sub}/{name}"
+        entry["state"] = sub
+
+    _dump_ledger(root, data)
+    sources_dir(root).mkdir(parents=True, exist_ok=True)
+    with open(_remap_path(root), "w", encoding="utf-8") as fh:
+        yaml.safe_dump({"remap": dict(sorted(remap.items()))}, fh,
+                       sort_keys=False, allow_unicode=True)
+    return remap
