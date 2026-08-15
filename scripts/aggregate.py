@@ -101,15 +101,18 @@ CONSULT_META_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
-# M23 — the HOME SECTIONS of the two mechanical registers, as SLUGS. These were
-# the letters `H` and `F`; each was a position masquerading as an identity.
-ISSUES_SECTION = "issues"
-CONTROLS_SECTION = "controls"
+# M36 WP-G3 — `ISSUES_SECTION` / `CONTROLS_SECTION` (the two mechanical
+# registers' home section slugs) are RETIRED from this module: nothing here read
+# them, and the declaration is the authority — a callout's home section is
+# `kernel.load_type("activity").callouts[*].home`, surfaced by
+# `callouts.home_section(label)`. Keeping a second spelling of it beside the
+# builders is exactly the private side channel M36's absence audit polices.
 
-# A `###` sub-section line. Both forms parse (M23): `### Scope` and the
-# not-yet-migrated `### A. Process Overview`. Identity is the SLUG the
-# shared registry resolves it to, never the letter.
-SUBSECTION_RE = doc_model.SECTION_HEADING_RE
+# M36 WP-G3 — `SUBSECTION_RE` (a bare re-export of `doc_model`'s
+# `SECTION_HEADING_RE`) is RETIRED: no module and no test read it. A `###`
+# sub-section line is parsed through `split_subsections`, which resolves the
+# heading to a SLUG via the shared registry — never through a local copy of the
+# pattern, and never through the letter.
 
 # A `- **Label:** value` list bullet (the At a Glance card etc.).
 BULLET_KV_RE = re.compile(r"^\s*-\s*\*\*\s*(?P<k>[^:*]+?)\s*:\s*\*\*\s*(?P<v>.*?)\s*$")

@@ -247,25 +247,74 @@ def report_line(area, prefix: str = "client config") -> str:
 
 PROFILE_KEY = "profile"
 
-#: M23 — sections are SLUGS here, canonical order from the shared spine's
-#: registry. The A–H letters are display, assigned at render from the order of
-#: `sections:` below; they remain accepted as INPUT aliases (see
-#: `doc_model.section_slug`) so a profile written before M23 keeps meaning the
-#: same sections through any later rename.
-ALL_SECTIONS = list(doc_model.SECTION_SLUGS)
+# --------------------------------------------------------------------------- #
+# M36 WP-G3 — the declaration is the authority for the DOCUMENT SHAPE this
+# profile filters. What sections a procedure has, and what callout kinds it
+# admits, is `kernel/types/activity.yaml`; this module's job is the POLICY over
+# them (which may be dropped, which never may, which register catches an omitted
+# section's callouts). The two readers below derive that vocabulary from the type
+# declaration, falling back to the v1 registry (`doc_model` / `callouts`, which
+# remain the v1 engine's tables) only if the declaration cannot be loaded — a
+# stripped install, where a silently different vocabulary would be worse than a
+# visible one. The fallback is documented, not silent: M33 A3's parity tests are
+# the bond that the two agree.
+# --------------------------------------------------------------------------- #
+def _declared_part_slugs() -> list[str]:
+    """Part slugs in DECLARED order (what `sections:` may name)."""
+    try:
+        import kernel
+        return [p.slug for p in kernel.load_type("activity").parts]
+    except Exception:                    # pragma: no cover - stripped install
+        return list(doc_model.SECTION_SLUGS)
+
+
+def _declared_callout_labels() -> list[str]:
+    """Admitted callout LABELS in declared (reading) order."""
+    try:
+        import kernel
+        return [c.label for c in kernel.load_type("activity").callouts]
+    except Exception:                    # pragma: no cover - stripped install
+        import callouts as _callouts
+        return list(_callouts.LABEL_TO_PREFIX)
+
+
+def _declared_home(label: str, fallback: str) -> str:
+    """The part slug a callout LABEL is homed to, per the declaration."""
+    try:
+        import kernel
+        for c in kernel.load_type("activity").callouts:
+            if c.label == label:
+                return c.home
+    except Exception:                    # pragma: no cover - stripped install
+        pass
+    try:
+        import callouts as _callouts
+        return _callouts.home_section(label) or fallback
+    except Exception:                    # pragma: no cover - stripped install
+        return fallback
+
+
+#: M23 — sections are SLUGS here, canonical order from the type DECLARATION
+#: (M36: no longer a second spelling of the registry). The A–H letters are
+#: display, assigned at render from the order of `sections:` below; they remain
+#: accepted as INPUT aliases (see `doc_model.section_slug`) so a profile written
+#: before M23 keeps meaning the same sections through any later rename.
+ALL_SECTIONS = _declared_part_slugs()
 #: Sections no engagement may drop: scope, card, procedure. M16's "Interaction
 #: with M14" — the mandatory subset is A/B/D in the seven-section model (it was
 #: A/B/E), which in slugs is the same three sections it always was.
 MANDATORY_SECTIONS = ["scope", "quick-reference", "steps"]
 #: The section whose callouts would vanish if it left the body with no register.
-CONTROLS_SECTION = "controls"
+#: DERIVED (M36): the CONTROL callout's declared home, so a reshape that moves
+#: controls elsewhere moves this rule with it instead of silently un-pointing it.
+CONTROLS_SECTION = _declared_home("CONTROL", "controls")
 #: The register that catches them (M14 `appendix-controls`).
 CONTROLS_REGISTER = "appendix-controls"
 #: Same pairing for the pain-point section and its register. `appendix-a` is
 #: in the DEFAULT derived set, so this rule only trips when a profile REMOVED
 #: it — but that is exactly the silent-loss shape the controls rule refuses,
 #: and it must be refused for issues too.
-ISSUES_SECTION = "issues"
+ISSUES_SECTION = _declared_home("PAIN POINT", "issues")
 ISSUES_REGISTER = "appendix-a"
 #: body_omit section -> (register kind, what would vanish). The cross-field
 #: rule below and render's manifest-drift guard both walk THIS table, so a
@@ -276,9 +325,10 @@ BODY_OMIT_REGISTERS = {
                      "PAIN POINT / IMPROVEMENT OPPORTUNITY callouts"),
 }
 
-#: Today's callout kinds — the `callouts.py` LABEL→prefix map, in reading order.
-ALL_CALLOUTS = ["CONTROL", "VALIDATION REQUIRED", "PAIN POINT",
-                "IMPROVEMENT OPPORTUNITY", "SCREENSHOT PLACEHOLDER"]
+#: The admitted callout kinds, in declared (reading) order — DERIVED from the
+#: type declaration (M36; it used to be a hand-written copy of `callouts.py`'s
+#: LABEL→prefix map, which is how a profile vocabulary drifts from the grammar).
+ALL_CALLOUTS = _declared_callout_labels()
 
 #: Today's derived set, as `derived_kind` values (the manifest's vocabulary).
 DEFAULT_DERIVED = ["procedure-index", "role-dictionary", "systems",
