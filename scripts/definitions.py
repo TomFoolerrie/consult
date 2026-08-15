@@ -1042,6 +1042,216 @@ def resolve_definition(area, name: str = DEFAULT_DEFINITION) -> Definition:
     return defn
 
 
+# --------------------------------------------------------------------------- #
+# M40 WP-V1 — the MATERIALIZE verb
+#
+# The language gap this closes (M38 A1, docs/v2/M40-definition-views.md): a
+# definition's `kind: view` blocks are compiled into `Plan.views`, but only a
+# `role: derived` manifest component ever CAUSES aggregate to build a view —
+# and a plan carries neither a `file` nor an `order`. Two enumerations of the
+# same views, nothing joining them.
+#
+# The join is an explicit VERB, not a side effect of compiling or rendering:
+# compile_plan stays read-only and render_glue stays out of it (M36 WP-G1's
+# refusal is the law here — a renderer that silently writes manifests is a
+# special case in disguise). The shape is v1's `scaffold.sync_profile`, which
+# already does exactly this reconciliation driven by an M14 profile instead of
+# a compiled plan: idempotent, preserving, never deleting, re-validated.
+# --------------------------------------------------------------------------- #
+
+#: The manifest component role a materialized view becomes, and the file-name
+#: shape minted for it. Both are doc_model/scaffold conventions, mirrored (see
+#: _stub_text for the same posture on the stub body).
+_DERIVED_ROLE = "derived"
+
+#: File/order policy — MECHANICAL, DOCUMENTED, NOT CONFIGURABLE (the spec's
+#: named review risk is placement-policy creep). A new view's order starts at
+#: max(existing orders) + _ORDER_GAP and increments by _ORDER_STEP per
+#: subsequent new view, so materialized views land after everything already in
+#: the area, in the definition's block order. Position is DISPLAY: a
+#: definition-level placement key is deliberately not added, and a hand-tuned
+#: existing entry outranks this policy entirely (see _materialize below).
+_ORDER_GAP = 10
+_ORDER_STEP = 1
+
+
+def _stub_text(kind: str, writer: str, heading: str) -> str:
+    """The pending stub body for a newly materialized view.
+
+    `scaffold.render_derived`'s shape — asked of scaffold itself when it
+    imports cleanly, so the marker that aggregate/render read has exactly ONE
+    author. The fallback is a MIRROR of that function (heading, the
+    `<!-- derived: kind; writer: w -->` marker, the pending line) and exists
+    only so materializing does not depend on the whole v1 scaffolder being
+    importable; if the two ever drift, scaffold.py is the original."""
+    try:
+        import scaffold
+    except Exception:                        # pragma: no cover - scaffold ships beside us
+        return (f"## {heading}\n\n"
+                f"<!-- derived: {kind}; writer: {writer} -->\n\n"
+                "> _Pending generation._\n")
+    return scaffold.render_derived(kind, writer, heading)
+
+
+def _read_manifest(area: Path) -> dict:
+    """The area's manifest, or a named refusal. Materialize RECONCILES an
+    already-scaffolded area (sync_profile's precondition, same words): a
+    fresh area goes through the confirm gate first."""
+    path = area / "manifest.json"
+    if not path.is_file():
+        raise DefinitionError(
+            f"{area.name}: no manifest at {path} — materialize_views "
+            f"reconciles an ALREADY-SCAFFOLDED area's derived components with "
+            f"a definition's view blocks; a fresh area goes through the "
+            f"confirm gate first (scaffold.py --confirm)")
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise DefinitionError(
+            f"{area.name}: manifest at {path} is unreadable ({exc})") from exc
+    if not isinstance(manifest, dict) or not isinstance(
+            manifest.get("components"), list):
+        raise DefinitionError(
+            f'{area.name}: manifest at {path} has no "components" list')
+    return manifest
+
+
+def materialize_views(area, name: str | None = None) -> dict:
+    """Reflect a definition's `kind: view` blocks into the area manifest.
+
+    For each view block of the compiled plan, ensure the manifest carries a
+    `role: derived` component with the canonical six keys (`file`, `role`,
+    `derived_kind` = the block id, `writer` = the block's writer, `heading` =
+    the block's title, `order`) and ensure its stub file exists. Agent-writer
+    views get the same entry with `writer: agent` — aggregate's placeholder
+    discipline then applies, unchanged.
+
+    Resolution: `name` picks the definition (user file shadowing shipped, the
+    ordinary M13 path); `None` falls back to `resolve_definition(area)` (the
+    M14 profile alias). Either way the definition loads through the ORDINARY
+    four-stage loader before anything is written — an unloadable definition
+    refuses with nothing touched.
+
+    Discipline, all of it sync_profile's:
+      * PRESERVATION — an existing derived component whose `derived_kind`
+        matches is kept byte-for-byte: never renamed, re-ordered or re-titled.
+        A hand-tuned entry (the IPO fixture's matrix at order 20) outranks the
+        mechanical policy, because a human put it there.
+      * IDEMPOTENCE — a second call adds nothing and writes nothing, not even
+        a re-serialized manifest (mtimes are part of the contract).
+      * NEVER DELETE — a view the definition dropped keeps its component and
+        its file; removal is a human edit, as everywhere else in the system.
+      * NEVER TOUCH NON-DERIVED — static and procedure components pass through
+        in their existing sequence.
+
+    Fail-loud: the assembled manifest is re-validated through
+    `doc_model.validate_manifest` and a validation error REFUSES, leaving the
+    manifest file unchanged (write-aside then replace). A minted `file` that
+    collides with an existing file of a DIFFERENT kind refuses by name rather
+    than overwriting somebody else's view.
+
+    Returns the delta — `{"area", "definition", "added", "preserved",
+    "created_files", "skipped_non_view"}` — so a caller (and a test) can see
+    what happened instead of trusting silence."""
+    import doc_model                 # local: keeps definitions importable alone
+
+    area = Path(area)
+    if not area.is_dir():
+        raise DefinitionError(f"materialize_views: no such area folder: {area}")
+
+    defn = (load_definition(name, area=area) if name is not None
+            else resolve_definition(area))
+    plan = compile_plan(defn, area)          # READ-ONLY, as ever
+    titles = {b.id: b.title for b in plan.blocks}
+
+    manifest = _read_manifest(area)
+    components = [c for c in manifest["components"] if isinstance(c, dict)]
+    existing_kinds = {c.get("derived_kind"): c for c in components
+                      if c.get("role") == _DERIVED_ROLE}
+    #: file -> the derived kind that owns it (None for a non-derived component),
+    #: for the cross-kind collision refusal below.
+    owners = {str(c.get("file")): c.get("derived_kind") for c in components}
+    orders = [c["order"] for c in components if isinstance(c.get("order"), int)]
+    next_order = (max(orders) if orders else 0) + _ORDER_GAP
+
+    added: list[str] = []
+    preserved: list[str] = []
+    created: list[str] = []
+    minted: list[dict] = []
+
+    for view in plan.views:
+        kind = view.kind
+        if kind in existing_kinds:
+            # The preservation rule: this component is the truth, whatever the
+            # policy would have minted for it.
+            preserved.append(kind)
+            comp = existing_kinds[kind]
+            fname = str(comp.get("file") or "")
+            fpath = area / fname
+            if fname and not fpath.exists():
+                fpath.write_text(
+                    _stub_text(kind, str(comp.get("writer") or view.writer),
+                               str(comp.get("heading") or titles.get(kind, kind))),
+                    encoding="utf-8")
+                created.append(fname)
+            continue
+
+        fname = f"{next_order}_{kind}.md"
+        owner = owners.get(fname, "")
+        if fname in owners and owner != kind:
+            raise DefinitionError(
+                f'{area.name}: materializing view "{kind}" of definition '
+                f'"{defn.name}" would mint file "{fname}", which the manifest '
+                f"already lists for "
+                + (f'derived kind "{owner}"' if owner else "a non-derived "
+                   "component")
+                + " — refusing to overwrite it (resolve the collision by hand)")
+        comp = {"file": fname, "role": _DERIVED_ROLE, "derived_kind": kind,
+                "writer": view.writer, "heading": titles.get(kind, kind),
+                "order": next_order}
+        minted.append(comp)
+        owners[fname] = kind
+        added.append(kind)
+        next_order += _ORDER_STEP
+
+    report = {"area": area.name, "definition": defn.name,
+              "added": added, "preserved": preserved,
+              "created_files": created}
+    if not minted:
+        # Idempotence: nothing minted means nothing to write. The manifest file
+        # is not re-serialized — an unchanged area must stay byte- AND
+        # mtime-identical.
+        return report
+
+    manifest = dict(manifest)
+    manifest["components"] = components + minted
+    errors = doc_model.validate_manifest(manifest)
+    if errors:
+        raise DefinitionError(
+            f'{area.name}: materializing definition "{defn.name}" would leave '
+            f"the manifest invalid, so nothing was written:\n  - "
+            + "\n  - ".join(errors))
+
+    # Write-aside then replace: a crash mid-write must not leave a half-written
+    # manifest where the whole pipeline's membership authority should be.
+    path = area / "manifest.json"
+    tmp = path.with_suffix(".json.materialize-tmp")
+    tmp.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+                   encoding="utf-8")
+    tmp.replace(path)
+
+    for comp in minted:
+        fpath = area / comp["file"]
+        if not fpath.exists():
+            fpath.write_text(
+                _stub_text(comp["derived_kind"], comp["writer"],
+                           comp["heading"]),
+                encoding="utf-8")
+            created.append(comp["file"])
+    report["created_files"] = created
+    return report
+
+
 def render_plan(plan: Plan, area, out_path, **kwargs) -> dict:
     """Render a compiled Plan to a .docx. See scripts/render_glue.py for the
     fidelity statement — this is a convenience delegate so callers that
