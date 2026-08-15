@@ -103,7 +103,34 @@ _ALLOWED_WRITERS = {"python", "agent"}
 #: callouts/channels/order) and its derived views (group_by). New verbs
 #: arrive only when a real definition cannot be expressed.
 _ALLOWED_BINDING_KEYS = {"entities", "parts", "callouts", "channels",
-                         "order", "group_by"}
+                         "order", "group_by",
+                         # M37: the DERIVED selection verb, and its domain key.
+                         # Consumer: kernel/deliverables/information-request.yaml
+                         # (the client information-request list), which selects
+                         # taxonomy nodes by their coverage status —
+                         # `{coverage: [thin, claimed, conflicted], of:
+                         # taxonomy}`. `coverage` binds the output of
+                         # coverage_map.coverage(), a PURE FUNCTION over the
+                         # engagement (never a file — the charter's hard
+                         # guardrail), so unlike every verb above it names no
+                         # entity type and there is nothing on disk for stage 3
+                         # to look for. `of` is its companion: what is being
+                         # covered.
+                         "coverage", "of"}
+
+#: The coverage statuses a `coverage:` binding may name. Four come straight from
+#: coverage_map.coverage()'s contract; `thin` is the SURVEYOR's sufficiency word
+#: for "known but not yet evidenced" (claimed-or-sourced), which is the altitude
+#: a client-facing request list actually asks at. Kept here rather than imported
+#: from coverage_map because stage 2 must stay loadable with zero engagement and
+#: zero coverage machinery — this is a VALUE-SHAPE check, not a computation.
+_ALLOWED_COVERAGE_STATUSES = {"conflicted", "evidenced", "sourced", "claimed",
+                              "thin"}
+
+#: The domains a `coverage:` binding may be `of`. One today (the taxonomy nodes
+#: of M37 Part A); the key exists so a second domain arrives as a new value
+#: rather than as a reinterpretation of an implicit one.
+_ALLOWED_COVERAGE_DOMAINS = {"taxonomy"}
 _ALLOWED_SKIN_KEYS = {"format", "requires"}
 
 #: Renderer capability registry — renderers DECLARE what they can do and the
@@ -247,12 +274,63 @@ def _stage1_syntax(path: Path, data) -> Definition:
 # Stage 2 — vocabulary (against type DECLARATIONS; zero engagement content)
 # --------------------------------------------------------------------------- #
 
+def _check_coverage_shape(fname: str, bname: str, spec: dict) -> None:
+    """Stage-2's check for a `coverage:` binding (M37).
+
+    WHAT STAGE 2 CAN CHECK HERE, DECIDED AND WRITTEN DOWN: a coverage binding
+    names no entity type, so there is no declaration to check its selection
+    against — the type/part/callout half of stage 2 has nothing to say about it.
+    What remains, and what is therefore enforced, is the VALUE SHAPE: the verb
+    takes a status name or list of names drawn from a closed vocabulary, it
+    requires its `of` domain (also closed), and it may not be mixed with an
+    entity selection in the same binding (an entity population and a derived
+    selection are two different queries; one binding, one query). That is the
+    whole of stage 2 for coverage — deliberately, not by omission."""
+    has_cov = "coverage" in spec
+    if "of" in spec and not has_cov:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" names "of" without "coverage" '
+            f"(the domain key belongs to the coverage verb)")
+    if not has_cov:
+        return
+
+    if "entities" in spec:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" names both "coverage" and "entities" '
+            f"— a derived coverage selection and an entity population are two "
+            f"different queries; use two bindings")
+
+    named = spec["coverage"]
+    if isinstance(named, str):
+        named = [named]
+    if not isinstance(named, list) or not named or not all(
+            isinstance(n, str) for n in named):
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" "coverage" must be a status name or a '
+            f"non-empty list of names (got {spec['coverage']!r})")
+    for status in named:
+        if status not in _ALLOWED_COVERAGE_STATUSES:
+            raise DefinitionError(
+                f'{fname}: binding "{bname}" names unknown coverage status '
+                f'"{status}" '
+                f"(known: {sorted(_ALLOWED_COVERAGE_STATUSES)})")
+
+    domain = spec.get("of")
+    if not isinstance(domain, str) or domain.strip() not in \
+            _ALLOWED_COVERAGE_DOMAINS:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" coverage needs an "of" domain '
+            f"(known: {sorted(_ALLOWED_COVERAGE_DOMAINS)}; got {domain!r})")
+
+
 def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     """Every type / part / callout kind / channel a binding names must be
     DECLARED by that binding's entity type (kernel.load_type)."""
     fname = path.name
 
     for bname, spec in defn.bindings.items():
+        _check_coverage_shape(fname, bname, spec)      # M37, see below
+
         tname = spec.get("entities")
         if tname is None:
             # No entity type named: nothing declaration-checkable here. Any
@@ -344,6 +422,36 @@ def _area_entity_count(area: Path, type_name: str) -> int:
                if isinstance(c, dict) and c.get("role") == role)
 
 
+#: Where an area keeps its taxonomy-node fragments. Coverage's engagement-side
+#: precondition is exactly "this area has nodes to cover" — the directory name is
+#: coverage_map's convention, mirrored here rather than imported so that
+#: serviceability stays a cheap directory question with no coverage machinery
+#: loaded (it must answer for a v1 area that has none).
+_TAXONOMY_DIRNAME = "_taxonomy"
+
+
+def _coverage_gaps(bname: str, spec: dict, area: Path) -> list[str]:
+    """The engagement half of serviceability for a `coverage:` binding (M37).
+
+    kernel.can_serve cannot answer this one at all: there is no entity type in
+    the binding and no registry file to look for, so the declaration half is
+    vacuous and the whole question is engagement-side — which per M35 A1 makes
+    it definitions.py's, like _area_entity_count above.
+
+    The precondition is one directory: an area with no `_taxonomy/` nodes has
+    nothing whose coverage could be reported, and that is a **"not yet"**, never
+    a refusal (a v1-shaped area simply has not been surveyed). The gap names
+    taxonomy explicitly so the reader knows what to go and create."""
+    tdir = Path(area) / _TAXONOMY_DIRNAME
+    nodes = sorted(tdir.glob("*.md")) if tdir.is_dir() else []
+    if nodes:
+        return []
+    domain = str(spec.get("of") or "taxonomy")
+    return [f'binding "{bname}": area {Path(area).name} holds no {domain} '
+            f"nodes yet ({_TAXONOMY_DIRNAME}/ is empty or absent), so "
+            f"coverage has nothing to report"]
+
+
 def serviceability(defn: Definition, area) -> list[str]:
     """Can this engagement area serve every binding of this definition?
 
@@ -360,6 +468,10 @@ def serviceability(defn: Definition, area) -> list[str]:
     gaps: list[str] = []
 
     for bname, spec in defn.bindings.items():
+        if "coverage" in spec:
+            gaps.extend(_coverage_gaps(bname, spec, area))
+            continue
+
         requirements = {k: spec[k] for k in _CAN_SERVE_KEYS if k in spec}
         for err in kernel.can_serve(requirements, area):
             gaps.append(f'binding "{bname}": {err}')

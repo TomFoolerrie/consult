@@ -1,0 +1,77 @@
+# kernel/deliverables/information-request.yaml — the client information request
+# list (M37 Part C, docs/v2/M37-surveyor-librarian.md), and the FIRST born-v2
+# deliverable definition: unlike desktop-procedure it is not v1 written down,
+# it is a document v1 never had.
+#
+# What it is for: before the engagement spends its most expensive tokens
+# (parallel drafter fan-out), the surveyor assesses whether each proposed
+# taxonomy node has enough evidence to draft. The nodes that do not become
+# CLIENT ASKS — phrased as requests, not as findings — and they go out while
+# scoping is still cheap. Rendered before the human confirm gate; the gate does
+# not move.
+#
+# The one new thing in the language here is the `coverage` binding verb
+# (admitted in scripts/definitions.py, which names THIS definition as its
+# consumer). It binds a DERIVED selection rather than an entity population: the
+# nodes at the named coverage statuses, computed on demand by
+# scripts/coverage_map.coverage(). There is deliberately no `entities:` key on
+# that binding — coverage is a pure function over the whole engagement, not a
+# part/callout selection over one type, and nothing is persisted for it to read
+# (the charter's hard guardrail).
+#
+# Two altitudes feed ONE list (ruling, 2026-08-14): node-level coverage
+# (thin / claimed / conflicted) and step-level GAP callouts. Hence two bindings
+# and one view: `requests` (the coverage feeder) and `step-gaps` (the callout
+# feeder, over the process-step type's declared GAP kind).
+
+deliverable: information-request
+
+shape:
+  - id: request-preamble
+    title: About This Request
+    kind: static
+    numbering: none
+    text: |
+      The following information requests come out of an initial survey of the
+      process areas in scope. Each item names what we are missing and why we
+      need it; a walkthrough, an existing SOP, a system screenshot or a short
+      written answer are all equally welcome. Where two sources we already hold
+      disagree, both readings are shown and we are asking you to settle which
+      is current — we have deliberately not guessed.
+
+  - id: information-requests
+    title: Information Requests
+    kind: view
+    writer: python
+    binding: requests
+    numbering: none
+
+  - id: open-validations
+    title: Open Validation Points
+    kind: view
+    writer: python
+    binding: step-gaps
+    numbering: none
+
+bindings:
+  # The coverage feeder. `coverage:` names the statuses to select; `of:` names
+  # WHAT is being covered (taxonomy nodes — the only coverage domain that
+  # exists, stated explicitly so a second domain does not have to reinterpret
+  # an implicit one). `thin` is the surveyor's sufficiency word for a node the
+  # map reports as claimed-or-sourced: known, not yet evidenced.
+  requests:
+    coverage: [thin, claimed, conflicted]
+    of: taxonomy
+
+  # The step-level feeder: the same list, seen from the fragments. Ordinary
+  # vocabulary — the process-step type declares VALIDATION REQUIRED.
+  step-gaps:
+    entities: process-step
+    callouts: [VALIDATION REQUIRED]
+    order: manifest
+
+skin:
+  format: docx
+  requires:
+    - cover-page
+    - portrait-tables

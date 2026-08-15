@@ -1,0 +1,42 @@
+# kernel/types/taxonomy-node.yaml — the taxonomy node as a kernel entity
+# (M37 Part A: "the taxonomy becomes first-class brain entities — the brain's
+# index"). Born-v2: no legacy corpus, so no title/letter/slug aliases.
+#
+# Deliberately v1-SIMPLE per the M37 build plan's design pin: one `scope` prose
+# part (what this node covers and where its boundaries lie) plus the standard
+# consult-meta channels. Level (L1/L2/L3) and the parent `references` relation
+# are expressible later without moving anything here — the coverage join runs on
+# the node↔step map its caller derives, not on a declared relation, so nothing
+# downstream is waiting on them.
+#
+# Node fragments are hand-authored, one file per node, under
+# `<area>/_taxonomy/<slug>.md`, and are human-confirmed at the EXISTING scope
+# gate (the gate does not move).
+#
+# CALLOUT VOCABULARY — deliberately ONE kind. A node records structure, not
+# procedure: the only annotation a node carries is the lens-conflict record
+# (M37 Part D — "when two sources disagree, raise a gap, never guess"), written
+# as a GAP naming both SRC ids and both claims in their own framing. Keeping the
+# vocabulary at one kind is load-bearing for scripts/coverage_map.py, which
+# reads "a node callout naming two sources" as the conflict record without
+# typing a label constant (see the note there before adding a second kind).
+
+type: taxonomy-node
+
+parts:
+  - slug: scope
+    title: Scope
+    kind: prose
+
+# The lens-conflict record. Label + prefix carry over from the v1 vocabulary
+# (the continuity ruling: a GAP is a GAP wherever it is raised); homed to the
+# node's only part.
+callouts:
+  - {label: VALIDATION REQUIRED, prefix: GAP, home: scope}
+
+# The consult-meta binding channels — the same registries every other type
+# binds (a node may name the systems and roles its area attributes to it, and
+# both lists may be empty).
+channels:
+  - {name: systems, registry: systems.yaml}
+  - {name: roles, registry: roles.yaml}
