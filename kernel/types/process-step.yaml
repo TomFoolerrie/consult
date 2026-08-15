@@ -31,7 +31,14 @@ parts:
 # The v1 callout vocabulary, re-homed to process-step parts.
 # Continuity ruling: pain keeps label PAIN POINT, prefix PP, home issues.
 callouts:
-  - {label: CONTROL, prefix: CTRL, home: controls}
+  # CONTROL declares the M42 field vocabulary (M43 Part C): the four facts a
+  # control statement is made of. OPTIONAL metadata — documentation for the
+  # drafter and vocabulary for consumers (scripts/hygiene.py's thin-CTRL
+  # feeder reads the names from here rather than typing them). NOT a parse
+  # gate: a prose-only CTRL parses exactly as it always has, and whether the
+  # prose carries these facts is the librarian's judgment, not the kernel's.
+  - {label: CONTROL, prefix: CTRL, home: controls,
+     fields: [Performer, Comparison, Trigger, Evidence]}
   - {label: VALIDATION REQUIRED, prefix: GAP, home: issues}
   - {label: PAIN POINT, prefix: PP, home: issues}
   - {label: IMPROVEMENT OPPORTUNITY, prefix: IO, home: issues}

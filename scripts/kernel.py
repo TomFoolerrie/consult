@@ -46,10 +46,20 @@ class PartDecl:
 
 @dataclass
 class CalloutDecl:
-    """One admitted callout kind (general form of LABEL_TO_PREFIX + home)."""
+    """One admitted callout kind (general form of LABEL_TO_PREFIX + home).
+
+    `fields` is OPTIONAL declaration metadata (M43 Part C): the sub-field
+    vocabulary this callout kind carries when the sources support it, e.g.
+    process-step's CONTROL and its four M42 field names. It is DOCUMENTATION
+    plus vocabulary for consumers (scripts/hygiene.py reads the names from
+    here instead of typing prose constants) and is NEVER a parse gate — a
+    fragment whose callout declares none of these fields parses exactly as it
+    did before the key existed. A callout kind that declares no fields
+    carries the empty tuple."""
     label: str
     prefix: str
     home: str  # part slug the callout is homed to
+    fields: tuple[str, ...] = ()
 
 
 @dataclass
@@ -90,7 +100,7 @@ _ALLOWED_TOP_KEYS = {
     "type", "parts", "callouts", "channels", "letter_aliases", "slug_aliases",
 }
 _ALLOWED_PART_KEYS = {"slug", "title", "kind", "title_aliases"}
-_ALLOWED_CALLOUT_KEYS = {"label", "prefix", "home"}
+_ALLOWED_CALLOUT_KEYS = {"label", "prefix", "home", "fields"}
 _ALLOWED_CHANNEL_KEYS = {"name", "registry"}
 
 
@@ -185,7 +195,18 @@ def _parse_decl(path: Path, data) -> TypeDecl:
             raise TypeDeclError(
                 f'{fname}: callout "{label}" homed to undeclared part '
                 f'"{home}"')
-        callouts.append(CalloutDecl(label=label, prefix=prefix, home=home))
+        raw_fields = entry.get("fields")
+        if raw_fields is None:
+            fields: tuple[str, ...] = ()
+        else:
+            if not isinstance(raw_fields, list) or not all(
+                    isinstance(f, str) and f.strip() for f in raw_fields):
+                raise TypeDeclError(
+                    f'{fname}: {where} ("{label}") "fields" must be a list of '
+                    f"non-empty strings (got {raw_fields!r})")
+            fields = tuple(f.strip() for f in raw_fields)
+        callouts.append(CalloutDecl(label=label, prefix=prefix, home=home,
+                                    fields=fields))
 
     channels: list[ChannelDecl] = []
     raw_channels = data.get("channels") or []
