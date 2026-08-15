@@ -1,0 +1,153 @@
+# kernel/deliverables/desktop-procedure.yaml — v1's deliverable WRITTEN DOWN
+# in the M35 definition language (docs/v2/M35-deliverable-definitions.md).
+#
+# This is the M36 gate's subject and the worked example every user definition
+# copies from. The block ORDER below is v1's document order, taken from the
+# frozen p2p manifest (tests/fixtures/p2p-complete/.../manifest.json): the
+# static process overview, the three front derived views, the per-procedure
+# bodies, then the agent-written pair and the three appendices. A view
+# block's `id` IS its derived kind (what aggregate builds, what the plan
+# dispatches); `writer` is v1's writer for that kind, unchanged.
+#
+# Bindings name only vocabulary the `activity` type declares
+# (kernel/types/activity.yaml): its seven part slugs, its five callout kinds,
+# and its two binding channels. Nothing here names a font (that is skin's
+# job); nothing in skin names an entity type.
+
+deliverable: desktop-procedure
+
+shape:
+  - id: process-overview
+    title: Process Overview
+    kind: static
+    numbering: none
+    text: |
+      This document describes the current-state desktop procedures for the
+      process area, as observed with the process owners. Each procedure is
+      recorded as written today, not as designed; gaps and improvement
+      opportunities are captured in the appendices rather than resolved
+      inline.
+
+  - id: procedure-index
+    title: In-Scope Procedures
+    kind: view
+    writer: python
+    binding: procedures
+    numbering: none
+
+  - id: role-dictionary
+    title: Role Dictionary
+    kind: view
+    writer: python
+    binding: roles
+    numbering: none
+
+  - id: systems
+    title: Systems & Data Inputs
+    kind: view
+    writer: python
+    binding: systems
+    numbering: none
+
+  # The body: every hand-authored procedure, all seven parts, in manifest
+  # order. `repeat` is DATA here — compiling it is WP-D2's job.
+  - id: procedure-body
+    title: Procedures
+    kind: entity-part
+    binding: procedure-parts
+    repeat: {over: activity, order: manifest}
+    numbering: procedure
+
+  - id: dependencies
+    title: Key Dependencies
+    kind: view
+    writer: agent
+    binding: dependencies
+    numbering: none
+
+  - id: raci
+    title: RACI Matrix
+    kind: view
+    writer: agent
+    binding: role-matrix
+    numbering: none
+
+  - id: appendix-a
+    title: Appendix A — Risks, Pain Points & Improvement Opportunities
+    kind: view
+    writer: python
+    binding: risks-and-opportunities
+    numbering: appendix
+
+  - id: gap-log
+    title: Appendix B — Gap / Validation Log
+    kind: view
+    writer: python
+    binding: open-gaps
+    numbering: appendix
+
+  - id: screenshot-index
+    title: Appendix C — Screenshot / Evidence Index
+    kind: view
+    writer: python
+    binding: screenshots
+    numbering: appendix
+
+bindings:
+  # Every procedure, manifest order — the index and the dependency narrative
+  # both read the same selection.
+  procedures:
+    entities: activity
+    order: manifest
+
+  procedure-parts:
+    entities: activity
+    parts: [scope, quick-reference, before-you-start, steps, outputs,
+            controls, issues]
+    order: manifest
+
+  dependencies:
+    entities: activity
+    parts: [scope, before-you-start, outputs]
+    order: manifest
+
+  # The consult-meta binding channels (activity declares systems + roles).
+  roles:
+    entities: activity
+    channels: [roles]
+
+  systems:
+    entities: activity
+    channels: [systems]
+
+  role-matrix:
+    entities: activity
+    channels: [roles]
+    order: manifest
+
+  # The callout-fed appendices.
+  risks-and-opportunities:
+    entities: activity
+    callouts: [CONTROL, PAIN POINT, IMPROVEMENT OPPORTUNITY]
+    group_by: activity
+
+  open-gaps:
+    entities: activity
+    callouts: [VALIDATION REQUIRED]
+    order: manifest
+
+  screenshots:
+    entities: activity
+    callouts: [SCREENSHOT PLACEHOLDER]
+    order: manifest
+
+skin:
+  format: docx
+  requires:
+    - toc
+    - cover-page
+    - document-control
+    - numbering-display
+    - portrait-tables
+    - landscape-tables
+    - tracked-changes
