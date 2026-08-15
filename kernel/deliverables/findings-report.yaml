@@ -1,0 +1,78 @@
+# kernel/deliverables/findings-report.yaml — the findings report (M39 Part C,
+# docs/v2/M39-analysis-verbs.md).
+#
+# What it is for: every deliverable shipped before this one renders what the
+# engagement RECORDED — procedures, matrices, information requests, all of them
+# in the client's or the source's voice. This is the first one that renders what
+# the system THINKS: accepted findings, grouped by theme, each carrying the
+# grounds it rests on so a reader can trace the claim back through the SRC chain
+# to the interview or document it came from.
+#
+# THE ONE NEW THING IN THE LANGUAGE HERE is the `findings` binding verb
+# (admitted in scripts/definitions.py, which names THIS definition as its
+# consumer). Like M37's `coverage` it binds a DERIVED population rather than an
+# entity selection: `entities:`/`parts:`/`callouts:` cannot express it, because a
+# finding is not a fragment in an area's corpus — it is an entry in the
+# engagement findings register (`_registers/findings.yaml`, written only by
+# scripts/findings.py), reached through `findings.renderable()`.
+#
+# `findings: accepted` is written out rather than implied. The loader refuses
+# any other status (see _check_findings_shape): a proposed finding has not been
+# through the human gate and a rejected one was set aside, so neither may reach
+# a rendered document — and a reader of this file can see that rule being obeyed
+# instead of having to trust the feeder.
+#
+# `group_by: theme` is ordinary M35 vocabulary (the same compile-time verb the
+# desktop-procedure's derived views use). Themes are the analyst's clustering,
+# so the report's section structure is data, not shape: one grouped view block,
+# however many themes the engagement produced.
+#
+# SERVICEABILITY (honest, per M35): an engagement with no findings file — or one
+# whose findings are all still proposed or rejected — reports a "not yet" naming
+# findings (definitions._findings_gaps). That is the expected state for every
+# engagement that has not yet run an analysis verb, and it is a report, never a
+# refusal.
+#
+# NOT SHIPPED HERE, recorded: the observations appendix M39 Part C describes
+# (accepted findings relevant to ONE area, composed into the desktop procedure)
+# needs an area filter on the findings verb — a second value, deliberately a
+# later ticket rather than a speculative key today.
+
+deliverable: findings-report
+
+shape:
+  - id: findings-preamble
+    title: About These Findings
+    kind: static
+    numbering: none
+    text: |
+      The findings below are our assessment of the current state as we
+      documented it, not a further record of what we were told. Each finding
+      states a claim and lists the grounds it rests on — the interviews,
+      documents and process points behind it — so that every claim can be
+      traced back to its evidence. Findings are grouped by theme; a theme
+      carrying several findings is friction we saw in more than one place.
+      Nothing appears here that has not been reviewed and accepted: claims we
+      considered and set aside are kept in the engagement record, deliberately
+      out of this document.
+
+  - id: findings-by-theme
+    title: Findings
+    kind: view
+    writer: python
+    binding: accepted-findings
+    numbering: none
+
+bindings:
+  # The findings feeder. No `entities:` key by design — see the header: this is
+  # a register selection, computed on demand from the findings register, and
+  # `accepted` is the only status that may reach a render.
+  accepted-findings:
+    findings: accepted
+    group_by: theme
+
+skin:
+  format: docx
+  requires:
+    - cover-page
+    - portrait-tables

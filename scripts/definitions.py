@@ -130,7 +130,24 @@ _ALLOWED_BINDING_KEYS = {"entities", "parts", "callouts", "channels",
                          # differ in nothing else), which is why it belongs in
                          # bindings rather than in skin. Boolean-only —
                          # see _check_count_shape.
-                         "count"}
+                         "count",
+                         # M39: the FINDINGS verb — the analysis layer's
+                         # population, admitted exactly like `coverage` was.
+                         # Consumer: kernel/deliverables/findings-report.yaml,
+                         # binding `accepted-findings` — `{findings: accepted,
+                         # group_by: theme}`. Like `coverage` it names no entity
+                         # type: a finding is not an entity in an area's corpus,
+                         # it is an entry in the engagement findings register
+                         # (scripts/findings.py), reached through
+                         # `findings.renderable()` — so there is nothing for the
+                         # declaration half of stage 2 to check, and its
+                         # value-shape check (below) is the whole of stage 2 for
+                         # it. Status-valued rather than boolean because the
+                         # lifecycle IS the point: `accepted` is the only status
+                         # a rendered deliverable may bind, and saying so in the
+                         # definition keeps that visible to a reader of the YAML
+                         # instead of hiding it inside the feeder.
+                         "findings"}
 
 #: The coverage statuses a `coverage:` binding may name. Four come straight from
 #: coverage_map.coverage()'s contract; `thin` is the SURVEYOR's sufficiency word
@@ -145,6 +162,19 @@ _ALLOWED_COVERAGE_STATUSES = {"conflicted", "evidenced", "sourced", "claimed",
 #: of M37 Part A); the key exists so a second domain arrives as a new value
 #: rather than as a reinterpretation of an implicit one.
 _ALLOWED_COVERAGE_DOMAINS = {"taxonomy"}
+
+#: The finding statuses a `findings:` binding may name (M39). Kept here rather
+#: than imported from findings.py for the same reason the coverage statuses are:
+#: stage 2 must stay loadable with zero engagement and zero analysis machinery —
+#: this is a VALUE-SHAPE check, not a computation. Parity with
+#: findings.STATUSES is test-enforceable and the vocabulary is closed.
+_ALLOWED_FINDING_STATUSES = {"proposed", "accepted", "rejected"}
+
+#: The one status a RENDERED deliverable may bind (M39: `findings.renderable()`
+#: is accepted-only). A definition naming any other status is refused rather
+#: than silently narrowed — a report that thinks it renders proposals is a
+#: definition defect, not a presentation choice.
+_RENDERABLE_FINDING_STATUS = "accepted"
 _ALLOWED_SKIN_KEYS = {"format", "requires"}
 
 #: Renderer capability registry — renderers DECLARE what they can do and the
@@ -357,6 +387,36 @@ def _check_count_shape(fname: str, bname: str, spec: dict) -> None:
             f"selection to count")
 
 
+def _check_findings_shape(fname: str, bname: str, spec: dict) -> None:
+    """Stage-2's check for a `findings:` binding (M39).
+
+    Same situation as `coverage`: no entity type, so the declaration half of
+    stage 2 is vacuous and what remains is the VALUE SHAPE — a single status
+    name from a closed vocabulary, which must be the renderable one, and no
+    entity population in the same binding (a register selection and an entity
+    population are two different queries; one binding, one query). The
+    accepted-only rule is enforced HERE, at load, so a definition can never
+    quietly ask a renderer for unconfirmed analysis."""
+    if "findings" not in spec:
+        return
+    if "entities" in spec:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" names both "findings" and "entities" '
+            f"— a findings-register selection and an entity population are two "
+            f"different queries; use two bindings")
+    status = spec["findings"]
+    if not isinstance(status, str) or status.strip() not in \
+            _ALLOWED_FINDING_STATUSES:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" "findings" must be one status name '
+            f"(known: {sorted(_ALLOWED_FINDING_STATUSES)}; got {status!r})")
+    if status.strip() != _RENDERABLE_FINDING_STATUS:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" binds "{status.strip()}" findings — '
+            f'only "{_RENDERABLE_FINDING_STATUS}" findings may reach a '
+            f"rendered deliverable (M39: the human gate)")
+
+
 def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     """Every type / part / callout kind / channel a binding names must be
     DECLARED by that binding's entity type (kernel.load_type)."""
@@ -365,6 +425,7 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     for bname, spec in defn.bindings.items():
         _check_coverage_shape(fname, bname, spec)      # M37, see below
         _check_count_shape(fname, bname, spec)         # M38, see above
+        _check_findings_shape(fname, bname, spec)      # M39, see above
 
         tname = spec.get("entities")
         if tname is None:
@@ -433,6 +494,14 @@ _CAN_SERVE_KEYS = ("entities", "parts", "callouts", "channels")
 #: loaded (it must answer for a v1 area that has none). Also the entity home for
 #: the directory-resident lookup below.
 _TAXONOMY_DIRNAME = "_taxonomy"
+
+#: The engagement findings register's home (scripts/findings.py's convention,
+#: mirrored — see _findings_gaps for why it is not imported). At the engagement
+#: ROOT, deliberately outside components/: M39's one-direction rule forbids an
+#: analysis verb to write anywhere in the capture layer, which is why findings
+#: cannot live in M30's `components/_client/registers/` home.
+_FINDINGS_DIRNAME = "_registers"
+_FINDINGS_FILENAME = "findings.yaml"
 
 #: The manifest component `role` that holds each entity type's entities in an
 #: engagement area. v1's areas carry exactly one entity population — the
@@ -569,6 +638,44 @@ def _coverage_gaps(bname: str, spec: dict, area: Path) -> list[str]:
             f"coverage has nothing to report"]
 
 
+def _findings_gaps(bname: str, spec: dict, area: Path) -> list[str]:
+    """The engagement half of serviceability for a `findings:` binding (M39).
+
+    Like `_coverage_gaps`, kernel.can_serve cannot answer this at all (no entity
+    type, no registry file), so the whole question is engagement-side. The
+    precondition is the ENGAGEMENT's findings register, not the area's corpus:
+    an engagement with no findings file, or one whose findings are all still
+    proposed or rejected, has nothing a findings report could render — and that
+    is a **"not yet"**, never a refusal. The gap names findings explicitly so
+    the reader knows what to go and do (propose findings, then accept them at
+    the gate).
+
+    Read-only, and it does not import findings.py: one file existence check and
+    one YAML read is cheaper than the analysis machinery, and serviceability
+    must stay answerable for an engagement that has never run an analysis verb.
+    The path convention is findings.py's, mirrored here for the same reason
+    `_TAXONOMY_DIRNAME` mirrors coverage_map's."""
+    root = _engagement_root(area)
+    status = str(spec.get("findings") or "accepted").strip()
+    fpath = None if root is None else \
+        root / _FINDINGS_DIRNAME / _FINDINGS_FILENAME
+    entries: list = []
+    if fpath is not None and fpath.is_file():
+        try:
+            data = yaml.safe_load(fpath.read_text(encoding="utf-8")) or {}
+        except (OSError, yaml.YAMLError):
+            data = {}
+        if isinstance(data, dict) and isinstance(data.get("findings"), list):
+            entries = [e for e in data["findings"] if isinstance(e, dict)
+                       and e.get("status") == status]
+    if entries:
+        return []
+    where = f"{_FINDINGS_DIRNAME}/{_FINDINGS_FILENAME}"
+    return [f'binding "{bname}": this engagement holds no {status} findings '
+            f"yet ({where} is absent or carries none), so the findings report "
+            f"has nothing to render"]
+
+
 def serviceability(defn: Definition, area) -> list[str]:
     """Can this engagement area serve every binding of this definition?
 
@@ -587,6 +694,9 @@ def serviceability(defn: Definition, area) -> list[str]:
     for bname, spec in defn.bindings.items():
         if "coverage" in spec:
             gaps.extend(_coverage_gaps(bname, spec, area))
+            continue
+        if "findings" in spec:
+            gaps.extend(_findings_gaps(bname, spec, area))
             continue
 
         requirements = {k: spec[k] for k in _CAN_SERVE_KEYS if k in spec}
