@@ -297,6 +297,74 @@ def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
 SEAM_SECTIONS = "Scope, At a Glance, Outputs & Evidence"
 
 
+# --------------------------------------------------------------------------- #
+# M43 Part B — the unit line
+#
+# WHICH DRAFTING PATH the drafter reads is not a new dispatch key and not a
+# hand-typed flag: the definition layer already knows what an area is made of.
+# The area's RESOLVED deliverable definition carries an entity-part binding (a
+# binding that selects `parts` of an entity), and that binding NAMES its entity
+# type — `process-step` (the M43 Part A path) or `activity` (the v1
+# seven-section path). We read that name and print it. Nothing is decided here.
+#
+# Which definition is the area's is read the same mechanical way: the manifest's
+# derived components carry `derived_kind` values, and a derived kind that names
+# an installed deliverable is that deliverable (the IPO area's
+# `process-controls-matrix`); an area whose derived kinds are all blocks of the
+# default deliverable (every v1 area) resolves the default. Manifest order
+# decides, so the read is deterministic.
+#
+# LOUD fallback, never a dead dispatch: `resolve_definition` raises on config
+# problems (a broken user definition, an unreadable profile), and a broken
+# definition must not stop a drafter from drafting. The line then states the
+# default AND names the error — the drafter reports it instead of guessing.
+#: The unit the v1 seven-section path drafts — the stated default.
+DEFAULT_UNIT = "activity"
+
+
+def _entity_part_unit(defn) -> str | None:
+    """The entity type named by `defn`'s entity-part binding, or None when the
+    definition binds no parts of any entity (a channels/callouts-only
+    deliverable has no drafting unit to report)."""
+    for spec in (defn.bindings or {}).values():
+        if not isinstance(spec, dict) or not spec.get("parts"):
+            continue
+        ent = spec.get("entities")
+        if isinstance(ent, str) and ent.strip():
+            return ent.strip()
+    return None
+
+
+def _unit_line(folder: Path, manifest: dict) -> str:
+    """The `YOUR UNIT` line's text — one line, always."""
+    try:
+        import definitions
+        names = []
+        for comp in manifest.get("components", []):
+            kind = comp.get("derived_kind")
+            if isinstance(kind, str) and kind and kind not in names:
+                names.append(kind)
+        defn = None
+        for name in names:
+            try:
+                defn = definitions.resolve_definition(folder, name)
+                break
+            except Exception:                   # not this area's deliverable
+                defn = None
+        if defn is None:
+            defn = definitions.resolve_definition(folder)
+        unit = _entity_part_unit(defn)
+        if unit is None:
+            return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
+                    f"resolved: {defn.name} binds no entity parts)")
+        return f"YOUR UNIT: {unit}  (deliverable definition: {defn.name})"
+    except Exception as exc:                    # noqa: BLE001 - loud fallback
+        return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
+                f"resolved: {type(exc).__name__}: {exc}) "
+                f"[report this in your return — the definition layer is "
+                f"broken, the drafting path below is the v1 default]")
+
+
 def drafter_brief(folder: Path, manifest: dict, slug: str,
                   mode: str | None = None) -> str:
     procs = _procedures(manifest)
@@ -323,6 +391,9 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
         _line(out, f"  mode (relayed from your dispatch): {mode}"
                    + ("  [MISMATCH vs fragment state above — report it, "
                       "do not guess]" if mismatch else ""))
+    # M43 Part B: which drafting path your contract sends you to. It precedes
+    # the reading list on purpose — it selects which instructions you read.
+    _line(out, "  " + _unit_line(folder, manifest))
     _line(out)
 
     _profile_block(out, folder)

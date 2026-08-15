@@ -443,6 +443,88 @@ def _print_objective_section(root: Path) -> None:
     print()
 
 
+def _print_hygiene_section(root: Path) -> None:
+    """CALLOUT HYGIENE (M43 Part E) — the librarian's grooming trigger, fed.
+
+    `scripts/hygiene.py` computes the candidates; this prints them. Lazy import
+    for the same reason `_print_objective_section` imports brief lazily: the
+    placement brief must not acquire a hard import edge on a module it only
+    reads. Compact by contract — counts per kind, then one line per candidate
+    (all of them: the librarian needs the list, and thin-CTRL candidates flag
+    every prose-only control BY DESIGN) — never a wall of grounds.
+
+    A refusing generator (`HygieneError`, or a missing module) is named LOUD and
+    does not take the pass with it: the M41 objective-section precedent, same
+    reasoning — the pass has other findings to deliver."""
+    print("CALLOUT HYGIENE (mechanical candidates for your grooming "
+          "judgment — candidates, never verdicts; you read the words and "
+          "decide):")
+    try:
+        import hygiene
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        print(f"  UNREADABLE — the hygiene feeder did not import "
+              f"({type(exc).__name__}: {exc}); groom from the register above "
+              f"and say so in your status.")
+        print()
+        return
+
+    # The feeder is ENGAGEMENT-scoped (it walks `<root>/components/*`), while
+    # this pass is handed the components dir itself. Hand it the engagement
+    # root, and refuse to guess if the shape is not the one we know.
+    eng_root = root.parent if root.name == "components" else root
+    if not (eng_root / "components").is_dir():
+        print(f"  UNREADABLE — {root} is not a components/ dir under an "
+              f"engagement root; the hygiene feeder is engagement-scoped and "
+              f"will not guess the walk.")
+        print()
+        return
+
+    total = 0
+    for kind, gen in ((hygiene.KIND_DUPLICATE_GAPS,
+                       hygiene.duplicate_gap_candidates),
+                      (hygiene.KIND_GAP_ANSWERED,
+                       hygiene.answered_gap_candidates),
+                      (hygiene.KIND_CTRL_MISSING_FIELD,
+                       hygiene.thin_ctrl_candidates)):
+        try:
+            cands = gen(eng_root)
+        except hygiene.HygieneError as exc:
+            print(f"  {kind}: UNREADABLE — {exc}")
+            continue
+        except Exception as exc:                 # noqa: BLE001 - loud, not fatal
+            print(f"  {kind}: UNREADABLE — {type(exc).__name__}: {exc}")
+            continue
+        print(f"  {kind}: {len(cands)}")
+        total += len(cands)
+        for c in cands:
+            if kind == hygiene.KIND_DUPLICATE_GAPS:
+                ids, areas_, slugs = c["ids"], c["areas"], c["slugs"]
+                print(f"    - {ids[0]} ({areas_[0]}/{slugs[0]}) ≈ "
+                      f"{ids[1]} ({areas_[1]}/{slugs[1]})  "
+                      f"overlap {c['similarity']}: "
+                      f"{_one_line(c['texts'][0])} || "
+                      f"{_one_line(c['texts'][1])}")
+            elif kind == hygiene.KIND_GAP_ANSWERED:
+                print(f"    - {c['id']} ({c['area']}/{c['slug']}) ← "
+                      f"{c['src']} ({c['src_file']}), tagged not consumed"
+                      + (f"; note: {_one_line(c['note'])}" if c['note'] else "")
+                      + f"  gap: {_one_line(c['text'])}")
+            else:
+                print(f"    - {c['id']} ({c['area']}/{c['slug']}) missing "
+                      f"{', '.join(c['missing'])}: {_one_line(c['text'])}")
+    if total == 0:
+        print("  none — no duplicate-gap pairs, no gap a tagged-unconsumed "
+              "source may answer, no control missing a declared field. "
+              "Nothing to groom mechanically.")
+    print()
+
+
+def _one_line(text: str, limit: int = 160) -> str:
+    """One line, bounded — the compactness the section promises."""
+    s = " ".join(str(text or "").split())
+    return s if len(s) <= limit else s[:limit - 1] + "…"
+
+
 def placement_brief(root: Path, full: bool = False) -> str:
     """The placement brief's TEXT (M41: the librarian's objective section made
     the return value, so callers can read the brief they print). `main` prints
@@ -468,6 +550,9 @@ def _placement_brief(root: Path, full: bool = False) -> int:
               f"least two areas under one components/ dir.")
         print()
         _print_objective_section(root)
+        # Hygiene is engagement-scoped and needs no second area — a one-area
+        # engagement still has callouts to groom.
+        _print_hygiene_section(root)
         return 2 if not areas else 0
     print(f"WORK ORDER — knowledge-placement pass "
           f"({'FULL READ' if full else 'digest'}) · {root}")
@@ -560,6 +645,7 @@ def _placement_brief(root: Path, full: bool = False) -> int:
     for ln in lines:
         print(ln)
     print()
+    _print_hygiene_section(root)
     if full:
         total_chars = 0
         blocks: list[str] = []
@@ -602,7 +688,10 @@ def _placement_brief(root: Path, full: bool = False) -> int:
     print("WHAT YOU RETURN (COMPACT): findings per move; register "
           "proposals (file, key, suggested content, which procedures "
           "currently restate it); policy/control items (unresolved); "
-          "unmatched gaps count; needs_full_read. Never paste digests or "
+          "unmatched gaps count; needs_full_read; callout_grooming (your "
+          "verdicts on the CALLOUT HYGIENE candidates: `duplicate-gaps`, "
+          "`gap-likely-answered`, `ctrl-missing-field` — the candidate ids "
+          "you accept, with the move you propose). Never paste digests or "
           "fragment text back.")
     return 0
 

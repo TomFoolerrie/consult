@@ -133,11 +133,15 @@ trigger, the output shape is the same: notes with evidence.
      gate (M39). Your grooming is about the population's *hygiene* —
      duplication, unread evidence, incomplete records — never about whether
      the controls are any good.
-   - **The mechanical feeder does not exist yet.** A deterministic
-     duplicate/field report is deferred (M43); until it lands, these
-     candidates come from your own read of the brief's open-gaps findings
-     and the fragments it points you at. Say so when your confidence is
-     thin, and never propose churn on a hunch (hard rule 7).
+   - **The mechanical feeder is the brief's CALLOUT HYGIENE section**
+     (`scripts/hygiene.py`, printed by the placement brief right after the
+     open-gap register). It lists, with grounds in the corpus's own words,
+     the near-duplicate GAP pairs, the gaps a tagged-but-unconsumed source
+     may already answer, and the CTRLs missing a declared field — the same
+     three kinds, unchanged. The candidates are mechanical; the judgment is
+     yours: read the words the section hands you (and the fragments it
+     points at) before you accept one, say so when your confidence is thin,
+     and never propose churn on a hunch (hard rule 7).
 
 ## What you propose — five moves, each as a note with evidence
 
