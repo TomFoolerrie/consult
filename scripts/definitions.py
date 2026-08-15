@@ -31,7 +31,7 @@ import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles
 
 import json
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import yaml
@@ -60,6 +60,10 @@ class Block:
     numbering: str | None = None    # display-only numbering scheme
     text: str | None = None         # static blocks: the fixed prose
     writer: str | None = None       # view blocks: python | agent
+    #: WP-D3 profile shading: parts this block still BINDS (they are drafted,
+    #: aggregated and register-collected) but which the M14 profile keeps out
+    #: of the rendered body (`body_omit`). Empty on every unshaded block.
+    body_omit: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -77,6 +81,12 @@ class Definition:
     bindings: dict[str, dict] = field(default_factory=dict)
     skin: Skin | None = None
     path: Path | None = None
+    #: WP-D3: the M14 document-profile provenance line for the area this
+    #: definition was resolved for (`client_config.Profile.report_line()`).
+    #: None when the definition was loaded without an area (no profile in
+    #: play); the unconfigured line ("… none (full A–G, nothing omitted)")
+    #: when an area has no `profile:` key anywhere.
+    provenance: str | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -518,3 +528,175 @@ def load_definition(name: str, area=None) -> Definition:
             f"(looked for a user definition under components/_client/"
             f"deliverables/ and the shipped {shipped})")
     return load_definition_file(shipped)
+
+
+# --------------------------------------------------------------------------- #
+# WP-D3 — the M14 PROFILE ALIAS
+#
+# An engagement that never wrote a deliverable definition is not
+# undefined: it has an M14 document profile, and a profile is exactly a set
+# of SUBTRACTIONS from v1's document. So `resolve_definition(area)` routes:
+#
+#   * the area's engagement carries `_client/deliverables/` with files ->
+#     the ORDINARY load path (user file shadows shipped; this function is
+#     just routing, no shading — a hand-written definition is the whole
+#     truth about its own shape);
+#   * otherwise -> the shipped desktop-procedure definition with the area's
+#     profile applied as subtractions.
+#
+# Subtractions, all three of them (nothing is ever ADDED — a profile cannot
+# invent a block, so a `derived:` entry with no block in the shipped shape,
+# e.g. `appendix-controls`, is a no-op here):
+#
+#   1. dropped sections  — a section absent from `sections:` does not exist
+#      at all, so its part slug is removed from every binding's `parts:`
+#      (sections and the `activity` type's part slugs are the same seven
+#      names, one-to-one). A binding left with no parts at all loses its
+#      `parts:` key rather than carrying an empty selection.
+#   2. `body_omit`       — the section EXISTS (it is drafted, aggregated and
+#      caught by its register) but is not rendered in the procedure body.
+#      That is a render fact, not a subtraction from the binding, so it is
+#      recorded on the affected block as `Block.body_omit` and its part stays
+#      in the binding.
+#   3. pruned derived    — a view block whose id is not in `derived:` leaves
+#      the shape. Bindings orphaned by that pruning are dropped too, so
+#      serviceability does not report gaps for work the profile cancelled.
+#
+# The shaded definition is RE-VALIDATED through stages 1, 2 and 4 before it
+# is returned: shading is a transformation of the language, so its output has
+# to be a legal definition by the same loader that admits hand-written ones.
+# --------------------------------------------------------------------------- #
+
+#: The shipped definition the profile alias shades. v1's document.
+DEFAULT_DEFINITION = "desktop-procedure"
+
+
+def _definition_to_raw(defn: Definition) -> dict:
+    """Serialize a Definition back into the raw mapping the loader admits.
+
+    Used only by the profile alias, so that a shaded definition is proven
+    legal by the SAME stages a hand-written file passes (never a private
+    "trust me" path). `body_omit` is deliberately NOT serialized: it is
+    render-side bookkeeping, not language syntax, and stage 1 would refuse
+    the unknown block key."""
+    shape = []
+    for b in defn.shape:
+        entry: dict = {"id": b.id, "title": b.title, "kind": b.kind}
+        for key, val in (("binding", b.binding), ("repeat", b.repeat),
+                         ("numbering", b.numbering), ("text", b.text),
+                         ("writer", b.writer)):
+            if val is not None:
+                entry[key] = val
+        shape.append(entry)
+    raw = {"deliverable": defn.name, "shape": shape,
+           "bindings": {k: dict(v) for k, v in defn.bindings.items()}}
+    if defn.skin is not None:
+        raw["skin"] = {"format": defn.skin.format,
+                       "requires": list(defn.skin.requires)}
+    return raw
+
+
+def _revalidate(defn: Definition, path: Path) -> Definition:
+    """Run stages 1, 2 and 4 over a shaded definition and return the result.
+
+    `Block.body_omit` cannot survive the round trip (it is not language), so
+    it is carried across by block id afterwards."""
+    raw = _definition_to_raw(defn)
+    fresh = _stage1_syntax(path, raw)
+    _stage2_vocabulary(fresh, path)
+    fresh.skin = _stage4_skin(fresh, path, raw.get("skin"))
+    fresh.path = defn.path
+    omits = {b.id: list(b.body_omit) for b in defn.shape if b.body_omit}
+    for block in fresh.shape:
+        block.body_omit = omits.get(block.id, [])
+    return fresh
+
+
+def _shade_with_profile(defn: Definition, prof) -> Definition:
+    """Apply one resolved M14 Profile to a definition as SUBTRACTIONS."""
+    dropped = prof.dropped_sections()
+    omitted = set(prof.body_omit)
+
+    bindings: dict[str, dict] = {}
+    for bname, spec in defn.bindings.items():
+        spec = dict(spec)
+        parts = spec.get("parts")
+        if parts is not None:
+            if isinstance(parts, str):
+                parts = [parts]
+            kept = [p for p in parts if p not in dropped]
+            if kept:
+                spec["parts"] = kept
+            else:
+                spec.pop("parts", None)
+        bindings[bname] = spec
+
+    shape: list[Block] = []
+    for block in defn.shape:
+        if block.kind == "view" and not prof.wants(block.id):
+            continue                      # (3) the profile cancelled this view
+        block = replace(block)            # never mutate the loaded definition
+        spec = bindings.get(block.binding) if block.binding else None
+        parts = spec.get("parts") if isinstance(spec, dict) else None
+        if isinstance(parts, str):
+            parts = [parts]
+        if parts:
+            block.body_omit = [p for p in parts if p in omitted]  # (2)
+        shape.append(block)
+
+    referenced = {b.binding for b in shape if b.binding}
+    bindings = {k: v for k, v in bindings.items() if k in referenced}
+
+    return Definition(name=defn.name, shape=shape, bindings=bindings,
+                      skin=defn.skin, path=defn.path)
+
+
+def _has_user_deliverables(area) -> bool:
+    """Does this area's engagement carry a non-empty `_client/deliverables/`?"""
+    root = _engagement_root(area)
+    if root is None:
+        return False
+    ddir = root / "components" / "_client" / "deliverables"
+    return ddir.is_dir() and any(p.is_file() for p in ddir.iterdir())
+
+
+def resolve_definition(area, name: str = DEFAULT_DEFINITION) -> Definition:
+    """The definition to build for `area` — the M14 profile alias (WP-D3).
+
+    Routing (see the block comment above): an engagement that authored
+    definitions gets the ordinary shadowing load path; an engagement that did
+    not gets the shipped desktop-procedure definition shaded by its M14
+    profile. An UNCONFIGURED profile (no `profile:` key in any layer) leaves
+    the shipped definition unchanged — the M14 "absent profile = today"
+    posture, mirrored here.
+
+    The profile is read through `client_config.profile(area)` — the one
+    accessor; this module never parses profile YAML. Its provenance line
+    (`Profile.report_line()`) is surfaced on the returned
+    `Definition.provenance` so a caller can print WHICH layer shaped the
+    document, exactly as scaffold and render do."""
+    import client_config          # local: keeps definitions importable alone
+
+    area = Path(area)
+    prof = client_config.profile(area)
+    line = prof.report_line()
+
+    if _has_user_deliverables(area):
+        defn = load_definition(name, area=area)
+        defn.provenance = line
+        return defn
+
+    defn = load_definition(name)
+    if prof.configured:
+        defn = _revalidate(_shade_with_profile(defn, prof),
+                           defn.path or Path(f"{name}.yaml"))
+    defn.provenance = line
+    return defn
+
+
+def render_plan(plan: Plan, area, out_path, **kwargs) -> dict:
+    """Render a compiled Plan to a .docx. See scripts/render_glue.py for the
+    fidelity statement — this is a convenience delegate so callers that
+    already hold `definitions` do not need a second import."""
+    import render_glue
+    return render_glue.render_plan(plan, area, out_path, **kwargs)
