@@ -1,6 +1,31 @@
 # M39 — Analysis verbs: findings over the brain
 
-> **Status: DRAFT — contract under review.** Companions: M33 (the graph
+> **Status: BUILT (2.0.0-alpha.9)** — `scripts/findings.py` (the lifecycle
+> M30 A1 deferred: FIND- ids, grounds-or-refused with engagement-wide
+> resolution, terminal reject, accepted-only renderability, the
+> one-direction rule structural and fingerprint-pinned),
+> `scripts/analysis.py` (three declaration-driven read-only candidate
+> generators), `kernel/deliverables/findings-report.yaml` (the findings
+> verb, accepted-only enforced at load), `agents/consult-analyst.md`
+> (the one assessment license). Gates: `tests/test_findings_m39.py`
+> 11/11; suite 1056 passed, 1 pinned xfail. Build records:
+> [`M39-build-plan.md`](M39-build-plan.md),
+> [`notes/m39-analyst-self-review.md`](notes/m39-analyst-self-review.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) findings live at the
+> engagement-root `_registers/findings.yaml` — the one-direction rule
+> overrode M30's register home (which is under `components/`);
+> (2) grounds resolve against ledger ∪ declaration-parsed corpus ∪
+> manifests, assembled per call, no labels typed; (3) the pain kind is
+> derived by subtraction across shipped definitions — honest but
+> indirect; a semantic marker on callout declarations is the recorded
+> clean fix; (4) rendering the findings report end-to-end waits on the
+> M38-recorded definition-views-to-manifest gap; (5) follow-ups
+> recorded: an `analysis.py brief` CLI, the analyst dispatch hint, a
+> `conflict_records` extractor (verb 3's material), severity/resolution
+> slots on propose, owner-change detection, engagement-wide pain
+> clustering; (6) findings serviceability is engagement-uniform — the
+> per-area observations appendix needs an area filter on the verb. Companions: M33 (the graph
 > these verbs read; PAIN callouts are their named raw material), M30 (the
 > register machinery findings land in), M37 (whose conflicts and coverage
 > feed the analysis substrate; whose observe-never-adjudicate line this

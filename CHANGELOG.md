@@ -15,6 +15,15 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M39 — analysis verbs: the spine complete** (`2.0.0-alpha.9`):
+  findings as a register-class citizen with the lifecycle M30 deferred
+  (grounds-or-refused, terminal reject, accepted-only rendering, the
+  one-direction rule structural); three declaration-driven candidate
+  generators over the brain (control gaps, handoff friction, pain
+  inventory); the consult-analyst brief — the system's single
+  assessment license (assess and propose; never write, never resolve,
+  never rephrase). With this, every ticket of the v2 charter (M33–M39)
+  is BUILT. Suite 1056 passing.
 - **M38 — the second deliverable: generality proven** (`2.0.0-alpha.8`):
   the process & controls matrix — a table-first, IPO-fed, cross-step
   document v1 could never produce — ships as a definition + one new

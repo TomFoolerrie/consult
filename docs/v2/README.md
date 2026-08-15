@@ -1,9 +1,16 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: charter drafted; ticket specs pending.**
+**Status: THE SPINE IS BUILT — all seven tickets (M33–M39) at
+2.0.0-alpha.9, suite 1056 passing, the compatibility gate green.**
 v2 development happens on the `v2` branch. v1.20.0 is preserved on
-`v1.20-stable`. `main` stays v1 until v2 passes the compatibility gate
-(see below), then merges as `v2.0.0`.
+`v1.20-stable`. `main` stays v1 until the human authorizes the reviewed
+`v2 → main` merge as `v2.0.0` (earned at M36; parked deliberately).
+Follow-up ticket candidates are recorded in each ticket's amendments —
+headline items: the definition-views-to-manifest gap (blocks rendering
+information-request and findings-report end-to-end), table-row comment
+routing (pinned xfail), a semantic kind marker on callout declarations,
+an `analysis.py brief` CLI + analyst dispatch hint + conflict-records
+extractor, a human-readable ledger verb, appendix-controls optionality.
 
 ## The shift
 
@@ -172,7 +179,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M36](M36-compatibility-gate.md) | **Compatibility gate: GREEN** — definition-assembled docx golden-equal, advisor replay equal, audit armed (**BUILT**, alpha.6; v2.0.0 merge awaits human go) |
 | [M37](M37-surveyor-librarian.md) | Surveyor + librarian: taxonomy-node entities, pure coverage, info-request deliverable, lens-conflict landed (**BUILT**, alpha.7, gates 19/19) |
 | [M38](M38-second-deliverable.md) | Second deliverable — the matrix renders over the IPO fixture with zero engine special-cases (**BUILT**, alpha.8, gates 21/21 + 1 pinned xfail) |
-| [M39](M39-analysis-verbs.md) | Analysis verbs → findings register class, consult-analyst, findings report (spec drafted) |
+| [M39](M39-analysis-verbs.md) | Analysis verbs: findings lifecycle, candidate generators, the analyst license (**BUILT**, alpha.9, gate 11/11) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
