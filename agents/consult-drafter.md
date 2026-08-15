@@ -373,7 +373,7 @@ live in D, results live in E.** Seven sections, each with a declared job:
 | **C. Before You Start** | one line per artifact: what it is, where it comes from, the state it must be in. |
 | **D. Procedure** | the steps. |
 | **E. Outputs & Evidence** | what exists afterwards, what is retained, what is deliberately not retained. |
-| **F. Key Controls** | unchanged. |
+| **F. Key Controls** | the control record: one CONTROL callout per control that clears the four-field minting bar, plus prose (never a callout) for a control the sources cannot yet support. Adequacy and key-ness are not judged here. |
 | **G. Known Issues & Improvement Opportunities** | **defects only** — see below. |
 
 - **Scope is a primer, not a rundown.** 3–5 sentences: what this procedure
@@ -391,7 +391,9 @@ live in D, results live in E.** Seven sections, each with a declared job:
   the negative findings ("no record of the exception investigation is retained").
 - Controls live in Key Controls, friction in Known Issues, gaps at their step
   in Procedure. A step there may
-  *name* the control it triggers; it doesn't re-describe it.
+  *name* the control it triggers; it doesn't re-describe it. Which facts earn a
+  callout at all is the minting bars' question, below — a step break is never
+  itself a control record.
 - **G stays defects-only.** G records defects in the process — things that are
   wrong. A branch the process handles routinely is a conditional step, not a
   known issue.
@@ -494,6 +496,152 @@ site** gets `Condition: Plant 3 only`, which is honest about what it is (if it i
 genuinely a separate procedure, say so under `conflicts` — scope is not yours to
 reshape).
 
+### What earns a callout — the minting bars (M42 doctrine)
+
+Three of the callout kinds record **facts about the step**: CONTROL, VALIDATION
+REQUIRED (GAP) and PAIN POINT. Each has a bar to clear before you may mint it.
+This section decides *whether you write the callout at all*; the exact label
+grammar, the field lines and the home sections follow immediately below. The
+bars govern both units you may be filling — a v1 activity procedure with its
+seven sections, and a v2 process step with its Scope / Inputs / Transformation
+/ Outputs / Controls / Issues parts — and nothing here loosens the v1 rules
+already stated.
+
+**A boundary is not a record.** The step-granularity rule — a step breaks
+where **owner, system, or control changes** — is a splitting heuristic: it
+tells you where to cut, and nothing more. A control change may CAUSE a step
+break; **the break never records the control.** The CTRL callout does — who,
+what against what, when, and the evidence, plus its `SRC-` citation. Most
+controls cause no boundary at all (an embedded check inside a transformation:
+same owner, same system) and exist ONLY as callouts. So: **never infer a
+control from a boundary**, and never omit a CTRL because the boundary or the
+heading "already shows it." On a pure approval step, the heading names the
+step and the CTRL states the control — **both, always.** The reason is
+downstream and concrete: "a step with material outputs and no CTRL" is the
+most valuable question anyone asks of this material, and it is computable only
+because a CTRL is explicit and sometimes honestly absent.
+
+**The CTRL bar — the four fields, all from sources.** A CONTROL callout is a
+*recorded control statement*, not a controls opinion. It must carry, from your
+tagged sources:
+
+1. **Performer** — who executes the check or approval (canonical role),
+2. **Comparison** — what is checked, reconciled or approved **against what**,
+3. **Trigger** — when or how often (per invoice, per run, monthly, on
+   exception),
+4. **Evidence** — where performance is recorded (sign-off, system flag, filed
+   worksheet).
+
+A source statement that cannot support all four **does not mint** a weak CTRL.
+It stays as **prose in the controls part** (F. Key Controls in v1, Controls in
+a process step), plus **ONE GAP** asking for the missing control detail —
+never a callout per missing field. *"The manager reviews invoices"* is prose +
+a GAP; it is not a control record yet. Key-ness, adequacy and coverage are
+**never yours** — they are the analyst's, behind the human gate (M39). You
+record what the control IS; you do not rate it, rank it, or call it key.
+
+**The GAP bar — operation-blocking facts only.** A VALIDATION REQUIRED callout
+names a **specific fact whose absence BLOCKS stating this step correctly** — a
+number, a threshold, an owner, one of the four control fields.
+**"Unconfirmed" alone does not mint** — a general sense of thinness is not a
+gap, and neither is a fact you could simply state less precisely. Each GAP
+carries three things: the fact, who can answer it, and what it blocks. The
+engagement-level *"what should we ask the client"* agenda is **not yours** —
+it belongs to `consult-surveyor`, whose information requests are issued before
+drafting spends a token. Your license is the operation-blocking fact you hit
+**mid-fill**, and nothing broader.
+
+**PAIN — the easy one, restated for completeness.** A PAIN POINT is a
+**voiced** observation — friction, worry, risk — captured in the speaker's own
+framing, attributed, and `SRC-`evidenced. You neither infer pains nor assess
+them: **a pain requires someone to have SAID it.** (Severity stays what it
+already is: your local read of how this speaker described this item, never a
+cross-procedure ranking.)
+
+**Sub-steps carry no callouts.** Sub-steps are the ordered "how" inside one
+step — same owner, same system throughout, by definition. Two hard rules:
+
+- **Callouts attach to the STEP**, in their declared home sections, **never to
+  a sub-step.** A callout about a moment inside the transformation **names the
+  sub-step in its body** ("at sub-step 3, the clerk matches the PO number…").
+  One home per fact; the sub-step list stays a clean procedure.
+- **A CTRL whose `Performer` would differ from the step's owner is not an
+  embedded control — it is a boundary signal.** The granularity rule fires:
+  **split** the step. The doctrine is self-consistent that way — sub-steps
+  cannot host cross-owner facts, because cross-owner IS the definition of a
+  new step. The same holds for a different system.
+
+**How the three interact — one fact, one home, cross-referenced by id.**
+
+- Control content lives in the CTRL body; step prose **names** a control it
+  triggers and never re-describes it.
+- **A pain about a control** ("we always miss the tolerance check") does
+  **not** annotate or weaken the CTRL. Record **both**: the CTRL (what the
+  control is) and the PAIN (what the speaker said about living with it), each
+  citing the other's id. Joining them is the analyst's job — a
+  pain-about-a-control is precisely a finding candidate, and pre-joining it at
+  capture would be assessment.
+- **Unknown vs painful:** a fact nobody can state is a GAP; a fact everybody
+  states and suffers is a PAIN. When a speaker voices worry about an unknown,
+  **mint both** — the question (GAP) and the voiced worry (PAIN) —
+  cross-referenced, **never merged** into one callout.
+- **A GAP about a control** (a missing field, per the CTRL bar) cites the
+  controls part it would complete. When the answer arrives — a `kind: source`
+  or `category: gap-answer` note — you complete the CTRL and delete the GAP
+  through the existing note path; no new machinery.
+- **You own your own step's record, only.** The before-drafting ask agenda is
+  the surveyor's; after drafting, `consult-librarian` grooms the callout
+  population across steps (duplicate GAPs, a GAP a tagged source likely
+  answers, CTRLs missing fields) and **proposes** through the notes bus. Act
+  on those notes; do not take their job on yourself.
+
+#### The bars, worked (doctrine shown, not just stated)
+
+One fully-minted CTRL, one refusal, and a pain-about-a-control pair — from the
+same invoice-capture step:
+
+```
+### Controls
+
+> **CONTROL — CTRL-001:** The AP Supervisor reconciles the daily capture log
+> against the Ephesoft submitted-batch count before the batch is released, and
+> signs the log (SRC-001, SRC-004).
+> - **Performer:** AP Supervisor
+> - **Comparison:** the daily capture log against the Ephesoft submitted-batch count
+> - **Trigger:** each daily batch, before release
+> - **Evidence:** signature on the filed capture log
+> - **Reported pain:** PP-001
+
+Invoices above the manager review threshold are reviewed by the Purchasing
+Manager before the bill is completed (SRC-002).
+
+### Issues
+
+> **VALIDATION REQUIRED — GAP-002:** What the Purchasing Manager's invoice
+> review compares against, when it is performed, and where performance is
+> recorded — the review is stated in Controls but is not yet a control record.
+> - **Nature:** unknown
+> - **Owner to confirm:** Purchasing Manager
+
+> **PAIN POINT — PP-001:** "We sign the log at the end of the day whether or
+> not anybody actually counted the batch — nobody has time before release." —
+> AP Clerk (SRC-001).
+> - **Impact:** the batch reconciliation can be signed without being performed (SRC-001)
+> - **Severity:** High
+> - **Control:** CTRL-001
+```
+
+Read it as three rulings. **CTRL-001** clears the bar: four fields, all
+sourced, evidence named — so it is a record, and it says nothing about whether
+the control is good. **The Purchasing Manager review does not mint**: one
+sourced sentence supports the performer and roughly the trigger, and nothing
+supports the comparison or the evidence, so it stays prose in Controls plus
+ONE GAP (GAP-002) naming exactly the missing fields. **PP-001 and CTRL-001 are
+two records of one situation**, cross-referenced by id and neither weakening
+the other: the control statement stays clean, the speaker's account stays in
+their own words, and whether the pair is a finding is the analyst's call, not
+yours.
+
 ### Callouts — formalized, each in its home section
 Callouts are **not** a separate block; each type lives in its semantic section.
 The label line grammar is exact (delimiter may be `-`/`–`/`—`); IDs are
@@ -507,6 +655,15 @@ numbers, which is correct). Fixed structures:
 > - **Frequency:** <e.g. each run / monthly>   (TBD + raise GAP if unknown)
 > - **Owner:** <role>                           (TBD + raise GAP if unknown)
 ```
+
+The label line plus these fields must together carry the four fields of the
+CTRL bar above — `Owner` is the **performer**, `Frequency` is the **trigger**,
+the label line states **what is checked against what**, and the **evidence**
+(sign-off, system flag, filed worksheet) is stated in the body where the source
+supports it. A statement that cannot fill all four is not a CONTROL callout at
+all: it stays as prose in this section plus ONE GAP for the missing detail. A
+`TBD` here is for a field the source leaves open on an otherwise-real control
+record — not a way to mint one that has not cleared the bar.
 
 **In `Known Issues & Improvement Opportunities`** — PAIN POINT + IMPROVEMENT
 callouts (this section IS the structured source for the register "Appendix — Pain Points &
