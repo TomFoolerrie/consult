@@ -187,6 +187,20 @@ try:
 except Exception:  # pragma: no cover - sources.py ships beside us
     _central_root = None
 
+#: M37 dispatch hints: which agent BRIEF serves the `taxonomy` action in central
+#: mode, by mode. The action name is deliberately stable (v1 tests pin it, and
+#: the ladder's shape is the contract) — only the brief the driver dispatches
+#: differs, so this table is the whole of the rename that would otherwise have
+#: rippled through the advisor. `initial` -> the surveyor (structure +
+#: sufficiency + information requests, before drafting spends tokens);
+#: `incremental` -> the librarian (M6's reassessment and M24's placement pass,
+#: unified as one curation dispatch). Paths are plugin-relative, like every other
+#: brief path in the skill prose.
+_CENTRAL_TAXONOMY_BRIEFS = {
+    "initial": "agents/consult-surveyor.md",
+    "incremental": "agents/consult-librarian.md",
+}
+
 # NOTE KINDS are owned by notes_util (the M6 bus contract). Borrowed for the
 # guard-2 step-aside (M32) only: the advisor reads each queued item's `kind`
 # to decide whether the notes are merge-safe, never to route or apply them.
@@ -729,6 +743,25 @@ def decide(folder: str) -> dict:
             d["details"] = details
         return d
 
+    def taxonomy_result(reason, mode, **details):
+        """The `taxonomy` action, plus the M37 dispatch hint.
+
+        The ACTION NAME never changes — v1 tests pin it and the ladder's shape
+        is the contract — but in central mode the judgment behind it split in
+        two and the briefs are new (M37): the surveyor owns the initial survey
+        (structure + sufficiency + information requests), the librarian owns the
+        incremental curation pass (M6 reassessment + M24 placement, unified).
+        So the advisor states WHICH BRIEF serves this dispatch rather than
+        leaving the driver to infer it from mode. Additive and central-only: a
+        v1 engagement carries no `brief` key and the caller's v1 behavior (the
+        `consult-taxonomy` dispatch) is byte-unchanged. Defensive like every
+        other central-mode read here — if the seam is unimportable, `st` has no
+        central root and nothing is added."""
+        if st.central_root:
+            details["brief"] = _CENTRAL_TAXONOMY_BRIEFS.get(
+                mode, _CENTRAL_TAXONOMY_BRIEFS["initial"])
+        return result("taxonomy", reason, mode=mode, **details)
+
     def unresolvable(state, why_no_stage, human_action, **details):
         """The M18 terminal gate: a resting result (like `review`), NOT an error
         — the folder is consistent, the ladder is out of moves. Carries what was
@@ -879,9 +912,8 @@ def decide(folder: str) -> dict:
     #     area, so one stray notes file must not divert a brand-new area from
     #     being scoped at all (audit F1, the worst instance).
     if not st.has_manifest and _dir_has_files(st.sources_new):
-        return result("taxonomy",
-                      "no manifest and _sources/new/ non-empty",
-                      mode="initial")
+        return taxonomy_result("no manifest and _sources/new/ non-empty",
+                               "initial")
 
     if not st.has_manifest:
         if orphans:  # with no manifest EVERY note is orphaned, by construction
@@ -997,9 +1029,8 @@ def decide(folder: str) -> dict:
                 reason += ("; queued review notes DEFERRED to merge with "
                            "these sources (M32) — after taxonomy + confirm, "
                            "ONE apply_review batch carries both")
-            return result("taxonomy", reason,
-                          mode="incremental",
-                          unassessed=unassessed, **extra)
+            return taxonomy_result(reason, "incremental",
+                                   unassessed=unassessed, **extra)
         # M34 shape bridge: v1 assessed entries carry FLAT area-local
         # `touches`/`consumed`; central mode returns RAW ledger entries whose
         # touches/consumed are NAMESPACED MAPS ({area: [slugs]}). Flatten to this

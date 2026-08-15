@@ -42,7 +42,16 @@ the rendered document: they are assigned late, from the profile's section order,
 exactly like a procedure's `1.1` display number. A letter you type is a letter
 that goes stale the moment the section order changes.
 
-Read at the start: your `{file}`; the `_sources/` tagged to this procedure;
+Read at the start: your `{file}`; the `_sources/` tagged to this procedure
+(**central mode, M34/M37:** those files live in the ENGAGEMENT's `_sources/`,
+not your area's, and your area carries no `_reference/sources.yaml` at all —
+your brief lists them by ledger query, with the same per-line paths and the same
+scoping discipline, so read what the brief lists and nothing else. Two
+consequences worth naming: an `SRC-` id is engagement-global, so it never needs
+an area qualifier and never has to be translated; and a file you are handed may
+be tagged to other areas too — read it for YOUR procedure only, and never
+assume from its position in `new/` or `processed/` whether you owe it a read.
+The brief is the authority);
 `_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, `glossary.yaml` (if
 present) — the canonical nouns and SRC- ids; `_reference/conventions/*.md` if
 present (phrasing decisions by earlier drafters — match them; you may write
@@ -340,6 +349,11 @@ The pass adds no content and removes no fact; it removes restatement. Report
 - Refer to another procedure with the `[[slug]]` token — never a number or copied
   title. Systems/roles are **plain canonical text**, not tokens.
 - Cite the `SRC-` id(s) you drew from; never invent SRC ids (use `sources.yaml`).
+  **Central mode (M34/M37):** the ids come from the engagement ledger via your
+  brief rather than an area `sources.yaml`, and you cite them the same way —
+  bare `SRC-004`, no area qualifier, no path. Cite only ids your brief handed
+  you: "not in my brief" is still "not my evidence", and reconcile checks your
+  citations against the ids the area can actually see.
 - **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
   PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
   the area on `(see|per|step|section) N.N` in a fragment — it is hunting baked
@@ -451,7 +465,11 @@ answer in the body or raise a GAP if unresolved.
 on it before you read the `note:` text:
 
 - `kind: source` (with `src: SRC-<id>`) — a **new source** for your procedure.
-  Look the id up in `_reference/sources.yaml`, **read that source file yourself**,
+  Look the id up in `_reference/sources.yaml` — **central mode (M34/M37):** in
+  the engagement ledger instead, which your brief has already resolved for you
+  (the id is engagement-global, so it resolves whatever area first registered the
+  file; if the brief does not list it, say so in your return rather than hunting
+  the filesystem) — **read that source file yourself**,
   and work its facts into the body under the same evidence discipline as a first
   draft. The `note:` text is only the "what's new" summary; the source is the
   evidence. The dispatch deliberately hands you no source list here — the id is

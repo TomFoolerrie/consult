@@ -89,6 +89,13 @@ Schema examples live beside this skill:
   list when given, Read every file, and attest `files_found`/`files_read` in
   your return.** A blocked tool while gathering inputs is a STOP-and-report
   (`unresolved`), never a cue to proceed from search hits or partial listings.
+  **Central mode (M34/M37):** the area holds no `_sources/` — one ledger and one
+  `_sources/new/` sit at the ENGAGEMENT root, shared by every area. Read the
+  files your dispatch's `source_files` list names (they are the ones tagged to
+  or staged for this area) and attest against that list exactly as above; do not
+  treat a root folder listing as your reading list, because most of what is
+  staged there may belong to another area. Everything else in this rule is
+  unchanged, blocked-tool STOP included.
 - The `taxonomy`: find your L1 by `slug`, read its L2 buckets and their slugs.
 - `{area}/_client/` and `components/_client/` if present, area shadowing per
   file (org chart + client taxonomy + `registers/*.yaml` — adjudicated
@@ -193,6 +200,20 @@ sources:
 ```
 - Assign `SRC-` ids (initial: from `SRC-001`; incremental: continue from the
   existing max in the live `sources.yaml`).
+- **Central mode (M34/M37) — you MINT NOTHING here; you refine tags.** When the
+  engagement carries a central ledger (`<root>/_sources/sources.yaml`), ids are
+  engagement-global and there is exactly ONE minter: the registration verbs
+  (`engagement.py route` / `adopt`). Sources enter a central engagement only
+  through those, so a source your sources are missing is a human's `route`
+  call, never a new entry you propose. What you emit instead is the
+  `touches` refinement: name the **existing** `SRC-` id (or its hash) and the
+  procedure slugs in THIS area that it informs, and the confirm gate replays
+  your list onto the ledger entry (`ledger.retag` — a REPLACE of this area's
+  slice; an empty list untags, and `consumed` is never pruned). An id you
+  propose that matches no ledger entry is warned about and dropped — report it
+  in your return so the human can route the file. Everything below about
+  `touches` being load-bearing applies verbatim; only the ownership of the id
+  moved up a scope.
 - **`touches` is load-bearing, twice over:**
   1. it is how the orchestrator hands each parallel `consult-drafter` only its
      relevant sources instead of every drafter re-reading every transcript;
@@ -202,11 +223,24 @@ sources:
      from this list. So a source that touches nothing, or names a slug that does
      not exist, can never retire: the advisor stops at a gate naming its SRC- id
      and asks the human to fix `touches`. Tag every source, with real slugs.
+  **Central mode (M34/M37):** both halves hold, at engagement scope. `touches`
+  is namespaced (`{p2p: [...], r2r: [...]}`) and each slice is validated against
+  that area's manifest, so a typo'd slug strands the source exactly as it does
+  in v1 — with the added weight that the entry is shared: the file leaves
+  `_sources/new/` only when EVERY tagged area has consumed its slice (*consumed
+  twice, moved never*), so your slice being wrong can hold a source open for
+  areas you never touched.
 - **Do NOT set `hash`, `state` or `consumed`.** Those are deterministic
   bookkeeping: `scaffold.py` stamps the hash/state at confirm, and `sources.py`
   records `consumed` (which slugs have absorbed the source) as batches succeed.
   The hash is also what tells the advisor a source has already been assessed —
   edit it and you buy yourself a redundant taxonomy dispatch.
+  **Central mode (M34/M37):** the same prohibition, one scope up and slightly
+  wider — the hash is stamped at REGISTRATION (so confirm's stamping pass is a
+  stated no-op), `state` is derived, and `consumed` is a namespaced map recording
+  other areas' reads as well as yours. Writing any of the three would be writing
+  over another area's history. The advisor's "already assessed?" question is
+  `ledger.assess` at engagement scope; the answer is those recorded hashes.
 
 ### 4a. Hand the update drafters their brief → `.proposed/notes.yaml`
 
@@ -237,6 +271,13 @@ those slugs, and the drafter resolves the `SRC-` id through `sources.yaml` — t
 update dispatch deliberately carries no source list, so **the id is the only way
 the drafter can find the file**. `notes.yaml` is consumed at confirm, never
 promoted.
+
+**Central mode (M34/M37):** the bus is unchanged — same items, same `kind:
+source` + `src:` shape, same consumption at confirm. The id the drafter chases
+resolves through the ENGAGEMENT ledger instead of the area's
+`_reference/sources.yaml` (its `brief.py` does that for it, and centrally the
+area has no such file), and the id is engagement-global, so an id you write is
+always findable and never needs an area qualifier.
 
 Rules:
 
@@ -301,6 +342,19 @@ was scaffolded. Propose only the **delta**:
   those update drafters read;
 - new-bucket requests (same needs-approval flow).
 
+**Central mode (M34/M37) — where this brief is superseded.** In a central
+engagement this dispatch's judgment splits in two and the briefs are new: the
+**surveyor** (`agents/consult-surveyor.md`) owns `initial` — everything above
+plus a per-node sufficiency call and the client information requests, dispatched
+with the coverage map precomputed — and the **librarian**
+(`agents/consult-librarian.md`) owns `incremental`, absorbing this M6
+reassessment path together with the M24 placement pass into one curation
+dispatch. The advisor's action name does not change (`taxonomy`, with the same
+`mode`), and neither does the gate. Read this section for the delta discipline
+it still describes, then follow the brief you were actually dispatched with —
+and either way, in central mode the source half is **tag refinement, not
+minting** (§4).
+
 Incremental **never** renames or deletes an existing slug and never rewrites the
 whole set. If a new source implies an existing procedure should **split or merge**,
 do not do it — **flag it** for the human in `split_merge_flags`. On promotion,
@@ -315,7 +369,10 @@ what `reconcile` blocks on, and only their drafters can fix them; `82`/`84`
 regenerate themselves. Also re-emit, without the retired slug, the `touches` list
 of every source tagged with it — a `touches` entry naming a slug the manifest no
 longer carries is both a blocking reconcile error and a source that can never
-retire. Never delete a fragment, a manifest entry or a registry entry — say in
+retire. (**Central mode (M34/M37):** re-emit exactly the same way — your list
+becomes a `ledger.retag` REPLACE of THIS area's slice at confirm, which is
+precisely the fix; never re-emit another area's slice, and note that a retag
+prunes no `consumed` history.) Never delete a fragment, a manifest entry or a registry entry — say in
 your return that the human removes the manifest entry if they accept, because
 confirm only ever ADDS to the manifest.
 

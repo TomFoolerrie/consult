@@ -391,12 +391,34 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
 #: can_serve's own unknown-key check, so they are DROPPED before the call.
 _CAN_SERVE_KEYS = ("entities", "parts", "callouts", "channels")
 
+#: Where an area keeps its taxonomy-node fragments. Coverage's engagement-side
+#: precondition is exactly "this area has nodes to cover" — the directory name is
+#: coverage_map's convention, mirrored here rather than imported so that
+#: serviceability stays a cheap directory question with no coverage machinery
+#: loaded (it must answer for a v1 area that has none). Also the entity home for
+#: the directory-resident lookup below.
+_TAXONOMY_DIRNAME = "_taxonomy"
+
 #: The manifest component `role` that holds each entity type's entities in an
 #: engagement area. v1's areas carry exactly one entity population — the
 #: hand-authored procedures — and those ARE the `activity` entities (the M33
 #: compatibility type). Any other declared type has zero entities in a v1-
 #: shaped area until an area learns to hold them.
 _TYPE_MANIFEST_ROLE = {"activity": "procedure"}
+
+#: Types whose entities are DIRECTORY-RESIDENT: one hand-authored fragment per
+#: entity in a named subfolder, with no manifest component at all. The manifest
+#: role table above cannot express these — the manifest is membership/ordering
+#: authority for PROCEDURES, and `taxonomy-node` entities live in
+#: `<area>/_taxonomy/` (M37 Part A) — so widening it entry-wise for them would
+#: state something untrue. This is the honest second lookup path instead, kept
+#: deliberately narrow: one type, one directory, `*.md` fragments, same
+#: convention `_coverage_gaps` reads below. A type that is neither manifest-roled
+#: nor listed here still counts zero, which remains the truthful answer for a
+#: v1-shaped area (`process-step`, for instance, has no population of its own in
+#: an area whose entities are the v1 procedures — that binding reporting "not
+#: yet" is the report working, not a mapping gap to paper over).
+_TYPE_ENTITY_DIRNAME = {"taxonomy-node": _TAXONOMY_DIRNAME}
 
 
 def _area_entity_count(area: Path, type_name: str) -> int:
@@ -406,7 +428,15 @@ def _area_entity_count(area: Path, type_name: str) -> int:
     is pure over DECLARATIONS plus channel-registry files on disk — it never
     counts entities, so a type that declares fine but has no instances in the
     area reads as "serviceable" to it. That is the engagement half of
-    serviceability, and M35 owns it. Read-only: the manifest only."""
+    serviceability, and M35 owns it. Read-only: the manifest, or — for a
+    directory-resident type — one directory listing."""
+    dirname = _TYPE_ENTITY_DIRNAME.get(type_name)
+    if dirname is not None:
+        # Checked BEFORE the manifest read on purpose: these entities are not
+        # manifest members, so an area without a manifest.json (or with an
+        # unreadable one) must still be able to report its node count.
+        d = Path(area) / dirname
+        return len(sorted(d.glob("*.md"))) if d.is_dir() else 0
     try:
         manifest = json.loads(
             (area / "manifest.json").read_text(encoding="utf-8"))
@@ -420,14 +450,6 @@ def _area_entity_count(area: Path, type_name: str) -> int:
     components = manifest.get("components") or []
     return sum(1 for c in components
                if isinstance(c, dict) and c.get("role") == role)
-
-
-#: Where an area keeps its taxonomy-node fragments. Coverage's engagement-side
-#: precondition is exactly "this area has nodes to cover" — the directory name is
-#: coverage_map's convention, mirrored here rather than imported so that
-#: serviceability stays a cheap directory question with no coverage machinery
-#: loaded (it must answer for a v1 area that has none).
-_TAXONOMY_DIRNAME = "_taxonomy"
 
 
 def _coverage_gaps(bname: str, spec: dict, area: Path) -> list[str]:
