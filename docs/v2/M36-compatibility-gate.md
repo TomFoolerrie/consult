@@ -1,6 +1,25 @@
 # M36 — The compatibility gate: v1 re-expressed, byte-for-byte, on the kernel
 
-> **Status: DRAFT — contract under review.** Companions: M33 (the kernel this
+> **Status: BUILT — THE GATE IS GREEN (2.0.0-alpha.6).** All four proof
+> obligations hold, by test name: (1) the v1 suite green with zero test
+> edits or deletions; (2) normalized render golden-equal
+> (`test_render_golden_m36`, harness calibration-proven, v1 render found
+> BYTE-deterministic); (3) advisor replay equivalence
+> (`test_deterministic_layer_m36::TestAdvisorReplayEquivalence`);
+> (4) plan equivalence (`test_plan_assembly_m36::TestCentralProof` — the
+> definition-assembled docx normalized-identical to the manifest-assembled
+> golden — plus aggregate set+byte equality). The shape-lives-in-data
+> audit (`test_shape_audit_m36`) is armed permanently. Suite 1005 passed.
+> Build records: [`M36-build-plan.md`](M36-build-plan.md) (WP-G0–G3),
+> landing note [`notes/m36-landing.md`](notes/m36-landing.md).
+>
+> **Per the charter, v2 has earned its merge to `main` as v2.0.0. The
+> merge itself awaits the human's explicit go** (a reviewed merge, per
+> the charter). Open items handed forward, from the landing note:
+> appendix-controls profile-optionality (needs a definition-language verb,
+> M37+); the cover-card/M30-appendix skin regions no block can yet name;
+> `callouts.LABEL_PREFIX` retirement (needs a test split); the audit's
+> runtime-assembled-literal blind spot (recorded). Companions: M33 (the kernel this
 > proves), M34 (whose dual-layout adapter this exercises), M35 (whose
 > `desktop-procedure.yaml` this makes real). This is the charter's merge
 > gate: v2 does not reach `main` until this ticket is green. Charter:

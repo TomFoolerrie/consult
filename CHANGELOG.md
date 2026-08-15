@@ -15,6 +15,17 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M36 — the compatibility gate: GREEN** (`2.0.0-alpha.6`): v1's
+  desktop procedure runs as a deliverable definition on the kernel with
+  all four proofs holding — 803 v1 tests untouched, the docx assembled
+  FROM the plan normalized-identical to the committed v1 golden (v1
+  render proven byte-deterministic; harness calibration-tested), advisor
+  replay equivalence, aggregate set+byte equality. The deterministic
+  layer follows the definition (hard-coded view list dead, skeletons
+  from type declarations), duplicates retired, and a permanent
+  allowlist audit bans hard-coded document shape outside kernel data.
+  Suite 1005 passing. v2 has earned its v2.0.0 merge; the merge awaits
+  the human go.
 - **M35 — the deliverable-definition language** (`2.0.0-alpha.5`):
   `scripts/definitions.py` — deliverables as user files (shape /
   bindings / skin) with a four-stage fail-loud loader (syntax,
