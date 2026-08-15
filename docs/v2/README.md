@@ -1,12 +1,9 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: THE SPINE IS BUILT (M33–M39) and the first follow-up ticket
-(M40) has landed — 2.0.0-alpha.10, suite 1071 passing, the
-compatibility gate green, every shipped definition rendering
-end-to-end.**
-v2 development happens on the `v2` branch. v1.20.0 is preserved on
-`v1.20-stable`. `main` stays v1 until the human authorizes the reviewed
-`v2 → main` merge as `v2.0.0` (earned at M36; parked deliberately).
+**Status: RELEASED AS 2.0.0 (2026-08-15)** — the spine (M33–M39) plus
+M40, suite 1071 passing, the compatibility gate green, every shipped
+definition rendering end-to-end. Merged to `main` on the human's
+explicit go. v1.20.0 is preserved on `v1.20-stable`.
 Follow-up ticket candidates are recorded in each ticket's amendments —
 headline items: table-row comment routing (pinned xfail), a semantic
 kind marker on callout declarations, an `analysis.py brief` CLI +
@@ -191,6 +188,6 @@ style) before implementation, and the list will grow as v2 ideas land.
 
 ## Version discipline
 
-`plugin.json` carries `2.0.0-alpha.N` on the `v2` branch. Landed milestones
-accumulate under `## [Unreleased — 2.0.0]` in [`../../CHANGELOG.md`](../../CHANGELOG.md).
+`plugin.json` carried `2.0.0-alpha.N` during the build. Landed milestones
+accumulated under the 2.0.0 section in [`../../CHANGELOG.md`](../../CHANGELOG.md).
 `2.0.0` is stamped at the merge to `main`.

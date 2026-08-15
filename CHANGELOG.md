@@ -9,11 +9,13 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
-## [Unreleased — 2.0.0]
+## [2.0.0] — M33–M40
 The v2 line: generalize from desktop procedures to a deliverable-agnostic
 process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
-Milestones accumulate here as they land (M33+).
+Merged to `main` 2026-08-15 with the compatibility gate green (M36): v1's
+desktop procedure runs as a deliverable definition on the kernel,
+normalized-identical to the v1 golden, with all v1 tests intact.
 
 - **M40 — definition views to manifest** (`2.0.0-alpha.10`): the gap
   M38 recorded is closed — `definitions.materialize_views` reflects a
