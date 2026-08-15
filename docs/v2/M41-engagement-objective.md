@@ -1,6 +1,37 @@
 # M41 — The engagement objective: seeded skeleton + goal-aware taxonomy agents
 
-> **Status: SPEC** — opens the 2.1.0 line. Origin: two user rulings,
+> **Status: BUILT (2.1.0-alpha.4)** — `client_config.objective` (the
+> validated block), `scaffold.seed_taxonomy`/`promote_taxonomy` (the
+> skeleton through the existing staging gate; M37 A1's recorded
+> promotion-path gap closed), `brief.objective_block` (+ the
+> `placement_brief` section), objective-aware surveyor/librarian/skill
+> prose. Gates: `tests/test_objective_m41.py` 20/20; suite 1091 passed,
+> 1 pinned xfail; the M37 dispatch-hint pins untouched. Build records:
+> [`M41-build-plan.md`](M41-build-plan.md),
+> [`notes/m41-prose-self-review.md`](notes/m41-prose-self-review.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) the client
+> `taxonomy:` override's shape was undocumented; the accessor accepts
+> both an inline taxonomy body and a path string (an unresolvable path
+> refuses by name, never silently falls back) — narrow it if one form
+> is ever ruled canonical; relatedly scaffold grew its own
+> `effective_taxonomy_path` because no public resolver exists — folding
+> the two into one owner is a recorded want. (2) `parse_objective`
+> takes a trailing `area=None` kwarg the profile/hold parsers lack (its
+> validations consult the engagement); the positional template is
+> preserved. (3) Promotion leaves the emptied `.proposed/_taxonomy/`
+> directory in place (removing it would touch the staging tree beyond
+> the moved files; `--confirm` rmtrees the whole staging dir anyway).
+> (4) The IPO fixture ships no `_client/`, so the client-taxonomy
+> branch of seeding is pinned only by the refusal tests — a fixture
+> `_client/taxonomy.yaml` would exercise it. (5) Pre-existing,
+> unrelated: a pytest-randomly ordering flake between
+> test_shape_audit_m36 and test_document_profile (ProfileError on a
+> list-valued profile), reproduced at the 2.0.0 HEAD — recorded for its
+> own small ticket, not fixed here. (6) `--taxonomy`'s CLI default
+> moved from the literal shipped path to None-resolved-at-use so seed
+> can distinguish "not passed" from "explicitly passed"; confirm's
+> resolved value is unchanged. Origin: two user rulings,
 > 2026-08-15 — (1) the taxonomy can start as standard business cycles
 > (Treasury, O2C, P2P, tax, FSCP, …) "filled out, with a skeleton built
 > on that … gives us structure up front"; (2) "the taxonomy agent(s)

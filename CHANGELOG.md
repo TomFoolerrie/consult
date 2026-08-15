@@ -9,6 +9,20 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [Unreleased — 2.1.0]
+
+- **M41 — the engagement objective + seeded skeleton**
+  (`2.1.0-alpha.4`): the `objective:` config block (goal, target
+  deliverables, in-scope cycles — validated, not decorative); the
+  business-cycle skeleton seeded from the reference taxonomy's L1/L2s
+  into the surveyor's staging path and promoted at the existing confirm
+  gate (`seed_taxonomy` / `promote_taxonomy` — closing M37 A1's
+  recorded promotion-path gap); `brief.objective_block` carrying the
+  goal, the scope, and each target deliverable's serviceability gaps
+  into the surveyor/librarian dispatches, so the taxonomy agents work
+  toward a stated goal (deliverable-aware sufficiency, sharper client
+  asks, out-of-scope-node proposals). Suite 1091 passing.
+
 ## [2.0.0] — M33–M40
 The v2 line: generalize from desktop procedures to a deliverable-agnostic
 process-knowledge model ("the brain") projected through user-supplied

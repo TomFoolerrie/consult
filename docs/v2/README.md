@@ -182,6 +182,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M38](M38-second-deliverable.md) | Second deliverable — the matrix renders over the IPO fixture with zero engine special-cases (**BUILT**, alpha.8, gates 21/21 + 1 pinned xfail) |
 | [M39](M39-analysis-verbs.md) | Analysis verbs: findings lifecycle, candidate generators, the analyst license (**BUILT**, alpha.9, gate 11/11) |
 | [M40](M40-definition-views.md) | Definition views to manifest: the materialize verb + the missing writers; every shipped definition renders (**BUILT**, alpha.10, gate 15/15) |
+| [M41](M41-engagement-objective.md) | The engagement objective: seeded cycle skeleton + goal-aware taxonomy agents (**BUILT**, 2.1.0-alpha.4, gate 20/20) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
