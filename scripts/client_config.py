@@ -739,3 +739,227 @@ def holds(area, holdable, gates=()) -> Holds:
     layer = cfg.layers.get(HOLD_KEY)
     where = f"{LAYER_LABELS[layer]} consult.yaml" if layer else "consult.yaml"
     return parse_holds(cfg[HOLD_KEY], holdable, gates, where, layer)
+
+
+# --------------------------------------------------------------------------- #
+# M41 — THE ENGAGEMENT OBJECTIVE
+#
+# What the engagement is FOR: the goal in one sentence, the deliverables it is
+# aimed at, and the business cycles in scope. It is engagement config resolved
+# by exactly the `profile:`/`hold:` rule — one top-level `objective:` key
+# (conventionally `_client/objective.yaml`), so `load(area)` merges it and an
+# area's own block SHADOWS the engagement's whole.
+#
+# ABSENT = TODAY. No `objective:` key anywhere → `configured = False` with
+# empty fields, and every consumer (the surveyor brief, the librarian brief)
+# behaves exactly as it did pre-M41. An EMPTY block (`objective: {}`) is
+# `configured = True` with empty lists: a stated "no target yet" is a different
+# fact from an unstated one, and the reader of a brief must be able to tell
+# absent-by-choice from absent-by-bug.
+#
+# VALIDATED, NOT DECORATIVE. Both name lists are checked against the systems
+# that will consume them: `deliverables:` through `definitions.load_definition`
+# (a typo'd name that read as "no target" would leave the agents goal-blind
+# while the config file swears otherwise — the exact silent failure this block
+# exists to kill), `cycles:` against the EFFECTIVE reference taxonomy's L1
+# slugs (the client's own `taxonomy:` if it supplied one, the shipped backbone
+# otherwise). `definitions` is imported LAZILY inside the validation: this
+# module is imported by nearly everything, definitions is not cheap, and
+# definitions resolves user files through an engagement layout — importing it
+# at module scope would both tax every caller and invite an import cycle.
+# --------------------------------------------------------------------------- #
+
+OBJECTIVE_KEY = "objective"
+
+#: The whole allowlist. Anything else refuses (see `parse_objective`).
+OBJECTIVE_FIELDS = ("goal", "deliverables", "cycles")
+
+#: The client's own reference taxonomy, when it overrides the shipped one.
+TAXONOMY_KEY = "taxonomy"
+
+
+class ObjectiveError(ClientConfigError):
+    """A malformed `objective:` block. Fail-loud and NAMED: the objective aims
+    the taxonomy agents, so a typo'd deliverable or cycle name that parsed as
+    "nothing targeted" would send them out goal-blind while the config file
+    reads, forever, as an objective that is in force."""
+
+
+@dataclass
+class Objective:
+    """The resolved engagement objective for one area.
+
+    `configured` is False only when no layer supplied an `objective:` key at
+    all; an empty block is configured with empty lists (a stated no-target).
+    `deliverables` are definition names (validated loadable), `cycles` are L1
+    slugs of the effective reference taxonomy (validated present), both in the
+    order the human wrote them.
+    """
+
+    goal: str = ""
+    deliverables: list[str] = field(default_factory=list)
+    cycles: list[str] = field(default_factory=list)
+    configured: bool = False
+    layer: str | None = None
+
+    def __bool__(self) -> bool:
+        return self.configured
+
+    def layer_label(self) -> str:
+        return LAYER_LABELS[self.layer]
+
+    def report_line(self, prefix: str = "objective") -> str:
+        """The one line every stage that reads the objective prints.
+
+        Unconfigured says so EXPLICITLY rather than printing nothing — a
+        missing line reads as a bug, a "none" line reads as a choice.
+        """
+        if not self.configured:
+            return f"{prefix}: none (no engagement objective configured)"
+        facts = []
+        if self.cycles:
+            facts.append(f"cycles {', '.join(self.cycles)}")
+        if self.deliverables:
+            facts.append(f"deliverables {', '.join(self.deliverables)}")
+        if not facts:
+            facts.append("no target stated")
+        return f"{prefix}: {self.layer_label()} — {'; '.join(facts)}"
+
+
+def _objective_string_list(raw, key: str, where: str) -> list[str]:
+    """`_string_list`, but the shape refusal wears THIS block's error class.
+
+    The list-of-strings tolerance is shared with `profile:` (one scalar reads
+    as a one-item list); the error class must not be, or a caller catching
+    `ObjectiveError` would miss a malformed objective.
+    """
+    try:
+        return _string_list(raw, key, where)
+    except ProfileError as exc:
+        raise ObjectiveError(str(exc)) from exc
+
+
+def _taxonomy_l1_slugs(area, cfg: ClientConfig | None = None) -> list[str]:
+    """L1 category slugs of the EFFECTIVE reference taxonomy, in order.
+
+    Effective = the engagement's client `taxonomy:` key when it supplied one
+    (this module already merges it), else the shipped backbone at
+    `scaffold.DEFAULT_TAXONOMY` — one source of truth for name→slug, never a
+    second cycle library. The client key may be the taxonomy body itself
+    (`taxonomy:` mapping with `categories:`) or a path to a taxonomy file;
+    both are accepted because both are what a hand-editing human writes.
+
+    scaffold is imported lazily for the path CONSTANT only (client_config must
+    stay cheap to import, and scaffold imports plenty).
+    """
+    cfg = load(area) if cfg is None else cfg
+    raw = cfg.get(TAXONOMY_KEY)
+    data: dict | None = None
+    if isinstance(raw, dict):
+        # Either the body directly, or nested under a second `taxonomy:`.
+        data = raw.get(TAXONOMY_KEY) if isinstance(raw.get(TAXONOMY_KEY), dict) else raw
+    elif isinstance(raw, str) and raw.strip():
+        path = Path(raw.strip())
+        if not path.is_absolute():
+            path = Path(area).parent / path
+        if not path.is_file():
+            raise ObjectiveError(
+                f"client `taxonomy:` points at {path}, which is not a file — "
+                f"the effective reference taxonomy must resolve before any "
+                f"cycle slug can be validated against it"
+            )
+        data = _read_yaml(path).get(TAXONOMY_KEY) or {}
+    if data is None:
+        import scaffold  # lazy: the shipped-default PATH constant only
+        data = _read_yaml(Path(scaffold.DEFAULT_TAXONOMY)).get(TAXONOMY_KEY) or {}
+    cats = data.get("categories") or []
+    return [str(c.get("slug")).strip() for c in cats
+            if isinstance(c, dict) and c.get("slug")]
+
+
+def parse_objective(raw, where: str = "_client/objective.yaml",
+                    layer: str | None = None, area=None) -> Objective:
+    """Validate one `objective:` mapping into an `Objective`. Fail-loud, named.
+
+    `area` is needed for the two validations that consult the engagement (the
+    definition search path and the effective taxonomy); passing None skips
+    neither — it validates against the shipped sets only, which is the same
+    resolution `definitions.load_definition(name, None)` performs.
+    """
+    if raw is None:
+        # A key present but empty (`objective:` with nothing under it) is a
+        # STATED no-target, not an absence — absence is decided by the caller.
+        return Objective(configured=True, layer=layer)
+    if not isinstance(raw, dict):
+        raise ObjectiveError(
+            f"{where}: `objective:` must be a mapping of "
+            f"{', '.join(OBJECTIVE_FIELDS)} (got {type(raw).__name__})"
+        )
+    unknown = sorted(k for k in raw if k not in OBJECTIVE_FIELDS)
+    if unknown:
+        raise ObjectiveError(
+            f"{where}: unknown objective field(s) {', '.join(unknown)} "
+            f"(allowed: {', '.join(OBJECTIVE_FIELDS)})"
+        )
+
+    # ---- goal -----------------------------------------------------------
+    goal_raw = raw.get("goal")
+    if goal_raw is None:
+        goal = ""
+    elif isinstance(goal_raw, (str, int, float)):
+        goal = str(goal_raw).strip()
+    else:
+        raise ObjectiveError(
+            f"{where}: `goal:` must be a single sentence of text (got "
+            f"{type(goal_raw).__name__})"
+        )
+
+    # ---- deliverables: every name must actually load --------------------
+    deliverables = _dedupe(_objective_string_list(
+        raw.get("deliverables"), "deliverables", where))
+    if deliverables:
+        import definitions  # lazy: keeps this module cheap, dodges the cycle
+        for name in deliverables:
+            try:
+                definitions.load_definition(name, area)
+            except Exception as exc:
+                # Wrap: the underlying refusal names a FILE, and the reader of
+                # this one needs the name THEY typed in this block first.
+                raise ObjectiveError(
+                    f"{where}: `deliverables:` names {name!r}, which does not "
+                    f"load as a deliverable definition — {exc}"
+                ) from exc
+
+    # ---- cycles: every slug must be an L1 of the effective taxonomy -----
+    cycles = _dedupe(_objective_string_list(raw.get("cycles"), "cycles", where))
+    if cycles:
+        known = _taxonomy_l1_slugs(area)
+        bad = [c for c in cycles if c not in known]
+        if bad:
+            raise ObjectiveError(
+                f"{where}: `cycles:` names {', '.join(repr(b) for b in bad)}, "
+                f"which is not an L1 category of the effective reference "
+                f"taxonomy (known cycles: {', '.join(known)}) — a cycle the "
+                f"backbone does not name cannot be seeded or scoped, and a "
+                f"typo must never read as \"no cycle in scope\""
+            )
+
+    return Objective(goal=goal, deliverables=deliverables, cycles=cycles,
+                     configured=True, layer=layer)
+
+
+def objective(area) -> Objective:
+    """Resolve the engagement objective for one area folder (M41 Part A).
+
+    Reads the `objective:` key through `load(area)`, so an engagement-wide
+    `components/_client/objective.yaml` covers every area and an area's own
+    block shadows it whole. No `objective:` key anywhere → `configured =
+    False` with empty fields, i.e. today's behavior.
+    """
+    cfg = load(area)
+    if OBJECTIVE_KEY not in cfg:
+        return Objective()
+    layer = cfg.layers.get(OBJECTIVE_KEY)
+    where = (f"{LAYER_LABELS[layer]} objective.yaml" if layer
+             else "objective.yaml")
+    return parse_objective(cfg[OBJECTIVE_KEY], where, layer, area)
