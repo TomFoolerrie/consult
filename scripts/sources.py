@@ -50,6 +50,15 @@ report the identical defect. F14: one typo'd `touches` slug makes a source
 permanently unretirable (`touches` never becomes a subset of the filled slugs),
 so guard 5 re-fires `taxonomy` forever — it is named here the first time any
 stage reads the file.
+
+CENTRAL MODE (M34). An engagement whose ROOT carries `_sources/sources.yaml` keeps
+its sources once, at that root, and areas hold only consumption records. There is
+exactly ONE detection seam — `central_root(folder)`, which walks up from an area
+looking for that file — and the three source questions below (`registered_ids`,
+`assess_new_sources`, `mark_processed`) branch on it once, at the top, delegating
+to `ledger.py` (which owns the central layout) and otherwise running the v1 path
+BYTE-IDENTICALLY. No consumer may test file positions to decide mode. `ledger` is
+imported lazily and defensively: a missing module leaves v1 mode fully working.
 """
 
 from __future__ import annotations
@@ -83,6 +92,48 @@ def resolve_area(area: str) -> str:
     return candidate if os.path.isdir(candidate) else area.rstrip("/")
 
 
+# --------------------------------------------------------------------------- #
+# The ONE central-mode detection seam (M34)
+# --------------------------------------------------------------------------- #
+
+CENTRAL_LEDGER_REL = os.path.join("_sources", "sources.yaml")
+
+
+def central_root(folder: str) -> str | None:
+    """The engagement root holding the M34 ledger, or None for a v1 area.
+
+    Walks UP from `folder` (itself included) looking for `_sources/sources.yaml`.
+    That file's existence IS the mode marker — the single question every consumer
+    asks, so nothing else has to guess from file positions. None means v1: the
+    area owns its own `_reference/sources.yaml` and `_sources/` tree, and every
+    function below runs exactly the code it ran before M34.
+    """
+    try:
+        current = os.path.abspath(os.path.realpath(folder))
+    except OSError:
+        return None
+    while True:
+        if os.path.isfile(os.path.join(current, CENTRAL_LEDGER_REL)):
+            return current
+        parent = os.path.dirname(current)
+        if parent == current:            # filesystem root reached
+            return None
+        current = parent
+
+
+def _ledger():
+    """The ledger module, or None when it is not importable.
+
+    Imported here rather than at module scope for two reasons: `ledger` imports
+    THIS module (for `_hash_file`/`_slug_list`), and v1 mode must keep working in
+    a tree that has no ledger.py at all."""
+    try:
+        import ledger                    # noqa: PLC0415  (deliberately lazy)
+    except ImportError:
+        return None
+    return ledger
+
+
 def _sources_yaml_path(folder: str) -> str:
     return os.path.join(folder, "_reference", "sources.yaml")
 
@@ -108,7 +159,20 @@ def registered_ids(folder: str) -> set[str]:
 
     Empty set when the file is absent, unreadable, or registers nothing — the
     callers (reconcile's citation check) treat "no registry" as "nothing to
-    validate against" and say so, rather than failing every citation."""
+    validate against" and say so, rather than failing every citation.
+
+    In central mode the registry is the engagement-root ledger, so the ids are
+    engagement-global (plain `SRC-nnn`, one minter) — citations validate against
+    exactly the same set of strings, one scope up."""
+    ledger = _ledger()
+    root = central_root(folder) if ledger is not None else None
+    if root is not None:
+        try:
+            return {str(e.get("id") or "").strip()
+                    for e in ledger.entries(root)
+                    if str(e.get("id") or "").strip()}
+        except ledger.LedgerError:
+            return set()                 # v1's posture: no readable registry
     path = _sources_yaml_path(folder)
     if not os.path.isfile(path):
         return set()
@@ -275,6 +339,27 @@ def note_src_ids(folder: str, slug: str, include_pending: bool = False) -> set[s
 
 
 def mark_processed(folder: str, filled: set, updated: set | None = None) -> int:
+    """Credit this area's consumption and retire whatever is now fully read.
+
+    Central mode delegates to `ledger.credit(root, area, ...)` with the same
+    filled/updated sets — same evidence rules, same `_review/processed/` notes
+    read for `--updated` — and the same CLI posture (0 on success; a LedgerError
+    prints ERROR to stderr and returns 1, nothing moved). The move rule is one
+    scope up: a file leaves the ROOT `_sources/new/` only when EVERY area's
+    touches are covered, so one area's mark cannot retire a source another area
+    still owes a read."""
+    ledger = _ledger()
+    root = central_root(folder) if ledger is not None else None
+    if root is not None:
+        area = os.path.basename(folder.rstrip("/").rstrip(os.sep))
+        try:
+            moved = ledger.credit(root, area, filled=sorted(filled or ()),
+                                  updated=sorted(updated or ()))
+        except ledger.LedgerError as exc:
+            print("ERROR: %s" % exc, file=sys.stderr)
+            return 1
+        print("moved %d source(s) → processed (ledger: %s)" % (moved, area))
+        return 0
     try:
         data = _load_sources(folder)
     except SourcesError as exc:
@@ -408,7 +493,15 @@ def assess_new_sources(folder: str) -> tuple[list[str], list[dict]]:
     higher guards have already ruled out pending notes and unfilled skeletons.
 
     `assessed` entries are message material for the gate: `{id, file, touches,
-    consumed, state}`."""
+    consumed, state}`.
+
+    In central mode the staging folder is the ROOT `_sources/new/` and the
+    discriminator is the ledger: `ledger.assess` asks the identical question with
+    the identical rules, at engagement scope."""
+    ledger = _ledger()
+    root = central_root(folder) if ledger is not None else None
+    if root is not None:
+        return ledger.assess(root)
     files = new_source_files(folder)
     if not files:
         return [], []

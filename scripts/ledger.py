@@ -541,6 +541,117 @@ def credit(root, area: str, filled=(), updated=()) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# assess — the guard-5 question, at engagement scope (read-only)
+# --------------------------------------------------------------------------- #
+
+def _staged_entry_index(ledger_entries: list[dict]) -> tuple[dict, dict]:
+    """`(by recorded path, by unambiguous basename)` — v1's match, one scope up.
+
+    A recorded `file` can be stale (it still says `new/` after a move, or vice
+    versa), so the basename is a fallback — but only when it names exactly one
+    entry, because a guess between two entries could credit the wrong bytes."""
+    by_rel: dict[str, dict] = {}
+    base_count: dict[str, int] = {}
+    for entry in ledger_entries:
+        rel = str(entry.get("file") or "").replace(os.sep, "/").lstrip("./")
+        if not rel:
+            continue
+        by_rel.setdefault(rel, entry)
+        base = os.path.basename(rel)
+        base_count[base] = base_count.get(base, 0) + 1
+    by_base: dict[str, dict] = {}
+    for entry in ledger_entries:
+        rel = str(entry.get("file") or "").replace(os.sep, "/").lstrip("./")
+        base = os.path.basename(rel) if rel else ""
+        if base and base_count.get(base) == 1:
+            by_base.setdefault(base, entry)
+    return by_rel, by_base
+
+
+def assess(root) -> tuple[list[str], list[dict]]:
+    """`(unassessed names, assessed entries)` for `_sources/new/` — a pure read.
+
+    Guard 5's question (`sources.assess_new_sources`, one scope up): has the
+    taxonomy pass read THESE EXACT BYTES? The ledger answers it, so the rules
+    are v1's verbatim —
+
+    * no ledger entry for the staged file -> **unassessed**;
+    * an entry with no recorded hash -> **unassessed**, decided WITHOUT hashing
+      the file (the common case is a fresh transcript the advisor re-reads on
+      every `next` call, and sources can be large binaries);
+    * a recorded hash that differs from the file's current bytes ->
+      **unassessed** (edited after registration: nobody has read this version);
+    * a match -> **assessed**, carrying the entry itself as message material.
+
+    Names are `_sources/new/`-relative and sorted; dotfiles and M25 route
+    sidecars are excluded (`_new_file_names` — the folder supplies candidate
+    names only). Entries are COPIES, never live ledger references.
+    """
+    names = _new_file_names(root)
+    if not names:
+        return [], []
+
+    ledger_entries = _load_ledger(root)["sources"]
+    by_rel, by_base = _staged_entry_index(ledger_entries)
+
+    unassessed: list[str] = []
+    assessed: list[dict] = []
+    for name in names:
+        entry = (by_rel.get(f"{LEDGER_DIRNAME}/new/{name}")
+                 or by_base.get(os.path.basename(name)))
+        recorded = str((entry or {}).get("hash") or "").strip()
+        if not recorded:
+            unassessed.append(name)
+            continue
+        if recorded != _hash_file(str(new_dir(root) / name)):
+            unassessed.append(name)
+            continue
+        assessed.append(dict(entry))
+    return unassessed, assessed
+
+
+# --------------------------------------------------------------------------- #
+# area_view — the v1-SHAPED slice re-pointed consumers read
+# --------------------------------------------------------------------------- #
+
+def area_view(root, area: str) -> list[dict]:
+    """The entries touching `area`, in the v1 per-area entry shape.
+
+    `{id, file, hash, note?, touches, consumed, state}` with `touches` and
+    `consumed` FLATTENED to this area's slugs — exactly what v1's
+    `_reference/sources.yaml` entries looked like, so a consumer that formats
+    them (brief's source listing, scaffold's promoted notes) needs no shape
+    change and its output stays byte-shaped.
+
+    `state` is DERIVED, never copied: `"processed"` only when the ENTIRE
+    touches map — every area — is covered (the move rule, `_fully_consumed`).
+    An area that has finished its own slugs while another area still owes a read
+    must not see the source as retired. Ledger order; copies, so a caller
+    mutating what it got back cannot reach into the ledger.
+    """
+    out: list[dict] = []
+    for entry in _load_ledger(root)["sources"]:
+        sid = str(entry.get("id") or "")
+        touches = _area_map(entry.get("touches"), "touches", sid)
+        if area not in touches:
+            continue
+        consumed = _area_map(entry.get("consumed"), "consumed", sid)
+        view = {
+            "id": sid,
+            "file": str(entry.get("file") or ""),
+            "hash": str(entry.get("hash") or ""),
+            "touches": list(touches.get(area, [])),
+            "consumed": list(consumed.get(area, [])),
+            "state": "processed" if _fully_consumed(touches, consumed) else "new",
+        }
+        note = entry.get("note")
+        if note:
+            view["note"] = note
+        out.append(view)
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # WP-C LANDS HERE — the dual-layout adapter + centralize
 #   entries_for_area(area_path) / outstanding_for_area(area_path): a v1
 #     per-area `_reference/sources.yaml` read through this API, ids presented
