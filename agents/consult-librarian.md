@@ -83,6 +83,13 @@ trigger, the output shape is the same: notes with evidence.
 5. **A coverage or sufficiency signal that reads as structural** — a node
    permanently `claimed` while its evidence keeps landing on a sibling is
    usually a boundary drawn wrong, not a thin node.
+6. **A live node outside the engagement objective (M41).** Your brief carries
+   the objective section (goal, in-scope cycles, target-deliverable gaps)
+   when one is configured. A live node — seeded skeleton or otherwise — that
+   sits outside the stated scope, or that no target deliverable will ever
+   read, is a structural question for the human: propose its removal or a
+   scope amendment (name which), with the objective section as your evidence.
+   As everywhere: propose, never execute — deletion is the human's move.
 
 ## What you propose — five moves, each as a note with evidence
 
