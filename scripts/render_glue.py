@@ -271,8 +271,11 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
     statement at the top of this module for exactly what that honors.
 
     `bindings` is the definition's binding map (`Definition.bindings`); pass it
-    to have entity-part `parts:` selections honored (without it only
-    `Block.body_omit` shapes the body — a Plan does not carry its bindings).
+    to have entity-part `parts:` selections honored. WP-G2: a compiled Plan now
+    CARRIES its bindings (`Plan.bindings`), so omitting the kwarg falls back to
+    the plan's own map rather than to no selection at all. An explicit kwarg
+    still wins — a caller holding a shaded binding map keeps the last word — and
+    passing `bindings={}` still means "apply no selection".
 
     `require_views` False downgrades "the area has no derived component for this
     view block" from a refusal to render-nothing — the semantics a plan block
@@ -290,6 +293,8 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
 
     import render                  # local: keeps this module cheap to import
 
+    if bindings is None:
+        bindings = getattr(plan, "bindings", None) or None
     shape = PlanShape(plan, area, require_views=require_views,
                       bindings=bindings)
     return render.render_folder(

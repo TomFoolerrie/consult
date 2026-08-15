@@ -47,7 +47,32 @@ HASHES_FILENAME = ".hashes.json"
 
 # derived_kind values M5 owns. Mechanical (python-owned) kinds are not tracked
 # here — only the agent-owned judgment files carry a hash baseline.
+#
+# M36 WP-G2: this pair is v1's, and it is now what the DEFINITION says rather
+# than a fact about this module — `agent_derived_kinds(folder)` asks the area's
+# compiled plan which view blocks carry `writer: agent`. The shipped
+# desktop-procedure definition names exactly these two, in this order, so v1
+# areas are unaffected; the constant remains as the fallback for an area whose
+# definition cannot be resolved (stripped install, no/invalid definition).
 AGENT_DERIVED_KINDS = ("dependencies", "raci")
+
+
+def agent_derived_kinds(folder=None) -> tuple:
+    """The agent-owned derived kinds of this area's deliverable, plan order.
+
+    Best-effort and read-only: any failure to resolve or compile the definition
+    falls back to `AGENT_DERIVED_KINDS` (documented above), so this never turns a
+    baseline read into a crash."""
+    if folder is None:
+        return AGENT_DERIVED_KINDS
+    try:
+        import definitions
+        defn = definitions.resolve_definition(folder)
+        plan = definitions.compile_plan(defn, folder)
+    except Exception:
+        return AGENT_DERIVED_KINDS
+    kinds = tuple(v.kind for v in plan.views if v.writer == "agent")
+    return kinds or AGENT_DERIVED_KINDS
 
 
 # --------------------------------------------------------------------------- #
@@ -183,10 +208,11 @@ def work_order(folder: str, derived_kind: str) -> dict:
     NOTE: intentionally carries NO prior_file_contents — the agent reads its own
     prior file from disk (review #11/#13).
     """
-    if derived_kind not in AGENT_DERIVED_KINDS:
+    known = agent_derived_kinds(folder)
+    if derived_kind not in known:
         raise ValueError(
             f"unknown derived_kind {derived_kind!r}; "
-            f"expected one of {AGENT_DERIVED_KINDS}"
+            f"expected one of {known}"
         )
     return {
         "derived_kind": derived_kind,
@@ -201,10 +227,11 @@ def commit(folder: str, derived_kind: str) -> Dict[str, str]:
     Call after the agent has successfully written its file. Returns the new
     per-kind {slug: hash} map. Other kinds' baselines are left untouched.
     """
-    if derived_kind not in AGENT_DERIVED_KINDS:
+    known = agent_derived_kinds(folder)
+    if derived_kind not in known:
         raise ValueError(
             f"unknown derived_kind {derived_kind!r}; "
-            f"expected one of {AGENT_DERIVED_KINDS}"
+            f"expected one of {known}"
         )
     baseline = load_baseline(folder)
     current = procedure_hashes(folder)

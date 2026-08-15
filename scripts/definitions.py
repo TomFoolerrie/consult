@@ -394,6 +394,14 @@ class Plan:
     name: str
     views: list[PlanView] = field(default_factory=list)
     blocks: list[Block] = field(default_factory=list)
+    #: M36 WP-G2: the definition's binding map, carried on the compiled plan.
+    #: A plan block names a binding by NAME, so a consumer that wants the
+    #: binding's content (part selections, channels, callout kinds) previously
+    #: had to be handed `Definition.bindings` alongside the plan — one plan, two
+    #: arguments, and nothing forcing them to describe the same definition.
+    #: Carrying them here makes the plan self-describing; the explicit
+    #: `bindings=` kwarg of `render_glue.render_plan` still WINS when given.
+    bindings: dict[str, dict] = field(default_factory=dict)
 
 
 def compile_plan(defn: Definition, area) -> Plan:
@@ -406,7 +414,8 @@ def compile_plan(defn: Definition, area) -> Plan:
 
     View blocks become PlanViews in shape order; entity-part and static blocks
     carry through as plan blocks. `.blocks` is the full ordered shape."""
-    plan = Plan(name=defn.name)
+    plan = Plan(name=defn.name,
+                bindings={k: dict(v) for k, v in defn.bindings.items()})
     for block in defn.shape:
         plan.blocks.append(block)
         if block.kind == "view":

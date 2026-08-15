@@ -366,18 +366,21 @@ def _renormalize(seq: list[dict]) -> dict[str, int]:
 # skeleton + stub rendering
 # --------------------------------------------------------------------------- #
 
-_FALLBACK_SKELETON = """## {heading}
-
-<!-- unfilled -->
-
-### Scope
-
-TBD — what this procedure covers, what it explicitly excludes, and which
-procedures adjoin it. Nothing else.
-
-### At a Glance
-
-| Field | Value |
+# M36 WP-G2 — THE SECTION SKELETON COMES FROM THE TYPE DECLARATION.
+#
+# The seven sections a procedure has, their TITLES and their ORDER are declared
+# in `kernel/types/activity.yaml` (`kernel.load_type("activity").parts`), so no
+# ordered section list is spelled out in this module any more. What stays here is
+# the per-section placeholder PROSE: the words a drafter is handed are content,
+# not shape — the declaration says a procedure has an `outputs` part titled
+# "Outputs & Evidence", it does not say what a blank one should suggest.
+#
+# The shipped `procedure_skeleton.md` (M1) remains the preferred source and is
+# itself data; this fallback runs only when that file is absent.
+_FALLBACK_PART_BODIES = {
+    "scope": """TBD — what this procedure covers, what it explicitly excludes, and which
+procedures adjoin it. Nothing else.""",
+    "quick-reference": """| Field | Value |
 |---|---|
 | Trigger | TBD |
 | Frequency | TBD |
@@ -385,45 +388,62 @@ procedures adjoin it. Nothing else.
 | Reviewer | TBD |
 | Systems | TBD |
 | Key inputs | TBD |
-| Key outputs | TBD |
+| Key outputs | TBD |""",
+    "before-you-start":
+        "- **<Artifact>** — TBD; TBD — the state it must be in.",
+    "steps": """#### Step 1: TBD
 
-### Before You Start
-
-- **<Artifact>** — TBD; TBD — the state it must be in.
-
-### Procedure
-
-#### Step 1: TBD
-
-TBD — Describe the step in neutral current-state procedural language.
-
-### Outputs & Evidence
-
-- **Output 1:** TBD
+TBD — Describe the step in neutral current-state procedural language.""",
+    "outputs": """- **Output 1:** TBD
 - **Evidence retained:** TBD
-- **Not retained:** TBD
-
-### Key Controls
-
-> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
+- **Not retained:** TBD""",
+    "controls": """> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** TBD
-> - **Owner:** TBD
-
-### Known Issues & Improvement Opportunities
-
-> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
+> - **Owner:** TBD""",
+    "issues": """> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
 > - **Impact:** TBD
 > - **Severity:** High | Medium | Low
 
 > **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — the proposed improvement.
-> - **Addresses:** PP-001
+> - **Addresses:** PP-001""",
+}
 
-```consult-meta
+# End matter: belongs to no section, so it is not part of the declaration.
+_FALLBACK_END_MATTER = """```consult-meta
 systems: []
 roles:   []
-```
-"""
+```"""
+
+
+def declared_parts():
+    """The entity type's parts (slug + title) in DECLARED order — the authority
+    on what sections a procedure has. Falls back to the v1 section registry only
+    if the declaration cannot be loaded (a stripped install), so a broken kernel
+    file is visible as a refusal at load time rather than a silently different
+    skeleton here."""
+    try:
+        import kernel
+        return [(p.slug, p.title) for p in kernel.load_type("activity").parts]
+    except Exception:                       # pragma: no cover - stripped install
+        return [(s, doc_model.section_title(s))
+                for s in client_config.ALL_SECTIONS]
+
+
+def declared_sections():
+    """Just the part SLUGS, declared order (what `keep_sections` filters on)."""
+    return [slug for slug, _title in declared_parts()]
+
+
+def _fallback_skeleton(heading: str) -> str:
+    """The minimal skeleton, ASSEMBLED FROM the type declaration: one `###`
+    section per declared part, titled as declared, in declared order."""
+    out = [f"## {heading}", "", "<!-- unfilled -->", ""]
+    for slug, title in declared_parts():
+        body = _FALLBACK_PART_BODIES.get(slug, "TBD")
+        out += [f"### {title}", "", body, ""]
+    out += [_FALLBACK_END_MATTER, ""]
+    return "\n".join(out)
 
 
 # The end-matter fence that terminates the last sub-section (the `consult-meta`
@@ -491,7 +511,7 @@ def render_skeleton(heading: str, sections=None) -> str:
     slugs; `None` stamps the full shape. M1 still owns the SHAPE of each
     section — this only decides which of them exist.
     """
-    wanted = (client_config.ALL_SECTIONS if sections is None else sections)
+    wanted = (declared_sections() if sections is None else sections)
     if PROCEDURE_SKELETON.is_file():
         raw = PROCEDURE_SKELETON.read_text(encoding="utf-8")
         lines = raw.splitlines(keepends=True)
@@ -507,7 +527,13 @@ def render_skeleton(heading: str, sections=None) -> str:
                     f"## {heading}\n", f"## {heading}\n\n<!-- unfilled -->\n", 1
                 )
             return keep_sections(body, wanted)
-    return keep_sections(_FALLBACK_SKELETON.format(heading=heading), wanted)
+    return keep_sections(_fallback_skeleton(heading), wanted)
+
+
+#: The same fallback as a `{heading}` TEMPLATE. Kept as a module attribute
+#: because it is one (v1 tests read it), and derived from the declaration like
+#: everything else here — no ordered section list is written down twice.
+_FALLBACK_SKELETON = _fallback_skeleton("{heading}")
 
 
 def render_static(heading: str) -> str:

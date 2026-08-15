@@ -1238,8 +1238,13 @@ def decide(folder: str) -> dict:
                       "judgment views stale vs changed procedures",
                       pending=pending, stale_kinds=stale_kinds)
 
-    # 10 — render: everything current + reconciled, no fresh docx
-    if ren.get("basis") != basis:
+    # 10 — render: everything current + reconciled, no fresh docx.
+    #      Keyed per DEFINITION as well as per basis (M36 WP-G2): a .docx of a
+    #      different deliverable is not this area's document, however current its
+    #      basis. One deliverable exists today and a pre-M36 signal reads as it,
+    #      so this is behavior-identical for every v1 area.
+    if (ren.get("basis") != basis
+            or signal_definition(ren) != area_definition(folder)):
         return result("render", "views current and reconciled; no fresh .docx")
 
     # 11 — review: rendered, awaiting human sign-off (resting gate)
@@ -1299,13 +1304,52 @@ def emit_reconcile(folder: str, clean: bool, failing_files=None) -> None:
     _write_json(os.path.join(folder, ".reconcile.json"), sig)
 
 
-def emit_render(folder: str, docx: str, awaiting_review: bool = True) -> None:
-    """Written by the renderer after producing the .docx → guards 10/11."""
+#: M36 WP-G2 — the deliverable a render signal is ABOUT. v1 has exactly one
+#: deliverable, so this is the name every v1 render signal carries and the
+#: value a pre-M36 signal (which carries no `definition` key at all) reads as.
+DEFAULT_DEFINITION = "desktop-procedure"
+
+
+def signal_definition(sig) -> str:
+    """Which deliverable a render signal describes — TOLERANT READ: a signal
+    written before M36 has no `definition` key, and v1's only deliverable is
+    the default, so an old file reads exactly as a new one written by the same
+    pipeline. Never raises; a junk value is returned as-is so the comparison in
+    guard 10 fails loudly-by-mismatch rather than being silently coerced."""
+    name = (sig or {}).get("definition")
+    if not isinstance(name, str) or not name.strip():
+        return DEFAULT_DEFINITION
+    return name.strip()
+
+
+def area_definition(folder: str) -> str:
+    """The deliverable name this area builds. Read-only and best-effort: an
+    unresolvable definition (stripped install, unreadable profile) reads as the
+    default, which is what keeps `decide` from ever failing on a config read."""
+    try:
+        import definitions
+        return definitions.resolve_definition(folder).name
+    except Exception:
+        return DEFAULT_DEFINITION
+
+
+def emit_render(folder: str, docx: str, awaiting_review: bool = True,
+                definition: str | None = None) -> None:
+    """Written by the renderer after producing the .docx → guards 10/11.
+
+    M36 WP-G2: the signal is KEYED PER DEFINITION — it records WHICH deliverable
+    was rendered, so a .docx of one deliverable can never satisfy guard 10 for
+    another. Additive in both directions: the key is omitted from nothing that
+    reads it (see `signal_definition`'s tolerant read) and `definition=None`
+    records the area's own deliverable, which for every v1 area is
+    `desktop-procedure` — the one deliverable that exists today, so behavior is
+    unchanged."""
     st = AreaState(folder)
     _write_json(os.path.join(folder, ".render.json"), {
         "basis": st.basis_hash(),
         "docx": str(docx),
         "awaiting_review": bool(awaiting_review),
+        "definition": definition or area_definition(folder),
     })
 
 

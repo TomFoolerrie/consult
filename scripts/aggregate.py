@@ -6,7 +6,10 @@ Deterministic, zero-token regeneration of the python-owned derived views for one
 area folder. Reads `manifest.json`, every `role: procedure` fragment, and the
 `_reference/*.yaml` registry, then:
 
-  (a) rebuilds the python-owned derived files in full, each with a single writer,
+  (a) rebuilds the python-owned derived files in full (M36: WHICH views those are
+      is the area's deliverable definition's answer — see plan_python_kinds; the
+      kinds below are v1's, which the shipped desktop-procedure definition names
+      exactly), each with a single writer,
       `[[slug]]` cross-reference tokens, and a re-emitted
       `<!-- derived: KIND; writer: python -->` marker:
         06_procedure-index   (procedure-index)
@@ -675,6 +678,47 @@ PY_BUILDERS = {
 PENDING_PLACEHOLDER = "> _Pending synthesis (M5)._"
 
 
+# ---------------------------------------------------------------------------
+# M36 WP-G2 — the view set follows the DEFINITION, not a list in this module.
+#
+# `PY_BUILDERS` above is a REGISTRY (kind -> the shipped python writer), not a
+# document shape: which views this area's deliverable actually has, and in which
+# order, is the compiled plan's answer. `plan_python_kinds(area)` asks it.
+#
+# FALLBACK, documented because a silent one would be compatibility theater: when
+# no plan can be resolved for the area — `definitions`/`kernel` not importable
+# (a stripped install), no definition of that name, an invalid definition, an
+# unreadable profile — this returns None and `run` keeps v1's manifest-driven
+# behavior. That is the only path on which this module's builder registry acts as
+# the document shape.
+#
+# THE OPT-IN REGISTER CARVE-OUT (v1 compatibility, deliberate): a manifest-listed
+# python derived component whose kind the plan does NOT name is still built. v1's
+# `appendix-controls` is exactly this case — an M14 profile can ASK for that
+# register (`derived: [… appendix-controls]`) but a profile only ever SUBTRACTS
+# from the shipped definition, so it cannot add the block that would put the kind
+# in the plan. The manifest is that register's authority (see
+# build_appendix_controls). Dropping it here would delete a shipped v1 register,
+# which the gate forbids.
+# ---------------------------------------------------------------------------
+
+def plan_python_kinds(area: Path) -> list[str] | None:
+    """The python-writer view kinds the area's deliverable plan names, in plan
+    order — or None when no definition resolves for this area (see above)."""
+    try:
+        import definitions
+        defn = definitions.resolve_definition(area)
+        plan = definitions.compile_plan(defn, area)
+    except Exception:
+        return None
+    return [v.kind for v in plan.views if v.writer == "python"]
+
+
+def unbuildable_plan_views(kinds) -> list[str]:
+    """Plan view kinds with no registered python builder — refused BY NAME."""
+    return [k for k in (kinds or ()) if k not in PY_BUILDERS]
+
+
 def write_derived(path: Path, heading: str, kind: str, writer: str, body: str) -> None:
     content = f"## {heading}\n\n{marker(kind, writer)}\n\n{body}\n"
     path.write_text(content, encoding="utf-8")
@@ -691,6 +735,20 @@ def run(area_arg: str) -> int:
     if not area.is_dir():
         print(f"Not a directory: {area_arg}")
         return 2
+
+    # M36 WP-G2: the deliverable definition decides which derived views this
+    # area's document has. Resolved BEFORE anything is parsed or written, so a
+    # plan naming a view no python writer serves refuses by name with the area
+    # untouched (the fail-loud posture the rest of this module uses).
+    plan_kinds = plan_python_kinds(area)
+    if plan_kinds is not None:
+        unbuildable = unbuildable_plan_views(plan_kinds)
+        if unbuildable:
+            for kind in unbuildable:
+                print(f"ERROR: the deliverable plan names python view "
+                      f"{kind!r}, which no registered builder serves "
+                      f"(registered: {', '.join(sorted(PY_BUILDERS))})")
+            return 1
 
     manifest = doc_model.load_manifest(area)
     numbers = doc_model.display_numbers(manifest)  # {slug: "L2.seq"}
@@ -803,11 +861,19 @@ def run(area_arg: str) -> int:
         heading = c.get("heading", kind)
         path = area / c["file"]
         if writer == "python":
-            builder = PY_BUILDERS.get(kind)
-            if builder is None:
-                warnings.append(f"no python builder for derived_kind {kind!r} "
-                                f"({c['file']}) — skipped")
-                continue
+            if plan_kinds is not None and kind in plan_kinds:
+                # The plan names this view; the refusal above already proved a
+                # builder exists for it.
+                builder = PY_BUILDERS[kind]
+            else:
+                # Fallback (no plan) or the opt-in register carve-out — see the
+                # WP-G2 block comment above PY_BUILDERS' consumers.
+                builder = PY_BUILDERS.get(kind)
+                if builder is None:
+                    warnings.append(
+                        f"no python builder for derived_kind {kind!r} "
+                        f"({c['file']}) — skipped")
+                    continue
             write_derived(path, heading, kind, "python", builder(ctx))
             written.append(c["file"])
         elif writer == "agent":
