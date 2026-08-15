@@ -398,7 +398,64 @@ def audit(root: Path) -> int:
 _FULL_READ_TOKEN_BUDGET = 300_000
 
 
-def placement_brief(root: Path, full: bool = False) -> int:
+def _objective_area(root: Path) -> Path | None:
+    """The area folder whose config layers we read the objective through.
+
+    The objective is an ENGAGEMENT-level fact, and `client_config` merges the
+    engagement layer with the area layer — so any area resolves it. We take the
+    FIRST area dir under `components/` (conservative and deterministic); an
+    area-layer objective in a single-area engagement is therefore found, and in
+    a multi-area one the shared engagement layer is what carries the block.
+    """
+    for d in sorted(p for p in root.iterdir() if p.is_dir()):
+        if not d.name.startswith(("_", ".")):
+            return d
+    return None
+
+
+def _print_objective_section(root: Path) -> None:
+    """One section carrying the engagement objective (M41 Part C).
+
+    `brief.objective_block` is the single renderer — engagement.py imports
+    brief (brief has never imported engagement, so the direction adds no
+    cycle), and the librarian reads the same words the surveyor's dispatch
+    carries. An unreadable objective is reported LOUD but does not take the
+    placement pass with it: the pass has other findings to deliver."""
+    import brief as brief_mod
+    import client_config
+    area = _objective_area(root)
+    if area is None:
+        print("ENGAGEMENT OBJECTIVE: no area under this components/ dir to "
+              "resolve the config layers through — report it.")
+        print()
+        return
+    try:
+        print(brief_mod.objective_block(area))
+    except client_config.ClientConfigError as exc:
+        print(f"ENGAGEMENT OBJECTIVE: UNREADABLE — {exc}")
+        print("  fix the `objective:` block before trusting this pass's "
+              "scope judgments; do not guess the goal.")
+        print()
+    print("SCOPE TRIGGER (M41): a LIVE taxonomy node outside the objective's "
+          "cycles is a finding — propose removal or a scope amendment to the "
+          "human in your status. Deletion stays proposed, never executed by "
+          "you.")
+    print()
+
+
+def placement_brief(root: Path, full: bool = False) -> str:
+    """The placement brief's TEXT (M41: the librarian's objective section made
+    the return value, so callers can read the brief they print). `main` prints
+    it through `_placement_brief` and keeps the exit codes."""
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        _placement_brief(root, full=full)
+    return buf.getvalue()
+
+
+def _placement_brief(root: Path, full: bool = False) -> int:
     """The work order for the single knowledge-placement agent (M24).
 
     `full` (the field-finding fix): list whole fragment paths instead of
@@ -409,6 +466,8 @@ def placement_brief(root: Path, full: bool = False) -> int:
     if len(areas) < 2:
         print(f"{root}: {len(areas)} area(s) — the placement pass needs at "
               f"least two areas under one components/ dir.")
+        print()
+        _print_objective_section(root)
         return 2 if not areas else 0
     print(f"WORK ORDER — knowledge-placement pass "
           f"({'FULL READ' if full else 'digest'}) · {root}")
@@ -417,6 +476,7 @@ def placement_brief(root: Path, full: bool = False) -> int:
           "adoptions are executed on the notes' say-so, never by you")
     print(f"  {len(areas)} areas: " + ", ".join(a for a, _ in areas))
     print()
+    _print_objective_section(root)
     print("THE RULE — every fact has exactly ONE home. You route each "
           "finding (a duplication OR a gap another area answers) to ONE "
           "move, decided by the CLASS of the fact:")
@@ -1060,7 +1120,7 @@ def main(argv=None) -> int:
         print(f"error: {root} is not a directory — run from the engagement "
               f"root (the folder containing components/)", file=sys.stderr)
         return 2
-    return placement_brief(root, full=a.full) if a.command == "brief" \
+    return _placement_brief(root, full=a.full) if a.command == "brief" \
         else audit(root)
 
 

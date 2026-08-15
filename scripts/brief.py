@@ -5,6 +5,7 @@ Usage:
     python3 scripts/brief.py <area> --slug <procedure-slug>              # drafter
     python3 scripts/brief.py <area> --slug <slug> --mode update          # drafter, mode-scoped
     python3 scripts/brief.py <area> --kind raci|dependencies             # synthesis
+    python3 scripts/brief.py <area> --objective                          # objective block
 
 Why this exists (design note): the orchestrator's advisor works because
 orchestration is a state machine; a drafting pass is one sitting of judgment
@@ -143,6 +144,85 @@ def _profile_block(out: list[str], folder: Path) -> None:
                    f"sections exactly as normal — only the rendered body "
                    f"hides them")
     _line(out)
+
+
+def objective_block(area) -> str:
+    """The engagement objective as one printable block (M41 Part C).
+
+    Deterministic and READ-ONLY, like every other block here: the goal line,
+    the in-scope cycles, and — the deliverable-aware half — per target
+    deliverable the named gaps `definitions.serviceability` reports, so the
+    taxonomy agents ask about what the ENGAGEMENT was hired to produce
+    instead of asking generically whether evidence exists.
+
+    The block ALWAYS renders. An unconfigured objective prints the accessor's
+    own "none (no engagement objective configured)" line rather than nothing:
+    a missing section reads as a bug, a "none" line reads as a choice.
+
+    Guards, both because an initial survey legitimately pre-dates the area's
+    manifest and because a block that crashes takes a whole dispatch with it:
+    a definition that will not load, and a serviceability read that cannot
+    find/parse the manifest, each report as a LINE under their deliverable.
+    """
+    folder = Path(area)
+    obj = client_config.objective(folder)
+    out: list[str] = []
+    _line(out, "ENGAGEMENT OBJECTIVE (what this engagement is FOR — stated "
+               "by the human, not inferred):")
+    _line(out, f"  {obj.report_line()}")
+    if not obj.configured:
+        _line(out, "  no goal is stated, so nothing narrows attention: work "
+                   "the area as you would today, and say in your return that "
+                   "an objective would have aimed the pass")
+        _line(out)
+        return "\n".join(out)
+
+    goal = obj.goal or ("(stated block, no goal sentence — treat the "
+                        "cycles/deliverables below as the goal)")
+    _line(out, f"  goal: {goal}")
+    if obj.cycles:
+        _line(out, f"  in-scope cycles: {', '.join(obj.cycles)}")
+        _line(out, "  the skeleton is a PROPOSAL like any other: refine a "
+                   "seeded node the client's business contradicts, and "
+                   "propose removing what the engagement does not cover — "
+                   "never force-fit the client to the shape")
+    else:
+        _line(out, "  in-scope cycles: none stated — no cycle is out of "
+                   "scope by omission; ask before narrowing")
+
+    if not obj.deliverables:
+        _line(out, "  target deliverables: none stated — judge sufficiency "
+                   "generically (is there evidence?) and say so")
+        _line(out)
+        return "\n".join(out)
+
+    _line(out, "  target deliverables — what each still NEEDS from this area "
+               "(serviceability, named per binding). A node serving an "
+               "unserved binding is asked about FIRST, and an information "
+               "request may cite the deliverable:")
+    import definitions  # lazy: brief.py stays cheap for the drafter path
+    for name in obj.deliverables:
+        _line(out, f"    {name}:")
+        try:
+            defn = definitions.load_definition(name, folder)
+        except Exception as exc:  # validated at config time — never fatal here
+            _line(out, f"      - definition did not load ({exc}) — report "
+                       f"this, do not guess what it needs")
+            continue
+        try:
+            gaps = definitions.serviceability(defn, folder)
+        except (OSError, ValueError) as exc:
+            _line(out, f"      - area not yet scaffolded (no readable "
+                       f"manifest): serviceability unavailable until the "
+                       f"area is scaffolded ({exc})")
+            continue
+        if not gaps:
+            _line(out, "      - fully serviceable")
+            continue
+        for gap in gaps:
+            _line(out, f"      - {gap}")
+    _line(out)
+    return "\n".join(out)
 
 
 def _drafter_register_block(out: list[str], parent: Path) -> None:
@@ -453,6 +533,10 @@ def main(argv=None) -> int:
     g.add_argument("--slug", help="procedure slug (drafter brief)")
     g.add_argument("--kind", choices=sorted(SYNTH_KINDS),
                    help="derived kind (synthesis brief)")
+    g.add_argument("--objective", action="store_true",
+                   help="print the engagement objective block alone (M41) — "
+                        "what the taxonomy dispatches carry; needs no "
+                        "manifest, so an initial survey can run it")
     ap.add_argument("--mode", choices=("first-draft", "update"),
                     help="relay the dispatch's trigger (drafter briefs "
                          "only); `update` scopes the reading list to the "
@@ -461,6 +545,17 @@ def main(argv=None) -> int:
 
     if a.mode and not a.slug:
         raise _fail("--mode applies to drafter briefs only (--slug)")
+
+    if a.objective:
+        # No _load_area: the objective block is the one brief a pre-manifest
+        # area can still print (an initial survey pre-dates the manifest).
+        try:
+            print(objective_block(a.area))
+        except client_config.ClientConfigError as e:
+            print(f"ERROR: {e}\nfix the objective block before dispatching "
+                  f"over it", file=sys.stderr)
+            return 1
+        return 0
 
     folder, manifest = _load_area(a.area)
     try:
