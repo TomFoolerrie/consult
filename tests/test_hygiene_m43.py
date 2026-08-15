@@ -39,8 +39,10 @@ def needs_module():
 needs_hygiene = pytest.mark.skipif(
     needs_module(), reason="M43 hygiene module not built yet — the target")
 
+# Gate on the path section's own heading — softer anchors ("process step",
+# "— from") already occur in the M42 doctrine text and would unskip early.
 needs_path = pytest.mark.skipif(
-    "— from" not in _drafter_text() or "process step" not in _drafter_text().lower(),
+    "what you produce — a process step" not in _drafter_text().lower(),
     reason="M43 drafting path prose not landed yet — the target")
 
 # WP-H2 gates on its own files, not on WP-H1's module — the packages land
