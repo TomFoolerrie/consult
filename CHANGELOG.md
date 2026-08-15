@@ -15,6 +15,15 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M38 — the second deliverable: generality proven** (`2.0.0-alpha.8`):
+  the process & controls matrix — a table-first, IPO-fed, cross-step
+  document v1 could never produce — ships as a definition + one new
+  view-builder module through the existing registry, with zero engine
+  special-cases (the one candidate was refused for lacking an honest
+  discriminator). The IPO fixture engagement lands as frozen fixture #2
+  with the five mandatory awkward cases. Review round-trip proven for
+  the rebuild loop; row-comment routing pinned as a strict xfail with
+  the exact fix identified. Suite 1045 passing.
 - **M37 — surveyor + librarian** (`2.0.0-alpha.7`): the taxonomy
   becomes brain entities (`taxonomy-node` type, files under
   `_taxonomy/`); coverage is a pure, cache-free function (four statuses;

@@ -1,6 +1,32 @@
 # M38 — The second deliverable: the generality proof
 
-> **Status: DRAFT — contract under review.** Companions: M35 (the language
+> **Status: BUILT (2.0.0-alpha.8)** — the process & controls matrix
+> renders end-to-end over the IPO fixture engagement (frozen fixture #2,
+> all five awkward cases mechanically verified) through the ordinary plan
+> path: `kernel/deliverables/process-controls-matrix.yaml` +
+> `scripts/matrix_views.py` (all vocabulary derived from declarations —
+> zero audit entries) + one `count` verb + landscape capability plumbing
+> keyed on the capability name. Gates: `tests/test_matrix_m38.py` 13/13 +
+> `tests/test_matrix_roundtrip_m38.py` 8/8 + 1 strict xfail; suite 1045
+> passed. Build record: [`M38-build-plan.md`](M38-build-plan.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) the zero-engine-edit
+> ruling held — the builder registers through the existing registry
+> (import + entry + a generic ctx key); the one candidate special-case
+> (materializing a manifest-absent view in render_glue) was REFUSED by
+> the implementer for lacking an honest discriminator and resolved
+> fixture-side instead; (2) LANGUAGE GAP recorded: nothing reflects a
+> definition's view blocks into an area manifest — the matrix needed its
+> derived component authored in the fixture, and M37's
+> information-request views have no builders/manifest entries (that
+> definition has never rendered); closing this is a named follow-up
+> ticket candidate; (3) review round-trip: markup + extraction + the
+> view-rebuild loop all prove out; row-level comment ROUTING lands in
+> _unassigned today — the exact fix (table-row first-cell slug
+> resolution) is pinned as a strict xfail and needs its own small ticket
+> with v1 appendix-table routing characterized first; (4) node grouping
+> is mechanical (slug identity, then naming, then Ungrouped); the
+> fixture's l2 == node-slug convention keeps the join total. Companions: M35 (the language
 > this ticket stress-tests with a shape v1 never had), M33 (the IPO type
 > this ticket is the first real consumer of), M36 (the gate proved the
 > language can express the OLD deliverable; this ticket proves it can

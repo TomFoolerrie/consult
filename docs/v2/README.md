@@ -171,7 +171,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M35](M35-deliverable-definitions.md) | Deliverable-definition language: four-stage loader, compile-to-plan, profile alias, shipped desktop-procedure.yaml (**BUILT**, alpha.5, gates 26/26) |
 | [M36](M36-compatibility-gate.md) | **Compatibility gate: GREEN** — definition-assembled docx golden-equal, advisor replay equal, audit armed (**BUILT**, alpha.6; v2.0.0 merge awaits human go) |
 | [M37](M37-surveyor-librarian.md) | Surveyor + librarian: taxonomy-node entities, pure coverage, info-request deliverable, lens-conflict landed (**BUILT**, alpha.7, gates 19/19) |
-| [M38](M38-second-deliverable.md) | Second deliverable — process & controls matrix over an IPO fixture; zero engine edits (spec drafted) |
+| [M38](M38-second-deliverable.md) | Second deliverable — the matrix renders over the IPO fixture with zero engine special-cases (**BUILT**, alpha.8, gates 21/21 + 1 pinned xfail) |
 | [M39](M39-analysis-verbs.md) | Analysis verbs → findings register class, consult-analyst, findings report (spec drafted) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
