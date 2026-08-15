@@ -116,7 +116,21 @@ _ALLOWED_BINDING_KEYS = {"entities", "parts", "callouts", "channels",
                          # entity type and there is nothing on disk for stage 3
                          # to look for. `of` is its companion: what is being
                          # covered.
-                         "coverage", "of"}
+                         "coverage", "of",
+                         # M38: the COUNT verb of the join/group/count family
+                         # M35 reserved headroom for.
+                         # Consumer: kernel/deliverables/process-controls-matrix
+                         # .yaml, binding `open-items` — the matrix's last
+                         # column reaches the reader as "how many open items
+                         # does this step carry" (with their ids), not as one
+                         # row per callout. `count: true` says exactly that:
+                         # this selection is consumed AS A COUNT. It is a
+                         # presentation-independent fact about the QUERY (a
+                         # register and a matrix cell over the same callouts
+                         # differ in nothing else), which is why it belongs in
+                         # bindings rather than in skin. Boolean-only —
+                         # see _check_count_shape.
+                         "count"}
 
 #: The coverage statuses a `coverage:` binding may name. Four come straight from
 #: coverage_map.coverage()'s contract; `thin` is the SURVEYOR's sufficiency word
@@ -323,6 +337,26 @@ def _check_coverage_shape(fname: str, bname: str, spec: dict) -> None:
             f"(known: {sorted(_ALLOWED_COVERAGE_DOMAINS)}; got {domain!r})")
 
 
+def _check_count_shape(fname: str, bname: str, spec: dict) -> None:
+    """Stage-2's check for the M38 `count:` verb.
+
+    All stage 2 can say about it is its VALUE SHAPE (a boolean) and that it
+    counts SOMETHING: a count with no selection to count is meaningless, so the
+    binding must also carry an entity population. The selection itself
+    (`callouts:`/`parts:`) is checked against the declaration by the walk
+    below, exactly as it would be without the count."""
+    if "count" not in spec:
+        return
+    if not isinstance(spec["count"], bool):
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" "count" must be true or false '
+            f"(got {spec['count']!r})")
+    if "entities" not in spec:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" names "count" without an "entities" '
+            f"selection to count")
+
+
 def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     """Every type / part / callout kind / channel a binding names must be
     DECLARED by that binding's entity type (kernel.load_type)."""
@@ -330,6 +364,7 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
 
     for bname, spec in defn.bindings.items():
         _check_coverage_shape(fname, bname, spec)      # M37, see below
+        _check_count_shape(fname, bname, spec)         # M38, see above
 
         tname = spec.get("entities")
         if tname is None:
@@ -444,12 +479,72 @@ def _area_entity_count(area: Path, type_name: str) -> int:
         # Loader-grade problem: propagate naturally rather than mis-report it
         # as an unserved binding.
         raise
+    components = [c for c in (manifest.get("components") or [])
+                  if isinstance(c, dict)]
     role = _TYPE_MANIFEST_ROLE.get(type_name)
-    if role is None:
+    if role is not None:
+        return sum(1 for c in components if c.get("role") == role)
+    return _typed_fragment_count(area, type_name, components)
+
+
+#: The manifest role whose fragments are an area's hand-authored entity
+#: population, whatever type they are of. v1's areas hold `activity` entities
+#: there; a v2-native area holds `process-step` entities in the same place (the
+#: manifest is membership/ordering authority for both — see M33's compatibility
+#: ruling), which is why the count below asks the FRAGMENTS what they are
+#: instead of widening the role table with a second entry that would make the
+#: two types indistinguishable.
+_ENTITY_ROLE = "procedure"
+
+
+def _typed_fragment_count(area: Path, type_name: str, components: list) -> int:
+    """How many of the area's entity fragments are of `type_name`, by SHAPE.
+
+    THE QUESTION THIS ANSWERS, AND WHY IT IS ASKED THIS WAY (M38): the role
+    table above maps a type to the manifest role that holds it, and `activity`
+    and `process-step` share that role — so a role lookup alone would count v1's
+    activity-shaped procedures as process steps and report the M38 matrix as
+    fully served over the p2p fixture, which is exactly the honesty the M35 gate
+    exists to protect ("not yet, and here is the type you are missing").
+
+    The discriminator is DERIVED, never typed: a fragment counts as an entity of
+    this type when it carries a non-empty body for every part the type declares
+    that is NOT the home of one of its callout kinds. Those parts are the type's
+    STRUCTURAL spine (for `process-step`: scope, inputs, outputs — the IPO edges
+    an activity fragment simply does not have); the callout homes are excluded
+    because a step legitimately carries no controls and no issues, and a
+    populated area must not read as unpopulated because of that.
+
+    Read-only, and cheap: one parse per fragment, only for a type with no role
+    mapping. A type declaring no such parts counts 0 rather than matching
+    everything — an undiscriminating shape is not evidence of a population."""
+    try:
+        tdecl = kernel.load_type(type_name)
+    except (kernel.TypeDeclError, OSError):
         return 0
-    components = manifest.get("components") or []
-    return sum(1 for c in components
-               if isinstance(c, dict) and c.get("role") == role)
+    homes = {c.home for c in tdecl.callouts}
+    spine = [p.slug for p in tdecl.parts if p.slug not in homes]
+    if not spine:
+        return 0
+    count = 0
+    for comp in components:
+        if comp.get("role") != _ENTITY_ROLE:
+            continue
+        fpath = area / str(comp.get("file") or "")
+        if not fpath.is_file():
+            continue
+        try:
+            entity = kernel.parse_entity(fpath.read_text(encoding="utf-8"),
+                                         tdecl, slug=comp.get("slug"))
+        except Exception:
+            # A fragment this type cannot parse is not an entity of it. Loader
+            # -grade defects in the AREA are reconcile's report, not a
+            # serviceability exception (this function only ever counts).
+            continue
+        bodies = entity.parts_bodies()
+        if all((bodies.get(slug) or "").strip() for slug in spine):
+            count += 1
+    return count
 
 
 def _coverage_gaps(bname: str, spec: dict, area: Path) -> list[str]:

@@ -69,6 +69,7 @@ import yaml
 # file is run as `python3 scripts/aggregate.py …` from the repo root.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_model  # noqa: E402  (M2 deliverable)
+import matrix_views  # noqa: E402  (M38: the matrix writer, registered below)
 
 
 # ---------------------------------------------------------------------------
@@ -669,6 +670,10 @@ def build_screenshot_index(ctx) -> str:
 
 
 PY_BUILDERS = {
+    # M38: the process & controls matrix — a NEW writer module registered
+    # through this registry (the sanctioned extension mechanism; nothing in the
+    # loader/compiler/renderer learns the deliverable's name).
+    matrix_views.MATRIX_KIND: matrix_views.build_process_controls_matrix,
     "procedure-index": build_procedure_index,
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,
@@ -840,6 +845,10 @@ def run(area_arg: str) -> int:
         procs_by_l2.setdefault(p["l2"], []).append(p)
 
     ctx = {
+        # The area every builder is building over. Generic (no builder is named
+        # here): a writer whose view is a join over more than the procedure
+        # fragments — M38's matrix reads `_taxonomy/` too — needs the path.
+        "area": area,
         # (slug, local-id) -> document-global display id (render-time
         # numbering authority; body sections use the same map in render.py).
         "disp": doc_model.callout_display_ids(area),

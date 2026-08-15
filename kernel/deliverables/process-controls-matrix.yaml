@@ -1,0 +1,99 @@
+# kernel/deliverables/process-controls-matrix.yaml — M38's second deliverable
+# (docs/v2/M38-second-deliverable.md): the matrix v1 could not produce.
+#
+# WHAT IT IS: one landscape table per taxonomy node, one ROW PER PROCESS STEP,
+# with the columns drawn from four different kernel surfaces — step identity +
+# owner (the roles channel), systems (the systems channel), the IPO edges (the
+# `inputs` / `outputs` list parts), the control callouts, and the OPEN items
+# (pain points and validation gaps, counted). Nothing here is narrative: every
+# cell is a projection of content authored once on the step.
+#
+# WHY IT IS SHAPED AS FOUR BINDINGS AND ONE VIEW: a binding is one query, and
+# the matrix asks four different questions of the same population (identity +
+# channels; the two list parts; the control callouts; the open callouts,
+# counted). Splitting them is what lets the loader's stage 2 check each
+# selection against the `process-step` declaration — which in turn is what lets
+# scripts/matrix_views.py read its COLUMN VOCABULARY off these bindings instead
+# of typing part slugs and callout labels as python constants (the M36 shape
+# audit's rule, honoured rather than allowlisted).
+#
+# The row GROUPING is the `group_by: taxonomy-node` on the identity binding:
+# rows are grouped under the taxonomy node that covers them (M37 Part A nodes,
+# `<area>/_taxonomy/*.md`). The node→step relation is derived mechanically by
+# the builder — see scripts/matrix_views.py, which documents the two rules
+# (node slug == step slug, and a node that NAMES its steps) and the `Ungrouped`
+# tail for steps no node claims.
+#
+# The view's `id` IS its derived kind (`process-controls-matrix`), so the plan
+# dispatches it and aggregate builds it through the ordinary plan-driven path
+# (scripts/aggregate.py's PY_BUILDERS registry, one entry, no special case).
+#
+# skin: docx + `landscape-tables` — a seven-column table does not fit portrait.
+# The capability is one the docx renderer already DECLARES (render.py's
+# --landscape section support); render_glue turns a skin that requires it into
+# render.py's `landscape=` kwarg (keyed on the capability, never on this file's
+# name).
+
+deliverable: process-controls-matrix
+
+shape:
+  - id: matrix-preamble
+    title: About This Matrix
+    kind: static
+    numbering: none
+    text: |
+      The table that follows summarises each process step in scope on one row:
+      who owns it, which systems it runs in, what it consumes and produces, the
+      controls identified on it, and the open items still to be resolved. It is
+      a summary VIEW of the process record — the detail behind every cell (and
+      the wording of every control, pain point and validation question) lives
+      with the step itself, which is where comments and corrections belong.
+
+  - id: process-controls-matrix
+    title: Process & Controls Matrix
+    kind: view
+    writer: python
+    binding: step-identity
+    numbering: none
+
+bindings:
+  # The row population and two of the columns. `order: manifest` is the row
+  # order (the area's manifest is membership/ordering authority for steps);
+  # `group_by: taxonomy-node` is the row GROUPING; the channels are the owner
+  # and systems columns (resolved to display names through the area's
+  # `_reference/roles.yaml` / `systems.yaml`).
+  step-identity:
+    entities: process-step
+    channels: [roles, systems]
+    order: manifest
+    group_by: taxonomy-node
+
+  # The IPO columns: the two LIST parts of a step, rendered compactly (one cell
+  # per part, the authored list items joined).
+  io-edges:
+    entities: process-step
+    parts: [inputs, outputs]
+    order: manifest
+
+  # The controls column: the control callouts carried on each step, by id.
+  control-callouts:
+    entities: process-step
+    callouts: [CONTROL]
+    order: manifest
+
+  # The open-items column. `count: true` is the one binding verb this
+  # deliverable adds (admitted in scripts/definitions.py, which names this
+  # binding as its consumer): this selection reaches the reader as a COUNT of
+  # the open items per step (with their ids), not as one row per callout —
+  # counting is the whole difference between a matrix cell and a register.
+  open-items:
+    entities: process-step
+    callouts: [PAIN POINT, VALIDATION REQUIRED]
+    count: true
+    order: manifest
+
+skin:
+  format: docx
+  requires:
+    - landscape-tables
+    - numbering-display

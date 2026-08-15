@@ -256,8 +256,30 @@ class PlanShape:
                 "writer": None, "file": None}
 
 
+#: The docx capability that turns into render.py's `--landscape` sections. A
+#: CAPABILITY name (definitions.RENDERERS declares it), never a deliverable
+#: name: any skin that requires it renders landscape, and the adapter does not
+#: know or care which definition asked.
+LANDSCAPE_CAPABILITY = "landscape-tables"
+
+
+def landscape_for_skin(skin) -> bool:
+    """Does this skin ask for landscape sections? (M35's capability mechanism,
+    plumbed to the kwarg render.py has carried since M35 D3.)
+
+    Takes a `definitions.Skin`, a plain mapping, or None — the caller holds the
+    skin (a compiled Plan deliberately does not carry one), and an absent skin
+    means "unstated", which is portrait."""
+    if skin is None:
+        return False
+    requires = (skin.get("requires") if isinstance(skin, dict)
+                else getattr(skin, "requires", None)) or []
+    return LANDSCAPE_CAPABILITY in requires
+
+
 def render_plan(plan, area, out_path, *, mode: str = "working",
-                landscape: bool = False, do_cover: bool = True,
+                landscape: bool | None = None, skin=None,
+                do_cover: bool = True,
                 track_changes: bool = False,
                 emit_signal: bool = False,
                 bindings: dict | None = None,
@@ -281,6 +303,16 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
     view block" from a refusal to render-nothing — the semantics a plan block
     whose fragment has not been aggregated yet needs.
 
+    `skin` is the definition's skin (`Definition.skin`): passing it lets the
+    renderer's DECLARED capabilities decide page setup — today
+    `landscape-tables` -> render.py's `landscape=True` (M38's matrix is seven
+    columns wide and does not fit portrait). An explicit `landscape=` still
+    wins, and with neither given the render is portrait, as every plan render
+    was before M38. The skin is a kwarg rather than something read off the plan
+    because a compiled Plan carries no skin — and inferring one from
+    `plan.name` would silently re-page every existing plan render (v1's own
+    definition declares `landscape-tables` too, for its wide registers).
+
     `emit_signal` defaults to False here (a plan render is not v1's pipeline
     step, so it must not drop v1's signal file into the area unless asked)."""
     area = Path(area)
@@ -295,6 +327,8 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
 
     if bindings is None:
         bindings = getattr(plan, "bindings", None) or None
+    if landscape is None:
+        landscape = landscape_for_skin(skin)
     shape = PlanShape(plan, area, require_views=require_views,
                       bindings=bindings)
     return render.render_folder(
