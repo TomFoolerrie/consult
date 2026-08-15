@@ -31,7 +31,14 @@
 > own small ticket, not fixed here. (6) `--taxonomy`'s CLI default
 > moved from the literal shipped path to None-resolved-at-use so seed
 > can distinguish "not passed" from "explicitly passed"; confirm's
-> resolved value is unchanged. Origin: two user rulings,
+> resolved value is unchanged. (7) `engagement.placement_brief` changed
+> signature (int exit code → returned string): the old body lives on as
+> the private printer `main()` calls, byte-identical stdout and exit
+> codes preserved; no in-repo caller other than main() existed. (8) A
+> malformed objective block inside the librarian's brief prints a named
+> `ENGAGEMENT OBJECTIVE: UNREADABLE` section ("fix before trusting this
+> pass's scope judgments") instead of crashing the pass — brief.py's
+> own CLI keeps the fail-loud exit-1 posture. Origin: two user rulings,
 > 2026-08-15 — (1) the taxonomy can start as standard business cycles
 > (Treasury, O2C, P2P, tax, FSCP, …) "filled out, with a skeleton built
 > on that … gives us structure up front"; (2) "the taxonomy agent(s)
