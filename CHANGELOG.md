@@ -15,6 +15,17 @@ process-knowledge model ("the brain") projected through user-supplied
 deliverable definitions. Charter and ticket index: [`docs/v2/README.md`](docs/v2/README.md).
 Milestones accumulate here as they land (M33+).
 
+- **M40 — definition views to manifest** (`2.0.0-alpha.10`): the gap
+  M38 recorded is closed — `definitions.materialize_views` reflects a
+  definition's view blocks into an area manifest as canonical six-key
+  derived components (plan-driven sync_profile: idempotent, preserving,
+  never deleting, validate-before-replace, mechanical file/order
+  policy), and `scripts/plan_views.py` ships the three missing python
+  writers (information-requests via on-demand coverage,
+  open-validations with SRC attribution, findings-by-theme accepted-
+  only) through the ordinary PY_BUILDERS registry with zero shape-audit
+  allowlist entries. The information-request and findings-report
+  definitions render end-to-end for the first time. Suite 1071 passing.
 - **M39 — analysis verbs: the spine complete** (`2.0.0-alpha.9`):
   findings as a register-class citizen with the lifecycle M30 deferred
   (grounds-or-refused, terminal reject, accepted-only rendering, the

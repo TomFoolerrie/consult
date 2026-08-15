@@ -1,7 +1,40 @@
 # M40 — Definition views to manifest: the materialize verb and the missing writers
 
-> **Status: SPEC** — closes the language gap M38 Amendment A1 recorded:
-> "nothing reflects a definition's view blocks into an area manifest."
+> **Status: BUILT (2.0.0-alpha.10)** — `definitions.materialize_views`
+> (the plan-driven sync_profile) + `scripts/plan_views.py` (the three
+> missing writers, registered through `aggregate.PY_BUILDERS`, zero
+> shape-audit allowlist entries). The two never-rendered shipped
+> definitions (information-request, findings-report) now render
+> end-to-end over the IPO fixture. Gates: `tests/test_views_m40.py`
+> 15/15; suite 1071 passed, 1 pinned xfail. Build record:
+> [`M40-build-plan.md`](M40-build-plan.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) explicit-name
+> resolution is literal: `materialize_views(area, name=...)` loads the
+> named definition WITHOUT M14 profile shading (a profile could silently
+> cancel a view the caller explicitly asked for); `name=None` goes
+> through `resolve_definition` and gets shading — the ruling stands
+> until a profiled-area case argues otherwise. (2) Minted components are
+> APPENDED; the existing component sequence is never re-sorted (a
+> divergence from sync_profile's `(order, file)` sort — everything
+> downstream keys off the `order` field, and re-serializing an unchanged
+> manifest would break mtime-stable idempotence). (3) Collision checks
+> run against the manifest's file→kind map, not untracked disk files —
+> the manifest is the membership authority; an orphan file matching a
+> minted name is adopted, never overwritten. (4) An existing derived
+> entry whose stub file is missing gets the stub recreated from the
+> ENTRY's writer/heading (a manifest entry with no file breaks
+> aggregate) — the only write possible on an otherwise no-op call.
+> (5) The `thin` alias collapse lives locally in plan_views.py citing
+> definitions' documented alias; the recorded want is an additive
+> `definitions.expand_coverage_statuses` so the alias has one owner.
+> Also wanted: a published area→engagement-root helper (plan_views
+> reuses `definitions._engagement_root` rather than spelling the layout
+> a third time). (6) The request list names nodes and SRC ids only —
+> never a step's manifest heading (fixture node titles are byte-equal to
+> step headings; the coverage assertions depend on the distinction).
+> Findings themes render as authored, never title-cased (analyst free
+> text is data, not presentation).
 > Companions: M35 (the language whose views this ticket makes buildable),
 > M38 (whose builder registry and fixture this ticket extends; whose
 > refusal — no materialization inside render_glue — this ticket honors by
