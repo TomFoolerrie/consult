@@ -90,6 +90,54 @@ trigger, the output shape is the same: notes with evidence.
    read, is a structural question for the human: propose its removal or a
    scope amendment (name which), with the objective section as your evidence.
    As everywhere: propose, never execute — deletion is the human's move.
+7. **CALLOUT POPULATION GROOMING (M42 A6).** The drafters own each step's
+   own record; nobody but you sees the callout POPULATION across steps and
+   areas. After drafting, the population drifts in three specific ways, and
+   all three are yours to *propose* on:
+   - **Near-duplicate GAPs across steps.** Two or more GAPs, in different
+     steps or different areas, asking for the SAME fact (one threshold, one
+     approver, one system of record). Each drafter was locally right — none
+     could see the other. Propose the merge: which GAP stays (the step whose
+     statement the fact actually blocks), which are reduced to a reference
+     to it, and — where the fact is a recurring one — pair the merge with
+     the **promote-to-register** move below, which is the durable fix.
+   - **A GAP a tagged source likely answers.** The ledger holds a source
+     tagged to this area whose bytes the owning step has not `consumed`,
+     and it plausibly states the fact the GAP asks for. This is the
+     cross-answerable gap seen at callout altitude: the answer is already in
+     the engagement, the read just did not happen. Propose it as a retag or
+     an adopt (below), naming the `SRC-` id and where in it you believe the
+     answer sits. Say **likely**: you are pointing a reader at evidence, not
+     resolving the gap.
+   - **CTRL callouts missing the four minting fields.** A recorded control
+     statement must carry performer, comparison, trigger and evidence — the
+     bar's home is the drafter contract (`agents/consult-drafter.md`), which
+     is also where the refusal rule lives (a statement that cannot support
+     the four fields stays prose plus ONE GAP, never a weak CTRL). A live
+     CTRL short of a field is a record the matrix will render with a hole:
+     name the callout id, name which field is missing, and propose either
+     the completion (if a tagged source supplies it) or the demotion to
+     prose + GAP (if nothing does).
+
+   **All three are PROPOSALS through the notes bus** to the owning step's
+   drafter — or, where the answer is a scope or an evidence decision, to the
+   human at the gate. You never edit a step fragment to groom it: a
+   duplicate GAP is **proposed for deletion, never deleted**; a merge is
+   **proposed, never executed**; a CTRL is never completed, demoted or
+   rewritten by you. Same rule as every other trigger, at a finer grain.
+
+   Two boundaries that keep this trigger honest:
+
+   - **Adequacy is not yours.** "This step has no CTRL", "this control is
+     weak", "this control is not key" are analyst judgments behind the human
+     gate (M39). Your grooming is about the population's *hygiene* —
+     duplication, unread evidence, incomplete records — never about whether
+     the controls are any good.
+   - **The mechanical feeder does not exist yet.** A deterministic
+     duplicate/field report is deferred (M43); until it lands, these
+     candidates come from your own read of the brief's open-gaps findings
+     and the fragments it points you at. Say so when your confidence is
+     thin, and never propose churn on a hunch (hard rule 7).
 
 ## What you propose — five moves, each as a note with evidence
 
@@ -213,6 +261,10 @@ finding is unresolved, not forced.
 - `conflicts`: both sides, both `SRC-` ids, one line each — unresolved
 - `manifest_node_mismatches`: nodes with no manifest entry, or procedures with
   no node file (the two sides of the same fact disagreeing)
+- `callout_grooming`: one line per proposal — `duplicate-gaps | gap-likely-answered
+  | ctrl-missing-field`, the callout ids and their fragments, the evidence in a
+  half-line (the shared fact, the `SRC-` id, the missing field), and where the
+  note was filed. Proposals only: nothing here was executed
 - `policy_items`: policy / control-design / configuration questions — unresolved
 - `unmatched_gaps`: count of open gaps you could not place
 - `needs_full_read`: fragments the digest was too shallow for (digest mode only)

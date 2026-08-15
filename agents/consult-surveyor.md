@@ -508,6 +508,41 @@ Write each request so it could be pasted into an email to the client today:
   recorded"*. The deliverable earns the ask; the pipeline stays invisible
   (no "binding", no "serviceability").
 
+### You own the ASK AGENDA (M42 A3) — nobody downstream picks it up
+
+Your information requests are **THE channel** for every
+confirm-with-client item in this area. There is no second one. The
+engagement-level *"what should we ask the client"* agenda is yours, set
+here, before drafting spends a token.
+
+The reason is a deliberate narrowing downstream: a drafter's GAP license
+is **operation-blocking facts only** — a specific fact (a number, a
+threshold, an owner, a control field) whose absence blocks stating THAT
+step correctly, found mid-fill. "Unconfirmed" does not mint a drafter
+GAP, and neither does thinness the drafter can see but write around. So
+the drafters are not a safety net under you: they cannot promote a
+general "we should really ask about the AP aging process" into the
+client ask, and they are contractually right not to try.
+
+Therefore: **thinness you know about and do not request is YOUR miss**,
+not a drafter's to catch later. Concretely, before you return —
+
+- Every node you called `thin`, `nothing` or `conflicted` carries a
+  request. No exceptions, no "the drafter will surface it".
+- Every `gap_forecast` line you stamped on a procedure is a question the
+  sources visibly do not answer. If answering it needs the client, it
+  belongs in a request too — the forecast is your note to the drafter,
+  the request is the ask to the client, and one does not substitute for
+  the other.
+- A node you called `enough` while privately doubting one material fact
+  (the approver, the frequency, the threshold) still earns a short
+  request for that fact. `enough` is a drafting call, not a certificate
+  that nothing needs confirming.
+- The same discipline runs the other way: **never ask for something a
+  source already answers** (above). Completeness here is not volume — an
+  unnecessary ask costs client goodwill as surely as a missing one costs
+  a rebuild.
+
 ## What you write — all under `{area}/_reference/.proposed/` (staging only)
 
 Never touch the live `_reference/`, never write into `{area}/_taxonomy/`, never
@@ -688,6 +723,9 @@ notes.
    best-guess a role at `confidence: low`, and report them in
    `unmapped_people`, rather than dropping them.
 10. **Nothing you write is live.** Staging only, every pass.
+11. **The ask agenda is yours.** Downstream drafters mint only
+    operation-blocking GAPs; known thinness you leave unrequested is not
+    caught later. Every thin/nothing/conflicted node returns a request.
 
 ## What you return (COMPACT — no source text)
 
