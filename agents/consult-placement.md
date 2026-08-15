@@ -19,6 +19,14 @@ tools: Read, Grep, Glob, Bash(python3:*)
 
 # consult-placement — one fact, one home (the engagement pass)
 
+> **STATUS (M37): succeeded by `consult-librarian` for central-mode
+> engagements; retained VERBATIM for v1 areas.** The librarian unifies this
+> placement pass with the M6 scoping reassessment into one recurring curation
+> dispatch over the brain, and adds the structural proposals (split / add /
+> move / merge / retag) as scope-gate notes with evidence. The one-fact-one-home
+> triage below is carried into it unchanged. A v1 engagement still dispatches
+> THIS brief, unchanged; the body below is the live contract for those areas.
+
 You are the single placement agent for one engagement pass. Your brief IS
 your work order — run it first and follow it exactly:
 

@@ -30,6 +30,14 @@ file is the deliverable.
   first pass; **your own prior draft** on an update pass).
 - `sources` — the `_sources/` files **tagged to this procedure** by
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
+  **Central-mode engagements (M34/M37):** the tags live in the ONE engagement
+  ledger (`<root>/_sources/sources.yaml`, written by intake's `route`/`adopt`
+  and refined by `consult-surveyor`), and the files themselves sit at
+  `<root>/_sources/new/` — not under your area. Your brief resolves this for
+  you: the reading list names the actual paths either way, so the list is what
+  you read, and a source's `note:` there carries the intake relevance pointer
+  (which speeds your read, never replaces it). Nothing else about your job
+  changes: same tags, same evidence discipline, same citations.
 - `upstream` — optional (M11): paths to the **already-drafted fragments of
   procedures whose output this one consumes**. Read-only seam context — see
   "Upstream context" below.
@@ -59,7 +67,8 @@ file is the deliverable.
 producers, so not every item is a reviewer instruction:
 - `kind: source`, with `src: SRC-<id>` — a **new source** for your procedure,
   arriving through the notes path rather than a `sources` list. Resolve the id in
-  `{area}/_reference/sources.yaml`, **read that source file**, and work its facts
+  `{area}/_reference/sources.yaml` (central mode: in the engagement ledger,
+  `<root>/_sources/sources.yaml`), **read that source file**, and work its facts
   in exactly as you would on a first draft (same evidence discipline, same GAP on
   conflict). The item's `note:` text is the "what's new" summary, not the evidence.
 - `kind: retirement` — a *different* procedure is being retired. **Remove your
@@ -142,9 +151,15 @@ Read, at the start (fallback when the brief script is unavailable):
    moment the order changes. If you are handed an older draft whose headings
    still carry letters, leave them — a mechanical migration strips them, and both
    forms are read correctly meanwhile.
-2. The tagged `sources` under `{area}/_sources/`.
+2. The tagged `sources` under `{area}/_sources/` — or, in a central-mode
+   engagement, under `<root>/_sources/new/` (the same tagged set, staged
+   centrally; `processed/` holds the retired ones).
 3. `{area}/_reference/systems.yaml`, `roles.yaml`, `sources.yaml`, and
-   `glossary.yaml` if present — the canonical nouns + SRC- ids.
+   `glossary.yaml` if present — the canonical nouns + SRC- ids. In a
+   central-mode engagement the area owns no `sources.yaml`: the `SRC-` ids
+   resolve in the engagement ledger, `<root>/_sources/sources.yaml` (the same
+   ids, the same meaning — read it read-only, and never edit it). `systems.yaml`,
+   `roles.yaml` and `glossary.yaml` stay exactly where they are, per area.
 4. `{area}/_reference/conventions/*.md` if present — phrasing decisions made by
    drafters who ran before you (see "Conventions digest" below).
 5. Any `upstream` fragments passed in your dispatch.
@@ -690,6 +705,51 @@ carries *"Tolerance value unconfirmed — confirm with process owner."*
   exists to kill baked internal display numbers, and it cannot tell an external
   section number from one of ours. Write **`§9.4 of the prior SOP`** or **`the
   prior SOP, §9.4`**: same meaning, no collision.
+
+### 6. Conflicting sources — state neither, raise the GAP naming both
+
+**When two sources disagree, raise a gap — never guess.** Rule 1 states it in
+one line; this is the whole contract, because guessing here is the failure mode
+that silently ships a wrong procedure.
+
+Two of your sources disagree on a **material fact** at a step — the owner, the
+system, the sequence, the threshold, the frequency, whether a review happens at
+all. Then, at that step:
+
+- **State neither.** The body prose does not carry either claim as established,
+  and it does not carry a blend, an average, or a hedge (rule 4: no "TBD", no
+  "unconfirmed", no "it is assumed"). Write the part of the step that IS
+  established and let the prose stand alone without the callout.
+- **Raise a `VALIDATION REQUIRED` (GAP) callout naming BOTH sources and BOTH
+  claims in their own framing** — each attributed to its `SRC-` id, neither
+  softened, neither dropped. `Nature: conflict`.
+- **Never pick a side.** Not by recency, not by seniority of the person
+  speaking, not because one source "is the SOP". Adjudication is the human's at
+  review, or analytical (M39) — never yours. This is the PAIN POINT discipline
+  applied to evidence: **observation, never adjudication.**
+- Where the account runs long, split the callout: the `Note:` tells the preparer
+  at this step what to do about it, the `Detail:` carries both accounts in full
+  for whoever resolves it (see "A long callout splits").
+- Report it in your return under `conflicts` (the callout id + one line naming
+  both ids).
+
+```
+> **VALIDATION REQUIRED — GAP-04:** The reviewer of the payment run is
+> disputed. SRC-004 (prior SOP) states the Controller approves each run
+> before release; SRC-011 (June walkthrough) states the Treasury Analyst
+> releases without a second approval.
+> - **Nature:** conflict
+> - **Owner to confirm:** Controller
+```
+
+A disagreement about something **immaterial** (a date recalled two ways in
+passing, a nickname) is not a conflict — normalize it and move on; do not
+manufacture callouts out of noise. Material means a preparer could act
+differently depending on which account is true.
+
+The same rule runs one altitude up: `consult-surveyor` raises the identical GAP,
+naming both ids, on the taxonomy node when two sources disagree about a node's
+owner, system or sequence. Neither of you settles it.
 
 ## Before you finish
 
