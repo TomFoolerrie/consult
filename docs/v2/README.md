@@ -184,6 +184,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M40](M40-definition-views.md) | Definition views to manifest: the materialize verb + the missing writers; every shipped definition renders (**BUILT**, alpha.10, gate 15/15) |
 | [M41](M41-engagement-objective.md) | The engagement objective: seeded cycle skeleton + goal-aware taxonomy agents (**BUILT**, 2.1.0-alpha.4, gate 20/20) |
 | [M42](M42-callout-doctrine.md) | The callout doctrine: minting bars, sub-step rules, the interaction contract; population judgment moves to surveyor/librarian (**BUILT**, 2.1.0-alpha.5, gate 13/13) |
+| [M43](M43-drafting-path-hygiene.md) | The process-step drafting path + the hygiene feeder: YOUR UNIT line, declared CTRL fields, three grooming generators (**BUILT**, 2.1.0-alpha.6, gate 19/19) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.

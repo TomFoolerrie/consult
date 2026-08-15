@@ -1,6 +1,39 @@
 # M43 — The process-step drafting path + the hygiene feeder
 
-> **Status: SPEC** — the two follow-ups M42 A1 recorded: (2) the drafter
+> **Status: BUILT (2.1.0-alpha.6)** — the process-step drafting path in
+> `agents/consult-drafter.md` (LAW vs house style, all five fixture
+> fragments conform as-is), the YOUR UNIT line in `brief.drafter_brief`,
+> the four CTRL fields declared on the CONTROL callout (kernel allowlist
+> +1, never a parse gate), `scripts/hygiene.py` (three engagement-scoped
+> generators, zero audit entries), and the placement brief's CALLOUT
+> HYGIENE section. Gates: `tests/test_hygiene_m43.py` 19/19; suite 1123
+> passed, 1 pinned xfail. Build records: [`M43-build-plan.md`](M43-build-plan.md),
+> [`notes/m43-path-self-review.md`](notes/m43-path-self-review.md).
+>
+> **Amendment A1 (build notes, 2026-08-15):** (1) the duplicate
+> threshold is Jaccard ≥ 0.30 on normalized token sets (slug-flattened,
+> SRC-stripped, stopworded) — calibrated against the fixture: true pair
+> 0.37, tightest true negative 0.20, everything else ≤ 0.13; both
+> failure modes documented in the module. (2) The unit derivation is a
+> RULE THE SPEC DID NOT STATE: `resolve_definition(area)` alone returns
+> desktop-procedure for BOTH fixtures, so the line derives the
+> deliverable from the manifest's `derived_kind` values (first that
+> resolves as an installed definition), falling back to
+> resolve_definition — mechanical and read-only; revisit if an
+> area-level definition key ever exists. (3) The CALLOUT HYGIENE section
+> also prints on the one-area early-return path — hygiene is
+> engagement-scoped and needs no second area. (4) hygiene.py is the
+> SECOND consumer of analysis.py's private resolver helpers; a shared
+> public home for the kind resolvers is a recorded follow-up, as is
+> `_gap_prefix`'s four-line duplication. (5) Fixture finding, reported
+> not accommodated: `10_schedule-payment.md` sub-step 5 carries two
+> performers — a split candidate under the doctrine. (6) The path
+> section closes with a global-rules applicability paragraph (which
+> contract rules bind both paths, which are v1-only) — an addition
+> beyond the spec's letter, flagged in the self-review. (7) The
+> hygiene root/components-dir seam is handled caller-side
+> (`root.parent`); a docstring note on hygiene's public functions is a
+> small recorded want. Origin — the two follow-ups M42 A1 recorded: (2) the drafter
 > contract has no v2 process-step drafting path (its body is the v1
 > seven-section document — the largest recorded gap between the kernel
 > and its capture agent), and (7) the librarian's callout-grooming

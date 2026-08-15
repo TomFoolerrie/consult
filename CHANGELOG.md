@@ -11,6 +11,20 @@ guarantee.
 
 ## [Unreleased — 2.1.0]
 
+- **M43 — the drafting path + the hygiene feeder** (`2.1.0-alpha.6`):
+  the drafter contract finally teaches the kernel's own backbone type —
+  the process-step path written from the fixture's grammar (LAW vs
+  house style, the — from/— to edge lines as dependency facts,
+  narrative + numbered sub-steps, honest absence as content), selected
+  by a YOUR UNIT line derived mechanically from the area's deliverable
+  components; the four CTRL fields declared on the callout declaration
+  (their one home); and scripts/hygiene.py — three engagement-scoped,
+  read-only candidate generators (duplicate-gaps at a
+  fixture-calibrated threshold, gap-likely-answered via
+  ledger.outstanding, ctrl-missing-field via the declared names)
+  feeding the librarian's grooming trigger through the placement
+  brief's CALLOUT HYGIENE section. Candidates, never verdicts. Suite
+  1123 passing.
 - **M42 — the callout doctrine** (`2.1.0-alpha.5`): what earns a
   callout, written once and encoded everywhere — the boundary rule
   never records a control (structure is not a fact), the four-field
