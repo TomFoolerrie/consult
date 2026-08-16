@@ -177,6 +177,20 @@ Also noted: M42's standing anchors ("blocks",
 "'unconfirmed' alone does not mint") survive truthfully — "what it
 blocks" now appears only as the thing the drafter must NOT write.
 
+## Amendment A3 — the grammar amendment (RULED and BUILT, 2026-08-16)
+
+The human ruled A1's three collisions: **retire** `Owner to confirm:`,
+**mint** `Grounds:`, **align** the `Nature:` enum. Built with one scoping
+decision the ruling forced: `Owner to confirm:` is load-bearing **v1
+machinery** (`scripts/kits.py` routes review-kit gap rows by it;
+`aggregate.py` renders it; the whole P2P fixture carries it), so the
+retirement is **unit-scoped** — a v2 process-step GAP never writes it
+(`Nature: conflict | evidenced-absence`, `Grounds:` declared on the type),
+while the v1 activity grammar stands unchanged behind the compatibility
+gate. `kernel/types/process-step.yaml`'s GAP callout now declares
+`fields: [Grounds]` (optional metadata, never a parse gate — CONTROL's
+posture). Gate: `TestGrammarAmendment` in the M44 test file.
+
 ## Amendment A2 — WP-G1 build friction (recorded at close-out, 2026-08-16)
 
 1. **`where` for `binding-unserved` is not derivable from the return

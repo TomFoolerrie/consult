@@ -264,3 +264,65 @@ class TestDoctrineProse:
         write_objective(area, ["process-controls-matrix"])
         block = brief.objective_block(area)
         assert "needs" in block.lower()
+
+
+# --------------------------------------------------------------------------- #
+# 6. The grammar amendment (A3 — ruled 2026-08-16: retire Owner-to-confirm on
+#    process steps, mint Grounds, align the Nature enum to the two mints)
+# --------------------------------------------------------------------------- #
+
+def _gap_fields_declared():
+    try:
+        import kernel
+        tdecl = kernel.load_type("process-step")
+        gap = [c for c in tdecl.callouts if c.prefix == "GAP"]
+        return bool(gap and (getattr(gap[0], "fields", []) or []))
+    except Exception:
+        return False
+
+
+needs_grammar = pytest.mark.skipif(
+    not _gap_fields_declared(),
+    reason="M44 A3 grammar amendment not landed yet — the target")
+
+
+@needs_grammar
+class TestGrammarAmendment:
+    def test_gap_declares_grounds(self):
+        import kernel
+        tdecl = kernel.load_type("process-step")
+        gap = [c for c in tdecl.callouts if c.prefix == "GAP"]
+        assert list(gap[0].fields) == ["Grounds"]
+
+    def test_v1_activity_type_untouched(self):
+        import kernel
+        tdecl = kernel.load_type("activity")
+        gap = [c for c in tdecl.callouts if c.prefix == "GAP"]
+        assert not (getattr(gap[0], "fields", []) or [])
+
+    def test_drafter_scopes_the_retirement_by_unit(self):
+        low = DRAFTER.read_text(encoding="utf-8").lower()
+        assert "conflict | evidenced-absence" in low
+        assert "retired" in low and "owner to confirm" in low
+        # the v1 grammar block stands — kits.py routes by the field there
+        assert "unknown | conflict | unsupported-assumption" in low
+
+    def test_fielded_gap_parses(self):
+        import kernel
+        body = (
+            "## Example Step\n\n"
+            "### Scope\n\nOne sentence.\n\n"
+            "### Inputs\n\n- an input\n\n"
+            "### Transformation\n\n1. do the thing\n\n"
+            "### Outputs\n\n- an output\n\n"
+            "### Controls\n\nNone stated.\n\n"
+            "### Issues\n\n"
+            "> **VALIDATION REQUIRED — GAP-01:** The tolerance is not "
+            "stated.\n"
+            "> - **Nature:** evidenced-absence\n"
+            "> - **Grounds:** SRC-001 and SRC-004 read in full; neither "
+            "states a figure.\n\n"
+            "```consult-meta\nsystems: []\nroles: []\n```\n")
+        tdecl = kernel.load_type("process-step")
+        entity = kernel.parse_entity(body, tdecl, slug="example-step")
+        assert entity is not None

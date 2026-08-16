@@ -706,7 +706,7 @@ Manager before the bill is completed (SRC-002).
 > review compares against, when it is performed, and where performance is
 > recorded — three fields SRC-002, the only source describing the review,
 > does not state.
-> - **Nature:** evidenced absence
+> - **Nature:** evidenced-absence
 > - **Grounds:** SRC-002 read in full; no other tagged source mentions the review
 
 > **PAIN POINT — PP-001:** "We sign the log at the end of the day whether or
@@ -784,6 +784,20 @@ for the human) — never invent a consequence the source did not state.
 ```
 A body gap reference in a step's prose uses `[[GAP-01 — SHORT LABEL]]` (never a
 bare `[[GAP — …]]`) and must match a `VALIDATION REQUIRED` callout in that step.
+
+**Unit scoping of the GAP sub-fields (the M44 grammar amendment).** The block
+above is the **v1 activity** grammar and stands unchanged there — the review
+kits route gap rows by `Owner to confirm:`, and the compatibility gate
+protects that machinery. On a **v2 process step** the sub-fields follow the
+two-mint doctrine instead:
+
+- `- **Nature:**` is `conflict | evidenced-absence` — the two mints, nothing
+  else.
+- `- **Grounds:**` is declared on the type and expected: the sources read, or
+  the citation that confirms the absence — what makes the claim checkable.
+- `- **Owner to confirm:**` is **retired — never write it on a process step.**
+  Who can answer, and what the gap blocks, are the needs view's computation
+  (`scripts/needs.py`), not capture content.
 
 ### A long callout splits: `Note:` inline, `Detail:` in the appendix
 A long callout has two audiences and one body. Give it two fields:
