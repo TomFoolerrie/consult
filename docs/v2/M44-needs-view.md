@@ -177,6 +177,30 @@ Also noted: M42's standing anchors ("blocks",
 "'unconfirmed' alone does not mint") survive truthfully — "what it
 blocks" now appears only as the thing the drafter must NOT write.
 
+## Amendment A2 — WP-G1 build friction (recorded at close-out, 2026-08-16)
+
+1. **`where` for `binding-unserved` is not derivable from the return
+   value** — `definitions.serviceability` hands back flat sentences, so
+   the builder calls it once per binding on a single-binding copy of the
+   definition to get exact attribution. If serviceability ever returns
+   structured gaps, switch to it (follow-up: a structured serviceability
+   return is now wanted by two consumers — brief.py renders the
+   sentences, needs.py re-derives their attribution).
+2. **The CLI prints the objective's own report line** on objective-driven
+   runs and suppresses it under `--deliverable` (the objective plays no
+   part then). A rule the spec did not state.
+3. **Multiple `coverage:` bindings on one definition** would emit
+   duplicate node entries; no shipped definition does this — a de-dupe
+   rule waits until one exists.
+4. **Broken-area posture:** an area outside an engagement tree, or with an
+   unreadable manifest, renders empty coverage/recorded feeds ("thin is
+   not a defect") rather than refusing — so a genuinely broken area reads
+   as "no needs". The one mandated refusal (unknown deliverable, by name)
+   propagates as `DefinitionError`. Worth revisiting when the taxonomist
+   (M45) becomes the render's main consumer.
+5. The recorded-gap mint discriminator and the first `engagement-needs`
+   consumer stay on the Wants list (the latter is M46 by design).
+
 ## Work packages
 
 | WP | Owns | Delivers |
