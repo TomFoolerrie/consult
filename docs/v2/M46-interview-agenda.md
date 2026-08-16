@@ -52,6 +52,13 @@ decide an interview is needed.
   in its return; it may not generate. The orchestrate skill documents the
   human trigger.
 
+## Test impact
+
+New gate: `tests/test_agenda_m46.py` (committed with this spec, skips until
+the definition file exists). **No existing test changes.** The gate pins one
+API decision the spec's Part B left open: the render verb is
+`scripts/agenda.py` with `render(area, role=...)` (plus its CLI `main`).
+
 ## Acceptance gate
 
 `tests/test_agenda_m46.py` — written before the build: the definition loads

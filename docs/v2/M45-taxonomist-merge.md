@@ -65,6 +65,29 @@ and prompt duplication, not a single gate.
 2. The analyst stays separate by design (assessment license, M39) — the
    merge never touches it.
 
+## Test impact (the licensed edits — verified by grep, 2026-08-16)
+
+New gate: `tests/test_taxonomist_m45.py` (committed with this spec, skips
+until `agents/consult-taxonomist.md` exists).
+
+Existing tests this ticket repoints — all v2 gates, all MECHANICAL (same
+anchors, new path), edited in the same commit as the merge:
+
+- `tests/test_doctrine_m42.py` — the `SURVEYOR`/`LIBRARIAN` path constants
+  and `TestPopulationOwnership` (both anchors must hold on the taxonomist).
+- `tests/test_hygiene_m43.py:274` — the librarian feeder grep.
+- `tests/test_dispatch_hints_m37.py:78,87` — `details.brief` asserted as
+  the two old agent paths; both become `agents/consult-taxonomist.md`
+  (engagement.py's hint changes with them).
+- `tests/test_objective_m41.py:285` — the surveyor prose admission.
+- `tests/test_needs_m44.py` — the `SURVEYOR`/`LIBRARIAN` constants and the
+  two prose anchors in `TestDoctrineProse`.
+
+**Zero v1 tests change** — verified: no v1 test greps either agent file
+(`test_m6_reassessment.py` mentions `consult-taxonomy` in a docstring
+only, and that agent's v1 dispatch path stays untouched behind the
+compatibility gate).
+
 ## Acceptance gate
 
 `tests/test_taxonomist_m45.py` — written before the build: the new contract

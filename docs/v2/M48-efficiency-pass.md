@@ -55,6 +55,30 @@ The audit's rule: an agent survives only if it exercises judgment a script
 or a definition cannot, and its prompt is smaller than the judgment it
 adds.
 
+## Test impact (the licensed edits — verified by grep, 2026-08-16)
+
+New gate: `tests/test_efficiency_m48.py` (committed with this spec, skips
+until `agents/drafting/` exists). The gate pins the split's file names
+(`agents/drafting/activity.md`, `agents/drafting/process-step.md`) and the
+single-home rule: the M43 path heading and the v1 seven-section table move
+whole to their path documents; the minting bars stay in the shared
+contract and appear in neither path document.
+
+Existing tests this ticket repoints — mechanical, same anchors, new path:
+
+- `tests/test_hygiene_m43.py` — the `needs_path` gate and `TestDraftingPath`
+  grep the drafter for the process-step path section; both repoint to
+  `agents/drafting/process-step.md`.
+- `tests/test_doctrine_m42.py` — **no change expected**: its anchors (the
+  minting bars, the interaction contract, the worked example) are shared
+  law and stay in `consult-drafter.md`. If the build finds one that is
+  genuinely unit-specific, that is a spec amendment, not a silent move.
+- `tests/test_needs_m44.py` — no change (its drafter anchors are the M44
+  GAP bar, shared law).
+
+**Zero v1 tests change** — verified: no v1 test greps the drafter
+contract (only fixture notes and docstrings mention the agent by name).
+
 ## Acceptance gate
 
 `tests/test_efficiency_m48.py` — written before the build: the three

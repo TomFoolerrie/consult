@@ -62,6 +62,18 @@ Whether `company_profile.md` should be a typed entity (parseable, citable
 by slug) or freeform reviewed prose. Lean: freeform in M47; typing it is a
 follow-up once something needs to bind it.
 
+## Test impact
+
+New gate: `tests/test_research_m47.py` (committed with this spec; three
+independent skip gates — `scaffold.promote_client`, `provenance` in
+`coverage_map.py`, the `_client/.proposed` anchor in the orchestrate skill —
+so the packages land separately with the suite green at each commit).
+**No existing test changes:** `provenance:` is an additive ledger field
+(entries without it read as client-provided), so every existing
+ledger/sources/coverage test keeps its meaning. The gate pins the read-side
+seam: the public-never-discharges rule lands in `coverage_map` (that is
+where the needs view's coverage feed will see it).
+
 ## Acceptance gate
 
 `tests/test_research_m47.py` — written before the build: staging writes
