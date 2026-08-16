@@ -1,162 +1,194 @@
 # CONSULT
 
 A Claude Code **plugin** that turns messy finance-process source material —
-interview transcripts, prior SOPs, working notes — into governed,
-evidence-backed **desktop-procedure Word deliverables**, one per L1 finance
-area (e.g. Record-to-Report, Procure-to-Pay). You feed it raw sources; it
-produces a CFGI-branded `.docx` whose every claim traces back to a source, with
-the cross-cutting sections (Roles, Systems, Dependencies, RACI, Appendices)
-kept mechanically consistent rather than hand-maintained.
+interview transcripts, prior SOPs, working notes — into a governed,
+evidence-backed **process-knowledge model** ("the brain"), then projects that
+model into client deliverables through **user-supplied deliverable
+definitions**. Four definitions ship — the CFGI desktop procedure, a process
+& controls matrix, an information request, and a findings report — and a new
+document shape is a new YAML file, not a new engine.
 
-> **v1 is built and tested** — the deterministic engine, the four skills, and
-> the seven subagents are all in place, exercised by 800+ passing tests. See
-> [`docs/`](docs/) for the full architecture and the per-milestone design
-> tickets (M0–M32).
+> **v2 is built and tested** — the kernel, the definition language, the ten
+> subagents, and the four skills are all in place, exercised by **1,123
+> passing tests**, with the compatibility gate green: v1's own desktop
+> procedure, rebuilt through the new engine over a frozen engagement, is
+> normalized-identical to the v1 golden, and all 803 v1 tests run untouched.
+> See [`docs/v2/README.md`](docs/v2/README.md) for the v2 charter and tickets
+> (M33–M43); [`docs/`](docs/) holds the v1 record (M0–M32).
 
-## The core idea — two databases, everything else is a view
+## The core idea — capture once, project anything
 
-CONSULT keeps exactly **two hand-authored databases** per area:
+v1 pointed the whole engine at one deliverable shape: a desktop-procedure
+Word document per L1 finance area. v2 inverts the flow — knowledge is
+captured **once** into typed, evidence-linked entities, and documents become
+**projections** you can add without touching the engine:
 
-1. **Procedures — the verbs.** One Markdown fragment per L3 activity
-   (`10_<slug>.md`), each an A–H desktop procedure. This is the **source of
-   truth** for what happens, in what order, with which controls, gaps, and
-   screenshots.
-2. **Reference registry — the nouns.** A human-confirmed dictionary of
-   canonical **systems** and **functional roles** (plus aliases, glossary,
-   sources) under `_reference/*.yaml`. Its primary job is *intake grounding*:
-   normalizing "the AP lady" / "our system" from transcripts into canonical
-   names.
+> **intake (tag) → survey (taxonomy + coverage + information requests) →
+> capture (fill the brain, IPO-shaped, evidence-linked) → project (any
+> deliverable definition)**
 
-**Everything else is a generated view** — Roles & Responsibilities, Systems &
-Data Inputs, Key Dependencies, RACI, the Appendices, the In-Scope index. None
-of it is hand-maintained; it is projected from the two databases and
-regenerated.
+Three layers, and the kernel knows no domain:
 
-Three rules keep the views drift-free:
+1. **Definitions — user-space data.** A deliverable is a YAML file
+   (`kernel/deliverables/*.yaml`) declaring its **shape** (sections),
+   **bindings** (declared queries over the brain: "this table = these parts
+   of these steps"), and **skin** (docx, orientation). A four-stage
+   fail-loud loader checks every name against the type declarations —
+   syntax, vocabulary, serviceability (an honest "not yet" report), skin
+   capability — then compiles the definition to a plan.
+2. **The brain kernel — deliverable-agnostic.** Entity types are YAML
+   declarations under `kernel/types/` (`process-step`, `taxonomy-node`, and
+   v1's `activity` written down); the parser is generic and reads whatever
+   the declarations describe. Entities carry stable slugs and evidence links
+   into the `SRC-` ledger; derived views are regenerated, never
+   hand-maintained.
+3. **Consumers.** Renderers assemble documents *from* a compiled plan;
+   analysis verbs read the graph and emit findings — and never write back.
 
-- **Numbers exist only at render.** Display numbers (`1.1`, `1.2`) are derived
-  from the manifest at docx-build time by a single helper — never baked into
-  content, so reordering never rewrites a file.
-- **Procedure cross-references are `[[slug]]` tokens** — never a copied number
-  or title. Slugs are stable, assigned once at creation.
-- **Nouns bind via an explicit `consult-meta` slug block** at the bottom of
-  each procedure (the registry slugs it used). Python reads that list directly
-  — no fuzzy prose-scraping, no silent misses. An unknown slug is a warning
-  that drives a human registry top-up, never a dropped mention.
+A permanent audit fails the build if document shape is hard-coded anywhere
+outside kernel data.
 
-The assembled single-file document is **not** an artifact — it exists only
-transiently inside the docx build. Humans edit procedures and the registry;
-reviewers read the Word document.
+## The backbone entity — inputs → transformation → outputs
+
+Every deliverable is fed from one entity: the **process step**. A step
+breaks where **owner, system, or control changes** — the accountability
+boundary — and its inputs/outputs name their neighbouring steps, so
+cross-step dependencies are derived mechanically instead of judged. The
+"how" (numbered sub-steps, navigation detail, screenshots) lives one level
+down, so each deliverable picks its altitude: the procedure unfolds it, the
+matrix reads only the step line.
+
+Callouts on a step follow a written **doctrine** — what earns one, encoded
+in the contracts and readable by the tooling:
+
+- **CTRL** must clear a four-field minting bar (performer / comparison /
+  trigger / evidence, declared on the callout type itself). A
+  control-shaped sentence stays prose plus one pointed GAP.
+- **GAP** is reserved for operation-blocking unknowns; the broader ask
+  agenda belongs to the surveyor's information request.
+- **PP (pain point)** is recorded *as voiced* — attributed and evidenced,
+  never assessed by the recorder.
+- Sub-steps carry no callouts; a cross-owner performer is a split signal.
+
+**Coverage is a pure function** — "does this node have enough evidence?" is
+computed on demand from evidence links. There is no coverage *file* to
+hand-edit and rot (the failure that killed v0).
+
+## One engagement on disk — the ledger is truth
+
+v1 copy-routed each source file into an area folder. v2's central mode
+keeps **one** `_sources/` tree and one YAML ledger at the engagement root;
+area folders hold no source files, only consumption records ("this area
+read SRC-004 into this step"). The ledger mints `SRC-` ids once
+(hash-deduped) and records who consumed what — a transcript spanning two
+areas is *consumed twice, moved never*. v1-layout areas keep working
+through a read-only dual-layout adapter, byte-identical and guarded by
+characterization tripwires.
+
+Every engagement states an **objective**: goal, target deliverables,
+in-scope cycles — validated config, not decoration — carried into every
+taxonomy-agent dispatch so "enough evidence" means *enough for the target
+deliverables*. A business-cycle skeleton seeded from the reference taxonomy
+can stand the engagement up on day one: every node claimed with zero
+evidence, so coverage reads as a work plan and the information request is a
+day-one PBC list. Seeded structure enters the brain only through the human
+confirm gate.
+
+## The agents, and the one license to judge
+
+Every capture-side agent is contractually forbidden from assessing what it
+records — that discipline is what keeps the record trustworthy:
+
+| Agent | Role |
+|---|---|
+| `consult-intake` | tags sources into the ledger — no copies; relevance judgment survives as tags |
+| `consult-surveyor` | upfront: proposes taxonomy, computes coverage, emits information requests *before* drafting spends tokens |
+| `consult-librarian` | ongoing: proposes reorganizations as knowledge accumulates — proposes, never executes |
+| `consult-drafter` | fills steps/procedures from sources; two sources disagree → a conflict record, never a guess |
+| `consult-dependencies`, `consult-raci` | author the two v1 judgment views |
+| `consult-consolidator` | cross-procedure consistency pass, notes only |
+| `consult-placement` | one-fact-one-home placement pass across areas |
+| `consult-analyst` | **the one assessment license**: judges mechanical candidates, proposes findings — never writes into the capture layer, never resolves a conflict |
+
+Findings live in their own register with a full lifecycle
+(grounds-or-refused, terminal reject, accepted-only rendering). The
+one-direction rule is structural: every findings operation is
+fingerprint-tested to leave `components/` and `_sources/` byte-identical,
+and a groundless finding is refused — every claim traces to
+`SRC`/`PP`/`GAP` ids or it does not exist. Mechanical candidate generators
+(control gaps, handoff friction, pain inventory, plus the
+engagement-scoped callout-hygiene groomers) feed the analyst; a human
+accepts or rejects.
 
 ## How you use it
 
 You invoke **one** skill: **`consult-orchestrate`** — "build `<area>`" or
-"continue `<area>`". You never run Python by hand.
+"continue `<area>`". You never run Python by hand. The orchestrator is a
+thin coordinator: on each turn it consults a read-only Python state
+advisor, performs the single next action it returns, and loops — running
+deterministic Python itself, dispatching isolated subagents (each in its
+own context, returning only a compact result; initial survey work routes to
+the surveyor, incremental reorganization to the librarian), and stopping at
+the human gates: the scope/taxonomy confirm gate, registry top-ups,
+findings accept/reject, and review of the rendered document. Reviewers mark
+up the `.docx` with tracked changes and comments; the return trip is
+deterministic and re-dispatches only the affected drafters. Context stays
+flat no matter how large the engagement grows.
 
-The orchestrator is a thin coordinator. On each turn it consults a read-only
-Python state advisor, performs the single next action it returns, and
-loops:
+## The shipped deliverable definitions
 
-- runs **deterministic Python** itself (scaffold, aggregate, render,
-  reconcile, scope-delta),
-- **dispatches isolated subagents**, each in its own context returning only a
-  compact result — `consult-taxonomy` (scope), one `consult-drafter`
-  **per procedure** (parallel fan-out), `consult-dependencies`, and
-  `consult-raci`,
-- moves consumed sources `_sources/new/` → `_sources/processed/`,
-- and **stops at three human gates**: (1) confirm the proposed scope/registry,
-  (2) top up the registry when views flag unmatched nouns, (3) review the
-  rendered Word document.
+All four render end-to-end. Each is a small YAML file under
+`kernel/deliverables/`; a user's fifth deliverable is a copy of one with
+different bindings (dropped in `_client/deliverables/` to shadow), and the
+engine never learns its name:
 
-Reviewers mark up the `.docx` with **tracked changes and comments**;
-`review_extract.py` feeds those edits back into `_review/` per procedure, and
-the orchestrator re-dispatches only the affected drafters. Context stays flat
-no matter how large the engagement grows, because the orchestrator never pulls
-transcripts or draft text into its own context.
-
-## The pipeline
-
-1. **Taxonomy + scaffold** — `consult-taxonomy` proposes the L3 procedure set,
-   the noun registry, and source→procedure tags; after the human confirm gate,
-   Python scaffolds the A–H skeletons.
-2. **Parallel fill** — one `consult-drafter` per procedure fills its skeleton
-   from just its tagged sources + the registry.
-3. **Aggregate** — Python builds the mechanical views (In-Scope index, Systems,
-   Role Dictionary, Appendix A/B/C) by joining callouts and `consult-meta`.
-4. **Synthesize** — `consult-dependencies` and `consult-raci` author the two
-   judgment views (Key Dependencies, RACI matrix).
-5. **Render** — the docx builder assembles everything into a CFGI-branded
-   `.docx`, prefixing numbers and resolving `[[slug]]` tokens at render time.
-6. **Review loop** — Python emits per-owner **review kits** (`kits.py`: the
-   reviewable `.docx`, gap workbooks, screenshot templates); reviewer markup and
-   returned kits flow back through `review_extract.py` / `review_apply.py` /
-   `gaps_ingest.py` / `screens_ingest.py` onto the M6 notes bus, and the
-   orchestrator re-dispatches only the owning drafters before re-rendering.
-
-Two capabilities sit **above** a single area, run on the user's word:
-
-- **Intake** (`consult-intake`) classifies a batch of documents staged at the
-  engagement root and routes each to the area(s) it informs.
-- **Knowledge placement** (`consult-placement`) is one judgment pass over the
-  whole engagement enforcing "one fact, one home" across areas.
-
-A **consolidation** pass (`consult-consolidator`) can also run over a single
-drafted area for cross-procedure consistency (naming, sequencing, duplication),
-emitting review notes without touching fragments.
+- **`desktop-procedure.yaml`** — v1's flagship, written down as a
+  definition; gate-proven identical to v1's own output.
+- **`process-controls-matrix.yaml`** — one landscape row per step: owner,
+  systems, IPO edges, controls, open items. A shape v1 could never draw,
+  shipped with zero engine special-cases.
+- **`information-request.yaml`** — the surveyor's coverage output as a
+  client document: what we're missing, per taxonomy node.
+- **`findings-report.yaml`** — accepted findings by theme, every claim
+  citing its grounds back through the SRC chain; structurally unable to
+  show a proposal or a rejection.
 
 ## Plugin layout
 
 ```
 consult/
-  .claude-plugin/plugin.json     plugin manifest
-  agents/                        7 isolated subagent definitions
-    consult-taxonomy.md          scope one L1 area + stand up the registry
-    consult-drafter.md           own ONE procedure (first draft + updates)
-    consult-dependencies.md      author the Key Dependencies view
-    consult-raci.md              author the RACI matrix
-    consult-consolidator.md      cross-procedure consistency pass (M12)
-    consult-intake.md            classify + route an engagement doc batch (M25)
-    consult-placement.md         one-fact-one-home placement pass (M24)
-  skills/
-    consult-orchestrate/         the single entry point (drives everything)
-    consult-taxonomy/            scoping brief
-    consult-drafter/             procedure-fill brief
-    consult-docx-builder/        CFGI Word render brief
-  scripts/                       the deterministic engine
-    doc_model.py                 shared spine (manifest, slugs, display numbers, sections)
+  .claude-plugin/plugin.json     plugin manifest (2.1.0)
+  agents/                        10 isolated subagent definitions
+  skills/                        consult-orchestrate (the entry point),
+                                 consult-taxonomy, consult-drafter,
+                                 consult-docx-builder
+  kernel/                        the domain, as data
+    types/                       entity-type declarations
+                                 (process-step, taxonomy-node, activity)
+    deliverables/                the four shipped definitions
+  scripts/                       the deterministic engine (35 modules)
+    kernel.py                    declared types + the generic entity parser
+    ledger.py                    the engagement-root SRC ledger
+    coverage_map.py              coverage as a pure function
+    definitions.py               the deliverable-definition language
+    render_glue.py / render.py   compiled plan → CFGI .docx
+    matrix_views.py / plan_views.py  definition view builders
+    analysis.py / findings.py    candidate generators + findings register
+    hygiene.py                   callout-hygiene candidate generators
     orchestrate.py               read-only state advisor (next action)
-    scaffold.py                  section skeletons from confirmed taxonomy
-    aggregate.py                 mechanical views (Systems, Roles, Appendices…)
-    reconcile.py                 ID / token / marker integrity gate
-    scope_delta.py               per-kind change signal for re-derivation
-    render.py                    assemble + build the CFGI .docx
-    sources.py                   SRC- registry + new→processed lifecycle
-    callouts.py                  callout grammar parsing
-    notes_util.py                the _review/{slug}.notes.yaml notes bus
-    client_config.py             engagement config + document-profile resolution
-    engagement.py                cross-area knowledge-placement + register verbs
-    registers.py                 engagement-wide register machinery (M30)
-    brief.py                     deterministic per-area work order for a subagent
-    people.py                    person → role → rank resolution (review kits)
-    consolidate.py               plan/mark the cross-procedure consistency pass
-    kits.py                      per-procedure review-kit emitter (docx + workbooks)
-    review_extract.py            Word tracked-changes/comments → notes bus
-    review_apply.py              deterministic tracked-changes apply
-    gaps_ingest.py               gap-workbook return trip → notes bus
-    screens_ingest.py            screenshot-template return trip → notes bus
-    xlsx_min.py                  dependency-free .xlsx writer/reader for kits
-    migrate_sections.py          one-time mechanical section-heading migration
-    split_doc.py                 legacy single-file .md → folder import
-    console_compat.py            narrow-console stdout shim
-  docs/                          design tickets M0–M32 + architecture README
-  tests/                         800+ pytest cases across the engine
+    doc_model.py, aggregate.py, reconcile.py, brief.py, kits.py, …
+                                 the v1 engine, intact underneath
+  docs/                          v1 design record (M0–M32) +
+                                 docs/v2/ (charter + tickets M33–M43)
+  tests/                         1,123 pytest cases (803 v1 cases untouched)
   requirements.txt
 ```
 
-Per-area **data** lives in the **user's project**, not in the plugin, under
-`components/<area>/` — its `_sources/`, `_reference/`, procedure fragments,
-derived views, and `manifest.json`. One area = one document = its own git
-history. (Client data can be gitignored or kept in a private repo.)
+Per-engagement **data** lives in the **user's project**, not in the plugin:
+`components/<area>/` (steps or procedures, `_taxonomy/`, derived views,
+`manifest.json`) plus, in central mode, the engagement-root `_sources/`
+tree, its `sources.yaml` ledger, and the `_registers/` (findings). Client
+data can be gitignored or kept in a private repo.
 
 ## Requirements
 
@@ -166,24 +198,33 @@ pip install -r requirements.txt   # python-docx, pyyaml
 
 ## Status
 
-**v1 complete and under test.** The two-database model, the one-writer-per-file
-rule, and the fail-loud parsing contract were hardened across three adversarial
-passes and thirty-plus milestones (M0–M32); the deterministic engine, the four
-skills, and the seven subagents are all built and exercised by **800+ passing
-tests** (`python3 -m pytest`). See [`docs/README.md`](docs/README.md) for the
-authoritative architecture, contracts, and build order, and
-[`docs/known-risks.md`](docs/known-risks.md) for the open edges.
+**v2 complete and under test.** The eleven-ticket v2 campaign (M33–M43) is
+built end to end — the brain kernel, centralized sources, the definition
+language, the compatibility gate, surveyor + librarian, the second
+deliverable, the analysis verbs, definition views, the engagement
+objective, the callout doctrine, and the process-step drafting path — with
+the suite at **1,123 passing** (`python3 -m pytest`) and zero of v1's 803
+tests edited across the entire campaign. 2.0.0 and 2.1.0 both merged to
+`main` 2026-08-15, each on an explicit human go. See
+[`docs/v2/README.md`](docs/v2/README.md) for the charter, the ticket index,
+and the recorded follow-up candidates, and [`CHANGELOG.md`](CHANGELOG.md)
+for the version-by-version story.
 
 ## History
 
-This is CONSULT's second architecture. The first — a taxonomy-driven diagnostic
-engine built on a shared `state.json` / `register.json` state machine — is
-preserved in this repository's history at commit **`a119d22`**, an ancestor of
-`main` (`git checkout a119d22` to read the v0 tree). It worked, but its shared
-mutable state cost an entire hardening slice, and its central ID minter forced
-serialization into every parallel fan-out.
+Three architectures share this repository:
 
-[`docs/retrospective-v0.md`](docs/retrospective-v0.md) records what carried
-forward, what the one-writer-per-file rule replaced, and the three capabilities
-v0 had that this system still owes — most importantly its lens-conflict rule
-(when two sources disagree, raise a gap rather than guess).
+- **v0** — a taxonomy-driven diagnostic engine on a shared `state.json` /
+  `register.json` state machine, preserved at commit **`a119d22`**
+  (`git checkout a119d22` to read the tree). Its shared mutable state cost
+  an entire hardening slice;
+  [`docs/retrospective-v0.md`](docs/retrospective-v0.md) records what
+  carried forward. The lens-conflict debt it left — when two sources
+  disagree, raise a conflict rather than guess — was paid in M37.
+- **v1** (M0–M32) — the desktop-procedure engine: the two-database model,
+  one writer per file, fail-loud parsing, the review loop. Preserved on the
+  **`v1.20-stable`** branch and still alive inside v2 — every v1 engagement
+  keeps working, and the v1 render path is the standing golden for the
+  compatibility gate.
+- **v2** (M33–M43) — the inversion: the brain, the definition language, and
+  the analysis layer, built on everything v1 got right.

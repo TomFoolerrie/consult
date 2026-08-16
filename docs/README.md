@@ -1,11 +1,16 @@
-# CONSULT — Build Tickets
+# CONSULT — Build Tickets (v1: M0–M32)
 
-Shared architecture for the CONSULT engine. Every ticket (M0–M32) references the
-contracts defined here so the individual tickets don't restate them. Read this
-first.
+Shared architecture for the v1 CONSULT engine. Every v1 ticket (M0–M32)
+references the contracts defined here so the individual tickets don't restate
+them. Read this first for v1; the **v2 charter and tickets (M33–M43) live in
+[`v2/README.md`](v2/README.md)**.
 
 > These tickets began as an MVP rebuild plan and grew into the full v1 build
-> record (M0–M32). They remain the authoritative spec for each contract; the
+> record (M0–M32). They remain the authoritative spec for each v1 contract —
+> and v1 areas still run byte-identical under v2 — but v2 generalizes several
+> of them (per-area sources → the engagement-root ledger; the one fixed
+> document shape → deliverable definitions). Where this file and the v2
+> charter disagree for a central-mode engagement, the charter governs. The
 > version-by-version story of what shipped lives in
 > [`../CHANGELOG.md`](../CHANGELOG.md).
 
