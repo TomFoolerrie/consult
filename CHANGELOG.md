@@ -13,6 +13,20 @@ guarantee.
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48.
 
+- **M45 — the taxonomist** (`2.2.0-alpha.2`): surveyor + librarian
+  merged into one `consult-taxonomist` (1,012 lines vs 1,079 combined,
+  one dispatch context instead of two): objective intake, coverage/
+  sufficiency, the ask agenda rendered from the needs view, placement,
+  scoping reassessment, hygiene-fed grooming. The ruled change: it
+  writes `_taxonomy/` and `_reference/.proposed/` directly as its files
+  under one-writer — a fresh node set still stages for the human
+  confirm gate; only live-node refinement is in-place. Everything
+  outside its files stays notes-bus proposals. M44's A3 grammar
+  amendment (`2.2.0-alpha.1` rider): `Grounds:` minted on the
+  process-step GAP, `Nature:` aligned to the two mints,
+  `Owner to confirm:` retired on process steps (v1 activity grammar
+  untouched behind the compatibility gate). Suite 1158.
+
 - **M44 — the needs view + the two-mint GAP** (`2.2.0-alpha.1`): gaps
   become a per-deliverable RENDER over the brain — `scripts/needs.py`
   computes, on demand and objective-driven, what each target

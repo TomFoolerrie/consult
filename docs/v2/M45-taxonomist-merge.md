@@ -1,7 +1,8 @@
 # M45 — The Taxonomist: one agent for survey, curation and taxonomy
 
-**Status: SPEC** — from the 2026-08-16 architecture review, decision D3
-(ruled LOOKS RIGHT). Second of the review's five tickets (M44–M48).
+**Status: BUILT** (`2.2.0-alpha.2`, gate 10/10, suite 1158) — from the
+2026-08-16 architecture review, decision D3 (ruled LOOKS RIGHT). Second of
+the review's five tickets (M44–M48). See Amendment A1 for build friction.
 
 ## Why (the ruling)
 
@@ -87,6 +88,36 @@ anchors, new path), edited in the same commit as the merge:
 (`test_m6_reassessment.py` mentions `consult-taxonomy` in a docstring
 only, and that agent's v1 dispatch path stays untouched behind the
 compatibility gate).
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-16)
+
+1. **Part B was wrong about `engagement.py`.** Neither agent was named
+   there — the central-mode brief routing lives in `scripts/orchestrate.py`
+   (`_CENTRAL_TAXONOMY_BRIEFS`), which is what got repointed. The
+   `test_engagement_module_repointed` gate passed vacuously. And the
+   brief-assembly merge Part B described ("one taxonomist brief") **was
+   not done** — survey and curation still assemble briefs on two code
+   paths (`brief.py --objective` + coverage map; `engagement.py brief`),
+   both stated in the contract. **Follow-up (recorded):** one assembled
+   taxonomist brief, if the two-dispatch pattern proves annoying in use.
+2. **The write-rights rule the ruling under-specified, split as built:** a
+   FRESH node set on a survey pass still stages under
+   `.proposed/_taxonomy/` (the human confirm gate and `--promote-taxonomy`
+   keep their reason to exist); only an already-live node's refinement is
+   written in place. Deleting a live node is never the agent's, even under
+   one-writer.
+3. **Model tier:** the surveyor was opus-pinned, the librarian
+   sonnet-pinned; the merged agent keeps **opus** (the survey judgment is
+   the enforced one), which makes pure curation passes pricier than
+   before. M48's roster audit should revisit (a tier hint per dispatch
+   kind, like the revise path's).
+4. **Line count −6%, not "meaningfully fewer":** the ~120 genuinely
+   duplicated lines are said once, offset by the two sections the ruling
+   requires (the write boundary, the explicit confirm gate). The real
+   efficiency win is one dispatch and one context, not a shorter prompt.
+5. Two v1 agents' STATUS banners named the old pair and were edited
+   (banner sentences only, bodies byte-identical) — forced by the gate's
+   no-stray-reference sweep; the v1 dispatch paths are untouched.
 
 ## Acceptance gate
 
