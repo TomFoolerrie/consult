@@ -1,17 +1,21 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.0.0 (2026-08-15)** — the spine (M33–M39) plus
-M40, suite 1071 passing, the compatibility gate green, every shipped
-definition rendering end-to-end. Merged to `main` on the human's
+**Status: RELEASED AS 2.1.0 (2026-08-15)** — the spine (M33–M39) plus
+M40 shipped as 2.0.0; M41–M43 (the engagement objective, the callout
+doctrine, the process-step drafting path + hygiene feeder) shipped as
+2.1.0. Suite 1123 passing, the compatibility gate green, every shipped
+definition rendering end-to-end. Both merges made on the human's
 explicit go. v1.20.0 is preserved on `v1.20-stable`.
 Follow-up ticket candidates are recorded in each ticket's amendments —
 headline items: table-row comment routing (pinned xfail), a semantic
-kind marker on callout declarations, an `analysis.py brief` CLI +
-analyst dispatch hint + conflict-records extractor, a human-readable
-ledger verb, appendix-controls optionality, an
-`expand_coverage_statuses` owner for the thin alias + a published
-area→engagement-root helper (M40 A1). The definition-views-to-manifest
-gap closed as M40.
+kind marker on callout declarations (M43's `fields:` key is the surface
+it would use), an `analysis.py brief` CLI + analyst dispatch hint +
+conflict-records extractor, a human-readable ledger verb,
+appendix-controls optionality, an `expand_coverage_statuses` owner for
+the thin alias + a published area→engagement-root helper (M40 A1), a
+shared public home for the kind resolvers now that hygiene.py is their
+second consumer (M43 A1), and the PAIN↔CTRL cross-reference field
+names as an open ruling (M42 A1).
 
 ## The shift
 

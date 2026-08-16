@@ -9,7 +9,11 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
-## [Unreleased — 2.1.0]
+## [2.1.0] — M41–M43
+The capture-layer line: the engagement gains a stated objective and a
+starting skeleton, and the callout layer gains a doctrine, a bar, and a
+groomer — so what the brain records is aimed at what the engagement is
+for. Merged to `main` 2026-08-15.
 
 - **M43 — the drafting path + the hygiene feeder** (`2.1.0-alpha.6`):
   the drafter contract finally teaches the kernel's own backbone type —
