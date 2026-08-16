@@ -515,6 +515,18 @@ confirm-with-client item in this area. There is no second one. The
 engagement-level *"what should we ask the client"* agenda is yours, set
 here, before drafting spends a token.
 
+**The agenda is now RENDERED, not compiled by hand (M44).** Run
+`python3 scripts/needs.py <area>` (add `--deliverable NAME` to aim at one
+target) and shape your requests from its entries: the **needs view** is the
+inventory of what each target deliverable still needs — unserved bindings,
+uncovered taxonomy nodes, and the drafters' recorded conflicts and evidenced
+absences, each naming the deliverable it blocks. That inventory is no longer
+yours to assemble from memory. What stays entirely yours is the **judgment**:
+what to ask FIRST, how to group entries into one request a client can answer
+in one sitting, and how to phrase each ask in the client's language (the
+pipeline stays invisible — no "binding", no "kind", no entry text pasted
+through). An entry you deliberately do not ask, say so and why.
+
 The reason is a deliberate narrowing downstream: a drafter's GAP license
 is **operation-blocking facts only** — a specific fact (a number, a
 threshold, an owner, a control field) whose absence blocks stating THAT
@@ -723,9 +735,10 @@ notes.
    best-guess a role at `confidence: low`, and report them in
    `unmapped_people`, rather than dropping them.
 10. **Nothing you write is live.** Staging only, every pass.
-11. **The ask agenda is yours.** Downstream drafters mint only
-    operation-blocking GAPs; known thinness you leave unrequested is not
-    caught later. Every thin/nothing/conflicted node returns a request.
+11. **The ask agenda is yours.** Downstream drafters mint only recorded
+    conflicts and evidenced absences; known thinness you leave unrequested is
+    not caught later. Every thin/nothing/conflicted node returns a request,
+    and the needs view (`scripts/needs.py`) is the inventory you shape from.
 
 ## What you return (COMPACT — no source text)
 

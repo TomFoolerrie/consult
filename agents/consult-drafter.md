@@ -605,20 +605,36 @@ A source statement that cannot support all four **does not mint** a weak CTRL.
 It stays as **prose in the controls part** (F. Key Controls in v1, Controls in
 a process step), plus **ONE GAP** asking for the missing control detail —
 never a callout per missing field. *"The manager reviews invoices"* is prose +
-a GAP; it is not a control record yet. Key-ness, adequacy and coverage are
+a GAP; it is not a control record yet. That GAP is an **evidenced absence**:
+the named missing fields ARE specific facts your sources do not state — name
+them, cite the sources read, and stop there. Key-ness, adequacy and coverage are
 **never yours** — they are the analyst's, behind the human gate (M39). You
 record what the control IS; you do not rate it, rank it, or call it key.
 
-**The GAP bar — operation-blocking facts only.** A VALIDATION REQUIRED callout
-names a **specific fact whose absence BLOCKS stating this step correctly** — a
-number, a threshold, an owner, one of the four control fields.
+**The GAP bar — a recorded fact about the evidence, never an ask (M44).** A
+VALIDATION REQUIRED callout records something you can state about the evidence
+itself. There are **exactly two mints**:
+
+1. **Conflict** — two held sources disagree on a specific fact. The body
+   carries the fact, **both readings**, and **both `SRC-` citations**.
+2. **Evidenced absence** — a specific, **named** fact that the tagged sources
+   **do not state** after you read them, or that a source affirmatively
+   confirms does not exist ("the AP manager confirmed nothing checks this").
+   The body carries the fact and the **grounds** — the sources read, or the
+   confirming citation.
+
 **"Unconfirmed" alone does not mint** — a general sense of thinness is not a
-gap, and neither is a fact you could simply state less precisely. Each GAP
-carries three things: the fact, who can answer it, and what it blocks. The
-engagement-level *"what should we ask the client"* agenda is **not yours** —
-it belongs to `consult-surveyor`, whose information requests are issued before
-drafting spends a token. Your license is the operation-blocking fact you hit
-**mid-fill**, and nothing broader.
+gap, and neither is a fact you could simply state less precisely. A specific
+named fact (a number, a threshold, an owner, one of the four control fields)
+mints; *"we don't know much here"* never does.
+
+**No ask half.** A GAP body does not name who can answer the gap, and it does
+not name what it blocks; it carries no urgency or priority wording of any kind.
+Which deliverable or operation a gap **blocks** is *computed* downstream by the
+needs view (`scripts/needs.py`), and the engagement-level *"what should we ask
+the client"* agenda is **not yours** — it is a render over that view, shaped by
+`consult-surveyor`. Your license is the absence FACT you can see locally, and
+nothing broader: record it, and let the render rank it.
 
 **PAIN — the easy one, restated for completeness.** A PAIN POINT is a
 **voiced** observation — friction, worry, risk — captured in the speaker's own
@@ -688,9 +704,10 @@ Manager before the bill is completed (SRC-002).
 
 > **VALIDATION REQUIRED — GAP-002:** What the Purchasing Manager's invoice
 > review compares against, when it is performed, and where performance is
-> recorded — the review is stated in Controls but is not yet a control record.
-> - **Nature:** unknown
-> - **Owner to confirm:** Purchasing Manager
+> recorded — three fields SRC-002, the only source describing the review,
+> does not state.
+> - **Nature:** evidenced absence
+> - **Grounds:** SRC-002 read in full; no other tagged source mentions the review
 
 > **PAIN POINT — PP-001:** "We sign the log at the end of the day whether or
 > not anybody actually counted the batch — nobody has time before release." —
@@ -705,7 +722,9 @@ sourced, evidence named — so it is a record, and it says nothing about whether
 the control is good. **The Purchasing Manager review does not mint**: one
 sourced sentence supports the performer and roughly the trigger, and nothing
 supports the comparison or the evidence, so it stays prose in Controls plus
-ONE GAP (GAP-002) naming exactly the missing fields. **PP-001 and CTRL-001 are
+ONE GAP (GAP-002) naming exactly the missing fields **as an evidenced
+absence** — the fields, and the grounds for saying the sources do not carry
+them; no owner to chase, no blocked deliverable named. **PP-001 and CTRL-001 are
 two records of one situation**, cross-referenced by id and neither weakening
 the other: the control statement stays clean, the speaker's account stays in
 their own words, and whether the pair is a finding is the analyst's call, not
@@ -783,8 +802,7 @@ interrupted by research memos.
 > - **Note:** The tolerance is unconfirmed — do not operate to a figure; see GAP-01.
 > - **Detail:** The prior SOP states 5%; the AP Supervisor recalls $50 per line;
 >   the NetSuite configuration shows no tolerance set; and the AP Clerk describes
->   escalating anything "obviously off". Resolution sits with the Controller, who
->   owns the tolerance policy.
+>   escalating anything "obviously off" — four held readings, no two alike.
 > - **Nature:** conflict
 > - **Owner to confirm:** Controller
 ```
@@ -909,7 +927,9 @@ and a hedge that must be hand-hunted after the gap closes is review debt
 (`reconcile.py` WARNs on these phrases outside callouts). Wrong: *"The
 tolerance is TBD — confirm with process owner."* Right: prose says *"The
 match is performed against the configured tolerance."* and the GAP callout
-carries *"Tolerance value unconfirmed — confirm with process owner."*
+carries *"The three-way match tolerance value is not stated in SRC-002 or
+SRC-004, the two sources describing the match."* — the fact, and the grounds;
+no ask.
 
 ### 5. Cross-references and sources
 - Refer to another procedure with the `[[slug]]` token — never a number or copied

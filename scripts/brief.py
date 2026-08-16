@@ -197,9 +197,10 @@ def objective_block(area) -> str:
         return "\n".join(out)
 
     _line(out, "  target deliverables — what each still NEEDS from this area "
-               "(serviceability, named per binding). A node serving an "
-               "unserved binding is asked about FIRST, and an information "
-               "request may cite the deliverable:")
+               "(serviceability, named per binding; `python3 scripts/needs.py "
+               "<area>` renders the deeper needs view — coverage and recorded "
+               "gaps too). A node serving an unserved binding is asked about "
+               "FIRST, and an information request may cite the deliverable:")
     import definitions  # lazy: brief.py stays cheap for the drafter path
     for name in obj.deliverables:
         _line(out, f"    {name}:")

@@ -119,6 +119,14 @@ trigger, the output shape is the same: notes with evidence.
      the completion (if a tagged source supplies it) or the demotion to
      prose + GAP (if nothing does).
 
+   A fourth thing you may propose, same channel and same restraint (M44): a
+   GAP still carrying the old **ask half** — "who can answer it", "what it
+   blocks", an owner to chase, an urgency word — may be proposed for
+   **trimming** to its recorded fact and grounds, since blocking is now
+   computed by the needs view and never written at capture. It is a
+   hygiene proposal reported alongside the existing `callout_grooming` kinds —
+   no new return kind — and never an edit you make yourself.
+
    **All three are PROPOSALS through the notes bus** to the owning step's
    drafter — or, where the answer is a scope or an evidence decision, to the
    human at the gate. You never edit a step fragment to groom it: a
