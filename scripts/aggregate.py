@@ -70,6 +70,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_model  # noqa: E402  (M2 deliverable)
 import matrix_views  # noqa: E402  (M38: the matrix writer, registered below)
+import needs  # noqa: E402  (M44: the needs view, registered below)
 import plan_views  # noqa: E402  (M40: the three view writers, registered below)
 
 
@@ -680,6 +681,9 @@ PY_BUILDERS = {
     plan_views.REQUESTS_KIND: plan_views.build_information_requests,
     plan_views.VALIDATIONS_KIND: plan_views.build_open_validations,
     plan_views.FINDINGS_KIND: plan_views.build_findings_by_theme,
+    # M44: the needs view — the per-deliverable gap render, same mechanism (no
+    # shipped definition binds it yet; the interview agenda will).
+    needs.NEEDS_KIND: needs.build_engagement_needs,
     "procedure-index": build_procedure_index,
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,
