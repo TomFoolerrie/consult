@@ -189,6 +189,11 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M41](M41-engagement-objective.md) | The engagement objective: seeded cycle skeleton + goal-aware taxonomy agents (**BUILT**, 2.1.0-alpha.4, gate 20/20) |
 | [M42](M42-callout-doctrine.md) | The callout doctrine: minting bars, sub-step rules, the interaction contract; population judgment moves to surveyor/librarian (**BUILT**, 2.1.0-alpha.5, gate 13/13) |
 | [M43](M43-drafting-path-hygiene.md) | The process-step drafting path + the hygiene feeder: YOUR UNIT line, declared CTRL fields, three grooming generators (**BUILT**, 2.1.0-alpha.6, gate 19/19) |
+| [M44](M44-needs-view.md) | The needs view: per-deliverable gaps as a render + the two-mint GAP (**SPEC** — arch review D1+D2, ruled 2026-08-16) |
+| [M45](M45-taxonomist-merge.md) | The taxonomist: surveyor + librarian merged, direct write over `_taxonomy/`, confirm gate unchanged (**SPEC** — D3) |
+| [M46](M46-interview-agenda.md) | The interview agenda: a definition over the needs view × roles × ledger; generation human-triggered, ad hoc (**SPEC** — D4) |
+| [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**SPEC** — D5) |
+| [M48](M48-efficiency-pass.md) | The efficiency pass: drafter contract split by unit, cheap-tier revise path, roster audit (**SPEC** — D6) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
