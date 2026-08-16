@@ -282,7 +282,7 @@ class TestAgentProse:
 
     @needs("objective_block", module="brief")
     def test_surveyor_admits_the_objective_input(self):
-        text = self._text("agents/consult-surveyor.md")
+        text = self._text("agents/consult-taxonomist.md")
         assert "objective" in text.lower()
 
     @needs("objective_block", module="brief")

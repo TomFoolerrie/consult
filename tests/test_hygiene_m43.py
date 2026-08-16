@@ -271,6 +271,6 @@ class TestLibrarianWiring:
         assert "ctrl-missing-field" in out   # the kind vocabulary, synced
 
     def test_librarian_contract_names_the_feeder(self):
-        text = (REPO / "agents" / "consult-librarian.md").read_text("utf-8")
+        text = (REPO / "agents" / "consult-taxonomist.md").read_text("utf-8")
         assert "hygiene" in text.lower()
         assert "does not exist yet" not in text.lower()

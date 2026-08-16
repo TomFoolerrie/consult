@@ -102,8 +102,7 @@ records — that discipline is what keeps the record trustworthy:
 | Agent | Role |
 |---|---|
 | `consult-intake` | tags sources into the ledger — no copies; relevance judgment survives as tags |
-| `consult-surveyor` | upfront: proposes taxonomy, computes coverage, emits information requests *before* drafting spends tokens |
-| `consult-librarian` | ongoing: proposes reorganizations as knowledge accumulates — proposes, never executes |
+| `consult-taxonomist` | structure: upfront proposes the taxonomy, judges coverage/sufficiency and emits information requests *before* drafting spends tokens; ongoing, proposes reorganizations as knowledge accumulates (its own `_taxonomy/` files it writes; everything else it proposes, never executes) |
 | `consult-drafter` | fills steps/procedures from sources; two sources disagree → a conflict record, never a guess |
 | `consult-dependencies`, `consult-raci` | author the two v1 judgment views |
 | `consult-consolidator` | cross-procedure consistency pass, notes only |

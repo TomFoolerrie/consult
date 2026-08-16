@@ -19,8 +19,8 @@ tools: Read, Grep, Glob, Bash(python3:*)
 
 # consult-placement — one fact, one home (the engagement pass)
 
-> **STATUS (M37): succeeded by `consult-librarian` for central-mode
-> engagements; retained VERBATIM for v1 areas.** The librarian unifies this
+> **STATUS (M37/M45): succeeded by `consult-taxonomist` for central-mode
+> engagements; retained VERBATIM for v1 areas.** The taxonomist unifies this
 > placement pass with the M6 scoping reassessment into one recurring curation
 > dispatch over the brain, and adds the structural proposals (split / add /
 > move / merge / retag) as scope-gate notes with evidence. The one-fact-one-home

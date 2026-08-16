@@ -22,8 +22,7 @@ P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
             / "components" / "procure-to-pay")
 
 DRAFTER = REPO / "agents" / "consult-drafter.md"
-SURVEYOR = REPO / "agents" / "consult-surveyor.md"
-LIBRARIAN = REPO / "agents" / "consult-librarian.md"
+TAXONOMIST = REPO / "agents" / "consult-taxonomist.md"
 
 ENTRY_KEYS = {"deliverable", "kind", "need", "where", "grounds"}
 KINDS = {"binding-unserved", "coverage", "recorded-gap"}
@@ -250,12 +249,12 @@ class TestDoctrineProse:
         assert "unconfirmed" in low
 
     def test_surveyor_agenda_is_rendered_from_needs(self):
-        low = self._text(SURVEYOR).lower()
+        low = self._text(TAXONOMIST).lower()
         assert "needs" in low
         assert "needs.py" in low or "needs view" in low
 
     def test_librarian_admits_the_ask_half_trim(self):
-        low = self._text(LIBRARIAN).lower()
+        low = self._text(TAXONOMIST).lower()
         assert "ask half" in low
 
     def test_objective_block_points_at_the_needs_view(self, tmp_path):

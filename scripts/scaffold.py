@@ -312,13 +312,13 @@ def compute_l2_order(procedures: list[dict], tax_buckets: list[str],
 # ARE that category's L2 subcategories — so no second cycle library is shipped:
 # one source of truth for name→slug, the same file `load_l1_buckets` reads.
 # Seeding projects that data into STAGED taxonomy-node fragments at the
-# surveyor's own staging path, and promotion is the move M37 Amendment A1
+# taxonomist's own staging path, and promotion is the move M37 Amendment A1
 # recorded as missing (the human had to hand-move files at the confirm gate).
 # The gate does not move: `promote_taxonomy` is what the human's go RUNS.
 # --------------------------------------------------------------------------- #
 
-#: The surveyor's staging path for node fragments, relative to the area
-#: (agents/consult-surveyor.md, "THE NODES"): a DIRNAME convention, not shape.
+#: The taxonomist's staging path for node fragments, relative to the area
+#: (agents/consult-taxonomist.md, "THE NODES"): a DIRNAME convention, not shape.
 PROPOSED_TAXONOMY = ("_reference", ".proposed", "_taxonomy")
 #: The live home — filename stem IS the node slug (the filesystem carries
 #: identity; there is no index file to drift).

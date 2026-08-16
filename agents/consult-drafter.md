@@ -32,7 +32,7 @@ file is the deliverable.
   `consult-taxonomy` (read them yourself from disk; do not expect them pasted in).
   **Central-mode engagements (M34/M37):** the tags live in the ONE engagement
   ledger (`<root>/_sources/sources.yaml`, written by intake's `route`/`adopt`
-  and refined by `consult-surveyor`), and the files themselves sit at
+  and refined by `consult-taxonomist`), and the files themselves sit at
   `<root>/_sources/new/` — not under your area. Your brief resolves this for
   you: the reading list names the actual paths either way, so the list is what
   you read, and a source's `note:` there carries the intake relevance pointer
@@ -633,7 +633,7 @@ not name what it blocks; it carries no urgency or priority wording of any kind.
 Which deliverable or operation a gap **blocks** is *computed* downstream by the
 needs view (`scripts/needs.py`), and the engagement-level *"what should we ask
 the client"* agenda is **not yours** — it is a render over that view, shaped by
-`consult-surveyor`. Your license is the absence FACT you can see locally, and
+`consult-taxonomist`. Your license is the absence FACT you can see locally, and
 nothing broader: record it, and let the render rank it.
 
 **PAIN — the easy one, restated for completeness.** A PAIN POINT is a
@@ -675,7 +675,7 @@ step — same owner, same system throughout, by definition. Two hard rules:
   or `category: gap-answer` note — you complete the CTRL and delete the GAP
   through the existing note path; no new machinery.
 - **You own your own step's record, only.** The before-drafting ask agenda is
-  the surveyor's; after drafting, `consult-librarian` grooms the callout
+  the taxonomist's; after drafting, `consult-taxonomist` grooms the callout
   population across steps (duplicate GAPs, a GAP a tagged source likely
   answers, CTRLs missing fields) and **proposes** through the notes bus. Act
   on those notes; do not take their job on yourself.
@@ -1007,7 +1007,7 @@ passing, a nickname) is not a conflict — normalize it and move on; do not
 manufacture callouts out of noise. Material means a preparer could act
 differently depending on which account is true.
 
-The same rule runs one altitude up: `consult-surveyor` raises the identical GAP,
+The same rule runs one altitude up: `consult-taxonomist` raises the identical GAP,
 naming both ids, on the taxonomy node when two sources disagree about a node's
 owner, system or sequence. Neither of you settles it.
 
