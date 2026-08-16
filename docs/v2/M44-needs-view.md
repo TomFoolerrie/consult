@@ -1,8 +1,9 @@
 # M44 — The Needs View: per-deliverable gaps as a render, and the two-mint GAP
 
-**Status: SPEC** — from the 2026-08-16 architecture review (decisions D1 + D2,
-ruled by the human). Ticket map: this is the first of the review's five
-(M44–M48).
+**Status: BUILT** (`2.2.0-alpha.1`, gate 21/21, suite 1144) — from the
+2026-08-16 architecture review (decisions D1 + D2, ruled by the human).
+Ticket map: this is the first of the review's five (M44–M48). See
+Amendment A1 for build friction and open follow-ups.
 
 ## Why (the ruling, verbatim in spirit)
 
@@ -150,6 +151,31 @@ needs(area, deliverable=None) -> list[dict]
 
 `tests/test_needs_m44.py` — written before the build, skip-gated per work
 package. Suite green at every commit; zero v1 tests edited.
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-16)
+
+From WP-G2, three grammar collisions the doctrine rewrite exposed —
+none fixed in this ticket because spec Part A item 5 says "grammar
+unchanged"; each needs a human ruling before anyone touches the grammar:
+
+1. **`Owner to confirm:` is the ask half in field form.** The inline GAP
+   grammar declares `- **Owner to confirm:** <role or TBD>` — exactly the
+   "who can answer it" the doctrine deleted from prose. The contract is
+   mildly self-contradictory at that one field until it is retired, made
+   optional, or kept as a legacy slot the doctrine no longer asks to fill.
+2. **`Grounds:` is example-only.** The worked example now shows a
+   `- **Grounds:**` sub-field (mirroring the needs view's `grounds` key),
+   but the grammar declares no such field. Minting it canonically is the
+   natural pair to ruling #1.
+3. **The `Nature:` enum predates the two mints.** It reads
+   `unknown | conflict | unsupported-assumption`; the worked example now
+   says `evidenced absence`, outside the enum. The obvious alignment is
+   `conflict | evidenced-absence` — a grammar change, so deferred with
+   the others.
+
+Also noted: M42's standing anchors ("blocks",
+"'unconfirmed' alone does not mint") survive truthfully — "what it
+blocks" now appears only as the thing the drafter must NOT write.
 
 ## Work packages
 

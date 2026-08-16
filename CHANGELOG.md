@@ -9,6 +9,21 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [Unreleased — 2.2.0]
+The engagement-lens line: the 2026-08-16 architecture review's rulings
+(D1–D6), ticketed as M44–M48.
+
+- **M44 — the needs view + the two-mint GAP** (`2.2.0-alpha.1`): gaps
+  become a per-deliverable RENDER over the brain — `scripts/needs.py`
+  computes, on demand and objective-driven, what each target
+  deliverable still needs (binding-unserved via serviceability,
+  coverage via the target's own coverage binding, recorded-gap via the
+  open GAP callouts), registered as the `engagement-needs` derived
+  view; and the drafter's GAP shrinks to two mints — a conflict or an
+  evidenced absence — losing its ask half entirely (blocking is
+  computed, the ask agenda is a render the surveyor shapes from the
+  needs view, priority words never appear at capture). Suite 1144.
+
 ## [2.1.0] — M41–M43
 The capture-layer line: the engagement gains a stated objective and a
 starting skeleton, and the callout layer gains a doctrine, a bar, and a
