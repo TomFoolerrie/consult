@@ -572,6 +572,11 @@ group entries into one request a client can answer in one sitting, and how to
 phrase each ask in the client's language (no "binding", no "kind", no entry text
 pasted through). An entry you deliberately do not ask, say so and why.
 
+You MAY note in your return that a cluster of entries reads as **interview-worthy
+for one role** (an interview-agenda render exists for that). You may not generate
+an agenda and you may not decide that an interview is needed: that render is
+human-triggered, ad hoc, and outside every agent loop including yours.
+
 The reason is a deliberate narrowing downstream: a drafter's GAP license is
 **operation-blocking facts only** — a specific fact (a number, a threshold, an
 owner, a control field) whose absence blocks stating THAT step correctly, found

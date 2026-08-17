@@ -1,0 +1,80 @@
+# kernel/deliverables/interview-agenda.yaml — the interview agenda (M46,
+# docs/v2/M46-interview-agenda.md; the 2026-08-16 review's decision D4).
+#
+# WHAT IT IS: the thing you walk into a client meeting holding. One agenda per
+# named ROLE: what we want that person to confirm, what we believe is missing in
+# their territory, what we have not asked them about yet, and what they already
+# gave us that we still owe a read on.
+#
+# WHAT IS NEW HERE, AND WHAT DELIBERATELY IS NOT. New: this is the FIRST
+# definition to bind M44's needs view (`engagement-needs`) — the inventory of
+# what each target deliverable still needs. NOT new: any gap judgment. The
+# agenda is a RENDER over that view joined to the roles registry and the source
+# ledger; every line on it traces back to a needs entry, a ledger row, or the
+# roles join. It invents no need of its own, which is why it needed no new
+# binding verb (zero shape-audit entries, the M38 bar: no engine special-case).
+#
+# GENERATION IS HUMAN-TRIGGERED, ALWAYS (the ruling's note: *"I would like to be
+# in charge of when this generates. It will be an ad hoc item."*). The verb is
+# `python3 scripts/agenda.py <area> --role <slug>`, invoked by a human. No
+# agent's loop fires it and no coverage state auto-fires it — nothing in the
+# system decides that an interview is needed. The orchestrate skill documents
+# that; the taxonomist may CITE agenda-worthy clusters and may not generate.
+
+deliverable: interview-agenda
+
+shape:
+  - id: agenda-preamble
+    title: About This Agenda
+    kind: static
+    numbering: none
+    text: |
+      This agenda collects what we would like to cover with one person, drawn
+      entirely from the record as it stands: the points two accounts of the
+      process disagree on, the areas we cannot yet document with confidence,
+      and the ground we have not asked about at all. It also lists what you
+      have already given us that we still owe a read on — we would rather
+      re-read what we hold than ask you for it twice. Nothing here is a
+      finding, and nothing here is ranked: which items matter most in the time
+      available is a judgment for the meeting, not for this page.
+
+  - id: interview-agenda
+    title: Interview Agenda
+    kind: view
+    writer: python
+    binding: engagement-needs
+    numbering: none
+
+bindings:
+  # THE FEED. `engagement-needs` is M44's needs view (scripts/needs.py:
+  # NEEDS_KIND — one string, three roles: the derived kind, the view-block id
+  # this deliverable binds it under, and the `aggregate.PY_BUILDERS` key). This
+  # binding names no entity type on purpose: like `coverage:` and `findings:`,
+  # the needs view is a pure function over the engagement (objective +
+  # definitions), not a population on disk. `group_by: role` is the whole of
+  # what this deliverable asks of it — one agenda per role — and `order:
+  # manifest` keeps the items inside an agenda in the area's own step order, so
+  # two renders of the same record are byte-equal.
+  engagement-needs:
+    group_by: role
+    order: manifest
+
+  # THE ROLES JOIN. Role attribution is never guessed: a needs entry is on this
+  # role's agenda when the step (or the taxonomy node's steps) it sits on names
+  # the role on its `roles` channel — the consult-meta binding whose registry is
+  # the area's `_reference/roles.yaml`. This binding is where scripts/agenda.py
+  # reads that channel NAME from (vocabulary from the bindings, the M36 rule),
+  # and it is also the ledger join's key: the ledger records what each source
+  # touches BY STEP SLUG, so the role's territory selects the ledger rows that
+  # are still outstanding for it. No third binding invents a ledger verb for
+  # something the step slugs already say.
+  role-territory:
+    entities: process-step
+    channels: [roles]
+    order: manifest
+
+skin:
+  format: docx
+  requires:
+    - cover-page
+    - portrait-tables

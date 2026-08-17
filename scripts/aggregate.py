@@ -69,6 +69,7 @@ import yaml
 # file is run as `python3 scripts/aggregate.py …` from the repo root.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_model  # noqa: E402  (M2 deliverable)
+import agenda  # noqa: E402  (M46: the interview agenda, registered below)
 import matrix_views  # noqa: E402  (M38: the matrix writer, registered below)
 import needs  # noqa: E402  (M44: the needs view, registered below)
 import plan_views  # noqa: E402  (M40: the three view writers, registered below)
@@ -684,6 +685,11 @@ PY_BUILDERS = {
     # M44: the needs view — the per-deliverable gap render, same mechanism (no
     # shipped definition binds it yet; the interview agenda will).
     needs.NEEDS_KIND: needs.build_engagement_needs,
+    # M46: the interview agenda — the first definition to bind the needs view,
+    # rendered per role. HUMAN-TRIGGERED only (scripts/agenda.py's CLI); the
+    # registry entry is what lets the ordinary plan path materialize it when a
+    # human asks, never a loop that fires it.
+    agenda.AGENDA_KIND: agenda.build_interview_agenda,
     "procedure-index": build_procedure_index,
     "role-dictionary": build_role_dictionary,
     "systems": build_systems,

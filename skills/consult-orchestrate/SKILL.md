@@ -705,6 +705,26 @@ it, render compiles it into the Shared Reference appendix. **context** =
 engagement intelligence drafters align with but never cite by name — it
 never appears in rendered output.
 
+## Interview agendas (M46) — the human decides when, always
+
+`kernel/deliverables/interview-agenda.yaml` is a deliverable like any other, but
+its generation is **ad hoc and human-triggered, and that is a rule, not a
+default**. The verb is
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/agenda.py" <area> --role <role-slug>
+```
+
+and a **human** runs it, when a human has decided to hold an interview. It is
+**not** part of your loop: no action handler fires it, no coverage or gap state
+auto-fires it, and no agent — yours or a subagent's — may decide that an
+interview is needed. If the record suggests one would help, say so in a gate
+message in one line and let the human choose; then, if they ask, run the render
+for the role they name and hand them the output. Nothing else about this
+deliverable is special: it is a read-only render over the needs view
+(`needs.py`), the area's role registry and the source ledger, so it invents no
+gap and asks for nothing the ledger already holds.
+
 ## Reporting
 
 Between steps, keep the user oriented with one-liners ("scoped 12 procedures under
