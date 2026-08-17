@@ -729,6 +729,43 @@ it, render compiles it into the Shared Reference appendix. **context** =
 engagement intelligence drafters align with but never cite by name — it
 never appears in rendered output.
 
+## Analysis (M39/M49) — dispatching `consult-analyst`
+
+`consult-analyst` is the only agent with an **assessment** license, and it is
+dispatched **rarely and deliberately**:
+
+- **When.** Over a **drafted** corpus — an area whose procedure fragments are
+  filled and reconciled — and only **at the human's request** or **at a review
+  milestone** the human has called. **Never inside the drafting loop.** No
+  action handler fires it, no coverage or gap state auto-fires it, and a
+  drafter's return never escalates into an analysis pass. Assessment while the
+  record is still moving would judge a corpus that is about to change, and the
+  claims are the ones that reach the client.
+- **One verb per dispatch** — `pain-synthesis` | `control-coverage` |
+  `conflict-support` | `handoff-friction` — like the drafter's mode.
+- **The brief.** Its first action is `analysis.py brief <area>`, which you may
+  also run yourself to see what the pass has to work with (read-only, decides
+  nothing):
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis.py" brief <area>
+```
+
+  It prints the license, the four candidate feeds with counts
+  (control-gap candidates, handoff candidates, the pain inventory and the
+  conflict records), the findings register's state, the engagement objective
+  and the finish contract.
+- **What it returns.** The **proposed finding ids** with a one-line claim each,
+  plus what it considered and set aside. No fragment text, no source text, no
+  rendered document.
+- **The human gate.** Accept/reject is the **human's** decision, always.
+  Present the proposed claims in one compact list and let them choose; you
+  never accept on their behalf and never infer acceptance from silence.
+  Findings **render only after the human accepts** — `findings.renderable`
+  returns accepted entries only, so the register enforces this structurally
+  and a proposed or rejected finding cannot reach a deliverable by any route.
+  The gate is not yours to move.
+
 ## Interview agendas (M46) — the human decides when, always
 
 `kernel/deliverables/interview-agenda.yaml` is a deliverable like any other, but

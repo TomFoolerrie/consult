@@ -107,6 +107,7 @@ from __future__ import annotations
 
 import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles)
 
+import argparse
 import re
 
 from pathlib import Path
@@ -149,6 +150,20 @@ _ATTRIBUTION_DASH = "—"
 #: that only appear in a dict literal.
 KIND_ORPHAN_OUTPUT = "orphan-output"
 KIND_SHARED_INPUT = "shared-input"
+
+#: The conflict-record kind (M49 Part B — the fourth M39 verb).
+KIND_CONFLICT_RECORD = "conflict-record"
+
+#: The v1 conflict grammar: a GAP callout field whose VALUE says the gap is a
+#: conflict. Field name and value are compared case-insensitively — the field is
+#: hand-authored prose furniture, not document shape (the shape audit's concern
+#: is part/callout vocabulary, which still comes from the declaration below).
+NATURE_FIELD = "nature"
+NATURE_CONFLICT = "conflict"
+
+#: How many DISTINCT sources make a gap a conflict on its face (the two-mint
+#: doctrine's conflict shape: both readings, both citations).
+CONFLICT_MIN_SRCS = 2
 
 
 class AnalysisError(RuntimeError):
@@ -207,6 +222,21 @@ def _control_prefix(tdecl, area) -> str:
             f"{homes.get(prefix)!r} — the binding and this generator disagree "
             f"about what a control is")
     return prefix
+
+
+def _gap_prefix(tdecl, area) -> str:
+    """The validation-gap callout kind's prefix — read from the information
+    request's `step-gaps` binding, the same declaration read `_pain_prefix`
+    subtracts with. No label typed, so a reshape of the type fails the
+    definition rather than silently changing what a conflict record is."""
+    prefixes = _prefixes(tdecl, _names(
+        _binding(_definition_bindings(REQUEST_DEFINITION, area), BINDING_GAPS),
+        "callouts"))
+    if len(prefixes) != 1:
+        raise AnalysisError(
+            f"{BINDING_GAPS!r} selects {len(prefixes)} callout kind(s) "
+            f"({prefixes}) — the conflict extractor asks about one kind")
+    return prefixes[0]
 
 
 def _pain_prefix(tdecl, area) -> str:
@@ -450,3 +480,239 @@ def pain_inventory(area) -> list[dict]:
                     "srcs": sorted(set(SRC_ID_RE.findall(blob))),
                 })
     return out
+
+
+# --------------------------------------------------------------------------- #
+# M49 Part B — the fourth verb: conflict records
+# --------------------------------------------------------------------------- #
+
+def _nature(callout: dict) -> str | None:
+    """The v1 `Nature:` field's value, lowercased, or None when absent.
+
+    The field NAME is matched case-insensitively too: a drafter who wrote
+    `nature:` said the same thing as one who wrote `Nature:`, and a record that
+    depended on the capital would be a silent miss."""
+    for key, value in (callout.get("fields") or {}).items():
+        if str(key).strip().lower() == NATURE_FIELD:
+            return str(value).strip().lower()
+    return None
+
+
+def conflict_records(area) -> list[dict]:
+    """Every gap-kind callout that is a CONFLICT ON ITS FACE, in document order.
+
+    Two grammars, both read from what the drafter actually wrote:
+
+      * v2 (the two-mint doctrine's conflict shape) — the callout body cites
+        `CONFLICT_MIN_SRCS` or more DISTINCT SRC ids. Two readings, two
+        citations: the drafter recorded a disagreement rather than an absence.
+      * v1 — the callout carries a `Nature:` field whose value is `conflict`
+        (the p2p corpus's grammar, where the nature of a gap was authored as a
+        field rather than implied by its citations).
+
+    A gap citing fewer than two sources and carrying no conflict nature is an
+    ABSENCE, not a conflict, and is not a record. That line is the whole point
+    of the verb: the resolution QUESTIONs these records feed ask a client to
+    SETTLE something two sources say differently, which is a different ask from
+    "we hold no source for this".
+
+    `{"kind", "step", "id", "srcs", "text"}` per record, plus `"nature"` when
+    the field was present. `id` is the DISPLAY id
+    (`doc_model.callout_display_ids` — the document-global numbering authority,
+    the map render.py and the derived views already share), so a record cites a
+    gap by the id the rendered document shows. `text` is the callout's own words
+    with `[[slug]]` tokens flattened; nothing here summarises or grades it.
+
+    The gap kind comes from the information request's `step-gaps` binding, not
+    from a typed label (`_gap_prefix`). Both unit shapes are served by the one
+    walk: `_area_steps` parses each manifest-listed fragment against the step
+    type declaration, whose callout vocabulary the activity type shares, so an
+    activity-shaped area's gaps are read by the same pass as a process-step
+    area's — no per-area type switch, and no second parser to disagree with.
+
+    Deterministic (manifest order, then document order within a step) and
+    READ-ONLY, like every other generator here. This verb RECORDS a conflict; it
+    never resolves one (the M39 one-direction rule)."""
+    import doc_model
+
+    area = Path(area)
+    tdecl, steps = _area_steps(area)
+    prefix = _gap_prefix(tdecl, area)
+    disp = doc_model.callout_display_ids(area)
+
+    out: list[dict] = []
+    for step in steps:
+        for callout in _callouts(step["entity"], prefix):
+            blob = _callout_blob(callout)
+            srcs = sorted(set(SRC_ID_RE.findall(blob)))
+            nature = _nature(callout)
+            if len(srcs) < CONFLICT_MIN_SRCS and nature != NATURE_CONFLICT:
+                continue
+            local = str(callout.get("id") or "")
+            record = {
+                "kind": KIND_CONFLICT_RECORD,
+                "step": step["slug"],
+                "id": disp.get((step["slug"], local), local),
+                "srcs": srcs,
+                "text": _flatten(str(callout.get("text") or "")),
+            }
+            if nature is not None:
+                record["nature"] = nature
+            out.append(record)
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# M49 Part A — the analyst work order (`analysis.py brief <area>`)
+# --------------------------------------------------------------------------- #
+
+#: The feeds the brief prints, in order: (heading, generator). The brief is a
+#: view over this module's own verbs — it computes nothing of its own.
+def _feeds():
+    return (
+        ("CONTROL GAP CANDIDATES", control_gap_candidates),
+        ("HANDOFF CANDIDATES", handoff_candidates),
+        ("PAIN INVENTORY", pain_inventory),
+        ("CONFLICT RECORDS", conflict_records),
+    )
+
+
+def _entry_line(feed: str, item: dict) -> str:
+    """One compact line per candidate — enough to see the candidate, never
+    enough to stand in for reading the corpus."""
+    if feed == "CONTROL GAP CANDIDATES":
+        return (f"{item['slug']} — {item['heading']}: "
+                f"{len(item['produced'])} produced edge(s), no control callout"
+                + ("  [control prose present]" if item["control_prose"] else ""))
+    if feed == "HANDOFF CANDIDATES":
+        return f"{item['kind']}: {item['artifact']}  ({', '.join(item['slugs'])})"
+    if feed == "PAIN INVENTORY":
+        srcs = ", ".join(item["srcs"]) or "NO SOURCE NAMED"
+        return f"{item['id']} on {item['home']} ({srcs}): {item['text']}"
+    nature = f", nature: {item['nature']}" if item.get("nature") else ""
+    return (f"{item['id']} on {item['step']} "
+            f"({', '.join(item['srcs']) or 'no SRC cited'}{nature}): "
+            f"{item['text']}")
+
+
+def _license_block(out: list[str], area: Path) -> None:
+    out.append(f"WORK ORDER — consult-analyst · {area}")
+    out.append("")
+    out.append("YOUR LICENSE (assessment only — the M39 one-direction rule):")
+    out.append("  * you ASSESS. The candidates below are mechanical: this "
+               "module says what the corpus declares, never what matters. "
+               "Materiality, clustering and severity are your judgment.")
+    out.append("  * you PROPOSE findings and nothing else — "
+               "`findings.propose(root, claim, grounds, theme)`. A proposed "
+               "finding is a claim awaiting the human gate; accept/reject is "
+               "the human's, and only accepted findings render.")
+    out.append("  * you NEVER write an area file. Not a fragment, not a "
+               "manifest, not a callout — findings never flow back into the "
+               "capture layer.")
+    out.append("  * you NEVER resolve a gap, settle a conflict or rephrase "
+               "capture content. A conflict record is raw material for a "
+               "resolution QUESTION; the client settles it, not you.")
+    out.append("")
+
+
+def _register_block(out: list[str], root: Path) -> None:
+    import findings
+    out.append(f"FINDINGS REGISTER — {findings.findings_path(root)} (the "
+               "engagement-wide state; ids are stable and citable):")
+    for status in findings.STATUSES:
+        rows = findings.entries(root, status=status)
+        ids = ", ".join(str(e.get("id")) for e in rows) or "—"
+        out.append(f"  {status}: {len(rows)}  [{ids}]")
+
+
+def analyst_brief(area: Path, root: Path) -> str:
+    """The analyst's work order as one printable block. Read-only."""
+    import brief
+    import findings
+
+    out: list[str] = []
+    _license_block(out, area)
+
+    for name, generator in _feeds():
+        try:
+            items = generator(area)
+        except AnalysisError as exc:
+            out.append(f"{name}: UNAVAILABLE — {exc}")
+            out.append("  report this in your return; do not assess around a "
+                       "feed that refused.")
+            out.append("")
+            continue
+        out.append(f"{name} ({len(items)}):")
+        if not items:
+            out.append("  none")
+        for item in items:
+            out.append(f"  - {_entry_line(name, item)}")
+        out.append("")
+
+    _register_block(out, root)
+
+    findings_here = findings.for_area(root, area)
+    ids = ", ".join(str(e.get("id")) for e in findings_here) or "—"
+    out.append(f"  grounded in THIS area ({len(findings_here)}): [{ids}] "
+               f"— read these before proposing: a claim already on the "
+               f"register is not a new finding.")
+    out.append("")
+
+    out.append(brief.objective_block(area).rstrip("\n"))
+    out.append("")
+
+    out.append("BEFORE YOU FINISH:")
+    out.append("  1. Every finding you propose carries GROUNDS that resolve "
+               "(SRC ids, callout ids, entity slugs) — a finding that does "
+               "not trace does not exist, and `propose` refuses it by name.")
+    out.append("  2. Say what you considered and set aside, and why — the "
+               "candidates you judged immaterial are part of the trail.")
+    out.append("  3. Return the proposed finding ids with a one-line claim "
+               "each. Never paste corpus text back, and never render: the "
+               "human accepts or rejects, and only accepted findings reach a "
+               "deliverable.")
+    return "\n".join(out)
+
+
+def main(argv=None) -> int:
+    """`analysis.py brief <area>` — the analyst dispatch's work order.
+
+    Read-only by contract, like every verb in this module. Exit 0 on a printed
+    brief; exit 2 on an unknown area or an area outside an engagement's
+    `components/` tree (the findings register and the ledger live at the
+    ENGAGEMENT root, so an area with no derivable root has no register to
+    report and no grounds universe to resolve against — refused by name rather
+    than briefed over)."""
+    import sys
+
+    ap = argparse.ArgumentParser(
+        prog="analysis.py",
+        description="The analyst's deterministic work order (read-only).")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    b = sub.add_parser("brief", help="print the analyst work order for one area")
+    b.add_argument("area", help="area folder, e.g. components/<area>")
+    a = ap.parse_args(argv)
+
+    area = Path(a.area)
+    if not (area / "manifest.json").is_file():
+        print(f"error: {area} has no manifest.json — pass the AREA FOLDER "
+              f"path (e.g. components/<area>)", file=sys.stderr)
+        return 2
+
+    import plan_views
+    try:
+        root = plan_views._root_of(area)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    try:
+        print(analyst_brief(area, root))
+    except AnalysisError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
