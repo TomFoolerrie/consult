@@ -725,6 +725,70 @@ deliverable is special: it is a read-only render over the needs view
 (`needs.py`), the area's role registry and the source ledger, so it invents no
 gap and asks for nothing the ledger already holds.
 
+## The research pass (M47) — a dispatch recipe, not an agent
+
+Day zero: the engagement knows the client's name and nothing else. The research
+pass is a **pass over public material**, run **before** the kickoff, so the first
+PBC request list and the seeded taxonomy already look like the actual company.
+
+It is **not a resident agent.** No agent in this plugin assumes web access, and
+the roster does not grow for this. It is a **dispatch recipe you hand to a
+web-capable session** (a `general-purpose` subagent with web tools, or the human's
+own browsing session). You dispatch it, you review nothing on the client's behalf,
+and you never promote its output yourself.
+
+**What to research** — driven by the objective's in-scope cycles
+(`_client/objective.yaml`, via `client_config.objective`), never by curiosity:
+the latest 10-K or annual report (segments, systems and control language), the
+client's own site and careers pages (org shape, locations, named systems), public
+org and system announcements (an ERP migration, an acquisition), and the industry
+norms for each in-scope cycle. Nothing behind a login; nothing paid for.
+
+**What to stage.** Every output file goes under
+`<engagement-root>/components/_client/.proposed/` — and nowhere else. Live
+`_client/` is not written by the pass. Files, not a fixed list:
+
+- `company_profile.md` — who they are, segments, scale, fiscal calendar
+- `systems-landscape.md` — the ERP and the bolt-ons, as publicly described
+- `org-notes.md` — the finance org's public shape and named officers
+- add a file when the material supports one; stage nothing you cannot cite
+
+**Provenance discipline — every researched source, no exceptions.** Register the
+material in the engagement ledger as usual, then mark the entry
+`provenance: public`:
+
+```yaml
+- id: SRC-0NN
+  file: _sources/processed/2026-01-31-annual-report-extract.md
+  provenance: public          # ← the research pass's tag; omit ONLY for client material
+```
+
+`provenance` is additive and defaults to client-provided, so an untagged entry
+means "the client gave us this". **The hard rule: public sources inform the needs
+view; they never discharge it.** A public source may shape how an ask is phrased;
+it can **never discharge** a need. `coverage_map.py` enforces this mechanically —
+public SRC ids are excluded from every evidence join, so a node evidenced only by
+public material reports as `claimed` and stays on the information-request list.
+If you ever find yourself wanting a public source to close a gap, you have
+misread the rule: the ask is what closes it.
+
+**The review + promote gate.** Staged research is a proposal. Report what was
+staged in one line, and stop:
+
+> staged 3 researched files under `components/_client/.proposed/` — review them,
+> then say the word and I'll promote
+
+On the human's explicit go, and only then:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --promote-client --area <engagement-root>
+```
+
+The verb refuses a live collision **by name** and moves nothing when it refuses
+(a live `_client/` file is reviewed truth); it touches nothing outside `_client/`;
+and it is a graceful no-op when nothing is staged, so the go is safe to repeat.
+Reconcile a refused file by hand, never by deleting the live one.
+
 ## Reporting
 
 Between steps, keep the user oriented with one-liners ("scoped 12 procedures under

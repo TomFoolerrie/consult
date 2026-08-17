@@ -39,6 +39,22 @@ Statuses, in strict precedence order (first match wins):
               source is registered against it and not yet consumed.
   claimed     the node exists and nothing above is true.
 
+PUBLIC PROVENANCE NEVER DISCHARGES (M47, docs/v2/M47-research-pass.md). A ledger
+entry may carry `provenance: public` — the day-zero research pass's tag for
+material read off the public record (10-K, the client's site, industry norms).
+The rule the architecture review ratified: **public sources inform the needs
+view; they never discharge it.** Here that is one mechanical amendment, applied
+BEFORE the three positive tests: public SRC ids are removed from every evidence
+join below, so a node evidenced ONLY by public sources reads exactly as an
+unevidenced node does (`claimed` — known, not yet evidenced, and therefore still
+an ask on the information-request list), and a node with mixed evidence is
+judged on its client-provided half alone.
+
+`provenance` is ADDITIVE and defaults to client-provided: an entry without the
+field is client material, and every join below then behaves byte-identically to
+the pre-M47 map. That default is what lets the field land without touching a
+single existing ledger, sources or coverage test.
+
 Python 3, stdlib + the engine's own modules (like every other engine module).
 """
 
@@ -77,6 +93,13 @@ SRC_ID_RE = re.compile(r"\bSRC-[A-Za-z0-9]+\b")
 _SENTINEL_RE = re.compile(
     r"(<!--\s*unfilled\s*-->)|(status\s*:\s*unfilled)|(^\s*unfilled\s*$)",
     re.I | re.M)
+
+#: The ledger field that marks where a source came from, and the ONE value that
+#: changes this map's arithmetic. Absent (or anything else) reads as
+#: client-provided — the default, and the reason M47 needed no existing-test
+#: change.
+PROVENANCE_FIELD = "provenance"
+PROVENANCE_PUBLIC = "public"
 
 #: The four statuses, weakest to strongest. Precedence is this list's ORDER, so
 #: the resolution below cannot silently disagree with the docstring.
@@ -141,11 +164,45 @@ def _node_files(root) -> dict[str, Path]:
     return nodes
 
 
+def _public_src_ids(root) -> frozenset[str]:
+    """Every SRC id the ledger marks `provenance: public`.
+
+    Read off `ledger.entries` (the ledger stays the authority on its own
+    entries), compared case-insensitively on the VALUE only — the field name is
+    the contract, and a hand-typed `Public` is plainly the same claim. An
+    unreadable or absent ledger yields the empty set: no source is public, which
+    is the pre-M47 behaviour and the correct read of "nothing is registered".
+    """
+    try:
+        held = ledger.entries(root)
+    except Exception:
+        return frozenset()
+    out = set()
+    for entry in held:
+        if not isinstance(entry, dict):
+            continue
+        value = entry.get(PROVENANCE_FIELD)
+        if isinstance(value, str) and value.strip().lower() == PROVENANCE_PUBLIC:
+            sid = str(entry.get("id") or "")
+            if sid:
+                out.add(sid)
+    return frozenset(out)
+
+
+def _client_provided(src_ids, public: frozenset[str]) -> set[str]:
+    """The subset of some found SRC ids that can discharge anything.
+
+    The one place the exclusion is spelled: public ids drop out, everything else
+    (including an id the ledger has never heard of — an uncited registry is a
+    hygiene concern, not a licence to treat prose as public) counts."""
+    return {sid for sid in src_ids if sid not in public}
+
+
 # --------------------------------------------------------------------------- #
 # The three positive tests
 # --------------------------------------------------------------------------- #
 
-def _is_conflicted(node_path: Path, tdecl) -> bool:
+def _is_conflicted(node_path: Path, tdecl, public: frozenset[str] = frozenset()) -> bool:
     """Does this node fragment carry the lens-conflict record?
 
     A conflict is a callout whose body names TWO OR MORE distinct SRC ids —
@@ -163,12 +220,16 @@ def _is_conflicted(node_path: Path, tdecl) -> bool:
     for callout in entity.callout_dicts():
         blob = " ".join([str(callout.get("text") or "")]
                         + [str(v) for v in (callout.get("fields") or {}).values()])
-        if len(set(SRC_ID_RE.findall(blob))) >= 2:
+        # M47: a disagreement between two PUBLIC readings is not the client's
+        # process contradicting itself — it is two outside descriptions of it,
+        # and it may not advance the node past `claimed`.
+        if len(_client_provided(SRC_ID_RE.findall(blob), public)) >= 2:
             return True
     return False
 
 
-def _is_evidenced(step_slug: str, index: dict) -> bool:
+def _is_evidenced(step_slug: str, index: dict,
+                  public: frozenset[str] = frozenset()) -> bool:
     """Is this step drafted AND citing a source?
 
     Drafted = the fragment exists and no longer carries the skeleton sentinel
@@ -188,10 +249,12 @@ def _is_evidenced(step_slug: str, index: dict) -> bool:
     text = fpath.read_text(encoding="utf-8")
     if _SENTINEL_RE.search(text):
         return False
-    return bool(SRC_ID_RE.search(text))
+    # M47: drafted prose citing only public material is context, not evidence.
+    return bool(_client_provided(SRC_ID_RE.findall(text), public))
 
 
-def _outstanding_slugs(root, area_names) -> set[str]:
+def _outstanding_slugs(root, area_names,
+                       public: frozenset[str] = frozenset()) -> set[str]:
     """Every step slug some registered source still owes this engagement a read.
 
     `ledger.outstanding(root, area)` IS the definition of outstanding-ness
@@ -200,7 +263,12 @@ def _outstanding_slugs(root, area_names) -> set[str]:
     consumed."""
     out: set[str] = set()
     for aname in area_names:
-        for slugs in ledger.outstanding(root, aname).values():
+        for sid, slugs in ledger.outstanding(root, aname).items():
+            # M47: `sourced` says "a source is registered against this step and
+            # not yet read". A PUBLIC source being unread is not progress
+            # towards the client material the need actually wants.
+            if sid in public:
+                continue
             out.update(slugs)
     return out
 
@@ -232,7 +300,10 @@ def coverage(root, node_steps: dict[str, list[str]]) -> dict[str, str]:
     steps = _step_index(root)
     area_names = sorted({aname for _a, aname, _f in steps.values()}
                         or {a.name for a in _area_dirs(root)})
-    outstanding = _outstanding_slugs(root, area_names)
+    # M47's one amendment, resolved once per call (the map caches nothing
+    # between calls, so the ledger is re-read here as everywhere else).
+    public = _public_src_ids(root)
+    outstanding = _outstanding_slugs(root, area_names, public)
 
     out: dict[str, str] = {}
     for slug, path in nodes.items():
@@ -241,9 +312,9 @@ def coverage(root, node_steps: dict[str, list[str]]) -> dict[str, str]:
         status = "claimed"
         if any(s in outstanding for s in mine):
             status = "sourced"
-        if any(_is_evidenced(s, steps) for s in mine):
+        if any(_is_evidenced(s, steps, public) for s in mine):
             status = "evidenced"
-        if _is_conflicted(path, tdecl):
+        if _is_conflicted(path, tdecl, public):
             status = "conflicted"
 
         # The assignments above run weakest-first, so the last one that fires

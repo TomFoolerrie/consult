@@ -197,7 +197,12 @@ On a survey pass, read at the start:
    `org-chart.yaml`, `taxonomy.yaml`, and **registers** (M30, `registers/*.yaml`
    under either layer — adjudicated engagement facts that ground your tagging
    and nouns without guessing). Read them; **never write them** (the register
-   verb is the only writer).
+   verb is the only writer). This layer also carries the M47 research pass's
+   output — `company_profile.md` and friends, promoted from
+   `components/_client/.proposed/` at the human's review gate (read the staged
+   `.proposed/` files too when they are still there, as unreviewed proposals):
+   context for seeding and refinement only, and **never coverage** — public
+   material informs your nodes, it never evidences them.
 4. Incremental only: the live `_reference/` (systems/roles), the existing
    procedure slugs from `{area}/manifest.json`, and the existing node files under
    `{area}/_taxonomy/`.
