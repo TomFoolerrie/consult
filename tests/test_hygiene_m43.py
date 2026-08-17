@@ -22,10 +22,14 @@ P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
             / "components" / "procure-to-pay")
 
 DRAFTER = REPO / "agents" / "consult-drafter.md"
+# M48: the process-step drafting path moved to its own path document; the
+# anchors below are unchanged, only their home is.
+STEP_PATH = REPO / "agents" / "drafting" / "process-step.md"
 
 
 def _drafter_text():
-    return DRAFTER.read_text(encoding="utf-8")
+    return STEP_PATH.read_text(encoding="utf-8") if STEP_PATH.is_file() \
+        else DRAFTER.read_text(encoding="utf-8")
 
 
 def needs_module():
@@ -271,6 +275,6 @@ class TestLibrarianWiring:
         assert "ctrl-missing-field" in out   # the kind vocabulary, synced
 
     def test_librarian_contract_names_the_feeder(self):
-        text = (REPO / "agents" / "consult-librarian.md").read_text("utf-8")
+        text = (REPO / "agents" / "consult-taxonomist.md").read_text("utf-8")
         assert "hygiene" in text.lower()
         assert "does not exist yet" not in text.lower()

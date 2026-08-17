@@ -77,6 +77,33 @@ assessment.
 - The **candidate material for that verb**, handed to you precomputed (next
   section).
 
+## Your first action — run the brief
+
+**Your first action — run the brief** (`analysis.py brief <area>`). It assembles
+your work order mechanically, from the same read-only generators your dispatch
+was built from:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis.py" brief {area}
+```
+
+It prints, in order: your license (the one-direction rule restated as a
+header), the four candidate feeds with counts and compact entries
+(`control_gap_candidates`, `handoff_candidates`, `pain_inventory`,
+`conflict_records`), the findings register's state — counts and ids per status,
+plus the findings already grounded in this area — the engagement objective
+block, and your finish contract.
+
+It is READ-ONLY and decides nothing: not your verb, not which candidates
+matter, not whether a finding is warranted. Your dispatch stays authoritative
+for the verb, and the section below stays authoritative for what you may do
+with the material. Read the brief anyway, every time — the register state is
+the one input that changes between dispatches, and proposing a claim the
+register already carries wastes the human's gate.
+
+Where the brief and your dispatch disagree about a count, **say so in your
+return**; do not reconcile them by re-deriving either (the discipline below).
+
 ## Your inputs are HANDED TO YOU, precomputed — never re-derived
 
 Everything mechanical in your dispatch is the output of a pure, read-only Python

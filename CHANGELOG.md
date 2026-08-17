@@ -9,6 +9,76 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.2.0] — 2026-08-17
+The engagement-lens line: the 2026-08-16 architecture review's rulings
+(D1–D6), ticketed as M44–M48, plus the M49 analyst-dispatch follow-up.
+D1 and D5 re-affirmed as shipped at the pre-merge review (2026-08-17);
+merged to `main` on the human's explicit go.
+
+- **M49 — the analyst dispatch path** (`2.2.0-alpha.6`): the M39
+  follow-up paid — `analysis.py brief <area>` assembles the analyst's
+  work order (license, the four candidate feeds, register state,
+  objective block); `conflict_records` lands as the missing fourth
+  generator (two-citation conflicts + the v1 `Nature: conflict`
+  grammar); `findings.for_area` filters the register by where a
+  finding's grounds live; the orchestrate skill dispatches
+  `consult-analyst` (never inside the drafting loop; findings render
+  only after the human accepts). `consult-placement` retired on the
+  human's ruling. Suite 1199.
+
+- **M48 — the efficiency pass** (`2.2.0-alpha.5`): the drafter contract
+  split into shared law (agents/consult-drafter.md, 1082→863 lines) +
+  one path document per unit (agents/drafting/activity.md,
+  agents/drafting/process-step.md) — a dispatch loads shared law plus
+  exactly one path, routed by the brief's YOUR UNIT line. Tier hints
+  documented in the orchestrate skill: first drafts strong, notes-driven
+  revises cheaper, taxonomist curation cheaper. The roster audited with
+  one ruling per row (nothing deleted; raci/dependencies fold when the
+  v1 pipeline retires; the analyst dispatch path stays the standing
+  follow-up). Suite 1185 — zero skips remain.
+
+- **M47 — the research pass** (`2.2.0-alpha.4`): day-zero public
+  research enters staged — files under `components/_client/.proposed/`
+  (company_profile.md and friends), promoted at the human's review gate
+  by `scaffold --promote-client` (collision-refusing, `_client/`-only).
+  Ledger entries carry `provenance: public`, and coverage_map excludes
+  them from every status-advancing join: public sources inform the
+  needs view, they never discharge it. Specified as a dispatch recipe
+  for a web-capable session, not a new resident agent. Suite 1175.
+
+- **M46 — the interview agenda** (`2.2.0-alpha.3`): the first consumer
+  of the needs view — kernel/deliverables/interview-agenda.yaml (zero
+  new binding verbs) + scripts/agenda.py render(area, role): a
+  client-facing per-role agenda joining the needs view, the roles
+  registry and the source ledger (confirm / missing / not yet asked /
+  owed a read; never asks for what the ledger holds). Human-triggered
+  only — no agent may generate one. Suite 1167.
+
+- **M45 — the taxonomist** (`2.2.0-alpha.2`): surveyor + librarian
+  merged into one `consult-taxonomist` (1,012 lines vs 1,079 combined,
+  one dispatch context instead of two): objective intake, coverage/
+  sufficiency, the ask agenda rendered from the needs view, placement,
+  scoping reassessment, hygiene-fed grooming. The ruled change: it
+  writes `_taxonomy/` and `_reference/.proposed/` directly as its files
+  under one-writer — a fresh node set still stages for the human
+  confirm gate; only live-node refinement is in-place. Everything
+  outside its files stays notes-bus proposals. M44's A3 grammar
+  amendment (`2.2.0-alpha.1` rider): `Grounds:` minted on the
+  process-step GAP, `Nature:` aligned to the two mints,
+  `Owner to confirm:` retired on process steps (v1 activity grammar
+  untouched behind the compatibility gate). Suite 1158.
+
+- **M44 — the needs view + the two-mint GAP** (`2.2.0-alpha.1`): gaps
+  become a per-deliverable RENDER over the brain — `scripts/needs.py`
+  computes, on demand and objective-driven, what each target
+  deliverable still needs (binding-unserved via serviceability,
+  coverage via the target's own coverage binding, recorded-gap via the
+  open GAP callouts), registered as the `engagement-needs` derived
+  view; and the drafter's GAP shrinks to two mints — a conflict or an
+  evidenced absence — losing its ask half entirely (blocking is
+  computed, the ask agenda is a render the surveyor shapes from the
+  needs view, priority words never appear at capture). Suite 1144.
+
 ## [2.1.0] — M41–M43
 The capture-layer line: the engagement gains a stated objective and a
 starting skeleton, and the callout layer gains a doctrine, a bar, and a

@@ -224,35 +224,52 @@ def _callout_ids_of(path: Path, tdecls) -> set[str]:
     return ids
 
 
+def _area_corpus_ids(area: Path, proc_types=None,
+                     node_types=None) -> tuple[set[str], set[str]]:
+    """(callout ids, entity slugs) for ONE area — the unit `_corpus_ids` sums
+    over and the scope `for_area` filters by, so the engagement-wide universe
+    and the per-area one can never be assembled by two different rules."""
+    proc_types = _load_types(PROCEDURE_TYPES) if proc_types is None \
+        else proc_types
+    node_types = _load_types([NODE_TYPE]) if node_types is None else node_types
+    callouts: set[str] = set()
+    slugs: set[str] = set()
+    manifest = _manifest(area)
+    for comp in manifest.get("components") or []:
+        if not isinstance(comp, dict):
+            continue
+        slug = comp.get("slug")
+        if isinstance(slug, str) and slug:
+            slugs.add(slug)
+        if comp.get("role") != ENTITY_ROLE:
+            continue
+        fpath = area / str(comp.get("file") or "")
+        if fpath.is_file():
+            callouts |= _callout_ids_of(fpath, proc_types)
+    tdir = area / TAXONOMY_DIRNAME
+    if tdir.is_dir():
+        for node in sorted(tdir.glob("*.md")):
+            slugs.add(node.stem)
+            callouts |= _callout_ids_of(node, node_types)
+    return callouts, slugs
+
+
 def _corpus_ids(root) -> tuple[set[str], set[str]]:
     """(callout ids, entity slugs) over the whole engagement corpus.
 
     Callout ids come from the manifest-listed procedure fragments and every
     `_taxonomy/` node (GAP-05 in the IPO fixture lives on a node — a ground may
     cite it, so the node walk is not optional). Slugs come from the manifests,
-    which are membership authority."""
+    which are membership authority. The per-area read is `_area_corpus_ids`;
+    this is its sum over the areas."""
     proc_types = _load_types(PROCEDURE_TYPES)
     node_types = _load_types([NODE_TYPE])
     callouts: set[str] = set()
     slugs: set[str] = set()
     for area in _area_dirs(root):
-        manifest = _manifest(area)
-        for comp in manifest.get("components") or []:
-            if not isinstance(comp, dict):
-                continue
-            slug = comp.get("slug")
-            if isinstance(slug, str) and slug:
-                slugs.add(slug)
-            if comp.get("role") != ENTITY_ROLE:
-                continue
-            fpath = area / str(comp.get("file") or "")
-            if fpath.is_file():
-                callouts |= _callout_ids_of(fpath, proc_types)
-        tdir = area / TAXONOMY_DIRNAME
-        if tdir.is_dir():
-            for node in sorted(tdir.glob("*.md")):
-                slugs.add(node.stem)
-                callouts |= _callout_ids_of(node, node_types)
+        acallouts, aslugs = _area_corpus_ids(area, proc_types, node_types)
+        callouts |= acallouts
+        slugs |= aslugs
     return callouts, slugs
 
 
@@ -398,6 +415,38 @@ def renderable(root) -> list[dict]:
     reaches the register through here and nowhere else, so a proposed or
     rejected finding cannot reach a rendered document by any route."""
     return entries(root, status=ACCEPTED)
+
+
+def for_area(root, area, status: str | None = None) -> list[dict]:
+    """The findings whose GROUNDS resolve into one area (M49 Part C).
+
+    `entries` is engagement-wide, and every consumer that wants "the findings
+    about this area" was re-filtering by hand. The membership rule, stated once
+    here: a finding belongs to an area when at least one of its grounds is a
+    callout id or an entity slug in THAT AREA'S corpus — the same
+    `_area_corpus_ids` read `resolve_grounds` builds its universe from, scoped
+    to one area instead of summed over all of them, so a ground that resolves
+    can never fail to be attributable.
+
+    A finding grounded ONLY in SRC ids is deliberately EXCLUDED: a source is
+    engagement-wide evidence, not an area, and a claim resting only on sources
+    is a claim about the engagement (the p2p-wide "the SOP predates the
+    migration" shape). So is a finding grounded only in another area's ids.
+    Nothing here infers an area from a claim's WORDS — the grounds are the only
+    address a finding has.
+
+    `area` is a NAME (resolved against `<root>/components/<name>`) or a PATH.
+    `status` passes straight through to `entries`, so an unknown status is that
+    verb's refusal, named. Read-only; returns copies, in mint order."""
+    apath = Path(area)
+    if not apath.is_absolute() and len(apath.parts) == 1:
+        apath = Path(root) / "components" / apath.name
+    callouts, slugs = _area_corpus_ids(apath)
+    mine = callouts | slugs
+    if not mine:
+        return []
+    return [e for e in entries(root, status=status)
+            if mine & {str(g) for g in (e.get("grounds") or [])}]
 
 
 def by_theme(root) -> dict[str, list[dict]]:

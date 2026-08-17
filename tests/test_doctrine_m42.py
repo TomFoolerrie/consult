@@ -20,8 +20,7 @@ REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 
 DRAFTER = REPO / "agents" / "consult-drafter.md"
-SURVEYOR = REPO / "agents" / "consult-surveyor.md"
-LIBRARIAN = REPO / "agents" / "consult-librarian.md"
+TAXONOMIST = REPO / "agents" / "consult-taxonomist.md"
 
 
 def _text(path):
@@ -95,11 +94,11 @@ class TestDrafterDoctrine:
 @needs_doctrine
 class TestPopulationOwnership:
     def test_surveyor_owns_the_ask_agenda(self):
-        text = _text(SURVEYOR).lower()
+        text = _text(TAXONOMIST).lower()
         assert "operation-blocking" in text or "ask agenda" in text
 
     def test_librarian_carries_the_grooming_trigger(self):
-        text = _text(LIBRARIAN).lower()
+        text = _text(TAXONOMIST).lower()
         assert "duplicate" in text and ("gap" in text)
         assert "notes" in text  # proposes via the bus, never edits
 

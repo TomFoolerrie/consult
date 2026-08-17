@@ -312,13 +312,13 @@ def compute_l2_order(procedures: list[dict], tax_buckets: list[str],
 # ARE that category's L2 subcategories — so no second cycle library is shipped:
 # one source of truth for name→slug, the same file `load_l1_buckets` reads.
 # Seeding projects that data into STAGED taxonomy-node fragments at the
-# surveyor's own staging path, and promotion is the move M37 Amendment A1
+# taxonomist's own staging path, and promotion is the move M37 Amendment A1
 # recorded as missing (the human had to hand-move files at the confirm gate).
 # The gate does not move: `promote_taxonomy` is what the human's go RUNS.
 # --------------------------------------------------------------------------- #
 
-#: The surveyor's staging path for node fragments, relative to the area
-#: (agents/consult-surveyor.md, "THE NODES"): a DIRNAME convention, not shape.
+#: The taxonomist's staging path for node fragments, relative to the area
+#: (agents/consult-taxonomist.md, "THE NODES"): a DIRNAME convention, not shape.
 PROPOSED_TAXONOMY = ("_reference", ".proposed", "_taxonomy")
 #: The live home — filename stem IS the node slug (the filesystem carries
 #: identity; there is no index file to drift).
@@ -472,6 +472,78 @@ def promote_taxonomy(area) -> dict:
     for p in staged:
         shutil.move(str(p), str(live_dir / p.name))
         promoted.append(p.stem)
+    return {"promoted": promoted}
+
+
+# --------------------------------------------------------------------------- #
+# the research pass: promote staged `_client/` research (M47 Part A)
+#
+# The day-zero research pass (specified as a dispatch recipe in
+# skills/consult-orchestrate/SKILL.md, not as a resident agent) writes only into
+# `<root>/components/_client/.proposed/` — `company_profile.md` and whatever
+# else the public material supports. Promotion is the same confirm-gate move
+# `promote_taxonomy` performs, one layer up: the ENGAGEMENT `_client/` layer
+# (M13's engagement-level client folder) rather than an area's `_taxonomy/`.
+# The human's review is the gate; this verb is what their go RUNS.
+# --------------------------------------------------------------------------- #
+
+#: The research pass's staging path, relative to the engagement root. A DIRNAME
+#: convention (as `PROPOSED_TAXONOMY` is), reusing `.proposed/` so a reader who
+#: knows one staging path knows them all.
+PROPOSED_CLIENT = ("components", client_config.CLIENT_DIR, ".proposed")
+#: The live engagement client layer — where reviewed research lands.
+LIVE_CLIENT = ("components", client_config.CLIENT_DIR)
+
+
+def proposed_client_dir(root: Path) -> Path:
+    return Path(root).joinpath(*PROPOSED_CLIENT)
+
+
+def live_client_dir(root: Path) -> Path:
+    return Path(root).joinpath(*LIVE_CLIENT)
+
+
+def promote_client(root) -> dict:
+    """MOVE reviewed research files from `_client/.proposed/` into `_client/`.
+
+    `promote_taxonomy`'s discipline, client-layer shaped:
+
+      * a live file is NEVER overwritten — a collision refuses BY NAME before
+        anything moves, so the staging set stays reviewable as a whole and the
+        live file (the confirmed truth) survives byte-identical;
+      * nothing outside `_client/` is read, moved, created or touched — the
+        research pass proposes context, it does not edit the engagement;
+      * only regular files directly under the staging dir move (a subdirectory
+        is not a reviewed file, and this verb does not invent a tree);
+      * an empty or absent staging set is a graceful no-op, so the human's go is
+        safe to repeat.
+
+    The file set is deliberately open (`company_profile.md`,
+    `systems-landscape.md`, `org-notes.md`, …): M47 stages FILES, not a fixed
+    list. Returns `{"promoted": [...]}`.
+    """
+    root = Path(root)
+    staged_dir = proposed_client_dir(root)
+    live_dir = live_client_dir(root)
+    staged = (sorted(p for p in staged_dir.iterdir() if p.is_file())
+              if staged_dir.is_dir() else [])
+    if not staged:
+        return {"promoted": []}
+
+    collisions = [p.stem for p in staged if (live_dir / p.name).exists()]
+    if collisions:
+        raise ScaffoldError(
+            "refusing to promote: live _client/ file(s) already exist for "
+            + ", ".join(collisions)
+            + " — nothing was moved. The live file is the reviewed truth; "
+              "reconcile the researched proposal into it by hand (or delete "
+              "the staged file) and re-run.")
+
+    live_dir.mkdir(parents=True, exist_ok=True)
+    promoted = []
+    for p in staged:
+        shutil.move(str(p), str(live_dir / p.name))
+        promoted.append(p.name)
     return {"promoted": promoted}
 
 
@@ -1495,6 +1567,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--promote-taxonomy", action="store_true",
                     help="move staged _taxonomy/ node fragments into the live "
                          "_taxonomy/ (run at the human confirm gate)")
+    ap.add_argument("--promote-client", action="store_true",
+                    help="move reviewed research files from "
+                         "components/_client/.proposed/ into "
+                         "components/_client/ (run at the human review gate "
+                         "after the M47 research pass; --area may name the "
+                         "engagement root or any area in it)")
     ap.add_argument("--area", required=True, help="path to the area folder")
     ap.add_argument("--l1", default=None, help="L1 taxonomy slug (else read from manifest/area.yaml)")
     ap.add_argument("--taxonomy", default=None,
@@ -1510,7 +1588,7 @@ def main(argv: list[str] | None = None) -> int:
                          "(a confirm already rebuilds the derived set from "
                          "the profile)")
     verbs = [args.confirm, args.sync_profile, args.seed_taxonomy,
-             args.promote_taxonomy]
+             args.promote_taxonomy, args.promote_client]
     if not any(verbs):
         raise SystemExit(
             "refusing to run without --confirm: this is the human confirm gate. "
@@ -1518,7 +1596,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     if sum(1 for v in verbs if v) > 1:
         raise SystemExit("error: pass exactly one of --confirm, "
-                         "--sync-profile, --seed-taxonomy, --promote-taxonomy")
+                         "--sync-profile, --seed-taxonomy, "
+                         "--promote-taxonomy, --promote-client")
 
     area = Path(args.area).resolve()
     if not area.is_dir():
@@ -1543,6 +1622,23 @@ def main(argv: list[str] | None = None) -> int:
                       f"{proposed_taxonomy_dir(area)} — nothing to promote")
             else:
                 print("promoted taxonomy nodes: "
+                      + ", ".join(report["promoted"]))
+            return 0
+        if args.promote_client:
+            # The client layer is engagement-level, so this verb's subject is
+            # the ROOT: accept either it or any area inside it, rather than
+            # making the human pass a different flag than the other verbs use.
+            # An area lives at `<root>/components/<area>`, so its root is two
+            # levels up; a root names `components/` directly.
+            croot = (area if (area / "components").is_dir()
+                     else area.parent.parent if area.parent.name == "components"
+                     else area.parent)
+            report = promote_client(croot)
+            if not report["promoted"]:
+                print(f"no staged research at {proposed_client_dir(croot)} "
+                      f"— nothing to promote")
+            else:
+                print("promoted researched _client/ files: "
                       + ", ".join(report["promoted"]))
             return 0
     except ScaffoldError as exc:

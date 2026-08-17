@@ -39,7 +39,12 @@ callouts:
   # prose carries these facts is the librarian's judgment, not the kernel's.
   - {label: CONTROL, prefix: CTRL, home: controls,
      fields: [Performer, Comparison, Trigger, Evidence]}
-  - {label: VALIDATION REQUIRED, prefix: GAP, home: issues}
+  # GAP declares its one M44 field (the grammar amendment ruled 2026-08-16):
+  # Grounds — what makes the absence/conflict claim checkable (the sources
+  # read, or the confirming citation). Same posture as CONTROL's fields:
+  # optional metadata, never a parse gate.
+  - {label: VALIDATION REQUIRED, prefix: GAP, home: issues,
+     fields: [Grounds]}
   - {label: PAIN POINT, prefix: PP, home: issues}
   - {label: IMPROVEMENT OPPORTUNITY, prefix: IO, home: issues}
   - {label: SCREENSHOT PLACEHOLDER, prefix: SC, home: transformation}

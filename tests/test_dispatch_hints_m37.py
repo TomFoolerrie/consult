@@ -75,7 +75,7 @@ class TestDispatchHint:
         d = orchestrate.decide(str(area))
         assert d["action"] == "taxonomy"            # name unchanged
         assert d["details"]["mode"] == "initial"
-        assert d["details"]["brief"] == "agents/consult-surveyor.md"
+        assert d["details"]["brief"] == "agents/consult-taxonomist.md"
 
     def test_central_incremental_names_the_librarian_brief(self, tmp_path):
         root = make_central(tmp_path)
@@ -84,7 +84,7 @@ class TestDispatchHint:
         d = orchestrate.decide(str(area))
         assert d["action"] == "taxonomy"
         assert d["details"]["mode"] == "incremental"
-        assert d["details"]["brief"] == "agents/consult-librarian.md"
+        assert d["details"]["brief"] == "agents/consult-taxonomist.md"
 
     def test_v1_carries_no_brief_key(self, tmp_path):
         area = make_v1(tmp_path)

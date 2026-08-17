@@ -1,11 +1,14 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.1.0 (2026-08-15)** — the spine (M33–M39) plus
-M40 shipped as 2.0.0; M41–M43 (the engagement objective, the callout
-doctrine, the process-step drafting path + hygiene feeder) shipped as
-2.1.0. Suite 1123 passing, the compatibility gate green, every shipped
-definition rendering end-to-end. Both merges made on the human's
-explicit go. v1.20.0 is preserved on `v1.20-stable`.
+**Status: RELEASED AS 2.2.0 (2026-08-17)** — the spine (M33–M39) plus
+M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
+engagement-lens line: the needs view + two-mint GAP, the taxonomist
+merge, the interview agenda, the research pass, the efficiency pass,
+the analyst dispatch path) shipped as 2.2.0. Suite 1199 passing (1
+pinned xfail), the compatibility gate green, every shipped definition
+rendering end-to-end. All merges made on the human's explicit go —
+the 2.2.0 pre-merge review re-affirmed D1 and D5 as shipped.
+v1.20.0 is preserved on `v1.20-stable`.
 Follow-up ticket candidates are recorded in each ticket's amendments —
 headline items: table-row comment routing (pinned xfail), a semantic
 kind marker on callout declarations (M43's `fields:` key is the surface
@@ -189,6 +192,12 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M41](M41-engagement-objective.md) | The engagement objective: seeded cycle skeleton + goal-aware taxonomy agents (**BUILT**, 2.1.0-alpha.4, gate 20/20) |
 | [M42](M42-callout-doctrine.md) | The callout doctrine: minting bars, sub-step rules, the interaction contract; population judgment moves to surveyor/librarian (**BUILT**, 2.1.0-alpha.5, gate 13/13) |
 | [M43](M43-drafting-path-hygiene.md) | The process-step drafting path + the hygiene feeder: YOUR UNIT line, declared CTRL fields, three grooming generators (**BUILT**, 2.1.0-alpha.6, gate 19/19) |
+| [M44](M44-needs-view.md) | The needs view: per-deliverable gaps as a render + the two-mint GAP (**BUILT**, 2.2.0-alpha.1, gate 21/21) |
+| [M45](M45-taxonomist-merge.md) | The taxonomist: surveyor + librarian merged, direct write over `_taxonomy/`, confirm gate unchanged (**BUILT**, 2.2.0-alpha.2, gate 10/10) |
+| [M46](M46-interview-agenda.md) | The interview agenda: a definition over the needs view × roles × ledger; generation human-triggered, ad hoc (**BUILT**, 2.2.0-alpha.3, gate 9/9) |
+| [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**BUILT**, 2.2.0-alpha.4, gate 8/8) |
+| [M48](M48-efficiency-pass.md) | The efficiency pass: drafter contract split by unit, cheap-tier revise path, roster audit (**BUILT**, 2.2.0-alpha.5, gate 10/10) |
+| [M49](M49-analyst-dispatch.md) | The analyst dispatch path: `analysis.py brief` CLI, the conflict-records extractor, `findings.for_area`, the skill passage (**BUILT**, 2.2.0-alpha.6, gate 14/14) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.

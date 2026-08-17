@@ -342,13 +342,12 @@ was scaffolded. Propose only the **delta**:
   those update drafters read;
 - new-bucket requests (same needs-approval flow).
 
-**Central mode (M34/M37) — where this brief is superseded.** In a central
-engagement this dispatch's judgment splits in two and the briefs are new: the
-**surveyor** (`agents/consult-surveyor.md`) owns `initial` — everything above
-plus a per-node sufficiency call and the client information requests, dispatched
-with the coverage map precomputed — and the **librarian**
-(`agents/consult-librarian.md`) owns `incremental`, absorbing this M6
-reassessment path together with the M24 placement pass into one curation
+**Central mode (M34/M37/M45) — where this brief is superseded.** In a central
+engagement this dispatch routes to ONE new brief, the **taxonomist**
+(`agents/consult-taxonomist.md`), in both modes: on `initial` it does everything
+above plus a per-node sufficiency call and the client information requests,
+dispatched with the coverage map precomputed; on `incremental` it does this M6
+reassessment path together with the M24 placement pass as one curation
 dispatch. The advisor's action name does not change (`taxonomy`, with the same
 `mode`), and neither does the gate. Read this section for the delta discipline
 it still describes, then follow the brief you were actually dispatched with —

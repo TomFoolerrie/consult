@@ -23,10 +23,10 @@ model: opus
 
 # consult-taxonomy — scoping + registry stand-up (one L1)
 
-> **STATUS (M37): succeeded by `consult-surveyor` for central-mode
+> **STATUS (M37/M45): succeeded by `consult-taxonomist` for central-mode
 > engagements; retained VERBATIM for v1 areas.** An engagement whose sources
 > live in one ledger (`<root>/_sources/sources.yaml`) dispatches
-> `consult-surveyor` instead — it adds the taxonomy node entities, the
+> `consult-taxonomist` instead — it adds the taxonomy node entities, the
 > per-node sufficiency call, the information requests and the lens-conflict
 > record, and it proposes source TAGS only (sources enter through
 > `route`/`adopt`; it never mints a registry entry). A v1 area still

@@ -71,7 +71,7 @@ about the judgment):
   (`<root>/_sources/sources.yaml`), minted with an `SRC-` id and a content
   hash. **One entry for all areas** — not one per area.
 - **Your `--to` list becomes the entry's tags**: the document is tagged to each
-  area at the AREA level (no procedure slugs yet — `consult-surveyor` names
+  area at the AREA level (no procedure slugs yet — `consult-taxonomist` names
   those at the confirm gate). The tag is what records the read each area owes.
 - **Nothing is copied and nothing moves.** The file stays exactly where it is at
   `<root>/_sources/new/`; the ledger, not the folder, tracks who owes it a read.

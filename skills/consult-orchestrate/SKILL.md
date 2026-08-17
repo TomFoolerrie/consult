@@ -295,8 +295,8 @@ paths/ids — never pasted content.
 
 | action | what you do |
 |---|---|
-| `taxonomy` | **Enumerate `{area}/_sources/new/` yourself first** (a plain listing — you read nothing), then dispatch **one `consult-taxonomy` subagent** with `{area, l1, taxonomy_path, mode, source_files: <the explicit file list>}` (`mode=initial` if no manifest, else `incremental`). The list is the agent's coverage contract: its return carries `files_found`/`files_read`, and you **check them against your list before relaying the summary** — a mismatch (or a return with the attestation missing) is a failed dispatch to re-run, not a proposal to gate. If `{area}/_client/` **or** the engagement-wide `components/_client/` exists (optional `org-chart.yaml` / `taxonomy.yaml` / `registers/*.yaml`; area files shadow same-name engagement files per file, M13), say so in the dispatch prompt — naming both layers present — so the agent reads them. It writes proposals to `_reference/.proposed/`. Relay its compact summary (attestation line included) → this leads to the `confirm` gate. — **Central mode (M34/M37):** same action name, same point in the ladder, different brief. The advisor tells you which in `details.brief`: `agents/consult-surveyor.md` on `mode=initial` (the surveyor — structure *plus* a per-node sufficiency call *plus* the client information requests) and `agents/consult-librarian.md` on `mode=incremental` (the librarian, which is where M6's reassessment dispatch and the M24 placement pass now both live). Trust the field over your memory of this row; when it is absent you are in v1 and dispatch `consult-taxonomy` exactly as above. The **file list** is engagement-wide now: on `initial` enumerate the ENGAGEMENT root's `_sources/new/` (still a plain listing — you read nothing), and on `incremental` the advisor's `details.unassessed` IS the list, straight from `ledger.assess` ("has this brief read these exact bytes?" at engagement scope). Three things ride the dispatch prompt with it: the **coverage map** (`coverage_map.coverage` — recomputed on demand, cached NOWHERE; the agent gets the join precomputed and never re-derives it), the ledger's assess result, and the **engagement objective block** (M41) — run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" <area> --objective` and paste its output under an `objective:` heading in the dispatch prompt; it carries the stated goal, the in-scope cycles, and each target deliverable's serviceability gaps so the brief's sufficiency pass aims at what the engagement was hired to produce (an unconfigured objective prints an explicit "none" line — paste it anyway, absence-by-choice is information). And one hard limit to state in the prompt: **sources enter a central engagement only through `route`/`adopt`** — the brief refines TAGS (`ledger.retag`) and never mints a registry entry. |
-| `confirm` | **HUMAN GATE.** Show the proposal summary (procedures by L2, merged variants + overlap flags, new-L2 requests, low-confidence items, unmapped people, out-of-L1). Tell the user to edit `_reference/.proposed/` and reply **"confirm"** when ready. Stop. — The advisor keeps returning `confirm` while `.proposed/` exists un-promoted (it can't tell "still editing" from "ready"), so **only on the user's explicit go-ahead** do you run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area <area>` (promotes `.proposed/` → `_reference/`, writes manifest + A–H skeletons, stamps `sources.yaml` hashes). If the user just says "continue" without confirming, re-show the gate. — **Central mode (M34/M37):** the gate does not move and the command does not change, but its source half becomes **tag refinement** rather than a registry merge: `--confirm` promotes the procedures/systems/roles proposals as always, then replays each proposed `touches` list onto the matching ledger entry (`ledger.retag` — a REPLACE of this area's slice; an empty list untags, and `consumed` is never pruned). It prints `central mode: tag refinements applied to the engagement ledger — …`; relay that line. Staged taxonomy-NODE files (`.proposed/_taxonomy/*.md` — the surveyor's proposals, and any seeded skeleton from `scaffold.py --seed-taxonomy`, M41) are promoted by `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --promote-taxonomy --area <area>` — run it at this gate on the same explicit go-ahead, after the human has edited the staged set; a collision with a live node refuses by name and is the human's edit to resolve. A proposed source matching NO ledger entry by hash or id warns and is dropped — that is the design, not a defect: a source the human wants in scope is registered through `engagement.py route` (or `adopt`), never by a proposal file. Hash stamping prints as a stated no-op for the same reason. Also relay the coverage-annotated proposal and, when the brief produced one, the **information-request list** (M35/M37) — the client ask goes out while scoping is still cheap, and confirming a thin node anyway is the human's call to make. |
+| `taxonomy` | **Enumerate `{area}/_sources/new/` yourself first** (a plain listing — you read nothing), then dispatch **one `consult-taxonomy` subagent** with `{area, l1, taxonomy_path, mode, source_files: <the explicit file list>}` (`mode=initial` if no manifest, else `incremental`). The list is the agent's coverage contract: its return carries `files_found`/`files_read`, and you **check them against your list before relaying the summary** — a mismatch (or a return with the attestation missing) is a failed dispatch to re-run, not a proposal to gate. If `{area}/_client/` **or** the engagement-wide `components/_client/` exists (optional `org-chart.yaml` / `taxonomy.yaml` / `registers/*.yaml`; area files shadow same-name engagement files per file, M13), say so in the dispatch prompt — naming both layers present — so the agent reads them. It writes proposals to `_reference/.proposed/`. Relay its compact summary (attestation line included) → this leads to the `confirm` gate. — **Central mode (M34/M37):** same action name, same point in the ladder, different brief. The advisor names it in `details.brief`: since M45 both modes route to `agents/consult-taxonomist.md` (the taxonomist — one merged contract), and the `mode` selects which half of the job your dispatch prompt emphasizes: `initial` = structure *plus* a per-node sufficiency call *plus* the client information requests; `incremental` = the delta plus curation, which is where M6's reassessment dispatch and the M24 placement pass now both live. Trust the field over your memory of this row; when it is absent you are in v1 and dispatch `consult-taxonomy` exactly as above. The **file list** is engagement-wide now: on `initial` enumerate the ENGAGEMENT root's `_sources/new/` (still a plain listing — you read nothing), and on `incremental` the advisor's `details.unassessed` IS the list, straight from `ledger.assess` ("has this brief read these exact bytes?" at engagement scope). Three things ride the dispatch prompt with it: the **coverage map** (`coverage_map.coverage` — recomputed on demand, cached NOWHERE; the agent gets the join precomputed and never re-derives it), the ledger's assess result, and the **engagement objective block** (M41) — run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" <area> --objective` and paste its output under an `objective:` heading in the dispatch prompt; it carries the stated goal, the in-scope cycles, and each target deliverable's serviceability gaps so the brief's sufficiency pass aims at what the engagement was hired to produce (an unconfigured objective prints an explicit "none" line — paste it anyway, absence-by-choice is information). And one hard limit to state in the prompt: **sources enter a central engagement only through `route`/`adopt`** — the brief refines TAGS (`ledger.retag`) and never mints a registry entry. |
+| `confirm` | **HUMAN GATE.** Show the proposal summary (procedures by L2, merged variants + overlap flags, new-L2 requests, low-confidence items, unmapped people, out-of-L1). Tell the user to edit `_reference/.proposed/` and reply **"confirm"** when ready. Stop. — The advisor keeps returning `confirm` while `.proposed/` exists un-promoted (it can't tell "still editing" from "ready"), so **only on the user's explicit go-ahead** do you run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --confirm --area <area>` (promotes `.proposed/` → `_reference/`, writes manifest + A–H skeletons, stamps `sources.yaml` hashes). If the user just says "continue" without confirming, re-show the gate. — **Central mode (M34/M37):** the gate does not move and the command does not change, but its source half becomes **tag refinement** rather than a registry merge: `--confirm` promotes the procedures/systems/roles proposals as always, then replays each proposed `touches` list onto the matching ledger entry (`ledger.retag` — a REPLACE of this area's slice; an empty list untags, and `consumed` is never pruned). It prints `central mode: tag refinements applied to the engagement ledger — …`; relay that line. Staged taxonomy-NODE files (`.proposed/_taxonomy/*.md` — the taxonomist's proposals, and any seeded skeleton from `scaffold.py --seed-taxonomy`, M41) are promoted by `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --promote-taxonomy --area <area>` — run it at this gate on the same explicit go-ahead, after the human has edited the staged set; a collision with a live node refuses by name and is the human's edit to resolve. A proposed source matching NO ledger entry by hash or id warns and is dropped — that is the design, not a defect: a source the human wants in scope is registered through `engagement.py route` (or `adopt`), never by a proposal file. Hash stamping prints as a stated no-op for the same reason. Also relay the coverage-annotated proposal and, when the brief produced one, the **information-request list** (M35/M37) — the client ask goes out while scoping is still cheap, and confirming a thin node anyway is the human's call to make. |
 | `fill` | Dispatch a **`consult-drafter` subagent** for each slug in `details.unfilled` — **all in one batch, in parallel** — with `{area, slug, title, sources: <its touches list from sources.yaml>, mode: first-draft}`. **M11 waves:** `details.unfilled` is the *current wave only* — slugs whose `upstream` hints (manifest) are already drafted; `details.deferred` lists what waits for a later wave (dispatch nothing for those — the advisor surfaces them next pass, once this wave clears their sentinels). When `details.upstream_files` has an entry for a slug, add `upstream: [<those paths>]` to that drafter's dispatch (read-only seam context). Collect compact statuses. Then move **fully-consumed** sources (below) — pass the set of successfully-filled slugs to `sources.py mark-processed` as **`--filled`** (never `--updated`; see "Moving inputs"); a source moves only when its whole `touches` set is filled. Partial-batch failure is fine: unfilled procedures keep their sentinel and re-dispatch next pass. — **Central mode (M34/M37):** unchanged in shape. You still pass no source text and no source paths; `sources:` in the dispatch is that slug's tag slice, and the drafter's own `brief.py` resolves it against the engagement ledger (the brief drops the area's `sources.yaml` from its registry reads because centrally that file does not exist). `mark-processed --filled` is the same call; the move rule it triggers is now engagement-wide, so a source this batch fully consumed for YOUR area still sits in `_sources/new/` while another tagged area owes it a read — that is correct, not a stuck file. |
 | `reprofile` | **HUMAN GATE (guard 4.5) — a COST gate: report the count FIRST, dispatch only on the go-ahead.** The document profile now requires section(s) that N drafted fragments do not have. Your first line to the user is the count and the sections, from `details.dispatches` + `details.sections`: *"N drafter dispatches to add F. Key Controls — proceed?"* (use the section titles from `agents/consult-drafter.md`, not bare letters). Do not list every slug unless asked; `details.missing` is a `{slug: [sections]}` map and the count is what the decision turns on. Then **stop**. Only on the user's go-ahead, dispatch a **`consult-drafter` subagent per slug in `details.missing`** — batch/parallel, `{area, slug, title, mode: update, sections: <that slug's list>}` and **nothing else** (no notes file, no source list: the drafter revises its own draft). **Partial acceptance is fine** — the guard is per-procedure, so dispatch the subset the user approved and the rest simply re-appear next pass; an area can sit half-migrated indefinitely without wedging the loop. Removing a section from the profile needs **no action at all** (render omits it, the fragments keep their text), and `body_omit` never lands here — so a reprofile you see is always the expensive direction. Checkpoint after the batch. |
 | `ingest_returns` | Review-kit returns landed in `_review/returned/`. Run the deterministic ingest chain yourself, **in this order**: (1) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/screens_ingest.py" <area>` (pulls pasted screenshots → `_assets/screens/`, archives templates); (2) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gaps_ingest.py" <area>` (workbook answers → notes, archives workbooks); (3) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_apply.py" <area>` (tracked changes applied mechanically; failures become notes; does NOT archive); (4) `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/review_extract.py" <area>/_review/returned --comments-only --area <area>` (comments → notes, archives the docs). Report the applied/noted split — and if step 3 printed an UNTRACKED warning, relay it: the reviewer's Word was not recording tracked changes, their edits were still caught (hash sweep against the provenance map) and preserved as notes, and nothing was lost or auto-applied. Zero tokens spent; the advisor then routes any notes to `apply_review`. |
@@ -332,6 +332,30 @@ sources and upstream seams become conditional reads, and the drafter's
 return discloses what it skipped under `skipped_reads`. Relay non-empty
 `skipped_reads` in your roll-up to the user — it is the audit trail for
 the scoped read.
+
+**Model tier per drafter dispatch (M48) — first drafts strong, revises
+cheap.** A drafter dispatch does not cost the same in both directions, and the
+tier is dispatch documentation you carry, not engine machinery:
+
+- **`mode: first-draft` stays on the strong tier** (the drafter contract's
+  pinned worker model). A first draft reads every tagged source and makes the
+  judgment calls the whole deliverable inherits — this is not the place to
+  economize.
+- **`mode: update` — the notes-driven revise pass — defaults to a CHEAPER
+  tier.** Its surface is deliberately slim: the shared law, the notes routing,
+  and the ONE unit path document its `YOUR UNIT` line names (M48 split the
+  drafter contract in three for exactly this reason). The work is bounded
+  edits against notes that already say what changed, so a cheaper tier is the
+  default and you only reach for the strong tier when the work order is
+  genuinely large (a consolidation absorbing another procedure).
+- **`consult-taxonomist` CURATION dispatches (M45 A1) may carry the same
+  cheaper-tier hint** — grooming an existing callout population against the
+  needs view is bounded, mechanical-adjacent judgment. SCOPING and
+  ADOPT/ROUTE taxonomist dispatches stay on the strong tier.
+
+Where your harness exposes no tier control, dispatch as before — the hint is
+an economy, never a requirement, and it never changes what a dispatch is
+allowed to do.
 
 **Follow-up goes to the agent that did the work (same invocation only).**
 Where your harness supports messaging a completed subagent, a correction to
@@ -594,9 +618,9 @@ section enumerates holders before you rename).
 judgment subagent whose first action is
 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" brief components` —
 the brief carries the mechanical findings, the gap register, area scope
-digests, and the full triage rules. **Central mode (M34/M37): this dispatch
-routes to `agents/consult-librarian.md`** — placement was always curation, so
-the librarian absorbs it together with the M6 reassessment path, and
+digests, and the full triage rules. **Central mode (M34/M37/M45): this dispatch
+routes to `agents/consult-taxonomist.md`** — placement was always curation, so
+the taxonomist absorbs it together with the M6 reassessment path, and
 `consult-placement` retires as a separate dispatch. Same trigger (the user's
 word), same `engagement.py brief components` first action, same three moves
 below; the brief just also sees the taxonomy nodes and the coverage map, and
@@ -704,6 +728,127 @@ Class semantics: **citable** = publishable shared fact — prose references
 it, render compiles it into the Shared Reference appendix. **context** =
 engagement intelligence drafters align with but never cite by name — it
 never appears in rendered output.
+
+## Analysis (M39/M49) — dispatching `consult-analyst`
+
+`consult-analyst` is the only agent with an **assessment** license, and it is
+dispatched **rarely and deliberately**:
+
+- **When.** Over a **drafted** corpus — an area whose procedure fragments are
+  filled and reconciled — and only **at the human's request** or **at a review
+  milestone** the human has called. **Never inside the drafting loop.** No
+  action handler fires it, no coverage or gap state auto-fires it, and a
+  drafter's return never escalates into an analysis pass. Assessment while the
+  record is still moving would judge a corpus that is about to change, and the
+  claims are the ones that reach the client.
+- **One verb per dispatch** — `pain-synthesis` | `control-coverage` |
+  `conflict-support` | `handoff-friction` — like the drafter's mode.
+- **The brief.** Its first action is `analysis.py brief <area>`, which you may
+  also run yourself to see what the pass has to work with (read-only, decides
+  nothing):
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/analysis.py" brief <area>
+```
+
+  It prints the license, the four candidate feeds with counts
+  (control-gap candidates, handoff candidates, the pain inventory and the
+  conflict records), the findings register's state, the engagement objective
+  and the finish contract.
+- **What it returns.** The **proposed finding ids** with a one-line claim each,
+  plus what it considered and set aside. No fragment text, no source text, no
+  rendered document.
+- **The human gate.** Accept/reject is the **human's** decision, always.
+  Present the proposed claims in one compact list and let them choose; you
+  never accept on their behalf and never infer acceptance from silence.
+  Findings **render only after the human accepts** — `findings.renderable`
+  returns accepted entries only, so the register enforces this structurally
+  and a proposed or rejected finding cannot reach a deliverable by any route.
+  The gate is not yours to move.
+
+## Interview agendas (M46) — the human decides when, always
+
+`kernel/deliverables/interview-agenda.yaml` is a deliverable like any other, but
+its generation is **ad hoc and human-triggered, and that is a rule, not a
+default**. The verb is
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/agenda.py" <area> --role <role-slug>
+```
+
+and a **human** runs it, when a human has decided to hold an interview. It is
+**not** part of your loop: no action handler fires it, no coverage or gap state
+auto-fires it, and no agent — yours or a subagent's — may decide that an
+interview is needed. If the record suggests one would help, say so in a gate
+message in one line and let the human choose; then, if they ask, run the render
+for the role they name and hand them the output. Nothing else about this
+deliverable is special: it is a read-only render over the needs view
+(`needs.py`), the area's role registry and the source ledger, so it invents no
+gap and asks for nothing the ledger already holds.
+
+## The research pass (M47) — a dispatch recipe, not an agent
+
+Day zero: the engagement knows the client's name and nothing else. The research
+pass is a **pass over public material**, run **before** the kickoff, so the first
+PBC request list and the seeded taxonomy already look like the actual company.
+
+It is **not a resident agent.** No agent in this plugin assumes web access, and
+the roster does not grow for this. It is a **dispatch recipe you hand to a
+web-capable session** (a `general-purpose` subagent with web tools, or the human's
+own browsing session). You dispatch it, you review nothing on the client's behalf,
+and you never promote its output yourself.
+
+**What to research** — driven by the objective's in-scope cycles
+(`_client/objective.yaml`, via `client_config.objective`), never by curiosity:
+the latest 10-K or annual report (segments, systems and control language), the
+client's own site and careers pages (org shape, locations, named systems), public
+org and system announcements (an ERP migration, an acquisition), and the industry
+norms for each in-scope cycle. Nothing behind a login; nothing paid for.
+
+**What to stage.** Every output file goes under
+`<engagement-root>/components/_client/.proposed/` — and nowhere else. Live
+`_client/` is not written by the pass. Files, not a fixed list:
+
+- `company_profile.md` — who they are, segments, scale, fiscal calendar
+- `systems-landscape.md` — the ERP and the bolt-ons, as publicly described
+- `org-notes.md` — the finance org's public shape and named officers
+- add a file when the material supports one; stage nothing you cannot cite
+
+**Provenance discipline — every researched source, no exceptions.** Register the
+material in the engagement ledger as usual, then mark the entry
+`provenance: public`:
+
+```yaml
+- id: SRC-0NN
+  file: _sources/processed/2026-01-31-annual-report-extract.md
+  provenance: public          # ← the research pass's tag; omit ONLY for client material
+```
+
+`provenance` is additive and defaults to client-provided, so an untagged entry
+means "the client gave us this". **The hard rule: public sources inform the needs
+view; they never discharge it.** A public source may shape how an ask is phrased;
+it can **never discharge** a need. `coverage_map.py` enforces this mechanically —
+public SRC ids are excluded from every evidence join, so a node evidenced only by
+public material reports as `claimed` and stays on the information-request list.
+If you ever find yourself wanting a public source to close a gap, you have
+misread the rule: the ask is what closes it.
+
+**The review + promote gate.** Staged research is a proposal. Report what was
+staged in one line, and stop:
+
+> staged 3 researched files under `components/_client/.proposed/` — review them,
+> then say the word and I'll promote
+
+On the human's explicit go, and only then:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.py" --promote-client --area <engagement-root>
+```
+
+The verb refuses a live collision **by name** and moves nothing when it refuses
+(a live `_client/` file is reviewed truth); it touches nothing outside `_client/`;
+and it is a graceful no-op when nothing is staged, so the go is safe to repeat.
+Reconcile a refused file by hand, never by deleting the live one.
 
 ## Reporting
 

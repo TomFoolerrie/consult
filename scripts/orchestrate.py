@@ -191,14 +191,15 @@ except Exception:  # pragma: no cover - sources.py ships beside us
 #: mode, by mode. The action name is deliberately stable (v1 tests pin it, and
 #: the ladder's shape is the contract) — only the brief the driver dispatches
 #: differs, so this table is the whole of the rename that would otherwise have
-#: rippled through the advisor. `initial` -> the surveyor (structure +
-#: sufficiency + information requests, before drafting spends tokens);
-#: `incremental` -> the librarian (M6's reassessment and M24's placement pass,
-#: unified as one curation dispatch). Paths are plugin-relative, like every other
-#: brief path in the skill prose.
+#: rippled through the advisor. Since M45 BOTH modes route to the one
+#: taxonomist brief — the mode still selects which half of its contract the
+#: dispatch prompt emphasizes: `initial` = structure + sufficiency +
+#: information requests, before drafting spends tokens; `incremental` = the
+#: delta plus curation (M6's reassessment and M24's placement pass, unified).
+#: Paths are plugin-relative, like every other brief path in the skill prose.
 _CENTRAL_TAXONOMY_BRIEFS = {
-    "initial": "agents/consult-surveyor.md",
-    "incremental": "agents/consult-librarian.md",
+    "initial": "agents/consult-taxonomist.md",
+    "incremental": "agents/consult-taxonomist.md",
 }
 
 # NOTE KINDS are owned by notes_util (the M6 bus contract). Borrowed for the
