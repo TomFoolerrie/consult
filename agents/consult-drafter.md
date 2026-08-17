@@ -39,8 +39,10 @@ file is the deliverable.
   (which speeds your read, never replaces it). Nothing else about your job
   changes: same tags, same evidence discipline, same citations.
 - `YOUR UNIT` — the unit type you are filling, from the brief: `process-step`
-  (the IPO six-part path, "What you produce — a process step") or `activity`
-  (the v1 seven-section path). Absent or unresolved → `activity`, the default.
+  (the IPO six-part path, `agents/drafting/process-step.md`) or `activity`
+  (the v1 seven-section path, `agents/drafting/activity.md`). Absent or
+  unresolved → `activity`, the default. The brief names the path document;
+  read that ONE — see "YOUR UNIT names your path document" below.
 - `upstream` — optional (M11): paths to the **already-drafted fragments of
   procedures whose output this one consumes**. Read-only seam context — see
   "Upstream context" below.
@@ -365,207 +367,23 @@ words ("per the approval threshold in F") instead of repeating the substance.
 Judgment call, not a ban: a one-line echo is fine where forcing the reader to
 jump would be worse — but the full treatment lives in exactly one place.
 
-**THE MAP OF HOMES** (M16 move 1) — this is what makes "say it once" enforceable
-rather than aspirational: **facts live in the card (B), states live in C, actions
-live in D, results live in E.** Seven sections, each with a declared job:
+## YOUR UNIT names your path document — read exactly one
 
-| | Job |
-|---|---|
-| **A. Scope** | what this covers, what it explicitly excludes, which procedures adjoin it. **Nothing else** — no preparer, no systems, no trigger. |
-| **B. At a Glance** | **a table.** Trigger, frequency, preparer, reviewer, systems, key inputs, key outputs. The single home for those facts. |
-| **C. Before You Start** | one line per artifact: what it is, where it comes from, the state it must be in. |
-| **D. Procedure** | the steps. |
-| **E. Outputs & Evidence** | what exists afterwards, what is retained, what is deliberately not retained. |
-| **F. Key Controls** | the control record: one CONTROL callout per control that clears the four-field minting bar, plus prose (never a callout) for a control the sources cannot yet support. Adequacy and key-ness are not judged here. |
-| **G. Known Issues & Improvement Opportunities** | **defects only** — see below. |
+The drafting rules that depend on which unit you are filling live in two
+companion documents, and your dispatch's `YOUR UNIT` line (echoed by the
+brief) says which one is yours:
 
-- **Scope is a primer, not a rundown.** 3–5 sentences: what this procedure
-  covers, what it excludes, which procedures adjoin it. No preparer, no systems,
-  no trigger, no step detail, no control detail, no pain-point narrative — those
-  all have their own sections. A reader should finish A oriented, not informed.
-- At a Glance (B) carries the at-a-glance facts, one table row each; don't
-  re-narrate them in A. A four-sentence table cell is a sign the content was in
-  the wrong section: the prose moves to A (if it is a scope statement) or F (if it
-  is a control statement) and the row carries the short answer.
-- Before You Start (C) is one line per artifact — name, source (`[[slug]]` where
-  an upstream procedure supplies it), required state. Splitting "the state" from
-  "the artifact" is the distinction M16 removed; do not reinvent it.
-- Outputs & Evidence (E) keeps what B's `key outputs` row cannot: retention, and
-  the negative findings ("no record of the exception investigation is retained").
-- Controls live in Key Controls, friction in Known Issues, gaps at their step
-  in Procedure. A step there may
-  *name* the control it triggers; it doesn't re-describe it. Which facts earn a
-  callout at all is the minting bars' question, below — a step break is never
-  itself a control record.
-- **G stays defects-only.** G records defects in the process — things that are
-  wrong. A branch the process handles routinely is a conditional step, not a
-  known issue.
-- **The same rule governs the inline step tags and long callouts**, one scale
-  down: the default system is declared in B and tagged in a step only where it
-  changes, and a long callout's full account lives in its appendix register row
-  while the step carries a one-line note. See "declare once, tag on change" and
-  "a long callout splits" below.
+- `process-step` → read **`agents/drafting/process-step.md`** — the IPO
+  six-part path.
+- `activity` (and the default, when no unit resolved) → read
+  **`agents/drafting/activity.md`** — the v1 seven-section path, the map of
+  homes, the inline step tags.
 
-## The M16 content wave — migrating an existing 8-section draft
+**Read your path document, never both.** The other unit's rules do not apply
+to you, and everything in THIS file applies to you whichever path you are on:
+one rule, one home, no duplication across the three documents.
 
-An `update` pass on a fragment drafted against the old eight-section model
-(`Process Overview` … `Known Issues`) is a **content-wave pass**. The registry
-already reads those headings, so nothing is broken — what is owed is the judgment
-a script cannot do, and reconcile names the fragments still owing it ("AWAITING
-THE M16 CONTENT WAVE").
-
-Follow **"Content wave: 8 → 7 sections (M16 move 1)"** in
-`skills/consult-drafter/SKILL.md` — the per-fragment procedure, step by step. Its
-two standing rules are contract, not guidance: **no content is invented and no
-fact is lost** (a sentence stays, moves to its declared home, or is deleted only
-as a verbatim duplicate of the same fact in its home section), and callouts,
-callout IDs, `SRC-` citations, `[[slug]]` tokens and the `consult-meta` block are
-**unchanged** by the pass. Report `sections_merged` and `facts_relocated`.
-
-## What you produce — structure
-
-A finalized `{file}`: the seven-section procedure, current-state, practical for a preparer
-to execute and a reviewer to validate. Follow `skills/consult-drafter/SKILL.md`
-for the section-by-section prose. Two structural rules are specific to this system:
-
-### Inline step tags (Procedure) — declare once, tag on change
-Within a step, add these **bolded tags** only where the detail helps execution,
-review, or auditability — not mechanically on every step:
-
-```
-- **Condition:** ...
-- **System / Tool:** ...
-- **Navigation Path:** ...
-- **Fields / Parameters:** ...
-- **Expected Result:** ...
-- **Evidence Required:** ...
-```
-
-A tag is a **signal, not a form field**: it earns its place by telling the reader
-something the surrounding text does not already say. The rule that decides three
-of them is *declare once, tag on change*.
-
-- **`System / Tool` — only on DEPARTURE.** `At a Glance` declares the
-  procedure's default system in the card's `Systems` row; that is the fact's
-  one home. A step tags `System / Tool` **only where it leaves that default** —
-  to Coupa, to Chase Connect, to paper. A procedure that operates entirely in one
-  system carries **zero** `System / Tool` tags in its steps. Stamped on every
-  step the tag is wallpaper; used only on departure it reads as *"you are
-  switching systems here"*.
-- **`Expected Result` — only where the outcome is non-obvious, or is a decision
-  point.** Never where it restates the step title: *"Select the pending PO
-  invoice from the review queue"* → *"A pending PO bill is open for entry"* is
-  the same sentence twice — delete it. Keep it where the preparer could not
-  predict the outcome, or where the outcome is what the next branch tests.
-- **The performing role — name it only where it CHANGES.** B names who performs
-  the procedure; repeating that role in all eight steps is one fact eight times,
-  and it camouflages the thing the reader actually needs to notice — the
-  **handoff**. Name the role at the step where it becomes the Buyer, the
-  Receiving Supervisor, the Controller, and nowhere else. (This is prose, not a
-  tag; the test is the same.)
-
-`Navigation Path` and `Fields / Parameters` are **unaffected** by this rule: they
-are step-specific by nature and under-used, not over-used. `Navigation Path` is
-the one thing a preparer genuinely cannot derive — where a source supports it,
-write it. `Evidence Required` keeps its own judgment test (where it helps review
-or audit).
-
-### `Condition:` — a conditional step declares itself
-A step that does not run every time carries a `Condition:` tag. **A step with no
-`Condition:` is main path** — that is the whole contract, and it is what lets a
-reader follow the normal path without re-deriving the branches on every read.
-
-Write it as the **first line of the step body, directly under the heading, before
-the prose**: the condition has to be read before the step, not after it. (Render
-hoists a `Condition:` tag it finds below the prose, but authoring it in place is
-the contract and the only form that keeps review provenance exact.)
-
-```
-#### Step 5: Place an out-of-tolerance bill on hold and identify the broken leg
-
-- **Condition:** the variance exceeds the matching tolerance
-
-The bill is placed on hold and the broken leg of the match is identified …
-```
-
-Tag exactly the steps that do not always run. In a three-way-match step list —
-*select the invoice / enter the bill / compare the three legs / apply the
-tolerance / **place an out-of-tolerance bill on hold** / **resolve a quantity
-exception** / **resolve a price exception** / complete the matched bill* — the
-three bolded ones are conditional and the rest are main path. Do **not** renumber
-or reorder to group the branches: each branch stays adjacent to the step that
-triggers it. A "step" that is really a **variant of the whole procedure for one
-site** gets `Condition: Plant 3 only`, which is honest about what it is (if it is
-genuinely a separate procedure, say so under `conflicts` — scope is not yours to
-reshape).
-
-## What you produce — a process step
-
-**You are on this path when your dispatch's `YOUR UNIT` line says
-`process-step`.** Absent that line, you are on the v1 seven-section path above
-— that is the default, unchanged. A process step is one unit of process
-understanding in the IPO shape: six parts, in declaration order, and nothing
-else in the fragment but its `consult-meta` block.
-
-**LAW vs HOUSE STYLE.** LAW is what `parse_entity` refuses: callout labels
-exactly as the type declares them (`CONTROL`, `VALIDATION REQUIRED`,
-`PAIN POINT`, `IMPROVEMENT OPPORTUNITY`, `SCREENSHOT PLACEHOLDER`), id grammar
-`PREFIX-ALNUM`, prefix↔label agreement, no duplicate id inside one entity, a
-well-formed `consult-meta` block. Everything below this paragraph is HOUSE
-STYLE: the parser will accept a violation, review and reconcile will not, and
-it is binding on you either way.
-
-### The parts
-
-`## <Heading>` is the step, and it matches the manifest title. The parts are
-`### <Title>` — **Scope, Inputs, Transformation, Outputs, Controls, Issues**,
-in that order, title only: no letters, no numbers, no renaming.
-
-- **Scope** (prose). What the step does end-to-end in one or two sentences,
-  then `Owner: <Role>.` and `System(s): <...>.`, the cadence ("Runs Thursday
-  and Friday", "as the queue fills"), and the handoffs as `[[slug]]` tokens
-  ("Takes its work from `[[receive-invoice]]`, passes clean bills to
-  `[[schedule-payment]]`"). Close with **one explicit out-of-scope sentence**
-  ("Non-PO invoices are out of scope for this area.") — every Scope has one.
-- **Inputs / Outputs** (lists). One artifact per line:
-  `- <artifact> — from <origin> (<system>)` and
-  `- <artifact> — to <destination> (<system>)`. The origin/destination is a
-  `[[slug]]` token when it is another step of THIS area, a named role or actor
-  otherwise; the parenthetical names the system or the record. A terminal that
-  is not a step gets a prose tail instead — "retained in Ephesoft as the source
-  document", "sent back to the supplier by email", "transmitted to the bank
-  through Chase Connect". Examples:
-  `- Variance hold item — to [[approve-exceptions]] (NetSuite hold queue)`;
-  `- Open purchase order line — from the Buyer (NetSuite PO record)`.
-  **These lines ARE the dependency arrows** of the area — write them as facts,
-  never as intentions, and never name a step that does not exist.
-- **Transformation** (prose then list). One narrative paragraph: who works
-  what, what the system does on its own, and what stops the line. Then a
-  `1.`-numbered list of imperative sub-steps — **same owner and same system
-  throughout**; a change of performer is a split signal, not a sub-step (see
-  the minting bars below, M42 A5). **Sub-steps carry no callouts**: the callout
-  homes are Controls and Issues, per the callout doctrine below.
-- **Controls / Issues** — the callout homes. Controls takes CTRL; Issues takes
-  GAP, PP and IO. The minting bars below govern whether a callout exists at
-  all. The CTRL's four declared fields — **Performer, Comparison, Trigger,
-  Evidence** — are carried as `> - **<Field>:** <value>` sub-fields where the
-  sources support them; a prose CTRL that states the same facts is not a
-  defect, silence about them is. **Honest absence is content**: a Controls part
-  with no control states what was looked for and **not found**, cited — "No
-  system-enforced or supervisory control was identified over exception
-  disposition: the reason code is recorded by the same person who releases the
-  bill, and NetSuite requires no second approval (SRC-001). Recorded here as
-  the current state, not as a recommendation." Never leave the part empty and
-  never invent a control to fill it.
-- **`consult-meta`** last, after Issues: `systems:` and `roles:` as registry
-  slug lists, exactly the registry spellings.
-
-Everything else in this contract still applies to you: evidence discipline,
-canonical nouns, tone, uncertainty in callouts, conflicting sources, the
-final-mode read-through. The v1-only rules above — the seven sections, the
-inline step tags, `Condition:` — do not.
-
-### What earns a callout — the minting bars (M42 doctrine)
+## What earns a callout — the minting bars (M42 doctrine)
 
 Three of the callout kinds record **facts about the step**: CONTROL, VALIDATION
 REQUIRED (GAP) and PAIN POINT. Each has a bar to clear before you may mint it.
@@ -602,7 +420,7 @@ tagged sources:
    worksheet).
 
 A source statement that cannot support all four **does not mint** a weak CTRL.
-It stays as **prose in the controls part** (F. Key Controls in v1, Controls in
+It stays as **prose in the controls part** (the Key Controls section in v1, Controls in
 a process step), plus **ONE GAP** asking for the missing control detail —
 never a callout per missing field. *"The manager reviews invoices"* is prose +
 a GAP; it is not a control record yet. That GAP is an **evidenced absence**:
@@ -834,43 +652,6 @@ The preparer at that step needs the `Note:`; whoever resolves the gap needs the
 - A section held out of the procedure body by `body_omit` still aggregates, so a
   `Detail:` there still reaches its register. Draft it exactly as normal.
 
-### Applying the two rules above to an EXISTING draft (update pass)
-Mechanical, with judgment at the edges. Work your fragment top to bottom:
-
-1. Read `At a Glance`. If the `Systems` row does not name the
-   procedure's default system, fix that first — every deletion below depends on
-   B being the fact's home.
-2. **Delete** every step `System / Tool` tag naming that default system; keep only
-   the departures. Deleting the tag never deletes the fact — B holds it.
-3. **Delete** every `Expected Result` that restates its step title. Keep the
-   non-obvious outcomes and the decision points.
-4. Cut the performing role out of the step prose wherever it is the role B already
-   names, leaving it at each step where the role genuinely changes. **Rephrase,
-   don't just strike a noun** ("The AP Clerk enters the invoice" → "The invoice is
-   entered"): current-state passive voice is unchanged.
-5. Add `Condition:` to every step that does not always run, as the first line of
-   the step body. Do not renumber, do not reorder.
-6. For each `VALIDATION REQUIRED` / `PAIN POINT` / `IMPROVEMENT OPPORTUNITY`
-   callout running longer than ~3 sentences: write a `Note:` (one or two
-   sentences, the actionable core) and move the remainder into `Detail:`
-   **verbatim wherever you can** — this is a split, not a re-draft. Never invent a
-   note the body does not support, and never lose a sentence in the move.
-7. Re-read the steps. If the draft now reads as though a fact went missing, that
-   fact lived only in a tag you deleted: put it in its **home section** (B for
-   at-a-glance facts, F for controls, the step itself for step detail) — not back
-   into the tag.
-
-This pass adds no content and removes no fact; it removes restatement. Report
-`tags_removed`, `conditions_added` and `callouts_split` in your return.
-
-### Variant procedures — one shared flow, explicit branches
-A skeleton stamped with a `<!-- scope note: covers variants … -->` comment
-covers two or more near-duplicate activities deliberately merged at scoping
-(e.g. *New Vendor Setup* + *Vendor Banking Change*). Document the shared flow
-**once**; at the step(s) where the variants diverge, branch explicitly ("For a
-banking change, additionally …"). Never write parallel near-identical step
-sequences. Leave the scope-note comment in place — it is authoring metadata and
-is stripped at render.
 
 ## The non-negotiable rules
 

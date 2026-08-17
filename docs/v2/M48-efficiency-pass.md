@@ -39,17 +39,20 @@ one-trick agents whose whole job is smaller than their prompt.
 
 ### Part C — the roster audit
 
-For each remaining agent: keep, fold, or retire — with the ruling recorded
-in this ticket at close-out. Starting posture from the review:
+For each remaining agent: keep, fold, or retire. **Resolved at close-out
+(2026-08-16, as built)** — one ruling per row, applying the audit rule below.
+No agent file was deleted in this ticket: every agent listed is either
+dispatched today or protected by the v1 compatibility gate.
 
-| Agent | Posture going in |
+| Agent | Ruling |
 |---|---|
-| consult-taxonomist | new home (M45) — absorbs surveyor + librarian |
-| consult-intake | keep (pure tagging, small) |
-| consult-drafter | keep, split (Part A) |
-| consult-raci / consult-dependencies | fold candidates — IPO edges made dependencies largely derivable (charter note); audit what judgment remains |
-| consult-analyst | keep, separate by design (M39 license) — and give it the missing dispatch path (the backlog's analyst item rides along here or immediately after) |
-| v1-only agents | keep untouched behind the compatibility gate |
+| consult-taxonomist | **KEEP** — the M45 home: scoping, M6 reassessment and curation in one contract. Its CURATION dispatches now carry the cheaper-tier hint documented beside the revise tier in `skills/consult-orchestrate/SKILL.md` (grooming an existing callout population against the needs view is bounded judgment; SCOPING and ADOPT/ROUTE stay strong-tier). |
+| consult-intake | **KEEP** — pure tagging, prompt smaller than the judgment it adds (relevance pointer + route/adopt call). Nothing to fold. |
+| consult-drafter | **KEEP, SPLIT — built** (Part A). Shared law in `agents/consult-drafter.md`; the two unit paths in `agents/drafting/activity.md` and `agents/drafting/process-step.md`. A dispatch loads shared law + one path. |
+| consult-raci / consult-dependencies | **FOLD WHEN THE v1 PIPELINE RETIRES** — not now. `synthesize` is the only dispatcher, and it is manifest-driven: on a v2 area the IPO Inputs/Outputs lines ARE the dependency arrows (`references` relations), so the dependencies view is derivable and the agent's remaining judgment is thin. RACI keeps a little more (performer vs. accountable is a read, not an edge). Both stay untouched while `synthesize` and its v1 views are law; the fold lands with the v1 retirement, not ahead of it. |
+| consult-analyst | **KEEP** — separate by design behind the human gate (M39 license). Its missing dispatch path remains the recorded follow-up: `scripts/analysis.py` and the M39 contract exist, no skill passage dispatches it yet. Not this ticket's scope; carried as the standing analyst backlog item. |
+| consult-consolidator | **KEEP** — dispatched by `consult-orchestrate` for the M12 within-area pass; the cross-procedure comparison it makes is not derivable from a script. |
+| v1-only agents (consult-taxonomy, consult-placement) | **KEEP behind the compatibility gate — never retired here.** `consult-taxonomy` is still dispatched on v1/legacy areas and is named throughout `scripts/` (sources, scaffold, orchestrate); `consult-placement` retired as a *dispatch* at M45 (the taxonomist absorbed it) but the file stays for legacy/mixed-version engagements. v1 tests are law. |
 
 The audit's rule: an agent survives only if it exercises judgment a script
 or a definition cannot, and its prompt is smaller than the judgment it

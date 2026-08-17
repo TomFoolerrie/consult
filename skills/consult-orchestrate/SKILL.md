@@ -333,6 +333,30 @@ return discloses what it skipped under `skipped_reads`. Relay non-empty
 `skipped_reads` in your roll-up to the user — it is the audit trail for
 the scoped read.
 
+**Model tier per drafter dispatch (M48) — first drafts strong, revises
+cheap.** A drafter dispatch does not cost the same in both directions, and the
+tier is dispatch documentation you carry, not engine machinery:
+
+- **`mode: first-draft` stays on the strong tier** (the drafter contract's
+  pinned worker model). A first draft reads every tagged source and makes the
+  judgment calls the whole deliverable inherits — this is not the place to
+  economize.
+- **`mode: update` — the notes-driven revise pass — defaults to a CHEAPER
+  tier.** Its surface is deliberately slim: the shared law, the notes routing,
+  and the ONE unit path document its `YOUR UNIT` line names (M48 split the
+  drafter contract in three for exactly this reason). The work is bounded
+  edits against notes that already say what changed, so a cheaper tier is the
+  default and you only reach for the strong tier when the work order is
+  genuinely large (a consolidation absorbing another procedure).
+- **`consult-taxonomist` CURATION dispatches (M45 A1) may carry the same
+  cheaper-tier hint** — grooming an existing callout population against the
+  needs view is bounded, mechanical-adjacent judgment. SCOPING and
+  ADOPT/ROUTE taxonomist dispatches stay on the strong tier.
+
+Where your harness exposes no tier control, dispatch as before — the hint is
+an economy, never a requirement, and it never changes what a dispatch is
+allowed to do.
+
 **Follow-up goes to the agent that did the work (same invocation only).**
 Where your harness supports messaging a completed subagent, a correction to
 a drafter's own return — a reconcile ERROR attributed to its file, a

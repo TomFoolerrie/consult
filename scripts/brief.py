@@ -336,6 +336,18 @@ def _entity_part_unit(defn) -> str | None:
     return None
 
 
+UNIT_PATHS = {
+    "process-step": "agents/drafting/process-step.md",
+    "activity": "agents/drafting/activity.md",
+}
+
+
+def _unit_path(unit: str) -> str:
+    """The path document a drafter on `unit` reads — the v1 activity path is
+    the fallback for any unit with no document of its own (M48)."""
+    return UNIT_PATHS.get(unit, UNIT_PATHS[DEFAULT_UNIT])
+
+
 def _unit_line(folder: Path, manifest: dict) -> str:
     """The `YOUR UNIT` line's text — one line, always."""
     try:
@@ -357,13 +369,17 @@ def _unit_line(folder: Path, manifest: dict) -> str:
         unit = _entity_part_unit(defn)
         if unit is None:
             return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
-                    f"resolved: {defn.name} binds no entity parts)")
-        return f"YOUR UNIT: {unit}  (deliverable definition: {defn.name})"
+                    f"resolved: {defn.name} binds no entity parts)"
+                    f" — read {_unit_path(DEFAULT_UNIT)}")
+        return (f"YOUR UNIT: {unit}  (deliverable definition: {defn.name})"
+                f" — read {_unit_path(unit)} (that ONE path document, plus "
+                f"the shared law in agents/consult-drafter.md)")
     except Exception as exc:                    # noqa: BLE001 - loud fallback
         return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
                 f"resolved: {type(exc).__name__}: {exc}) "
                 f"[report this in your return — the definition layer is "
-                f"broken, the drafting path below is the v1 default]")
+                f"broken, the drafting path below is the v1 default]"
+                f" — read {_unit_path(DEFAULT_UNIT)}")
 
 
 def drafter_brief(folder: Path, manifest: dict, slug: str,
