@@ -13,6 +13,14 @@ guarantee.
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48.
 
+- **M46 — the interview agenda** (`2.2.0-alpha.3`): the first consumer
+  of the needs view — kernel/deliverables/interview-agenda.yaml (zero
+  new binding verbs) + scripts/agenda.py render(area, role): a
+  client-facing per-role agenda joining the needs view, the roles
+  registry and the source ledger (confirm / missing / not yet asked /
+  owed a read; never asks for what the ledger holds). Human-triggered
+  only — no agent may generate one. Suite 1167.
+
 - **M45 — the taxonomist** (`2.2.0-alpha.2`): surveyor + librarian
   merged into one `consult-taxonomist` (1,012 lines vs 1,079 combined,
   one dispatch context instead of two): objective intake, coverage/

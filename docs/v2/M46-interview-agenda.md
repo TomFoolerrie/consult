@@ -1,9 +1,10 @@
 # M46 — The interview agenda: a deliverable definition over the needs view
 
-**Status: SPEC** — from the 2026-08-16 architecture review, decision D4
-(ruled LOOKS RIGHT, with the human's note: **"I would like to be in charge
-of when this generates. It will be an ad hoc item."**). Third of the
-review's five tickets.
+**Status: BUILT** (`2.2.0-alpha.3`, gate 9/9, suite 1167) — from the
+2026-08-16 architecture review, decision D4 (ruled LOOKS RIGHT, with the
+human's note: **"I would like to be in charge of when this generates. It
+will be an ad hoc item."**). Third of the review's five tickets. See
+Amendment A1 for build friction.
 
 ## Why (the ruling)
 
@@ -58,6 +59,33 @@ New gate: `tests/test_agenda_m46.py` (committed with this spec, skips until
 the definition file exists). **No existing test changes.** The gate pins one
 API decision the spec's Part B left open: the render verb is
 `scripts/agenda.py` with `render(area, role=...)` (plus its CLI `main`).
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-17)
+
+1. **One feed → one section** (invented rule, documented in agenda.py):
+   the spec's section vocabulary asked for "conflicts" and "evidenced
+   absences" separately, but M44 A1 deferred the discriminator on GAP
+   callouts — so the mapping is mechanical: `recorded-gap` → confirm,
+   `coverage` → missing, `binding-unserved` → not yet asked, ledger →
+   owed a read. Any finer split would be new gap judgment, which the
+   design rule forbids. Revisit when the discriminator lands.
+2. **`binding-unserved` is not role-attributable** (its `where` is a
+   binding name): shown only to roles with territory in the area,
+   withheld otherwise — attributing area-level ground to someone the
+   record never places there would be a guess.
+3. **The binding language cannot name the needs view or the ledger**
+   (`_ALLOWED_BINDING_KEYS` is closed): the `engagement-needs` binding's
+   NAME carries the identity with legal verbs only, and the ledger joins
+   on `role-territory`'s step slugs rather than a decorative binding.
+   Follow-up (recorded): a definitions.py binding verb for derived-view
+   feeds, if a third consumer appears.
+4. **Role-less plan path:** `build_interview_agenda(ctx)` without
+   `ctx["role"]` renders every registry role with territory, registry
+   order — still reachable only when a human asks.
+5. **Fixture blind spot (recorded):** all three IPO sources are fully
+   consumed, so the owed-a-read section renders `—` for every role; the
+   suppression half shows only as the `Already in hand:` line. Wants a
+   fixture with an unconsumed source.
 
 ## Acceptance gate
 
