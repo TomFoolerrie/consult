@@ -1,6 +1,8 @@
 # M48 — The efficiency pass: split the drafter contract, audit the roster
 
-**Status: SPEC** — from the 2026-08-16 architecture review, decision D6
+**Status: BUILT** (`2.2.0-alpha.5`, gate 10/10, suite 1185 — zero skips
+remain in the whole suite) — from the 2026-08-16 architecture review,
+decision D6
 (ruled LOOKS RIGHT, with the human's note: **"If the revise drafter was
 cheaper it makes more sense to have the drafter only touch the brain using
 the notes workflow."**). Fifth of the review's five tickets.
@@ -57,6 +59,24 @@ dispatched today or protected by the v1 compatibility gate.
 The audit's rule: an agent survives only if it exercises judgment a script
 or a definition cannot, and its prompt is smaller than the judgment it
 adds.
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-17)
+
+1. **The token win is smaller than the ticket's framing:** only ~1,800
+   words were v1-only and ~620 v2-only; ~7,700 words are shared law every
+   dispatch still pays for (activity dispatch ~3% lighter, process-step
+   ~14%). The real next cut, if wanted, is INTO the shared file — the
+   callout grammar block, the M16-era update procedures, the
+   return-format catalogue. Recorded as a candidate, not scheduled.
+2. **`consult-placement` is the one plausible retirement:** M45 retired
+   its dispatch, nothing in skills/ or scripts/ references it, no test
+   greps it — it survives only for documented legacy/mixed-version
+   routing. Reported rather than deleted, per the ticket's own rule.
+3. **One single-home concession to test law:** the v1 callout grammar
+   block (the old `Nature:` enum, `Owner to confirm:`) stays in the
+   shared file because `test_needs_m44` pins the M44 unit-scoping
+   passage there; doctrinally it belongs in `activity.md`. Move both
+   together if that gate is ever revisited.
 
 ## Test impact (the licensed edits — verified by grep, 2026-08-16)
 

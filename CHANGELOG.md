@@ -13,6 +13,17 @@ guarantee.
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48.
 
+- **M48 — the efficiency pass** (`2.2.0-alpha.5`): the drafter contract
+  split into shared law (agents/consult-drafter.md, 1082→863 lines) +
+  one path document per unit (agents/drafting/activity.md,
+  agents/drafting/process-step.md) — a dispatch loads shared law plus
+  exactly one path, routed by the brief's YOUR UNIT line. Tier hints
+  documented in the orchestrate skill: first drafts strong, notes-driven
+  revises cheaper, taxonomist curation cheaper. The roster audited with
+  one ruling per row (nothing deleted; raci/dependencies fold when the
+  v1 pipeline retires; the analyst dispatch path stays the standing
+  follow-up). Suite 1185 — zero skips remain.
+
 - **M47 — the research pass** (`2.2.0-alpha.4`): day-zero public
   research enters staged — files under `components/_client/.proposed/`
   (company_profile.md and friends), promoted at the human's review gate
