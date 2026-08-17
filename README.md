@@ -4,17 +4,19 @@ A Claude Code **plugin** that turns messy finance-process source material —
 interview transcripts, prior SOPs, working notes — into a governed,
 evidence-backed **process-knowledge model** ("the brain"), then projects that
 model into client deliverables through **user-supplied deliverable
-definitions**. Four definitions ship — the CFGI desktop procedure, a process
-& controls matrix, an information request, and a findings report — and a new
-document shape is a new YAML file, not a new engine.
+definitions**. Five definitions ship — the CFGI desktop procedure, a process
+& controls matrix, an information request, an interview agenda, and a
+findings report — and a new document shape is a new YAML file, not a new
+engine.
 
-> **v2 is built and tested** — the kernel, the definition language, the ten
-> subagents, and the four skills are all in place, exercised by **1,123
-> passing tests**, with the compatibility gate green: v1's own desktop
-> procedure, rebuilt through the new engine over a frozen engagement, is
-> normalized-identical to the v1 golden, and all 803 v1 tests run untouched.
+> **v2 is built and tested** — the kernel, the definition language, the
+> eight subagents, and the four skills are all in place, exercised by
+> **1,199 passing tests**, with the compatibility gate green: v1's own
+> desktop procedure, rebuilt through the new engine over a frozen
+> engagement, is normalized-identical to the v1 golden, and all 803 v1
+> tests run untouched.
 > See [`docs/v2/README.md`](docs/v2/README.md) for the v2 charter and tickets
-> (M33–M43); [`docs/`](docs/) holds the v1 record (M0–M32).
+> (M33–M49); [`docs/`](docs/) holds the v1 record (M0–M32).
 
 ## The core idea — capture once, project anything
 
@@ -64,8 +66,10 @@ in the contracts and readable by the tooling:
 - **CTRL** must clear a four-field minting bar (performer / comparison /
   trigger / evidence, declared on the callout type itself). A
   control-shaped sentence stays prose plus one pointed GAP.
-- **GAP** is reserved for operation-blocking unknowns; the broader ask
-  agenda belongs to the surveyor's information request.
+- **GAP** mints exactly two facts: a **conflict** (two sources disagree)
+  or an **evidenced absence** (the sources confirm something is missing).
+  Ranking and asking are never authored — the **needs view** renders the
+  per-deliverable gap inventory from the objective and the definitions.
 - **PP (pain point)** is recorded *as voiced* — attributed and evidenced,
   never assessed by the recorder.
 - Sub-steps carry no callouts; a cross-owner performer is a split signal.
@@ -103,10 +107,9 @@ records — that discipline is what keeps the record trustworthy:
 |---|---|
 | `consult-intake` | tags sources into the ledger — no copies; relevance judgment survives as tags |
 | `consult-taxonomist` | structure: upfront proposes the taxonomy, judges coverage/sufficiency and emits information requests *before* drafting spends tokens; ongoing, proposes reorganizations as knowledge accumulates (its own `_taxonomy/` files it writes; everything else it proposes, never executes) |
-| `consult-drafter` | fills steps/procedures from sources; two sources disagree → a conflict record, never a guess |
+| `consult-drafter` | fills steps/procedures from sources (shared law + one path document per unit under `agents/drafting/`); two sources disagree → a conflict record, never a guess |
 | `consult-dependencies`, `consult-raci` | author the two v1 judgment views |
 | `consult-consolidator` | cross-procedure consistency pass, notes only |
-| `consult-placement` | one-fact-one-home placement pass across areas |
 | `consult-analyst` | **the one assessment license**: judges mechanical candidates, proposes findings — never writes into the capture layer, never resolves a conflict |
 
 Findings live in their own register with a full lifecycle
@@ -126,8 +129,8 @@ You invoke **one** skill: **`consult-orchestrate`** — "build `<area>`" or
 thin coordinator: on each turn it consults a read-only Python state
 advisor, performs the single next action it returns, and loops — running
 deterministic Python itself, dispatching isolated subagents (each in its
-own context, returning only a compact result; initial survey work routes to
-the surveyor, incremental reorganization to the librarian), and stopping at
+own context, returning only a compact result; all taxonomy work — the
+initial survey and ongoing curation — routes to the taxonomist), and stopping at
 the human gates: the scope/taxonomy confirm gate, registry top-ups,
 findings accept/reject, and review of the rendered document. Reviewers mark
 up the `.docx` with tracked changes and comments; the return trip is
@@ -136,7 +139,7 @@ flat no matter how large the engagement grows.
 
 ## The shipped deliverable definitions
 
-All four render end-to-end. Each is a small YAML file under
+All five render end-to-end. Each is a small YAML file under
 `kernel/deliverables/`; a user's fifth deliverable is a copy of one with
 different bindings (dropped in `_client/deliverables/` to shadow), and the
 engine never learns its name:
@@ -146,8 +149,10 @@ engine never learns its name:
 - **`process-controls-matrix.yaml`** — one landscape row per step: owner,
   systems, IPO edges, controls, open items. A shape v1 could never draw,
   shipped with zero engine special-cases.
-- **`information-request.yaml`** — the surveyor's coverage output as a
+- **`information-request.yaml`** — the taxonomist's coverage output as a
   client document: what we're missing, per taxonomy node.
+- **`interview-agenda.yaml`** — the needs view × roles × ledger, rendered
+  as questions per interviewee; generation is human-triggered, ad hoc.
 - **`findings-report.yaml`** — accepted findings by theme, every claim
   citing its grounds back through the SRC chain; structurally unable to
   show a proposal or a rejection.
@@ -156,16 +161,17 @@ engine never learns its name:
 
 ```
 consult/
-  .claude-plugin/plugin.json     plugin manifest (2.1.0)
-  agents/                        10 isolated subagent definitions
+  .claude-plugin/plugin.json     plugin manifest (2.2.0)
+  agents/                        8 isolated subagent definitions +
+                                 agents/drafting/ (one path doc per unit)
   skills/                        consult-orchestrate (the entry point),
                                  consult-taxonomy, consult-drafter,
                                  consult-docx-builder
   kernel/                        the domain, as data
     types/                       entity-type declarations
                                  (process-step, taxonomy-node, activity)
-    deliverables/                the four shipped definitions
-  scripts/                       the deterministic engine (35 modules)
+    deliverables/                the five shipped definitions
+  scripts/                       the deterministic engine (37 modules)
     kernel.py                    declared types + the generic entity parser
     ledger.py                    the engagement-root SRC ledger
     coverage_map.py              coverage as a pure function
@@ -173,13 +179,16 @@ consult/
     render_glue.py / render.py   compiled plan → CFGI .docx
     matrix_views.py / plan_views.py  definition view builders
     analysis.py / findings.py    candidate generators + findings register
+                                 (+ the analyst brief CLI)
     hygiene.py                   callout-hygiene candidate generators
+    needs.py / agenda.py         the per-deliverable needs view + the
+                                 interview-agenda joins
     orchestrate.py               read-only state advisor (next action)
     doc_model.py, aggregate.py, reconcile.py, brief.py, kits.py, …
                                  the v1 engine, intact underneath
   docs/                          v1 design record (M0–M32) +
-                                 docs/v2/ (charter + tickets M33–M43)
-  tests/                         1,123 pytest cases (803 v1 cases untouched)
+                                 docs/v2/ (charter + tickets M33–M49)
+  tests/                         1,199 pytest cases (803 v1 cases untouched)
   requirements.txt
 ```
 
@@ -197,14 +206,17 @@ pip install -r requirements.txt   # python-docx, pyyaml
 
 ## Status
 
-**v2 complete and under test.** The eleven-ticket v2 campaign (M33–M43) is
-built end to end — the brain kernel, centralized sources, the definition
-language, the compatibility gate, surveyor + librarian, the second
-deliverable, the analysis verbs, definition views, the engagement
-objective, the callout doctrine, and the process-step drafting path — with
-the suite at **1,123 passing** (`python3 -m pytest`) and zero of v1's 803
-tests edited across the entire campaign. 2.0.0 and 2.1.0 both merged to
-`main` 2026-08-15, each on an explicit human go. See
+**v2 complete and under test.** The seventeen-ticket v2 campaign
+(M33–M49) is built end to end — the brain kernel, centralized sources,
+the definition language, the compatibility gate, the taxonomy agents,
+the second deliverable, the analysis verbs, definition views, the
+engagement objective, the callout doctrine, the process-step drafting
+path, and the engagement-lens line (the needs view, the taxonomist
+merge, the interview agenda, the research pass, the efficiency pass,
+the analyst dispatch path) — with the suite at **1,199 passing**
+(`python3 -m pytest`) and zero of v1's 803 tests edited across the
+entire campaign. 2.0.0 and 2.1.0 merged 2026-08-15, 2.2.0 merged
+2026-08-17, each on an explicit human go. See
 [`docs/v2/README.md`](docs/v2/README.md) for the charter, the ticket index,
 and the recorded follow-up candidates, and [`CHANGELOG.md`](CHANGELOG.md)
 for the version-by-version story.
@@ -225,5 +237,5 @@ Three architectures share this repository:
   **`v1.20-stable`** branch and still alive inside v2 — every v1 engagement
   keeps working, and the v1 render path is the standing golden for the
   compatibility gate.
-- **v2** (M33–M43) — the inversion: the brain, the definition language, and
+- **v2** (M33–M49) — the inversion: the brain, the definition language, and
   the analysis layer, built on everything v1 got right.
