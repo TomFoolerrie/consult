@@ -9,9 +9,11 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
-## [Unreleased — 2.2.0]
+## [2.2.0] — 2026-08-17
 The engagement-lens line: the 2026-08-16 architecture review's rulings
-(D1–D6), ticketed as M44–M48.
+(D1–D6), ticketed as M44–M48, plus the M49 analyst-dispatch follow-up.
+D1 and D5 re-affirmed as shipped at the pre-merge review (2026-08-17);
+merged to `main` on the human's explicit go.
 
 - **M49 — the analyst dispatch path** (`2.2.0-alpha.6`): the M39
   follow-up paid — `analysis.py brief <area>` assembles the analyst's

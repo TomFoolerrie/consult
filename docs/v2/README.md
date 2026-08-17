@@ -1,11 +1,14 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.1.0 (2026-08-15)** — the spine (M33–M39) plus
-M40 shipped as 2.0.0; M41–M43 (the engagement objective, the callout
-doctrine, the process-step drafting path + hygiene feeder) shipped as
-2.1.0. Suite 1123 passing, the compatibility gate green, every shipped
-definition rendering end-to-end. Both merges made on the human's
-explicit go. v1.20.0 is preserved on `v1.20-stable`.
+**Status: RELEASED AS 2.2.0 (2026-08-17)** — the spine (M33–M39) plus
+M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
+engagement-lens line: the needs view + two-mint GAP, the taxonomist
+merge, the interview agenda, the research pass, the efficiency pass,
+the analyst dispatch path) shipped as 2.2.0. Suite 1199 passing (1
+pinned xfail), the compatibility gate green, every shipped definition
+rendering end-to-end. All merges made on the human's explicit go —
+the 2.2.0 pre-merge review re-affirmed D1 and D5 as shipped.
+v1.20.0 is preserved on `v1.20-stable`.
 Follow-up ticket candidates are recorded in each ticket's amendments —
 headline items: table-row comment routing (pinned xfail), a semantic
 kind marker on callout declarations (M43's `fields:` key is the surface
