@@ -13,6 +13,15 @@ guarantee.
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48.
 
+- **M47 — the research pass** (`2.2.0-alpha.4`): day-zero public
+  research enters staged — files under `components/_client/.proposed/`
+  (company_profile.md and friends), promoted at the human's review gate
+  by `scaffold --promote-client` (collision-refusing, `_client/`-only).
+  Ledger entries carry `provenance: public`, and coverage_map excludes
+  them from every status-advancing join: public sources inform the
+  needs view, they never discharge it. Specified as a dispatch recipe
+  for a web-capable session, not a new resident agent. Suite 1175.
+
 - **M46 — the interview agenda** (`2.2.0-alpha.3`): the first consumer
   of the needs view — kernel/deliverables/interview-agenda.yaml (zero
   new binding verbs) + scripts/agenda.py render(area, role): a

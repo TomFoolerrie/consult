@@ -192,7 +192,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M44](M44-needs-view.md) | The needs view: per-deliverable gaps as a render + the two-mint GAP (**BUILT**, 2.2.0-alpha.1, gate 21/21) |
 | [M45](M45-taxonomist-merge.md) | The taxonomist: surveyor + librarian merged, direct write over `_taxonomy/`, confirm gate unchanged (**BUILT**, 2.2.0-alpha.2, gate 10/10) |
 | [M46](M46-interview-agenda.md) | The interview agenda: a definition over the needs view × roles × ledger; generation human-triggered, ad hoc (**BUILT**, 2.2.0-alpha.3, gate 9/9) |
-| [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**SPEC** — D5) |
+| [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**BUILT**, 2.2.0-alpha.4, gate 8/8) |
 | [M48](M48-efficiency-pass.md) | The efficiency pass: drafter contract split by unit, cheap-tier revise path, roster audit (**SPEC** — D6) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket

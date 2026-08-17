@@ -1,9 +1,10 @@
 # M47 — The research pass: public sources in, first PBC list out
 
-**Status: SPEC** — from the 2026-08-16 architecture review, decision D5
-(ruled DISCUSS, then settled in chat: **staged multi-file `_client/`
-writes with a human review gate** — the human's shape, ratified over the
-single-file draft). Fourth of the review's five tickets.
+**Status: BUILT** (`2.2.0-alpha.4`, gate 8/8, suite 1175) — from the
+2026-08-16 architecture review, decision D5 (ruled DISCUSS, then settled
+in chat: **staged multi-file `_client/` writes with a human review gate**
+— the human's shape, ratified over the single-file draft). Fourth of the
+review's five tickets. See Amendment A1 for build friction.
 
 ## Why (the ruling)
 
@@ -73,6 +74,26 @@ so the packages land separately with the suite green at each commit).
 ledger/sources/coverage test keeps its meaning. The gate pins the read-side
 seam: the public-never-discharges rule lands in `coverage_map` (that is
 where the needs view's coverage feed will see it).
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-17)
+
+1. **Public conflicts cannot advance a node either** — a judgment call
+   the spec did not decide: two contradicting public readings rest at
+   `claimed`, not `conflicted` (the consistent reading of "public never
+   advances status"; rationale in the coverage_map comment). Invisible
+   to the gate today (both statuses are selected by the request
+   binding); revisit if a consumer ever selects `conflicted` alone.
+2. **Zero-evidence resting state needed no change:** a known node with
+   no effective evidence already reads `claimed`, which the request
+   binding selects — the rule slotted into the existing status algebra.
+3. **CLI seam:** `--promote-client` resolves an engagement root from
+   either a root path or a `components/<area>` path rather than minting
+   a `--root` flag no other scaffold verb uses. Revisit when a second
+   root-scoped verb appears.
+4. `ledger.py`/`sources.py` untouched — no entry-key allowlist exists,
+   so `provenance:` is genuinely additive.
+5. `company_profile.md` stays freeform per the open question's lean;
+   typing it waits until something needs to bind it.
 
 ## Acceptance gate
 
