@@ -13,6 +13,17 @@ guarantee.
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48.
 
+- **M49 — the analyst dispatch path** (`2.2.0-alpha.6`): the M39
+  follow-up paid — `analysis.py brief <area>` assembles the analyst's
+  work order (license, the four candidate feeds, register state,
+  objective block); `conflict_records` lands as the missing fourth
+  generator (two-citation conflicts + the v1 `Nature: conflict`
+  grammar); `findings.for_area` filters the register by where a
+  finding's grounds live; the orchestrate skill dispatches
+  `consult-analyst` (never inside the drafting loop; findings render
+  only after the human accepts). `consult-placement` retired on the
+  human's ruling. Suite 1199.
+
 - **M48 — the efficiency pass** (`2.2.0-alpha.5`): the drafter contract
   split into shared law (agents/consult-drafter.md, 1082→863 lines) +
   one path document per unit (agents/drafting/activity.md,

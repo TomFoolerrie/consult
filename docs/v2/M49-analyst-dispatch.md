@@ -1,6 +1,7 @@
 # M49 — The analyst dispatch path: the last unreachable agent gets reached
 
-**Status: SPEC** — the standing follow-up recorded at M39's close and
+**Status: BUILT** (`2.2.0-alpha.6`, gate 14/14, suite 1199 — see
+Amendment A1) — the standing follow-up recorded at M39's close and
 carried through every backlog since ("an `analysis.py brief` CLI + analyst
 dispatch hint + conflict-records extractor"), plus the per-area findings
 filter. Scheduled by the human 2026-08-17 after the review campaign
@@ -70,6 +71,25 @@ other areas are excluded. Status filter passes through.
   already enforces structurally).
 - `agents/consult-analyst.md`: the contract names the brief as its first
   action (the drafter-contract pattern).
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-17)
+
+1. **One callout walk serves both unit shapes** — `_area_steps` hardcodes
+   the step type, but `activity` and `process-step` declare the same
+   callout vocabulary, so the parse extracts v1 callouts (and `Nature:`
+   fields) correctly. Recorded in the extractor's docstring: this is
+   where a future unit type with a diverging callout vocabulary breaks.
+2. **Invented rules (docstringed):** the GAP prefix is read through the
+   information-request `step-gaps` binding (never typed — `_pain_prefix`'s
+   posture); the `Nature` field NAME matches case-insensitively too.
+3. **`findings.py`'s corpus walk was extracted, not duplicated:**
+   `_area_corpus_ids` is the one-area unit and `_corpus_ids` sums over it
+   — behavior identical, and `for_area` cannot drift from resolution.
+4. **Fixture fact:** GAP-04 also carries two citations, so the IPO area
+   yields three conflict records, not two; the gate pins GAP-01/GAP-02
+   by name only.
+5. **Follow-up (recorded):** analysis.py's module docstring predates the
+   CLI and the fourth generator; refresh it next time the module opens.
 
 ## Test impact
 
