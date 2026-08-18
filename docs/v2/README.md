@@ -202,7 +202,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**BUILT**, 2.2.0-alpha.4, gate 8/8) |
 | [M48](M48-efficiency-pass.md) | The efficiency pass: drafter contract split by unit, cheap-tier revise path, roster audit (**BUILT**, 2.2.0-alpha.5, gate 10/10) |
 | [M49](M49-analyst-dispatch.md) | The analyst dispatch path: `analysis.py brief` CLI, the conflict-records extractor, `findings.for_area`, the skill passage (**BUILT**, 2.2.0-alpha.6, gate 14/14) |
-| [M50](M50-gap-discriminator.md) | The gap discriminator: the `Nature:` enum declared on the type, needs/agenda consume it, the unconsumed-source fixture (**SPECCED**) |
+| [M50](M50-gap-discriminator.md) | The gap discriminator: the `Nature:` enum declared on the type, needs/agenda consume it, the unconsumed-source fixture (**BUILT**, 2.3.0-alpha.1, gate 18/18) |
 | [M51](M51-structured-serviceability.md) | Structured serviceability: the "not yet" report becomes attributed records; the broken-area refusal (**SPECCED**) |
 | [M52](M52-taxonomist-brief.md) | One taxonomist brief: survey + curation work orders assembled in one place, a kind line selects emphasis (**SPECCED**) |
 | [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**SPECCED**) |

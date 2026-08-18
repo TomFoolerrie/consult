@@ -9,6 +9,20 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [Unreleased — 2.3.0]
+The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
+M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
+
+- **M50 — the gap discriminator** (`2.3.0-alpha.1`): the `Nature:` enum
+  (`conflict | evidenced-absence`) declared on the process-step GAP
+  callout (`field_enums:`, kernel-validated, optional metadata — never a
+  parse gate); needs.py recorded-gap entries carry an optional `nature`
+  key read from the declaration, never typed; the interview agenda grows
+  a "What we need you to settle" section (conflicts split from absences
+  mechanically — the M46 A1.1 revisit done); the IPO fixture gains
+  SRC-004, registered but never read, so owed-a-read renders positively
+  (M46 A1.5). Suite 1226.
+
 ## [2.2.0] — 2026-08-17
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48, plus the M49 analyst-dispatch follow-up.

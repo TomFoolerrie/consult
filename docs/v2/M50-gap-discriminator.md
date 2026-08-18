@@ -1,6 +1,8 @@
 # M50 — The gap discriminator: the callout declaration says what kind of gap it is
 
-**Status: SPECCED** (backlog line, unscheduled — build on the human's go).
+**Status: BUILT** (`2.3.0-alpha.1`, gate 18/18, suite 1226 — see
+Amendment A1). Scheduled by the human 2026-08-18 ("all, in order")
+with the rest of the backlog line (M50–M55).
 Origin: the charter follow-up "a semantic kind marker on callout
 declarations (M43's `fields:` key is the surface it would use)", plus
 M44 A2 item 5 (the recorded-gap mint discriminator stayed on the Wants
@@ -78,6 +80,41 @@ agenda section anchors (Part C), any IPO-fixture count pins the new
 source disturbs (Part D — the build plan lists them by name first).
 **Zero v1 tests change**; the v1 activity declaration and grammar are out
 of scope by contract.
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-18)
+
+1. **An unenumerated licensed edit:** `test_needs_m44.py`'s
+   `test_gap_declares_grounds` pinned `fields == ["Grounds"]` exactly, so
+   adding `Nature` (which the acceptance gate itself requires) broke it;
+   re-pinned to containment. By construction `field_enums` keys are a
+   subset of `fields` — the kernel refuses an enum for an undeclared
+   field — so growing `fields` was forced, not chosen.
+2. **Two validation rules the spec did not state**, added to match the
+   kernel's idiom: `field_enums` must be a mapping, and duplicate values
+   within one enum are refused.
+3. **The declared spelling wins:** the fragment's `Nature:` value is
+   matched lowercased (analysis.\_nature's posture) but the entry emits
+   the declaration's spelling, so `nature` values always read exactly as
+   the type declaration writes them.
+4. **The positional rule:** agenda.py identifies the conflict mint as the
+   FIRST declared enum value (zero typed literals), documented in one
+   place — the module docstring, naming the declaration as the other half
+   of the contract. Anything unresolvable renders pre-M50 behavior, never
+   a crash. `needs._declared_natures` is the one cross-module
+   vocabulary reader (underscore-private, the module's existing habit).
+5. **Fixture notes:** SRC-004's `consumed` key is omitted entirely (both
+   readers treat an absent key as unconsumed); the ledger's stored
+   `state:` is demonstrably display-only — `area_view` derives state from
+   consumption. Zero re-pins were needed: no existing test pins a source
+   count over the IPO fixture.
+6. **Two test-file defects found by the builders, fixed at commit:** the
+   owed-a-read anchor said "owed" where the render says "owe", and the
+   split test reused one `tmp_path` across two fixture copies
+   (`FileExistsError` before the assertion ran).
+7. **Recorded (pre-existing, not this ticket's):** the suite is
+   order-dependent under pytest-randomly (spurious tmp-dir collisions in
+   the M38/M40 view tests under some seeds) — M53 Part D's item, now with
+   a reproduction note.
 
 ## Acceptance gate
 
