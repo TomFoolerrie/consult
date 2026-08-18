@@ -204,7 +204,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M49](M49-analyst-dispatch.md) | The analyst dispatch path: `analysis.py brief` CLI, the conflict-records extractor, `findings.for_area`, the skill passage (**BUILT**, 2.2.0-alpha.6, gate 14/14) |
 | [M50](M50-gap-discriminator.md) | The gap discriminator: the `Nature:` enum declared on the type, needs/agenda consume it, the unconsumed-source fixture (**BUILT**, 2.3.0-alpha.1, gate 18/18) |
 | [M51](M51-structured-serviceability.md) | Structured serviceability: the "not yet" report becomes attributed records; the broken-area refusal (**BUILT**, 2.3.0-alpha.2, gate 10/10) |
-| [M52](M52-taxonomist-brief.md) | One taxonomist brief: survey + curation work orders assembled in one place, a kind line selects emphasis (**SPECCED**) |
+| [M52](M52-taxonomist-brief.md) | One taxonomist brief: survey + curation work orders assembled in one place, a kind line selects emphasis (**BUILT**, 2.3.0-alpha.3, gate 9/9) |
 | [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**SPECCED**) |
 | [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**SPECCED**) |
 | [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**SPECCED**) |

@@ -1,6 +1,7 @@
 # M52 — One taxonomist brief: the merged agent gets a merged work order
 
-**Status: SPECCED** (backlog line, unscheduled — build on the human's go).
+**Status: BUILT** (`2.3.0-alpha.3`, gate 9/9, suite 1245 — see
+Amendment A1). Scheduled by the human 2026-08-18 ("all, in order").
 Origin: M45 A1 item 1 — the brief-assembly merge Part B described ("one
 taxonomist brief") was not done; recorded as a follow-up "if the
 two-dispatch pattern proves annoying in use". Writing the ticket now so
@@ -50,6 +51,28 @@ dispatch kind at the one brief command (with its kind flag);
 `agents/consult-taxonomist.md` names the brief as its first action (the
 drafter/analyst contract pattern). The M48 tier hints (CURATION cheap,
 SCOPING/ADOPT-ROUTE strong) survive verbatim beside the new command.
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-18)
+
+1. **Part B's preferred retirement was blocked by v1 law:**
+   `test_engagement.py` pins `engagement.py brief` output extensively,
+   so the fallback (delegation) shipped — `brief.taxonomist_picture` is
+   the one assembly site; `engagement.py brief` prints it through
+   `_print_picture_section` and keeps its placement-specific mechanics.
+2. **The picture holds cross-kind byte-equality by construction:** the
+   kind wrapper adds KIND-token lines around a kind-blind picture, so
+   the gate's content pin cannot drift. The placement brief grew
+   (coverage/needs/write-boundary lines now print there too) — nothing
+   pins its ordering, recorded as a size note.
+3. **The M37 dispatch-hint values embed a literal `<area>` placeholder**
+   the driver substitutes; rendering the real path is a one-line change
+   in `taxonomy_result` if ever wanted.
+4. **Two licensed repoints** (mechanical, meaning preserved): the M37
+   hint values now name the command per kind; the M43 `needs_wiring`
+   skip gate greps brief.py for the hygiene section's new home.
+5. **Process note:** the opus-tier dispatch was killed twice by
+   server-side overload (529) before any edit; the delivering build ran
+   on the inherited session model (M51's precedent).
 
 ## Test impact
 

@@ -13,6 +13,16 @@ guarantee.
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
 
+- **M52 — one taxonomist brief** (`2.3.0-alpha.3`): `brief.py
+  taxonomist <area> --kind SCOPING|CURATION|ADOPT-ROUTE` assembles the
+  merged work order (objective, coverage summary, engagement-needs
+  summary, hygiene grooming feed, the write boundary) in one function;
+  kind-varying lines carry the KIND token around a kind-blind picture,
+  so the engagement picture is byte-equal across kinds. engagement.py
+  brief delegates to the one builder (v1 law pins its output, so no
+  retirement); orchestrate's central routing, the skill and the
+  contract all name the one command. Suite 1245.
+
 - **M51 — structured serviceability** (`2.3.0-alpha.2`):
   `definitions.serviceability_records` returns attributed
   `{binding, gap}` records (all four sentence sources tagged); the flat
