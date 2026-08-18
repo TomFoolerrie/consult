@@ -207,7 +207,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M52](M52-taxonomist-brief.md) | One taxonomist brief: survey + curation work orders assembled in one place, a kind line selects emphasis (**BUILT**, 2.3.0-alpha.3, gate 9/9) |
 | [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**BUILT**, 2.3.0-alpha.4, gate 8/8) |
 | [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**SPECCED**) |
-| [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**SPECCED**) |
+| [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**BUILT**, 2.3.0-alpha.5, gate 9/9) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
