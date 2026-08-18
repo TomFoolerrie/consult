@@ -30,26 +30,47 @@ the territory when any step it covers does (`plan_views.node_steps`, the same
 relation the matrix groups by). Nothing about seniority, nothing about wording:
 if the record does not put the role on the step, the step is not on the agenda.
 
-THE FOUR SECTIONS, one per FEED — the spec's shape mapped onto M44's three feeds
-plus the ledger, with no reclassification in between:
+THE FIVE SECTIONS, one per FEED — the spec's shape mapped onto M44's three feeds
+plus the ledger, with no reclassification in between; the recorded-gap feed
+alone feeds two sections, and only because the record itself now says which
+(M50, below):
 
-  what we would like to confirm      needs `recorded-gap` in the territory (the
-                                     drafters' recorded conflicts and evidenced
-                                     absences — M44 Part A's two mints)
+  what we need you to settle         needs `recorded-gap` in the territory whose
+                                     entry carries the DECLARED conflict nature
+                                     (two sources disagree)
+  what we would like to confirm      every OTHER `recorded-gap` in the territory:
+                                     the declared evidenced-absence nature, and
+                                     every undiscriminated entry (v1-grammar and
+                                     legacy fragments keep rendering exactly
+                                     where they always did)
   what we believe is missing         needs `coverage` on nodes the territory
                                      touches (coverage + evidenced absence)
   what we have not asked yet         needs `binding-unserved` — the deliverable's
                                      structurally unserved bindings, area-level
                                      ground, shown to a role that HAS territory
                                      here and to nobody else
-  what you gave us, still owed a read the ledger's outstanding rows whose
+  what you gave us, we still owe a read on
+                                     the ledger's outstanding rows whose
                                      touched slugs fall in the territory
 
-WHY THE FEEDS ARE NOT RE-SORTED INTO "conflict" vs "absence": M44 deferred the
-conflict/absence discriminator on gap callouts (its Part A, "a grammar change,
-so deferred"), so there is no mechanical fact to sort on. Inventing the
-classification here is exactly the new judgment this render is forbidden. One
-feed, one section, stated in the lead-ins.
+ONE FEED, ONE SECTION — AMENDED BY M50. M44 originally deferred the
+conflict/absence discriminator on gap callouts, so this render merged both mints
+into one confirm section and said so (M46 A1 item 1: "revisit when the
+discriminator lands"). M50 landed it: the GAP callout declaration carries a
+`Nature:` enum, and `needs.py` puts the stated value on the entry as its
+optional `nature` key. The split above is therefore a FIELD READ, not new
+judgment — this module still mints nothing and ranks nothing, and an entry with
+no `nature` is never guessed at. **The M46 A1.1 revisit is hereby done.**
+
+THE POSITIONAL RULE, STATED HERE AND NOWHERE ELSE. This module types no enum
+value: it reads the declared vocabulary off the process-step type's GAP callout
+(`CalloutDecl.field_enums`, resolved through `needs._declared_natures` — the
+same read needs.py does) and takes the FIRST DECLARED value as the conflict
+nature, because the declaration states the two-sources-disagree mint first and
+the evidenced-absence mint second. That ordering is the contract between
+`kernel/types/process-step.yaml` and this file; a declaration that reorders the
+enum must update it here. No enum declared at all → nothing is a conflict and
+the confirm section renders exactly as it did before M50.
 
 THE LEDGER RULE (M40's, reused): never ask for what we already hold. Section
 four lists only rows the ledger still reports OUTSTANDING for the territory, so a
@@ -242,6 +263,46 @@ def _entries(area: Path) -> list[dict]:
     return needs.needs(area)
 
 
+def _conflict_nature(area: Path):
+    """The DECLARED nature value that means "two sources disagree", or `None`.
+
+    Resolved, never typed: the gap callout prefix comes from the definition
+    binding (`hygiene._gap_prefix`, the same read needs.py's recorded feed does)
+    and the vocabulary off that callout's declared `field_enums`
+    (`needs._declared_natures`). The first declared value is the conflict mint —
+    the positional rule documented in the module docstring, stated there once.
+    Anything unresolvable (no enum, no declaration, an area whose bindings do not
+    name one gap kind) yields `None`, which leaves every recorded gap in the
+    confirm section: a "not yet", never a crash."""
+    try:
+        import hygiene
+        import kernel
+        import needs
+        from matrix_views import STEP_TYPE
+        tdecl = kernel.load_type(STEP_TYPE)
+        declared = needs._declared_natures(tdecl, hygiene._gap_prefix(tdecl, area))
+    except Exception:
+        return None
+    for value in declared.values():
+        return value
+    return None
+
+
+def _split_recorded(area: Path, recorded: list[dict]) -> tuple[list, list]:
+    """`(settle, confirm)` — the recorded-gap feed split on the declared nature.
+
+    Feed order preserved in both halves. An entry goes to `settle` only when its
+    `nature` key equals the declared conflict value; the declared
+    evidenced-absence value and a MISSING key both stay in `confirm`, so legacy
+    and v1-grammar fragments render where they always did."""
+    conflict = _conflict_nature(area)
+    settle, confirm = [], []
+    for entry in recorded:
+        mine = (conflict is not None and entry.get("nature") == conflict)
+        (settle if mine else confirm).append(entry)
+    return settle, confirm
+
+
 def _for_role(area: Path, entries: list[dict], terr: dict) -> dict:
     """The needs entries this role can answer, split by feed.
 
@@ -330,9 +391,13 @@ def _held(area: Path, terr: dict) -> list[str]:
 # The render
 # --------------------------------------------------------------------------- #
 
-#: The four section headings, and the client-facing lead-in each one opens with
+#: The five section headings, and the client-facing lead-in each one opens with
 #: (the plan_views idiom: an italic lead-in, then list content, `—` for an empty
 #: section — an empty section must read as an answer, never as a failed build).
+LEAD_SETTLE = (
+    "_Points where two sources in the record disagree with each other: we hold "
+    "both readings and cannot tell from the paper which one is right. We are "
+    "asking you to settle each one — which account is true._")
 LEAD_CONFIRM = (
     "_Points where the accounts we hold do not yet agree, or where the record "
     "says the answer is still open. We have deliberately not guessed at any of "
@@ -411,9 +476,10 @@ def render(area, role=None) -> str:
                   f"please do not send them again._", ""]
     lines += [PREAMBLE, ""]
 
+    settle, confirm = _split_recorded(area, grouped[needs.KIND_RECORDED])
     sections = [
-        ("What we would like to confirm", LEAD_CONFIRM,
-         grouped[needs.KIND_RECORDED]),
+        ("What we need you to settle", LEAD_SETTLE, settle),
+        ("What we would like to confirm", LEAD_CONFIRM, confirm),
         ("What we believe is missing", LEAD_MISSING,
          grouped[needs.KIND_COVERAGE]),
         ("What we have not asked about yet", LEAD_UNASKED,

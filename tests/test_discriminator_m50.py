@@ -228,9 +228,12 @@ class TestNeedsNature:
 
 @needs_split
 class TestAgendaSplit:
+    _seq = 0
+
     def _render(self, tmp_path, natures: dict):
         import agenda
-        root, area = ipo_copy(tmp_path)
+        TestAgendaSplit._seq += 1
+        root, area = ipo_copy(tmp_path / f"run{TestAgendaSplit._seq}")
         write_objective(area)
         for (fragment, gap_id), value in natures.items():
             add_nature(area, fragment, gap_id, value)
