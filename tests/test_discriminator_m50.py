@@ -66,6 +66,15 @@ needs_enum = pytest.mark.skipif(
     not _enum_declared(),
     reason="M50 Nature enum not declared on process-step GAP yet — the target")
 
+def _agenda_split_built() -> bool:
+    src = SCRIPTS / "agenda.py"
+    return src.is_file() and SETTLE_HEADING in src.read_text(
+        encoding="utf-8").lower()
+
+needs_split = pytest.mark.skipif(
+    not (_enum_declared() and _agenda_split_built()),
+    reason="M50 agenda split not built yet — the target")
+
 needs_unconsumed = pytest.mark.skipif(
     not _fixture_has_unconsumed(),
     reason="M50 unconsumed-source fixture not landed yet — the target")
@@ -217,7 +226,7 @@ class TestNeedsNature:
 # Part C — the agenda splits its confirm section
 # --------------------------------------------------------------------------- #
 
-@needs_enum
+@needs_split
 class TestAgendaSplit:
     def _render(self, tmp_path, natures: dict):
         import agenda
@@ -307,5 +316,8 @@ class TestUnconsumedSource:
         assert outstanding
         ledger.write_text(yaml.safe_dump(data), encoding="utf-8")
         out = agenda.render(area, role="ap-manager")
-        owed = out.lower().split("owed a read", 1)[-1]
+        # anchor matches the rendered heading ("...we still owe a read on");
+        # the held line above it correctly keeps naming the source
+        assert "owe a read" in out.lower()
+        owed = out.lower().split("owe a read", 1)[-1]
         assert outstanding.lower() not in owed

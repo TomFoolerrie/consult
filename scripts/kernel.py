@@ -55,11 +55,22 @@ class CalloutDecl:
     here instead of typing prose constants) and is NEVER a parse gate — a
     fragment whose callout declares none of these fields parses exactly as it
     did before the key existed. A callout kind that declares no fields
-    carries the empty tuple."""
+    carries the empty tuple.
+
+    `field_enums` is OPTIONAL too (M50 Part A): for a declared field whose
+    VALUE is drawn from a fixed vocabulary, the vocabulary — e.g.
+    process-step's GAP and its two-mint `Nature`. Every key must be one of
+    this callout's declared `fields`. Like `fields` it is documentation plus
+    vocabulary for consumers (scripts/needs.py reads the admitted values from
+    here instead of typing them) and is NEVER a parse gate: a fragment whose
+    callout omits the field, or states a value outside the list, parses
+    exactly as it did before the key existed. A callout kind that declares no
+    enums carries the empty dict."""
     label: str
     prefix: str
     home: str  # part slug the callout is homed to
     fields: tuple[str, ...] = ()
+    field_enums: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 @dataclass
@@ -100,7 +111,7 @@ _ALLOWED_TOP_KEYS = {
     "type", "parts", "callouts", "channels", "letter_aliases", "slug_aliases",
 }
 _ALLOWED_PART_KEYS = {"slug", "title", "kind", "title_aliases"}
-_ALLOWED_CALLOUT_KEYS = {"label", "prefix", "home", "fields"}
+_ALLOWED_CALLOUT_KEYS = {"label", "prefix", "home", "fields", "field_enums"}
 _ALLOWED_CHANNEL_KEYS = {"name", "registry"}
 
 
@@ -205,8 +216,35 @@ def _parse_decl(path: Path, data) -> TypeDecl:
                     f'{fname}: {where} ("{label}") "fields" must be a list of '
                     f"non-empty strings (got {raw_fields!r})")
             fields = tuple(f.strip() for f in raw_fields)
+        raw_enums = entry.get("field_enums")
+        field_enums: dict[str, tuple[str, ...]] = {}
+        if raw_enums is not None:
+            if not isinstance(raw_enums, dict):
+                raise TypeDeclError(
+                    f'{fname}: {where} ("{label}") "field_enums" must be a '
+                    f"mapping of field name -> value list (got "
+                    f"{raw_enums!r})")
+            for fkey, values in raw_enums.items():
+                fname_key = str(fkey).strip()
+                if fname_key not in fields:
+                    raise TypeDeclError(
+                        f'{fname}: {where} ("{label}") field_enums names '
+                        f'"{fname_key}", which is not one of this callout\'s '
+                        f"declared fields {list(fields)}")
+                if not isinstance(values, list) or not values or not all(
+                        isinstance(v, str) and v.strip() for v in values):
+                    raise TypeDeclError(
+                        f'{fname}: {where} ("{label}") field_enums '
+                        f'"{fname_key}" must be a non-empty list of non-empty '
+                        f"strings (got {values!r})")
+                cleaned = tuple(v.strip() for v in values)
+                if len(set(cleaned)) != len(cleaned):
+                    raise TypeDeclError(
+                        f'{fname}: {where} ("{label}") field_enums '
+                        f'"{fname_key}" repeats a value {list(cleaned)}')
+                field_enums[fname_key] = cleaned
         callouts.append(CalloutDecl(label=label, prefix=prefix, home=home,
-                                    fields=fields))
+                                    fields=fields, field_enums=field_enums))
 
     channels: list[ChannelDecl] = []
     raw_channels = data.get("channels") or []

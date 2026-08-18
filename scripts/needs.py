@@ -14,7 +14,8 @@ second service re-renders its needs by editing one `objective.yaml`; nothing in
 the capture layer moves. That is the whole point, and it is why this module
 writes nothing and caches nothing.
 
-WHAT ONE NEED IS. A dict with five keys, always all five present:
+WHAT ONE NEED IS. A dict with five keys, always all five present, plus one
+optional sixth key (`nature`) on the recorded-gap feed:
 
   deliverable  the definition name this need BLOCKS (every need names it —
                a need with no target is exactly the noise being deleted)
@@ -24,6 +25,17 @@ WHAT ONE NEED IS. A dict with five keys, always all five present:
   grounds      a non-empty list of MECHANICAL basis lines (binding name,
                coverage status, callout display id, SRC ids) — the reader
                judges from the grounds, this module never ranks
+
+and, ONLY on a `recorded-gap` entry whose fragment states which of the two
+mints it is (M50 Part B):
+
+  nature       the gap callout's declared `Nature:` value — the two-mint
+               discrimination, read from the fragment and validated against
+               the enum the TYPE DECLARATION carries (never typed here). The
+               one optional key: absent when the fragment states nothing, and
+               absent when it states something the declaration does not admit.
+               Absent is absent, never guessed — a consumer that finds no
+               `nature` treats the need as undiscriminated.
 
 THE THREE FEEDS, and why they are three and not one:
 
@@ -267,6 +279,26 @@ def _binds_type(defn, type_name: str) -> bool:
     return False
 
 
+def _declared_natures(tdecl, prefix: str) -> dict[str, str]:
+    """The gap callout's declared `Nature:` vocabulary: {lowered -> declared}.
+
+    Read off the `CalloutDecl.field_enums` the type declaration carries (M50
+    Part A), keyed by the field name `analysis.NATURE_FIELD` names and matched
+    case-insensitively on both the key and the values — this module types
+    neither the field name nor any of its values. An empty dict when the
+    declaration carries no enum for the field, which makes every fragment
+    undiscriminated rather than a refusal (optional metadata, never a gate)."""
+    import analysis
+
+    for decl in tdecl.callouts:
+        if decl.prefix != prefix:
+            continue
+        for key, values in (getattr(decl, "field_enums", None) or {}).items():
+            if str(key).strip().lower() == analysis.NATURE_FIELD:
+                return {str(v).strip().lower(): str(v).strip() for v in values}
+    return {}
+
+
 def _recorded(defn, area: Path) -> list[dict]:
     """Every gap-kind callout on the area's entity fragments.
 
@@ -275,7 +307,11 @@ def _recorded(defn, area: Path) -> list[dict]:
     type declaration. Display ids come from `doc_model.callout_display_ids` —
     the document-global numbering authority render.py itself uses, so a need
     cites the id the reader will see in the document rather than the drafter's
-    local one. Manifest order, then document order within a step."""
+    local one. Manifest order, then document order within a step.
+
+    An entry gains the optional `nature` key when the callout states a
+    `Nature:` value the DECLARATION admits (`_declared_natures` below). The
+    vocabulary is never typed here — same rule as the callout prefix."""
     import analysis
     if not _binds_type(defn, analysis.STEP_TYPE):
         return []
@@ -301,6 +337,7 @@ def _recorded(defn, area: Path) -> list[dict]:
         return []
 
     disp = doc_model.callout_display_ids(area)
+    natures = _declared_natures(tdecl, prefix)
     out: list[dict] = []
     for step in steps:
         mine = analysis._callouts(step["entity"], prefix)
@@ -316,14 +353,18 @@ def _recorded(defn, area: Path) -> list[dict]:
                        f"{analysis.STEP_TYPE} population that carries it"]
             if srcs:
                 grounds.append(f"sources cited in it: {', '.join(srcs)}")
-            out.append({
+            entry = {
                 "deliverable": defn.name,
                 "kind": KIND_RECORDED,
                 "need": f"{shown} on {step['heading']} is recorded against the "
                         f"evidence and still open: {text}",
                 "where": step["slug"],
                 "grounds": grounds,
-            })
+            }
+            stated = analysis._nature(callout)
+            if stated is not None and stated in natures:
+                entry["nature"] = natures[stated]
+            out.append(entry)
     return out
 
 
