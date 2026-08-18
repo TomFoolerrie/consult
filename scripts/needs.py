@@ -60,19 +60,19 @@ THE THREE FEEDS, and why they are three and not one:
 
 VOCABULARY COMES FROM THE BINDINGS AND THE DECLARATIONS (the M36 shape-audit
 rule). This module types no coverage status word, no callout label and no
-callout prefix. The gap kind is resolved through `hygiene._gap_prefix`, which
+callout prefix. The gap kind is resolved through `kinds.gap_prefix`, which
 reads the information-request definition's callout binding and translates it
 into the prefix the fragments carry through the type declaration; the coverage
 statuses are whatever the `coverage:` binding names; the entity type is
 `analysis.STEP_TYPE`, the constant the modules that own the step population
 already publish. The surveyor's `thin` alias expands in exactly one place in
-the codebase — `plan_views._selected_statuses` — and this module calls it
-rather than collapsing the alias a second time.
+the codebase — `kinds.selected_statuses` — and this module calls it rather
+than collapsing the alias a second time.
 
 MACHINERY IS IMPORTED, NEVER RE-DERIVED. `plan_views.node_steps` (the node→step
-relation, itself matrix_views' grouping), `plan_views._selected_statuses`,
-`plan_views._root_of`, `coverage_map.coverage`, `matrix_views._nodes` /`_ids`,
-`analysis._area_steps` / `_callouts` / `_callout_blob`,
+relation, itself matrix_views' grouping), `kinds.selected_statuses`,
+`kinds.engagement_root`, `coverage_map.coverage`, `matrix_views._nodes` /`_ids`,
+`kinds.area_steps` / `callouts` / `callout_blob`,
 `doc_model.callout_display_ids`. A need must never be able to disagree with the
 document that would have rendered it.
 
@@ -217,7 +217,7 @@ def _coverage(defn, area: Path) -> list[dict]:
     """One entry per taxonomy node the map reports at a selected status.
 
     Every status word in an entry arrived from the coverage map, which was
-    filtered by the statuses the BINDING named; `plan_views._selected_statuses`
+    filtered by the statuses the BINDING named; `kinds.selected_statuses`
     performs the one documented `thin` expansion, here as in the request list,
     so this module and the rendered document can never select different nodes.
     Coverage is computed ON DEMAND over the whole engagement (nothing is
@@ -227,11 +227,12 @@ def _coverage(defn, area: Path) -> list[dict]:
         return []
 
     import coverage_map
+    import kinds
     import plan_views
     from matrix_views import _nodes
 
     try:
-        root = plan_views._root_of(area)
+        root = kinds.engagement_root(area)
     except ValueError:
         # An area outside an engagement tree has no coverage to report; a needs
         # render of it is thin, not broken.
@@ -242,7 +243,7 @@ def _coverage(defn, area: Path) -> list[dict]:
 
     out: list[dict] = []
     for bname, spec in specs:
-        wanted = plan_views._selected_statuses(spec)
+        wanted = kinds.selected_statuses(spec)
         for node in nodes:
             slug, title = node["slug"], node["title"]
             status = cov.get(slug)
@@ -288,26 +289,18 @@ def _declared_natures(tdecl, prefix: str) -> dict[str, str]:
     """The gap callout's declared `Nature:` vocabulary: {lowered -> declared}.
 
     Read off the `CalloutDecl.field_enums` the type declaration carries (M50
-    Part A), keyed by the field name `analysis.NATURE_FIELD` names and matched
+    Part A), keyed by the field name `kinds.NATURE_FIELD` names and matched
     case-insensitively on both the key and the values — this module types
-    neither the field name nor any of its values. An empty dict when the
-    declaration carries no enum for the field, which makes every fragment
-    undiscriminated rather than a refusal (optional metadata, never a gate)."""
-    import analysis
-
-    for decl in tdecl.callouts:
-        if decl.prefix != prefix:
-            continue
-        for key, values in (getattr(decl, "field_enums", None) or {}).items():
-            if str(key).strip().lower() == analysis.NATURE_FIELD:
-                return {str(v).strip().lower(): str(v).strip() for v in values}
-    return {}
+    neither the field name nor any of its values. Delegates to
+    `kinds.declared_natures`, the shared resolver's M53 home."""
+    import kinds
+    return kinds.declared_natures(tdecl, prefix)
 
 
 def _recorded(defn, area: Path) -> list[dict]:
     """Every gap-kind callout on the area's entity fragments.
 
-    The kind is resolved, never typed: `hygiene._gap_prefix` reads the
+    The kind is resolved, never typed: `kinds.gap_prefix` reads the
     definition binding that names it and translates label→prefix through the
     type declaration. Display ids come from `doc_model.callout_display_ids` —
     the document-global numbering authority render.py itself uses, so a need
@@ -322,11 +315,11 @@ def _recorded(defn, area: Path) -> list[dict]:
         return []
 
     import doc_model
-    import hygiene
+    import kinds
     from matrix_views import _ids
 
     try:
-        tdecl, steps = analysis._area_steps(area)
+        tdecl, steps = kinds.area_steps(area)
     except Exception:
         # No manifest, or an area whose fragments this type cannot be read
         # over: nothing recorded to surface, which is a thin area, not a defect.
@@ -334,20 +327,20 @@ def _recorded(defn, area: Path) -> list[dict]:
     if not steps:
         return []
     try:
-        prefix = hygiene._gap_prefix(tdecl, area)
-    except hygiene.HygieneError:
+        prefix = kinds.gap_prefix(tdecl, area)
+    except kinds.KindsError:
         # The binding does not resolve to exactly one gap kind — this feed will
         # not fall back on a typed label, so it stays silent (the refusal is
-        # hygiene's to raise where it is the question being asked).
+        # the resolver's to raise where it is the question being asked).
         return []
 
     disp = doc_model.callout_display_ids(area)
     natures = _declared_natures(tdecl, prefix)
     out: list[dict] = []
     for step in steps:
-        mine = analysis._callouts(step["entity"], prefix)
+        mine = kinds.callouts(step["entity"], prefix)
         for callout, shown in zip(mine, _ids(step, prefix, disp)):
-            text = " ".join(analysis._callout_blob(callout).split())
+            text = " ".join(kinds.callout_blob(callout).split())
             srcs: list[str] = []
             for sid in _SRC_ID_RE.findall(text):
                 if sid not in srcs:
@@ -366,7 +359,7 @@ def _recorded(defn, area: Path) -> list[dict]:
                 "where": step["slug"],
                 "grounds": grounds,
             }
-            stated = analysis._nature(callout)
+            stated = kinds.nature(callout)
             if stated is not None and stated in natures:
                 entry["nature"] = natures[stated]
             out.append(entry)
@@ -381,7 +374,7 @@ def _preflight(area: Path) -> None:
     """The broken-area refusal (M51 Part C), before any feed runs.
 
     Two defects refuse BY NAME rather than rendering "no needs": an area path
-    that resolves to no engagement root (`plan_views._root_of`, the same
+    that resolves to no engagement root (`kinds.engagement_root`, the same
     refusal the other views use, which names the area), and a manifest.json
     that EXISTS but cannot be parsed as JSON (named too — area and manifest
     both). A merely THIN area — real root, readable manifest, nothing
@@ -389,8 +382,8 @@ def _preflight(area: Path) -> None:
     thin is not a defect, broken is. Nothing feed-internal changes; this is
     one gate at the door."""
     import json
-    import plan_views
-    plan_views._root_of(area)          # raises ValueError, naming the area
+    import kinds
+    kinds.engagement_root(area)        # raises ValueError, naming the area
     manifest = area / "manifest.json"
     if manifest.is_file():
         try:

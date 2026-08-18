@@ -64,7 +64,7 @@ no `nature` is never guessed at. **The M46 A1.1 revisit is hereby done.**
 
 THE POSITIONAL RULE, STATED HERE AND NOWHERE ELSE. This module types no enum
 value: it reads the declared vocabulary off the process-step type's GAP callout
-(`CalloutDecl.field_enums`, resolved through `needs._declared_natures` — the
+(`CalloutDecl.field_enums`, resolved through `kinds.declared_natures` — the
 same read needs.py does) and takes the FIRST DECLARED value as the conflict
 nature, because the declaration states the two-sources-disagree mint first and
 the evidenced-absence mint second. That ordering is the contract between
@@ -267,20 +267,19 @@ def _conflict_nature(area: Path):
     """The DECLARED nature value that means "two sources disagree", or `None`.
 
     Resolved, never typed: the gap callout prefix comes from the definition
-    binding (`hygiene._gap_prefix`, the same read needs.py's recorded feed does)
+    binding (`kinds.gap_prefix`, the same read needs.py's recorded feed does)
     and the vocabulary off that callout's declared `field_enums`
-    (`needs._declared_natures`). The first declared value is the conflict mint —
+    (`kinds.declared_natures`). The first declared value is the conflict mint —
     the positional rule documented in the module docstring, stated there once.
     Anything unresolvable (no enum, no declaration, an area whose bindings do not
     name one gap kind) yields `None`, which leaves every recorded gap in the
     confirm section: a "not yet", never a crash."""
     try:
-        import hygiene
         import kernel
-        import needs
+        import kinds
         from matrix_views import STEP_TYPE
         tdecl = kernel.load_type(STEP_TYPE)
-        declared = needs._declared_natures(tdecl, hygiene._gap_prefix(tdecl, area))
+        declared = kinds.declared_natures(tdecl, kinds.gap_prefix(tdecl, area))
     except Exception:
         return None
     for value in declared.values():
@@ -344,8 +343,8 @@ def _owed(area: Path, terr: dict) -> list[dict]:
     rule that an agenda must not ask for what we hold, applied to the one section
     where holding it is the point."""
     try:
-        import plan_views
-        root = plan_views._root_of(area)
+        import kinds
+        root = kinds.engagement_root(area)
     except Exception:
         return []
     import ledger
@@ -372,8 +371,8 @@ def _held(area: Path, terr: dict) -> list[str]:
     ledger order. Shown beside the asks so nothing already in hand is requested
     again (the M40 rule's other half)."""
     try:
-        import plan_views
-        root = plan_views._root_of(area)
+        import kinds
+        root = kinds.engagement_root(area)
     except Exception:
         return []
     import ledger

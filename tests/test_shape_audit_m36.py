@@ -432,6 +432,12 @@ def test_the_repointed_constants_track_the_declaration(monkeypatch):
     for c in reshaped.callouts:
         if c.label == "CONTROL":
             c.home = "afterword"
+    # M53: snapshot the module's bindings before reloading. A reload mints
+    # NEW class objects, and other test modules from-import the exception
+    # classes at collection time — under some orderings their pytest.raises
+    # would stop matching. Restoring the originals keeps the reload's
+    # side effects out of every other test's world.
+    original_bindings = dict(client_config.__dict__)
     monkeypatch.setattr(kernel, "load_type", lambda name: reshaped)
     reloaded = importlib.reload(client_config)
     try:
@@ -440,3 +446,6 @@ def test_the_repointed_constants_track_the_declaration(monkeypatch):
     finally:
         monkeypatch.undo()
         importlib.reload(client_config)
+        client_config.__dict__.update(
+            {k: v for k, v in original_bindings.items()
+             if not k.startswith("__")})
