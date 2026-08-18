@@ -21,6 +21,12 @@ What it does
      procedure  ->  A-H subsection  ->  step,  with the exact anchor text.
    The H2 procedure heading carries its display number + title; we map it back to
    the stable `slug` via the folder manifest (doc_model.display_numbers).
+   M54 (Amendment A0) adds ONE fallback on this shared line: when the heading
+   stack yields no slug and the anchoring paragraph sits inside a table row,
+   the row's FIRST CELL (where a table-first deliverable renders the owning
+   step's display number + title) is resolved through the same `resolve_slug`
+   — see `_row_first_cell`. The stack keeps precedence; an unresolvable first
+   cell still lands in `_unassigned`.
 3. Write ONE notes file per procedure that has feedback:
      {area}/_review/{slug}.notes.yaml
    A single reviewed .docx spans many procedures; we split the feedback by the
@@ -333,6 +339,34 @@ def iter_paragraphs(el):
         # ignore sectPr and anything else — not paragraph-bearing
 
 
+def _row_first_cell(p, parents: Optional[dict] = None):
+    """The FIRST w:tc of the nearest enclosing w:tr of paragraph `p`, or None.
+
+    This is the anchor of the M54 table-row routing fallback (Amendment A0):
+    when the heading stack resolves NO slug for an item and the anchoring
+    paragraph sits inside a table row, the row's first cell — where a
+    table-first deliverable (the process-controls matrix) renders the owning
+    step's display number and title — is handed to the existing
+    `resolve_slug`. The fallback NEVER overrides the heading stack (a stack
+    that resolves wins untouched, so v1 in-procedure tables are unmoved), and
+    a first cell that resolves nothing still lands in UNASSIGNED — the rule
+    narrows the leak, it never guesses. It sits on the shared resolution
+    seam, so comments and tracked changes alike ride it (A0 item 4).
+
+    Ancestry is walked via lxml's getparent(); under the stdlib ElementTree
+    fallback the caller supplies a child->parent map in `parents`.
+    """
+    node = p
+    while node is not None:
+        node = node.getparent() if _LXML else (parents or {}).get(node)
+        if node is not None and localname(node) == "tr":
+            for tc in node:
+                if localname(tc) == "tc":
+                    return tc
+            return None
+    return None
+
+
 def extract_document(doc_root, comments: Dict[str, dict],
                      num2slug: Dict[str, str], title2slug: Dict[str, str],
                      warnings: List[str]) -> List[Item]:
@@ -345,6 +379,10 @@ def extract_document(doc_root, comments: Dict[str, dict],
         return []
 
     loc = Location()
+    # Child->parent map for _row_first_cell when lxml (getparent) is absent.
+    parents: Optional[dict] = None
+    if not _LXML:
+        parents = {child: parent for parent in body.iter() for child in parent}
     items: List[Item] = []
     # Comment ranges can span paragraphs: id -> {loc: (slug, locstr), anchor: [texts]}
     open_comments: Dict[str, dict] = {}
@@ -353,6 +391,31 @@ def extract_document(doc_root, comments: Dict[str, dict],
     for p in iter_paragraphs(body):
         level = paragraph_heading_level(p)
         para_text = gather_visible_text(p)
+
+        # M54/A0 fallback slug for THIS paragraph: consulted only when the
+        # heading stack yields no slug, and only if the paragraph sits inside
+        # a table row whose first cell resolves through the existing resolver.
+        _fb_cache: List[Optional[str]] = []
+
+        def row_fallback_slug() -> Optional[str]:
+            if not _fb_cache:
+                tc = _row_first_cell(p, parents)
+                slug = None
+                if tc is not None:
+                    txt = squeeze(gather_visible_text(tc))
+                    slug = resolve_slug(txt, num2slug, title2slug)
+                    if slug is None:
+                        # The matrix step cell renders "Title (N.N)"; hand
+                        # resolve_slug its two keys in the order it accepts
+                        # ("N.N Title"). Only a TRAILING parenthesized number
+                        # is reordered — mid-text ones (v1 appendix "PP-xx
+                        # (N.N) — …") stay unresolvable, as pinned.
+                        m = re.match(r"^(.*?)\s*\((\d+(?:\.\d+)*)\)$", txt)
+                        if m:
+                            slug = resolve_slug(f"{m.group(2)} {m.group(1)}",
+                                                num2slug, title2slug)
+                _fb_cache.append(slug)
+            return _fb_cache[0]
 
         if level is not None:
             if level == 2:
@@ -372,7 +435,12 @@ def extract_document(doc_root, comments: Dict[str, dict],
                 if ln == "commentRangeStart":
                     cid = child.get(wq("id"))
                     if cid is not None:
-                        open_comments[cid] = {"loc": loc.snapshot(), "anchor": []}
+                        rec = {"loc": loc.snapshot(), "anchor": []}
+                        if rec["loc"][0] is None:
+                            # heading stack empty-handed: remember the A0
+                            # row-first-cell fallback of the START paragraph.
+                            rec["fallback"] = row_fallback_slug()
+                        open_comments[cid] = rec
                 elif ln == "commentRangeEnd":
                     cid = child.get(wq("id"))
                     if cid in open_comments:
@@ -395,6 +463,8 @@ def extract_document(doc_root, comments: Dict[str, dict],
             body_txt = comments.get(cid, {})
             slug, locstr = rec["loc"]
             if slug is None:
+                slug = rec.get("fallback")  # A0 table-row first-cell fallback
+            if slug is None:
                 warnings.append(
                     f"comment id={cid} anchored outside any procedure "
                     f"(section: {loc.section_heading or '?'}); routed to {UNASSIGNED}")
@@ -416,6 +486,8 @@ def extract_document(doc_root, comments: Dict[str, dict],
             for change, author, date in _collapse_changes(events):
                 slug = loc.slug
                 if slug is None:
+                    slug = row_fallback_slug()  # A0 first-cell fallback
+                if slug is None:
                     warnings.append(
                         f"tracked change '{clip(change, 60)}' outside any procedure "
                         f"(section: {loc.section_heading or '?'}); routed to {UNASSIGNED}")
@@ -432,6 +504,8 @@ def extract_document(doc_root, comments: Dict[str, dict],
             continue
         seen_comment_ids.add(cid)
         slug, locstr = rec["loc"]
+        if slug is None:
+            slug = rec.get("fallback")  # A0 table-row first-cell fallback
         if slug is None:
             warnings.append(
                 f"comment id={cid} (unterminated range) outside any procedure; "
