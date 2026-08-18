@@ -1,6 +1,9 @@
 # M54 — Table-row comment routing: the pinned xfail gets paid
 
-**Status: SPECCED** (backlog line, unscheduled — build on the human's go).
+**Status: BUILT** (`2.3.0-alpha.6`, gate 7/7, suite 1261 with ZERO
+xfails — the standing M38 xfail retired here; see Amendments A0/A1).
+Scheduled by the human 2026-08-18 ("all, in order"); last of the line
+to land (M55 took alpha.5 by finishing first).
 Origin: M38 A1 item 3 — matrix cell edits and the view-rebuild loop all
 prove out, but ROW-LEVEL comment routing lands in `_unassigned`; "the
 exact fix (table-row first-cell slug resolution) is pinned as a strict
@@ -66,6 +69,25 @@ The strict xfail in `tests/test_matrix_roundtrip_m38.py` flips to a
 positive assertion — the licensed edit this ticket exists for. The
 routing behavior lands in whichever module owns comment routing today
 (kits.py's territory); no new module.
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-18)
+
+1. **The raw matrix cell is not resolver-ready:** the step cell renders
+   `"Title (N.N)"`, which `resolve_slug` does not accept as-is (the M38
+   evidence test proved the KEYS resolve, not the raw text). The
+   fallback tries the raw text, then reorders a TRAILING parenthesized
+   number to `"N.N Title"` for one more resolve. Mid-text numbers (the
+   v1 appendix's `"PP-33 (5.1) — …"`) never match, so the pinned v1
+   invariance holds by shape, not by luck. No resolver change — only
+   the fallback's input is normalized.
+2. **The seam serves all three attribution points** (comment
+   finalization, tracked-change emission, unterminated-range cleanup) —
+   A0 item 4's comments-and-tracked-changes scope came out of the seam's
+   location for free; the comment path snapshots the fallback at
+   commentRangeStart beside the location snapshot.
+3. Part A's characterization surfaced an undocumented working behavior
+   worth knowing: v1 in-procedure pain-point tables already route
+   correctly by heading stack — now pinned so nothing regresses it.
 
 ## Test impact
 

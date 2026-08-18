@@ -13,6 +13,16 @@ guarantee.
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
 
+- **M54 — table-row comment routing** (`2.3.0-alpha.6`): the M38
+  pinned xfail is paid — `review_extract._row_first_cell` plus the
+  fallback rule at the shared resolution seam (heading stack keeps
+  precedence; when it yields no slug and the anchor sits in a table
+  row, the row's first cell resolves the step; unresolvable still lands
+  `_unassigned`, never guessed). v1 appendix routing characterized
+  first and pinned byte-identical (Amendment A0's shared-line ruling);
+  comments and tracked changes covered by the one seam. The suite
+  carries zero xfails for the first time since M38. Suite 1261.
+
 - **M55 — recorded wants** (`2.3.0-alpha.5`): `ledger.show` (and
   ledger.py's first CLI) renders the engagement's source picture — one
   block per SRC with provenance and its consumption records, owed-a-read
