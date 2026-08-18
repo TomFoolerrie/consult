@@ -39,12 +39,13 @@ mints it is (M50 Part B):
 
 THE THREE FEEDS, and why they are three and not one:
 
-  binding-unserved  `definitions.serviceability(defn, area)`, one entry per gap
-                    string, asked BINDING BY BINDING (a single-binding copy of
-                    the definition per call) so the entry can name the binding
-                    without re-parsing the gap sentence. The structural floor:
-                    nothing here is new judgment, it is the M35 report already
-                    shipped, attributed to a deliverable.
+  binding-unserved  `definitions.serviceability_records(defn, area)`, one
+                    entry per gap record, ONE loader pass per definition —
+                    attribution arrives as data on the record's `binding` key
+                    (M51), so nothing here re-parses a sentence or re-loads a
+                    definition per binding. The structural floor: nothing here
+                    is new judgment, it is the M35 report already shipped,
+                    attributed to a deliverable.
   coverage          only for a target whose definition carries a `coverage:`
                     binding. Every taxonomy node the coverage map reports at
                     one of that binding's selected statuses. SKIPPED ENTIRELY
@@ -89,8 +90,13 @@ tests/test_needs_m44.py.
 
 REFUSALS. An unknown deliverable name raises (definitions.DefinitionError,
 which names it) — a report about a document nobody installed would be a lie.
-Everything else that is merely NOT YET — no objective, no nodes, no steps, no
-gaps — returns `[]` or a "nothing outstanding" line, never an exception.
+A BROKEN area also raises, by name, before any feed runs (M51 Part C): an
+area path outside any engagement's components/ tree, or an area whose
+manifest.json exists but cannot be parsed as JSON — a "no needs" render of
+either would be a lie the taxonomist and the agenda now act on. Everything
+else that is merely NOT YET — no objective, no nodes, no steps, no gaps, a
+real-but-thin area — returns `[]` or a "nothing outstanding" line, never an
+exception: thin is not a defect, broken is.
 
 Python 3, stdlib + the engine's own modules.
 """
@@ -102,7 +108,6 @@ import console_compat  # noqa: F401  (stdout errors='replace' on narrow consoles
 import re
 import sys
 
-from dataclasses import replace
 from pathlib import Path
 
 # kernel / definitions / client_config / coverage_map / doc_model / analysis /
@@ -170,29 +175,29 @@ def _definition(name: str, area: Path):
 # --------------------------------------------------------------------------- #
 
 def _unserved(defn, area: Path) -> list[dict]:
-    """M35's serviceability report, asked one binding at a time.
+    """M35's serviceability report, read as records in one pass (M51).
 
-    Asking per binding rather than once for the whole definition is what lets
-    `where` carry the binding NAME without parsing it back out of the gap
-    sentence: a single-binding copy of the definition gives the same gap
-    strings (serviceability only ever iterates `defn.bindings`) with exact
-    attribution. Declaration order — the order the definition file lists its
-    bindings in."""
+    `definitions.serviceability_records` carries the binding name as data on
+    each record, so `where` is attribution the report itself states — no
+    per-binding single-binding copy of the definition, no re-parsing a gap
+    sentence, one loader pass per definition. The sentences are the same
+    strings the flat report renders (the records are where they are
+    formatted), in the same declaration-grouped order — the entries here are
+    byte-identical to what the per-binding loop produced."""
     import definitions
     out: list[dict] = []
-    for bname, spec in (defn.bindings or {}).items():
-        one = replace(defn, bindings={bname: spec})
-        for gap in definitions.serviceability(one, area):
-            out.append({
-                "deliverable": defn.name,
-                "kind": KIND_UNSERVED,
-                "need": gap,
-                "where": bname,
-                "grounds": [gap,
-                            f'binding "{bname}" of deliverable '
-                            f'"{defn.name}" cannot be served by area '
-                            f"{_area_name(area)} as it stands"],
-            })
+    for rec in definitions.serviceability_records(defn, area):
+        bname, gap = rec["binding"], rec["gap"]
+        out.append({
+            "deliverable": defn.name,
+            "kind": KIND_UNSERVED,
+            "need": gap,
+            "where": bname,
+            "grounds": [gap,
+                        f'binding "{bname}" of deliverable '
+                        f'"{defn.name}" cannot be served by area '
+                        f"{_area_name(area)} as it stands"],
+        })
     return out
 
 
@@ -372,6 +377,31 @@ def _recorded(defn, area: Path) -> list[dict]:
 # The view
 # --------------------------------------------------------------------------- #
 
+def _preflight(area: Path) -> None:
+    """The broken-area refusal (M51 Part C), before any feed runs.
+
+    Two defects refuse BY NAME rather than rendering "no needs": an area path
+    that resolves to no engagement root (`plan_views._root_of`, the same
+    refusal the other views use, which names the area), and a manifest.json
+    that EXISTS but cannot be parsed as JSON (named too — area and manifest
+    both). A merely THIN area — real root, readable manifest, nothing
+    captured yet — passes untouched and renders its honest near-empty report:
+    thin is not a defect, broken is. Nothing feed-internal changes; this is
+    one gate at the door."""
+    import json
+    import plan_views
+    plan_views._root_of(area)          # raises ValueError, naming the area
+    manifest = area / "manifest.json"
+    if manifest.is_file():
+        try:
+            json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ValueError(
+                f"{area.name}: manifest.json exists but cannot be parsed as "
+                f"JSON ({exc}) — this area is broken, not thin; fix the "
+                f"manifest before asking what it needs") from exc
+
+
 def needs(area, deliverable=None) -> list[dict]:
     """The needs view for one engagement area: what blocks each target.
 
@@ -380,9 +410,11 @@ def needs(area, deliverable=None) -> list[dict]:
     afterwards, so the order is the walk and cannot drift from it. Read-only,
     cache-free, byte-equal on a repeat call.
 
-    Raises only for an unknown deliverable name (the loader's own refusal,
-    which names it). No objective and no name → `[]`."""
+    Raises for an unknown deliverable name (the loader's own refusal, which
+    names it) and for a BROKEN area (the preflight below, which names it too).
+    No objective and no name → `[]`."""
     area = Path(area)
+    _preflight(area)
     out: list[dict] = []
     for name in targets(area, deliverable):
         defn = _definition(name, area)
