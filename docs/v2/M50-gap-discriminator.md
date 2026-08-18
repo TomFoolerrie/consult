@@ -111,10 +111,11 @@ of scope by contract.
    owed-a-read anchor said "owed" where the render says "owe", and the
    split test reused one `tmp_path` across two fixture copies
    (`FileExistsError` before the assertion ran).
-7. **Recorded (pre-existing, not this ticket's):** the suite is
-   order-dependent under pytest-randomly (spurious tmp-dir collisions in
-   the M38/M40 view tests under some seeds) — M53 Part D's item, now with
-   a reproduction note.
+7. **Recorded (pre-existing, not this ticket's):** the suite was
+   order-dependent under pytest-randomly. ~~Spurious tmp-dir collisions
+   in the M38/M40 view tests~~ — CORRECTED at M53's close-out: those
+   files were innocent; the cause was `test_shape_audit_m36.py`'s
+   `client_config` reload minting new exception classes. Fixed in M53.
 
 ## Acceptance gate
 

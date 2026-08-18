@@ -13,6 +13,16 @@ guarantee.
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
 
+- **M53 — engine housekeeping** (`2.3.0-alpha.4`): `scripts/kinds.py`
+  becomes the kind resolvers' public home (the callout walk, the
+  prefix-through-declaration read, the nature helpers, the engagement
+  root, the thin-alias expansion) — pure relocation, owners keep thin
+  aliases, zero cross-module private reads remain; analysis.py's
+  docstring refreshed to the shipped surface; the random-order flake
+  root-caused (test_shape_audit_m36's client_config reload minting new
+  exception classes) and fixed behavior-free — suite green across
+  seeds. Suite 1253.
+
 - **M52 — one taxonomist brief** (`2.3.0-alpha.3`): `brief.py
   taxonomist <area> --kind SCOPING|CURATION|ADOPT-ROUTE` assembles the
   merged work order (objective, coverage summary, engagement-needs
