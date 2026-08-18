@@ -28,7 +28,30 @@ and nothing else. If characterization reveals the v1 path shares code
 with the matrix path, the ticket STOPS for a spec amendment before
 touching the shared line.
 
-### Part B — first-cell slug resolution
+### Amendment A0 — the shared-line ruling (pre-build, 2026-08-18)
+
+Part A's characterization triggered the stop condition: there is no
+separate v1 table-routing path — v1 appendix tables and the matrix flow
+through the one `extract_document` → heading-stack → `resolve_slug`
+line. Ruled on the characterization's evidence:
+
+1. **The first-cell rule is a FALLBACK, never an override:** it applies
+   only when the heading stack yields NO slug. In-procedure tables (v1
+   pain-point tables inside bodies) keep routing by heading stack —
+   pinned by the characterization.
+2. **v1 outcome-neutrality is provable and pinned:** v1 appendix first
+   cells never resolve a slug (`PP-…` prefixes defeat number/title
+   resolution), so their comments land `_unassigned` before and after —
+   the gate's `test_v1_appendix_outcome_unmoved_by_the_resolver` is the
+   evidence, and the v1 characterization tests must pass byte-identical.
+3. **Row-wide semantics** (the M38 docstring's mapping): any cell in a
+   matrix row resolves via that row's first cell under the fallback.
+4. **Scope: comments and tracked changes alike** — they share the
+   routing line, so the rule covers both; the gate exercises comments
+   (the M38 gap scenario), and tracked-change coverage is noted as
+   inherited, not separately pinned.
+
+### Part B — first-cell slug resolution (as amended by A0)
 
 A comment anchored to a matrix table row (or to text within a row-spanning
 range) resolves to the step slug rendered in that row's FIRST CELL — the
