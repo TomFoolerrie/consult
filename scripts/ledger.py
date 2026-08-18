@@ -347,6 +347,23 @@ def annotate(root, src_id: str, note: str) -> str:
 # Outstanding-ness — a ledger query, never a folder listing
 # --------------------------------------------------------------------------- #
 
+def _entry_remaining(entry: dict) -> dict[str, list[str]]:
+    """`{area: [slugs still owed a read]}` for ONE entry — touches minus
+    consumed, per area, order-preserving. The single computation behind
+    `outstanding` (per-area) and `show` (per-entry), so the two verbs can
+    never drift on what "owed a read" means."""
+    sid = str(entry.get("id") or "")
+    touches = _area_map(entry.get("touches"), "touches", sid)
+    consumed = _area_map(entry.get("consumed"), "consumed", sid)
+    out: dict[str, list[str]] = {}
+    for area, tagged in touches.items():
+        done = set(consumed.get(area, []))
+        remaining = [s for s in tagged if s not in done]
+        if remaining:
+            out[area] = remaining
+    return out
+
+
 def outstanding(root, area: str) -> dict[str, list[str]]:
     """`{src_id: [slugs this area still owes a read]}` for one area.
 
@@ -361,12 +378,64 @@ def outstanding(root, area: str) -> dict[str, list[str]]:
     out: dict[str, list[str]] = {}
     for entry in _load_ledger(root)["sources"]:
         sid = str(entry.get("id") or "")
-        tagged = _area_map(entry.get("touches"), "touches", sid).get(area, [])
-        done = set(_area_map(entry.get("consumed"), "consumed", sid).get(area, []))
-        remaining = [s for s in tagged if s not in done]
+        remaining = _entry_remaining(entry).get(area)
         if remaining:
             out[sid] = remaining
     return out
+
+
+def show(root) -> str:
+    """The engagement's source picture, for a human — read-only (M55).
+
+    One block per ledger entry, in registration order: id, file, registered
+    date, provenance (an entry with no `provenance:` field is client-provided
+    material — the default is stated, never left blank), the touches map, and
+    the consumption picture per area (which slugs each area has read it into,
+    and which it still owes a read). A source with touched-but-unconsumed
+    slugs is flagged in its own block; a short unconsumed tail closes the
+    render. Deterministic — ledger order, no clock, no folder listing (file
+    position is display; the ledger is truth).
+    """
+    lines: list[str] = ["SOURCE LEDGER"]
+    owed_tail: list[str] = []
+    for entry in _load_ledger(root)["sources"]:
+        sid = str(entry.get("id") or "")
+        touches = _area_map(entry.get("touches"), "touches", sid)
+        consumed = _area_map(entry.get("consumed"), "consumed", sid)
+        remaining = _entry_remaining(entry)
+        lines.append("")
+        lines.append(f"{sid}  {entry.get('file') or '(no file recorded)'}")
+        lines.append(f"  registered: {entry.get('registered') or '(unknown)'}")
+        provenance = str(entry.get("provenance") or "").strip()
+        lines.append(f"  provenance: {provenance or 'client-provided (default)'}")
+        if remaining:
+            lines.append("  OWED A READ — unconsumed slugs remain:")
+            for area, slugs in remaining.items():
+                lines.append(f"    {area}: {', '.join(slugs)} (not yet read)")
+        if not touches:
+            lines.append("  touches: (nothing — untagged; outstanding for a "
+                         "human)")
+        for area, tagged in touches.items():
+            lines.append(f"  touches {area}: {', '.join(tagged)}")
+            done = [s for s in tagged if s in set(consumed.get(area, []))]
+            if done:
+                lines.append(f"  consumed by {area}: {', '.join(done)}")
+            else:
+                lines.append(f"  consumed by {area}: (nothing yet)")
+        note = str(entry.get("note") or "").strip()
+        if note:
+            lines.append(f"  note: {note}")
+        if remaining:
+            owed_tail.append(
+                f"  {sid}: " + "; ".join(
+                    f"{a}: {', '.join(s)}" for a, s in remaining.items()))
+    lines.append("")
+    if owed_tail:
+        lines.append("UNCONSUMED TAIL — still owed a read:")
+        lines.extend(owed_tail)
+    else:
+        lines.append("UNCONSUMED TAIL: (empty — every tagged slug consumed)")
+    return "\n".join(lines) + "\n"
 
 
 # --------------------------------------------------------------------------- #
@@ -974,3 +1043,31 @@ def centralize(root) -> dict[str, str]:
         yaml.safe_dump({"remap": dict(sorted(remap.items()))}, fh,
                        sort_keys=False, allow_unicode=True)
     return remap
+
+
+# --------------------------------------------------------------------------- #
+# CLI — the one human-facing verb (M55); everything else is called in-process
+# --------------------------------------------------------------------------- #
+
+def main(argv=None) -> int:
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="THE engagement-root source ledger. One verb: `show` — "
+                    "the human-readable source picture (read-only).")
+    sub = ap.add_subparsers(dest="verb", required=True)
+    p_show = sub.add_parser("show", help="print every source with its "
+                                         "consumption picture and the "
+                                         "unconsumed tail")
+    p_show.add_argument("root", help="engagement root (the folder holding "
+                                     "_sources/)")
+    a = ap.parse_args(argv)
+    try:
+        print(show(a.root), end="")
+    except LedgerError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
