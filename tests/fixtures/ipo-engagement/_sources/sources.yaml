@@ -53,3 +53,14 @@ sources:
   state: processed
   note: Controller and Treasury walkthrough of the Friday run and statement reconciliation;
     the second lens on the capture-exception boundary.
+- id: SRC-004
+  file: _sources/processed/2026-06-12-treasury-payment-calendar.md
+  hash: 64ce34a18e3ee7a100bd10cfaa5fa28715487d696b5729b46c3fabd6f3a54b7c
+  registered: '2026-06-12'
+  touches:
+    purchasing:
+    - schedule-payment
+    - reconcile-statements
+  state: processed
+  note: Treasury's own FY2026 payment calendar and cutoff tabs, handed over after the
+    Controller walkthrough; registered but not yet read into either disbursement step.
