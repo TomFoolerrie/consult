@@ -13,6 +13,15 @@ guarantee.
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
 
+- **M51 — structured serviceability** (`2.3.0-alpha.2`):
+  `definitions.serviceability_records` returns attributed
+  `{binding, gap}` records (all four sentence sources tagged); the flat
+  `serviceability` strings derive from them byte-identically; needs.py
+  reads the records in one loader pass (the single-binding-copy loop
+  deleted); a preflight refusal lands in `needs()` — a rootless area or
+  an unparseable manifest refuses by name, a thin area still renders
+  ("thin is not a defect, broken is"). Suite 1236.
+
 - **M50 — the gap discriminator** (`2.3.0-alpha.1`): the `Nature:` enum
   (`conflict | evidenced-absence`) declared on the process-step GAP
   callout (`field_enums:`, kernel-validated, optional metadata — never a

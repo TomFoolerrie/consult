@@ -1,6 +1,7 @@
 # M51 — Structured serviceability: the "not yet" report becomes data
 
-**Status: SPECCED** (backlog line, unscheduled — build on the human's go).
+**Status: BUILT** (`2.3.0-alpha.2`, gate 10/10, suite 1236 — see
+Amendment A1). Scheduled by the human 2026-08-18 ("all, in order").
 Origin: M44 A2 item 1 ("a structured serviceability return is now wanted
 by two consumers — brief.py renders the sentences, needs.py re-derives
 their attribution"), plus M44 A2 item 4 (the broken-area posture, worth
@@ -65,6 +66,24 @@ expected — Part B is pinned byte-identical by the existing M44
 fingerprint, brief.py output is pinned byte-identical by its existing
 gates; if the build cannot hold byte-identity it stops and amends the
 spec. **Zero v1 tests change.**
+
+## Amendment A1 — build friction (recorded at close-out, 2026-08-18)
+
+1. **The absent-manifest posture, decided at build:** "manifest cannot
+   be read" means exists-but-unparseable; an ABSENT manifest is still
+   thin, not broken (the empty-area fixture depends on it). Stated here
+   since the spec left it implicit.
+2. **`plan_views._root_of` now has a third dependant** (needs.py's
+   preflight) — the argument for promoting it to a public name is now
+   three modules strong; M53 Part C is its scheduled home.
+3. **The CLI path is covered but unpinned:** needs.py's `main()` catches
+   the new refusal in its existing handler and exits 2 with the named
+   message; no test pins that exit path.
+4. **Process note:** the build was dispatched three times to an
+   opus-tier subagent and killed each time by server-side overload (529)
+   before any edit landed; the fourth dispatch inherited the session
+   model and delivered. Recorded because the standing method names the
+   subagent tier.
 
 ## Acceptance gate
 
