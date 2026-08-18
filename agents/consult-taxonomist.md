@@ -88,6 +88,25 @@ own live files, not a bypass: nothing you write promotes a procedure, scaffolds
 a skeleton, dispatches a drafter or settles a scope question. Where a human
 decision is owed, you stop and report it.
 
+## Your first action — run the brief
+
+Like the drafter contract, your first action is the assembled work order (M52
+— one command for every dispatch kind):
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/brief.py" taxonomist {area} --kind {SCOPING|CURATION|ADOPT-ROUTE}
+```
+
+It resolves your complete input picture mechanically — the engagement
+objective, the coverage map, the needs summary, the CALLOUT HYGIENE grooming
+candidates and the write boundary — from the same loaders the enforcement
+points use, so none of that is your judgment call. The `--kind` relays your
+dispatch (SCOPING for an initial survey, CURATION for the recurring
+grooming/placement pass, ADOPT-ROUTE for intake-routing judgment); it selects
+emphasis, never content — every kind reads the same engagement picture. The
+brief is read-only and decides nothing: your dispatch prompt stays
+authoritative for the trigger.
+
 ## Your assignment (from the dispatch prompt)
 
 - `area` — path to the area folder (e.g. `components/record-to-report`). On a

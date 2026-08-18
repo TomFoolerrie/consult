@@ -196,10 +196,14 @@ except Exception:  # pragma: no cover - sources.py ships beside us
 #: dispatch prompt emphasizes: `initial` = structure + sufficiency +
 #: information requests, before drafting spends tokens; `incremental` = the
 #: delta plus curation (M6's reassessment and M24's placement pass, unified).
-#: Paths are plugin-relative, like every other brief path in the skill prose.
+#: Since M52 the value is the ONE assembled work-order COMMAND
+#: (`brief.py taxonomist`, agent contract `agents/consult-taxonomist.md`),
+#: with the dispatch kind the mode maps to — the kind selects emphasis, never
+#: content. Paths are plugin-relative, like every other path in the skill
+#: prose; `<area>` is the driver's substitution.
 _CENTRAL_TAXONOMY_BRIEFS = {
-    "initial": "agents/consult-taxonomist.md",
-    "incremental": "agents/consult-taxonomist.md",
+    "initial": "scripts/brief.py taxonomist <area> --kind SCOPING",
+    "incremental": "scripts/brief.py taxonomist <area> --kind CURATION",
 }
 
 # NOTE KINDS are owned by notes_util (the M6 bus contract). Borrowed for the

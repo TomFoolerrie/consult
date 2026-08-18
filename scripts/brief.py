@@ -6,6 +6,8 @@ Usage:
     python3 scripts/brief.py <area> --slug <slug> --mode update          # drafter, mode-scoped
     python3 scripts/brief.py <area> --kind raci|dependencies             # synthesis
     python3 scripts/brief.py <area> --objective                          # objective block
+    python3 scripts/brief.py taxonomist <area-or-root> --kind SCOPING|CURATION|ADOPT-ROUTE
+                                                                         # taxonomist (M52)
 
 Why this exists (design note): the orchestrator's advisor works because
 orchestration is a state machine; a drafting pass is one sitting of judgment
@@ -223,6 +225,280 @@ def objective_block(area) -> str:
         for gap in gaps:
             _line(out, f"      - {gap}")
     _line(out)
+    return "\n".join(out)
+
+
+# --------------------------------------------------------------------------- #
+# M52 — the one taxonomist work order
+#
+# THE ONE ASSEMBLY SITE for the taxonomist's picture of the engagement:
+# `taxonomist_picture` composes objective + coverage + needs + grooming +
+# write boundary, and BOTH entrypoints (`brief.py taxonomist` here, and
+# `engagement.py brief`, which delegates) print these same words. The DISPATCH
+# KIND selects emphasis, never content — every kind-dependent line the verb
+# emits carries the uppercase token "KIND", so two kinds' briefs are provably
+# the same engagement picture once those lines are dropped (the M52 gate's
+# content pin). Read-only and deterministic, like every block in this file.
+
+#: The dispatch kinds the taxonomist verb relays (M52). The caller sets one;
+#: the brief never decides it — the drafter `--mode` precedent, verbatim.
+TAXONOMIST_KINDS = ("SCOPING", "CURATION", "ADOPT-ROUTE")
+
+
+def _taxonomist_targets(path: str) -> tuple[Path, Path]:
+    """`(root, area)` for the taxonomist picture — `root` is what the hygiene
+    feeder walks (a components/ dir, or a v1 engagement root), `area` is the
+    folder the config layers and the needs view resolve through.
+
+    Accepts an AREA folder (`components/<area>` — the dispatch's usual shape,
+    manifest not required: a SCOPING pass legitimately pre-dates it) or an
+    engagement/components ROOT (the area then resolves to the first area dir,
+    engagement.py's `_objective_area` rule). Anything that is not a directory
+    refuses by name via `_fail` — a brief about a folder that is not there
+    would be a lie."""
+    p = Path(path)
+    if not p.is_dir():
+        raise _fail(f"{p} is not a directory — pass the AREA folder "
+                    f"(components/<area>) or the engagement root")
+    if (p / "components").is_dir():
+        comps = p / "components"
+    elif p.name == "components":
+        comps = p
+    else:
+        return p.parent, p
+    area = next((d for d in sorted(comps.iterdir())
+                 if d.is_dir() and not d.name.startswith(("_", "."))), None)
+    if area is None:
+        raise _fail(f"{comps} holds no area directories — nothing to brief")
+    return comps, area
+
+
+def _one_line(text: str, limit: int = 160) -> str:
+    """One line, bounded — the compactness the summary sections promise."""
+    s = " ".join(str(text or "").split())
+    return s if len(s) <= limit else s[:limit - 1] + "…"
+
+
+def _coverage_section(out: list[str], root: Path) -> None:
+    """COVERAGE MAP summary — `coverage_map.coverage` over the node→step
+    relation, the relation itself from `plan_views.node_steps` (imported,
+    never re-derived: the charter's cache/derivation guardrail)."""
+    _line(out, "COVERAGE MAP (coverage_map.coverage over the node→step "
+               "relation — derived on demand, cached nowhere; you are handed "
+               "it, you never re-derive it and never write a coverage file):")
+    eng_root = root.parent if root.name == "components" else root
+    try:
+        import coverage_map
+        import plan_views
+        relation: dict[str, list[str]] = {}
+        comps = eng_root / "components"
+        areas = sorted(d for d in comps.iterdir()
+                       if d.is_dir() and not d.name.startswith(("_", "."))) \
+            if comps.is_dir() else []
+        for d in areas:
+            try:
+                relation.update(plan_views.node_steps(d))
+            except Exception:      # noqa: BLE001 - a pre-manifest area has
+                pass               # no relation to contribute, not an error
+        cov = coverage_map.coverage(eng_root, relation)
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        _line(out, f"  UNREADABLE — {type(exc).__name__}: {exc}; report it, "
+                   f"do not reconstruct coverage yourself")
+        _line(out)
+        return
+    if not cov:
+        _line(out, "  no taxonomy nodes yet — coverage starts when node "
+                   "files exist under <area>/_taxonomy/")
+        _line(out)
+        return
+    counts: dict[str, int] = {}
+    for status in cov.values():
+        counts[status] = counts.get(status, 0) + 1
+    _line(out, "  " + ", ".join(f"{k}: {n}" for k, n in sorted(counts.items())))
+    for slug in sorted(cov):
+        steps = relation.get(slug) or []
+        _line(out, f"  - {slug}: {cov[slug]}  ({len(steps)} step(s))")
+    _line(out)
+
+
+def _needs_section(out: list[str], area: Path) -> None:
+    """ENGAGEMENT NEEDS summary — `needs.needs(area)` (M44's render), counts
+    per feed plus bounded one-liners; the full view stays a render the agent
+    runs itself."""
+    _line(out, "ENGAGEMENT NEEDS (summary of `needs.needs` — the full "
+               "engagement-needs render is `python3 scripts/needs.py "
+               "<area>`; nothing here is ranked):")
+    try:
+        import needs as needs_mod
+        items = needs_mod.needs(area)
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        _line(out, f"  UNREADABLE — {type(exc).__name__}: {exc}; report it, "
+                   f"do not guess what blocks the deliverables")
+        _line(out)
+        return
+    if not items:
+        _line(out, "  none — no objective-selected target reports a "
+                   "blocking need")
+        _line(out)
+        return
+    counts: dict[str, int] = {}
+    for it in items:
+        k = str(it.get("kind", "?"))
+        counts[k] = counts.get(k, 0) + 1
+    _line(out, "  " + ", ".join(f"{k}: {n}" for k, n in sorted(counts.items())))
+    for it in items[:12]:
+        _line(out, f"  - [{it.get('kind', '?')}] {it.get('deliverable', '?')}"
+                   f" · {it.get('where', '?')}: {_one_line(it.get('need'))}")
+    if len(items) > 12:
+        _line(out, f"  … {len(items) - 12} more — run the needs render for "
+                   f"the full list")
+    _line(out)
+
+
+def _grooming_section(out: list[str], root: Path) -> None:
+    """CALLOUT HYGIENE (M43 Part E) — the grooming feed the curation kind
+    reads: `scripts/hygiene.py` computes the candidates, this prints them.
+    Candidates, never verdicts. Moved here from engagement.py at M52 so both
+    entrypoints print the same feed; a refusing generator is named LOUD and
+    does not take the brief with it (the M41 objective-section precedent)."""
+    _line(out, "CALLOUT HYGIENE (mechanical candidates for your grooming "
+               "judgment — candidates, never verdicts; you read the words "
+               "and decide):")
+    try:
+        import hygiene
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        _line(out, f"  UNREADABLE — the hygiene feeder did not import "
+                   f"({type(exc).__name__}: {exc}); groom from the registers "
+                   f"and say so in your status.")
+        _line(out)
+        return
+    eng_root = root.parent if root.name == "components" else root
+    if not (eng_root / "components").is_dir():
+        _line(out, f"  UNREADABLE — {root} is not a components/ dir under an "
+                   f"engagement root; the hygiene feeder is engagement-scoped "
+                   f"and will not guess the walk.")
+        _line(out)
+        return
+    total = 0
+    for kind, gen in ((hygiene.KIND_DUPLICATE_GAPS,
+                       hygiene.duplicate_gap_candidates),
+                      (hygiene.KIND_GAP_ANSWERED,
+                       hygiene.answered_gap_candidates),
+                      (hygiene.KIND_CTRL_MISSING_FIELD,
+                       hygiene.thin_ctrl_candidates)):
+        try:
+            cands = gen(eng_root)
+        except hygiene.HygieneError as exc:
+            _line(out, f"  {kind}: UNREADABLE — {exc}")
+            continue
+        except Exception as exc:                 # noqa: BLE001 - loud, not fatal
+            _line(out, f"  {kind}: UNREADABLE — {type(exc).__name__}: {exc}")
+            continue
+        _line(out, f"  {kind}: {len(cands)}")
+        total += len(cands)
+        for c in cands:
+            if kind == hygiene.KIND_DUPLICATE_GAPS:
+                ids, areas_, slugs = c["ids"], c["areas"], c["slugs"]
+                _line(out, f"    - {ids[0]} ({areas_[0]}/{slugs[0]}) ≈ "
+                           f"{ids[1]} ({areas_[1]}/{slugs[1]})  "
+                           f"overlap {c['similarity']}: "
+                           f"{_one_line(c['texts'][0])} || "
+                           f"{_one_line(c['texts'][1])}")
+            elif kind == hygiene.KIND_GAP_ANSWERED:
+                _line(out, f"    - {c['id']} ({c['area']}/{c['slug']}) ← "
+                           f"{c['src']} ({c['src_file']}), tagged not consumed"
+                           + (f"; note: {_one_line(c['note'])}"
+                              if c['note'] else "")
+                           + f"  gap: {_one_line(c['text'])}")
+            else:
+                _line(out, f"    - {c['id']} ({c['area']}/{c['slug']}) missing "
+                           f"{', '.join(c['missing'])}: {_one_line(c['text'])}")
+    if total == 0:
+        _line(out, "  none — no duplicate-gap pairs, no gap a tagged-"
+                   "unconsumed source may answer, no control missing a "
+                   "declared field. Nothing to groom mechanically.")
+    _line(out)
+
+
+def taxonomist_picture(root, area=None) -> str:
+    """The taxonomist's engagement picture (M52) — THE one assembly site.
+
+    Kind-INDEPENDENT by construction: no line here mentions any dispatch
+    kind, so the M52 content pin (drop the KIND lines, the remainder is
+    byte-equal across kinds) holds trivially. `engagement.py brief` prints
+    this same block, so the two entrypoints cannot drift."""
+    root = Path(root)
+    if area is None:
+        area = next((d for d in sorted(root.iterdir())
+                     if d.is_dir() and not d.name.startswith(("_", "."))),
+                    None)
+    out: list[str] = []
+    if area is None:
+        _line(out, "ENGAGEMENT OBJECTIVE: no area under this components/ dir "
+                   "to resolve the config layers through — report it.")
+        _line(out)
+    else:
+        try:
+            _line(out, objective_block(area).rstrip("\n"))
+        except client_config.ClientConfigError as exc:
+            # LOUD, never fatal — the M41 WP-O3 precedent: a malformed
+            # objective must not take the dispatch down.
+            _line(out, f"ENGAGEMENT OBJECTIVE: UNREADABLE — {exc}")
+            _line(out, "  fix the `objective:` block before trusting this "
+                       "pass's scope judgments; do not guess the goal.")
+        _line(out)
+    _line(out, "SCOPE TRIGGER (M41): a LIVE taxonomy node outside the "
+               "objective's cycles is a finding — propose removal or a scope "
+               "amendment to the human in your status. Deletion stays "
+               "proposed, never executed by you.")
+    _line(out)
+    _coverage_section(out, root)
+    if area is not None:
+        _needs_section(out, area)
+    _grooming_section(out, root)
+    _line(out, "WRITE BOUNDARY (M45 — said once, the same for every "
+               "dispatch):")
+    _line(out, "  - LIVE node refinement happens IN PLACE: you edit "
+               "<area>/_taxonomy/<node>.md directly — you are its one writer")
+    _line(out, "  - FRESH node sets stage under "
+               "<area>/_reference/.proposed/_taxonomy/ for the human confirm "
+               "gate (promoted by scaffold.py --promote-taxonomy, never by "
+               "you)")
+    _line(out, "  - never delete a live node: removal, merge or retirement "
+               "is a proposal to the human, never your edit")
+    _line(out, "  - everything outside your files is another writer's: "
+               "propose through the notes bus (engagement.py note), never "
+               "edit")
+    return "\n".join(out)
+
+
+def taxonomist_brief(path: str, kind: str) -> str:
+    """The merged taxonomist work order: the engagement picture, framed by
+    the DISPATCH KIND lines. Every kind-dependent line carries the token
+    "KIND" — the M52 design rule the acceptance gate enforces."""
+    root, area = _taxonomist_targets(path)
+    out: list[str] = []
+    _line(out, f"WORK ORDER — consult-taxonomist · {area}")
+    _line(out, f"  YOUR DISPATCH KIND: {kind}  (relayed from your dispatch — "
+               f"the KIND selects emphasis, never content)")
+    _line(out)
+    _line(out, taxonomist_picture(root, area))
+    _line(out)
+    _line(out, "DISPATCH KIND (one brief, three emphases — every line here "
+               "carries KIND; the picture above is identical for all):")
+    _line(out, "  KIND SCOPING — propose/refine the L3 node set, judge "
+               "per-node sufficiency against the coverage map, return "
+               "client-ready information requests for thin/empty/conflicted "
+               "nodes")
+    _line(out, "  KIND CURATION — groom the existing population "
+               "(engagement-scoped, one area suffices): hygiene candidates, "
+               "the needs view, one-fact-one-home placement; proposals ride "
+               "the notes bus to the scope gate")
+    _line(out, "  KIND ADOPT-ROUTE — judge intake routing and adoption "
+               "against the structure: refine tags only; sources enter only "
+               "through engagement.py route/adopt — you never mint an entry, "
+               "never write a hash")
+    _line(out, f"  THIS DISPATCH'S KIND: {kind}")
     return "\n".join(out)
 
 
@@ -628,7 +904,28 @@ def synthesis_brief(folder: Path, manifest: dict, kind: str) -> str:
     return "\n".join(out)
 
 
+def _taxonomist_main(argv: list[str]) -> int:
+    """The `taxonomist` verb (M52): parse, print the merged work order."""
+    ap = argparse.ArgumentParser(
+        prog="brief.py taxonomist",
+        description="The merged taxonomist work order (M52) — read-only.")
+    ap.add_argument("area", help="area folder (components/<area>) or the "
+                                 "engagement root")
+    ap.add_argument("--kind", required=True, choices=TAXONOMIST_KINDS,
+                    help="the dispatch kind — relayed, never decided here; "
+                         "selects emphasis, never content")
+    a = ap.parse_args(argv)
+    print(taxonomist_brief(a.area, a.kind))
+    return 0
+
+
 def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "taxonomist":
+        # M52: the one subcommand this CLI grew. Dispatched before the flat
+        # parser because `--kind` means a synthesis kind there — the two
+        # grammars must not blur.
+        return _taxonomist_main(argv[1:])
     ap = argparse.ArgumentParser(
         description="Deterministic work order for a subagent pass "
                     "(read-only).")

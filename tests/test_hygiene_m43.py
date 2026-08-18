@@ -55,8 +55,11 @@ needs_unit_line = pytest.mark.skipif(
     "YOUR UNIT" not in (REPO / "scripts" / "brief.py").read_text("utf-8"),
     reason="M43 unit line not built yet — the target")
 
+# M52 mechanical repoint: the CALLOUT HYGIENE section moved into the one
+# assembly site (brief.taxonomist_picture, which engagement.py brief prints
+# by delegation) — same wiring gate, new home for the literal.
 needs_wiring = pytest.mark.skipif(
-    "CALLOUT HYGIENE" not in (REPO / "scripts" / "engagement.py").read_text("utf-8"),
+    "CALLOUT HYGIENE" not in (REPO / "scripts" / "brief.py").read_text("utf-8"),
     reason="M43 librarian wiring not built yet — the target")
 
 
