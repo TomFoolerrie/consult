@@ -1,16 +1,16 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.2.0 (2026-08-17)** — the spine (M33–M39) plus
+**Status: RELEASED AS 2.3.0 (2026-08-18)** — the spine (M33–M39) plus
 M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
-engagement-lens line: the needs view + two-mint GAP, the taxonomist
-merge, the interview agenda, the research pass, the efficiency pass,
-the analyst dispatch path) shipped as 2.2.0. Suite 1199 passing (1
-pinned xfail), the compatibility gate green, every shipped definition
-rendering end-to-end. All merges made on the human's explicit go —
-the 2.2.0 pre-merge review re-affirmed D1 and D5 as shipped.
+engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
+gap discriminator, structured serviceability, the merged taxonomist
+brief, engine housekeeping, table-row comment routing, the recorded
+wants) shipped as 2.3.0. Suite 1261 passing with ZERO xfails (the
+standing M38 table-routing xfail retired in M54) and zero skips, the
+compatibility gate green, every shipped definition rendering
+end-to-end. All merges made on the human's explicit go.
 v1.20.0 is preserved on `v1.20-stable`.
-The recorded backlog is now ticketed as **M50–M55** (SPECCED,
-unscheduled — each builds on the human's go): the gap discriminator
+The recorded backlog shipped as **M50–M55** (2.3.0): the gap discriminator
 (M50), structured serviceability (M51), the merged taxonomist brief
 (M52), engine housekeeping (M53), table-row comment routing (M54), and
 the recorded wants — ledger verb + appendix optionality (M55).

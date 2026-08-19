@@ -9,7 +9,7 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
-## [Unreleased — 2.3.0]
+## [2.3.0] — 2026-08-18
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
 
