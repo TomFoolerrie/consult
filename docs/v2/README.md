@@ -1,24 +1,28 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.2.0 (2026-08-17)** — the spine (M33–M39) plus
+**Status: RELEASED AS 2.3.0 (2026-08-18)** — the spine (M33–M39) plus
 M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
-engagement-lens line: the needs view + two-mint GAP, the taxonomist
-merge, the interview agenda, the research pass, the efficiency pass,
-the analyst dispatch path) shipped as 2.2.0. Suite 1199 passing (1
-pinned xfail), the compatibility gate green, every shipped definition
-rendering end-to-end. All merges made on the human's explicit go —
-the 2.2.0 pre-merge review re-affirmed D1 and D5 as shipped.
+engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
+gap discriminator, structured serviceability, the merged taxonomist
+brief, engine housekeeping, table-row comment routing, the recorded
+wants) shipped as 2.3.0. Suite 1261 passing with ZERO xfails (the
+standing M38 table-routing xfail retired in M54) and zero skips, the
+compatibility gate green, every shipped definition rendering
+end-to-end. All merges made on the human's explicit go.
 v1.20.0 is preserved on `v1.20-stable`.
-Follow-up ticket candidates are recorded in each ticket's amendments —
-headline items: table-row comment routing (pinned xfail), a semantic
-kind marker on callout declarations (M43's `fields:` key is the surface
-it would use), an `analysis.py brief` CLI + analyst dispatch hint +
-conflict-records extractor, a human-readable ledger verb,
-appendix-controls optionality, an `expand_coverage_statuses` owner for
-the thin alias + a published area→engagement-root helper (M40 A1), a
-shared public home for the kind resolvers now that hygiene.py is their
-second consumer (M43 A1), and the PAIN↔CTRL cross-reference field
-names as an open ruling (M42 A1).
+The recorded backlog shipped as **M50–M55** (2.3.0): the gap discriminator
+(M50), structured serviceability (M51), the merged taxonomist brief
+(M52), engine housekeeping (M53), table-row comment routing (M54), and
+the recorded wants — ledger verb + appendix optionality (M55).
+Items NOT ticketed, each waiting on a ruling or a trigger: the
+PAIN↔CTRL cross-reference field names (M42 A1 — an open human ruling);
+the deeper cut into the drafter's shared law (M48 A1 — a candidate,
+worth it only if dispatch cost bites); a definitions.py binding verb
+for derived-view feeds (M46 A1 — waits for a third consumer); the
+raci/dependencies fold (M48 roster — lands with the v1 retirement,
+not before); typing `company_profile.md` (M47 — waits until something
+needs to bind it); and a de-dupe rule for multiple `coverage:` bindings
+on one definition (M44 A2 — waits until such a definition exists).
 
 ## The shift
 
@@ -198,6 +202,12 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M47](M47-research-pass.md) | The research pass: staged `_client/.proposed/` files, public provenance never discharges a need, day-zero PBC list (**BUILT**, 2.2.0-alpha.4, gate 8/8) |
 | [M48](M48-efficiency-pass.md) | The efficiency pass: drafter contract split by unit, cheap-tier revise path, roster audit (**BUILT**, 2.2.0-alpha.5, gate 10/10) |
 | [M49](M49-analyst-dispatch.md) | The analyst dispatch path: `analysis.py brief` CLI, the conflict-records extractor, `findings.for_area`, the skill passage (**BUILT**, 2.2.0-alpha.6, gate 14/14) |
+| [M50](M50-gap-discriminator.md) | The gap discriminator: the `Nature:` enum declared on the type, needs/agenda consume it, the unconsumed-source fixture (**BUILT**, 2.3.0-alpha.1, gate 18/18) |
+| [M51](M51-structured-serviceability.md) | Structured serviceability: the "not yet" report becomes attributed records; the broken-area refusal (**BUILT**, 2.3.0-alpha.2, gate 10/10) |
+| [M52](M52-taxonomist-brief.md) | One taxonomist brief: survey + curation work orders assembled in one place, a kind line selects emphasis (**BUILT**, 2.3.0-alpha.3, gate 9/9) |
+| [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**BUILT**, 2.3.0-alpha.4, gate 8/8) |
+| [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**BUILT**, 2.3.0-alpha.6, gate 7/7, zero xfails) |
+| [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**BUILT**, 2.3.0-alpha.5, gate 9/9) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.

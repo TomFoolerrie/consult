@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
 """
-analysis.py — M39's mechanical candidate generators (docs/v2/M39-analysis-verbs.md
-Part B, verbs 2 and 4, plus the pain inventory verb 1 clusters).
+analysis.py — the mechanical candidate generators (docs/v2/M39-analysis-verbs.md,
+extended by M49) and the analyst's work-order CLI.
+
+THE SHIPPED SURFACE. Four generators, each area-scoped, deterministic and
+read-only:
+
+  control_gap_candidates   verb 2 — steps that produce and declare no control
+  handoff_candidates       verb 4 — orphan outputs and shared inputs (handoff
+                           friction across the IPO edges)
+  pain_inventory           verb 1's raw material — every pain-kind callout,
+                           verbatim, with its sources
+  conflict_records         the fourth verb (M49 Part B) — every gap that is a
+                           conflict on its face (two+ distinct SRC citations,
+                           or the v1 `Nature: conflict` grammar)
+
+plus the CLI (M49 Part A): `analysis.py brief <area>` prints the analyst's
+work order — the license block, all four feeds, the findings-register state
+and the objective — as one read-only block (`analyst_brief`).
 
 WHAT THIS MODULE IS, AND WHAT IT DELIBERATELY IS NOT. Everything here is a
 CANDIDATE generator: a pure, deterministic pass over one area's corpus that says
@@ -100,7 +116,11 @@ would be fixture convenience dressed as analysis):
 Python 3, stdlib + the engine's own modules. Small parsing helpers are IMPORTED
 from scripts/matrix_views.py (the module that already reads these parts for the
 matrix) rather than re-spelled here — one parser for the IPO lists, so a
-candidate can never disagree with the matrix about what a step's edges are.
+candidate can never disagree with the matrix about what a step's edges are. The
+shared kind resolvers — the step walk, the callout reads, the gap-kind and
+`Nature:` resolution — live in scripts/kinds.py (M53's shared public home) and
+are re-exported here under their historical private names for this module's
+own use and its older importers.
 """
 
 from __future__ import annotations
@@ -113,6 +133,7 @@ import re
 from pathlib import Path
 
 import kernel
+import kinds
 
 # The IPO list parser, the manifest-ordered step walk, the node walk and the
 # binding readers already exist for the matrix view. Reused, not re-spelled.
@@ -131,11 +152,11 @@ from matrix_views import (
 #: binding names inside them. Definition + binding names only: the contract with
 #: the definition files, never the document's shape.
 MATRIX_DEFINITION = "process-controls-matrix"
-REQUEST_DEFINITION = "information-request"
+REQUEST_DEFINITION = kinds.REQUEST_DEFINITION
 BINDING_IO = "io-edges"
 BINDING_CONTROLS = "control-callouts"
 BINDING_OPEN = "open-items"
-BINDING_GAPS = "step-gaps"
+BINDING_GAPS = kinds.BINDING_GAPS
 
 #: An SRC id as the ledger mints it and as callout bodies name it (coverage_map's
 #: grammar, same shape, matched on the id half so the v1 `area/SRC-001` form
@@ -158,7 +179,7 @@ KIND_CONFLICT_RECORD = "conflict-record"
 #: conflict. Field name and value are compared case-insensitively — the field is
 #: hand-authored prose furniture, not document shape (the shape audit's concern
 #: is part/callout vocabulary, which still comes from the declaration below).
-NATURE_FIELD = "nature"
+NATURE_FIELD = kinds.NATURE_FIELD
 NATURE_CONFLICT = "conflict"
 
 #: How many DISTINCT sources make a gap a conflict on its face (the two-mint
@@ -225,18 +246,10 @@ def _control_prefix(tdecl, area) -> str:
 
 
 def _gap_prefix(tdecl, area) -> str:
-    """The validation-gap callout kind's prefix — read from the information
-    request's `step-gaps` binding, the same declaration read `_pain_prefix`
-    subtracts with. No label typed, so a reshape of the type fails the
-    definition rather than silently changing what a conflict record is."""
-    prefixes = _prefixes(tdecl, _names(
-        _binding(_definition_bindings(REQUEST_DEFINITION, area), BINDING_GAPS),
-        "callouts"))
-    if len(prefixes) != 1:
-        raise AnalysisError(
-            f"{BINDING_GAPS!r} selects {len(prefixes)} callout kind(s) "
-            f"({prefixes}) — the conflict extractor asks about one kind")
-    return prefixes[0]
+    """The validation-gap callout kind's prefix — `kinds.gap_prefix` (the
+    shared resolver, one body since M53), refusing as `AnalysisError` so this
+    module's callers keep their historical catch sites."""
+    return kinds.gap_prefix(tdecl, area, _err=AnalysisError)
 
 
 def _pain_prefix(tdecl, area) -> str:
@@ -294,18 +307,11 @@ def normalize_artifact(item: str) -> str:
     return re.sub(r"\s+", " ", head).strip().lower()
 
 
-def _callouts(entity, prefix: str) -> list[dict]:
-    return [c for c in entity.callout_dicts() if c.get("prefix") == prefix]
-
-
-def _callout_blob(callout: dict) -> str:
-    return " ".join([str(callout.get("text") or "")]
-                    + [str(v) for v in (callout.get("fields") or {}).values()])
-
-
-def _area_steps(area: Path):
-    tdecl = _step_type()
-    return tdecl, _steps(Path(area), tdecl)
+# The callout reads and the step walk moved to scripts/kinds.py (M53); the
+# historical private names remain as aliases for this module and its importers.
+_callouts = kinds.callouts
+_callout_blob = kinds.callout_blob
+_area_steps = kinds.area_steps
 
 
 # --------------------------------------------------------------------------- #
@@ -486,16 +492,8 @@ def pain_inventory(area) -> list[dict]:
 # M49 Part B — the fourth verb: conflict records
 # --------------------------------------------------------------------------- #
 
-def _nature(callout: dict) -> str | None:
-    """The v1 `Nature:` field's value, lowercased, or None when absent.
-
-    The field NAME is matched case-insensitively too: a drafter who wrote
-    `nature:` said the same thing as one who wrote `Nature:`, and a record that
-    depended on the capital would be a silent miss."""
-    for key, value in (callout.get("fields") or {}).items():
-        if str(key).strip().lower() == NATURE_FIELD:
-            return str(value).strip().lower()
-    return None
+# The `Nature:` field read moved to scripts/kinds.py (M53), alias as above.
+_nature = kinds.nature
 
 
 def conflict_records(area) -> list[dict]:
@@ -699,9 +697,8 @@ def main(argv=None) -> int:
               f"path (e.g. components/<area>)", file=sys.stderr)
         return 2
 
-    import plan_views
     try:
-        root = plan_views._root_of(area)
+        root = kinds.engagement_root(area)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

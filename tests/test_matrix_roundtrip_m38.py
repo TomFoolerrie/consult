@@ -280,24 +280,29 @@ class TestNoNoteTargetsTheMatrix:
 # --------------------------------------------------------------------------- #
 
 class TestRoutingGap:
-    """review_extract routes by the H2 heading stack. The matrix is ONE H2
-    section with taxonomy-node H3s, so a row-anchored item resolves to NO
-    procedure slug and lands in `_unassigned` — the gap WP-M3 anticipated.
-    Asserted as CURRENT behavior here, with the desired end state pinned as a
-    strict xfail below. Not faked into a pass."""
+    """The gap WP-M3 anticipated, CLOSED by M54 (Amendment A0): when the H2
+    heading stack resolves no slug and the anchoring w:p sits inside a w:tbl
+    row, review_extract now resolves the slug from the row's FIRST CELL
+    (`_row_first_cell`) through the existing `resolve_slug` — exactly the
+    mapping `test_row_first_cell_carries_both_resolution_keys` proved
+    available. The former strict xfail below asserts positively; the former
+    current-behavior test pins the NEW routed outcome."""
 
     def test_current_behavior_row_items_route_to_unassigned(self, area):
+        """(M54: was the pinned OLD behavior — row items in _unassigned.)
+        Row-anchored items now route to the OWNING step's slug via the
+        row's first cell; the anchor still carries the first-cell text and
+        nothing falls to _unassigned."""
         mark_up_matrix(area)
         assert review_extract.main([str(area / "_review" / "returned"),
                                     "--no-archive"]) == 0
-        assert notes(area, OWNING_SLUG) is None, (
-            "routing gap closed? flip the xfail below")
-        items = notes(area, review_extract.UNASSIGNED)
+        assert notes(area, review_extract.UNASSIGNED) is None
+        items = notes(area, OWNING_SLUG)
         assert items and len(items) == 2
-        # the anchor still names the owning row, so nothing is lost — only the
-        # slug resolution is missing.
+        # the anchor still names the owning row — the first-cell text — so
+        # nothing is lost in the re-dispatch.
         assert any(OWNING_HEADING in it["anchor"] for it in items)
-        # location degrades to the taxonomy-node H3, not the step
+        # location still degrades to the taxonomy-node H3, not the step
         assert all(it["location"] for it in items)
 
     def test_row_first_cell_carries_both_resolution_keys(self, area):
@@ -320,13 +325,9 @@ class TestRoutingGap:
             cell_text.split("(")[-1].rstrip(") ") + " " + OWNING_HEADING,
             num2slug, title2slug) == OWNING_SLUG
 
-    @pytest.mark.xfail(strict=True, reason="M38 WP-M3 documented gap: "
-                       "review_extract resolves slugs from the H2 heading "
-                       "stack only, so a matrix ROW cannot name its owning "
-                       "step. Needs row->slug resolution from the row's first "
-                       "cell (see test_row_first_cell_carries_both_"
-                       "resolution_keys). Flips to a pass when that lands.")
     def test_desired_row_comment_targets_the_owning_step(self, area):
+        """Formerly the suite's one strict xfail — flipped positive by M54
+        Part B (`_row_first_cell` in scripts/review_extract.py)."""
         mark_up_matrix(area)
         assert review_extract.main([str(area / "_review" / "returned"),
                                     "--no-archive"]) == 0

@@ -109,22 +109,24 @@ import ledger
 
 # The declaration-driven resolvers, the manifest-ordered step walk, the citation
 # grammar and the token flattener already exist for the analyst's candidates.
-# Reused, not re-spelled — including the private ones: this module is asking the
-# same questions of the same declaration, and a second copy of the resolver is a
-# second place for the vocabulary to drift.
+# Reused, not re-spelled: the shared kind resolvers come from their M53 public
+# home (scripts/kinds.py), the rest from analysis — one parser for a callout,
+# so a hygiene candidate can never disagree with the matrix or the analyst
+# about what a step's callouts are.
+import kinds
+
+from kinds import (
+    area_steps as _area_steps,
+    callout_blob as _callout_blob,
+    callouts as _callouts,
+)
+
 from analysis import (
     SRC_ID_RE as SRC_ID_RE,
     REQUEST_DEFINITION as REQUEST_DEFINITION,
     BINDING_GAPS as BINDING_GAPS,
-    _area_steps as _area_steps,
-    _binding as _binding,
-    _callout_blob as _callout_blob,
-    _callouts as _callouts,
     _control_prefix as _control_prefix,
-    _definition_bindings as _definition_bindings,
     _flatten as _flatten,
-    _names as _names,
-    _prefixes as _prefixes,
 )
 
 # The engagement's area walk (name order, `_`-prefixed dirs skipped).
@@ -170,17 +172,10 @@ class HygieneError(RuntimeError):
 # --------------------------------------------------------------------------- #
 
 def _gap_prefix(tdecl, area) -> str:
-    """The gap callout kind's prefix, from the information-request definition's
-    `step-gaps` binding — the same binding the request builder asks."""
-    prefixes = _prefixes(tdecl, _names(
-        _binding(_definition_bindings(REQUEST_DEFINITION, area), BINDING_GAPS),
-        "callouts"))
-    if len(prefixes) != 1:
-        raise HygieneError(
-            f"{BINDING_GAPS!r} selects {len(prefixes)} callout kind(s) "
-            f"({prefixes}) — the gap hygiene generators ask about one kind and "
-            f"will not fall back on a typed label")
-    return prefixes[0]
+    """The gap callout kind's prefix — `kinds.gap_prefix` (the shared resolver,
+    one body since M53), refusing as `HygieneError` so this module's callers
+    keep their historical catch sites."""
+    return kinds.gap_prefix(tdecl, area, _err=HygieneError)
 
 
 def _declared_fields(tdecl, prefix: str) -> tuple[str, ...]:

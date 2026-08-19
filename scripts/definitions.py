@@ -479,7 +479,10 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
 # Stage 3 — serviceability (a REPORT, never an exception)
 #
 # NOT part of load_definition_file's stage run: loading stays engagement-free,
-# and "not yet" is an answer, not a refusal.
+# and "not yet" is an answer, not a refusal. Two surfaces since M51:
+# `serviceability_records` (one record per gap, binding attribution as data —
+# what needs.py consumes) and `serviceability` (the flat sentences brief.py
+# renders, derived from the records so the two can never disagree).
 # --------------------------------------------------------------------------- #
 
 #: The keys kernel.can_serve understands. A binding may carry compile-time
@@ -676,42 +679,68 @@ def _findings_gaps(bname: str, spec: dict, area: Path) -> list[str]:
             f"has nothing to render"]
 
 
-def serviceability(defn: Definition, area) -> list[str]:
-    """Can this engagement area serve every binding of this definition?
+def serviceability_records(defn: Definition, area) -> list[dict]:
+    """Can this engagement area serve every binding of this definition? —
+    the structured answer (M51).
 
-    Returns a list of gap strings — [] means fully served. NEVER raises for an
-    unserved binding: "not yet" is a report. Each gap names the BINDING, so a
-    definition with several bindings stays diagnosable.
+    Returns one record per gap: `{"binding": <declared binding name>,
+    "gap": <the sentence serviceability has always rendered>}`. `[]` means
+    fully served. NEVER raises for an unserved binding: "not yet" is a
+    report. Records come grouped in declaration order — the order the
+    definition file lists its bindings in — because that is the only order
+    this walk ever had.
 
-    Two halves, deliberately:
+    Two halves per binding, deliberately:
       * declaration half — kernel.can_serve over the binding's admitted keys
         (types/parts/callouts declared, channel registries present on disk);
       * engagement half — the area must actually HOLD entities of the bound
-        type (see _area_entity_count for why can_serve cannot answer this)."""
+        type (see _area_entity_count for why can_serve cannot answer this);
+    plus the two whole-question-engagement-side binding kinds, `coverage:`
+    (_coverage_gaps) and `findings:` (_findings_gaps), whose sentences are
+    attributed to their binding here exactly as the flat render always
+    voiced them.
+
+    This is the ONE place a gap is formatted. `serviceability` derives its
+    flat strings from these records, so both surfaces — the sentences
+    brief.py renders and the attribution needs.py consumes — can never
+    disagree."""
     area = Path(area)
-    gaps: list[str] = []
+    records: list[dict] = []
+
+    def _add(bname: str, sentences) -> None:
+        records.extend({"binding": bname, "gap": s} for s in sentences)
 
     for bname, spec in defn.bindings.items():
         if "coverage" in spec:
-            gaps.extend(_coverage_gaps(bname, spec, area))
+            _add(bname, _coverage_gaps(bname, spec, area))
             continue
         if "findings" in spec:
-            gaps.extend(_findings_gaps(bname, spec, area))
+            _add(bname, _findings_gaps(bname, spec, area))
             continue
 
         requirements = {k: spec[k] for k in _CAN_SERVE_KEYS if k in spec}
-        for err in kernel.can_serve(requirements, area):
-            gaps.append(f'binding "{bname}": {err}')
+        _add(bname, (f'binding "{bname}": {err}'
+                     for err in kernel.can_serve(requirements, area)))
 
         tname = requirements.get("entities")
         if isinstance(tname, str) and tname.strip():
             tname = tname.strip()
             if _area_entity_count(area, tname) == 0:
-                gaps.append(
-                    f'binding "{bname}": area {area.name} holds no entities '
-                    f'of type "{tname}"')
+                _add(bname, [f'binding "{bname}": area {area.name} holds no '
+                             f'entities of type "{tname}"'])
 
-    return gaps
+    return records
+
+
+def serviceability(defn: Definition, area) -> list[str]:
+    """The flat serviceability report — the gap sentences alone.
+
+    A pure derivation from `serviceability_records` (M51): the strings ARE
+    the records' `gap` sentences, in the records' order, so this surface and
+    the structured one cannot drift apart. [] means fully served; never
+    raises for an unserved binding. Kept as the human-facing render brief.py
+    prints verbatim."""
+    return [r["gap"] for r in serviceability_records(defn, area)]
 
 
 # --------------------------------------------------------------------------- #

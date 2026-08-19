@@ -39,12 +39,22 @@ callouts:
   # prose carries these facts is the librarian's judgment, not the kernel's.
   - {label: CONTROL, prefix: CTRL, home: controls,
      fields: [Performer, Comparison, Trigger, Evidence]}
-  # GAP declares its one M44 field (the grammar amendment ruled 2026-08-16):
+  # GAP declares its two M44 fields (the grammar amendment ruled 2026-08-16):
   # Grounds — what makes the absence/conflict claim checkable (the sources
-  # read, or the confirming citation). Same posture as CONTROL's fields:
-  # optional metadata, never a parse gate.
+  # read, or the confirming citation) — and Nature, which says WHICH of the
+  # two mints this gap is. Same posture as CONTROL's fields: optional
+  # metadata, never a parse gate.
+  #
+  # `field_enums` declares the vocabulary a field's value is drawn from, so
+  # consumers read the two-mint discrimination from here rather than typing
+  # the words (M50, the M36 shape-audit rule applied to a field value): a
+  # `conflict` is two sources disagreeing, an `evidenced-absence` is the
+  # sources confirming something is missing. Still NOT a parse gate — a GAP
+  # with no Nature, or one whose Nature is outside this list, parses exactly
+  # as it always did and is simply undiscriminated to its consumers.
   - {label: VALIDATION REQUIRED, prefix: GAP, home: issues,
-     fields: [Grounds]}
+     fields: [Grounds, Nature],
+     field_enums: {Nature: [conflict, evidenced-absence]}}
   - {label: PAIN POINT, prefix: PP, home: issues}
   - {label: IMPROVEMENT OPPORTUNITY, prefix: IO, home: issues}
   - {label: SCREENSHOT PLACEHOLDER, prefix: SC, home: transformation}

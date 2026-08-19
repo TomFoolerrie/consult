@@ -9,6 +9,68 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.3.0] — 2026-08-18
+The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
+M50–M55 and scheduled by the human 2026-08-18 ("all, in order").
+
+- **M54 — table-row comment routing** (`2.3.0-alpha.6`): the M38
+  pinned xfail is paid — `review_extract._row_first_cell` plus the
+  fallback rule at the shared resolution seam (heading stack keeps
+  precedence; when it yields no slug and the anchor sits in a table
+  row, the row's first cell resolves the step; unresolvable still lands
+  `_unassigned`, never guessed). v1 appendix routing characterized
+  first and pinned byte-identical (Amendment A0's shared-line ruling);
+  comments and tracked changes covered by the one seam. The suite
+  carries zero xfails for the first time since M38. Suite 1261.
+
+- **M55 — recorded wants** (`2.3.0-alpha.5`): `ledger.show` (and
+  ledger.py's first CLI) renders the engagement's source picture — one
+  block per SRC with provenance and its consumption records, owed-a-read
+  flagged, the unconsumed tail summarized — off the same
+  touches-minus-consumed implementation the agenda reads. Appendix
+  optionality confirmed as already-afforded (user-space shadow copy
+  minus the shape block), pinned by the gate and documented in the
+  skill; the shipped definition untouched, defaults ON. Suite 1262.
+
+- **M53 — engine housekeeping** (`2.3.0-alpha.4`): `scripts/kinds.py`
+  becomes the kind resolvers' public home (the callout walk, the
+  prefix-through-declaration read, the nature helpers, the engagement
+  root, the thin-alias expansion) — pure relocation, owners keep thin
+  aliases, zero cross-module private reads remain; analysis.py's
+  docstring refreshed to the shipped surface; the random-order flake
+  root-caused (test_shape_audit_m36's client_config reload minting new
+  exception classes) and fixed behavior-free — suite green across
+  seeds. Suite 1253.
+
+- **M52 — one taxonomist brief** (`2.3.0-alpha.3`): `brief.py
+  taxonomist <area> --kind SCOPING|CURATION|ADOPT-ROUTE` assembles the
+  merged work order (objective, coverage summary, engagement-needs
+  summary, hygiene grooming feed, the write boundary) in one function;
+  kind-varying lines carry the KIND token around a kind-blind picture,
+  so the engagement picture is byte-equal across kinds. engagement.py
+  brief delegates to the one builder (v1 law pins its output, so no
+  retirement); orchestrate's central routing, the skill and the
+  contract all name the one command. Suite 1245.
+
+- **M51 — structured serviceability** (`2.3.0-alpha.2`):
+  `definitions.serviceability_records` returns attributed
+  `{binding, gap}` records (all four sentence sources tagged); the flat
+  `serviceability` strings derive from them byte-identically; needs.py
+  reads the records in one loader pass (the single-binding-copy loop
+  deleted); a preflight refusal lands in `needs()` — a rootless area or
+  an unparseable manifest refuses by name, a thin area still renders
+  ("thin is not a defect, broken is"). Suite 1236.
+
+- **M50 — the gap discriminator** (`2.3.0-alpha.1`): the `Nature:` enum
+  (`conflict | evidenced-absence`) declared on the process-step GAP
+  callout (`field_enums:`, kernel-validated, optional metadata — never a
+  parse gate); needs.py recorded-gap entries carry an optional `nature`
+  key read from the declaration, never typed; the interview agenda grows
+  a "What we need you to settle" section (conflicts split from absences
+  mechanically — the M46 A1.1 revisit done); the IPO fixture gains
+  SRC-004, registered but never read, so owed-a-read renders positively
+  (M46 A1.5). Suite 1226.
+
 ## [2.2.0] — 2026-08-17
 The engagement-lens line: the 2026-08-16 architecture review's rulings
 (D1–D6), ticketed as M44–M48, plus the M49 analyst-dispatch follow-up.

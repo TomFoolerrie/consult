@@ -291,7 +291,9 @@ class TestGrammarAmendment:
         import kernel
         tdecl = kernel.load_type("process-step")
         gap = [c for c in tdecl.callouts if c.prefix == "GAP"]
-        assert list(gap[0].fields) == ["Grounds"]
+        # M50 licensed re-pin: the declaration grew Nature (the discriminator
+        # enum's field) — Grounds is still declared, which is this test's point.
+        assert "Grounds" in list(gap[0].fields)
 
     def test_v1_activity_type_untouched(self):
         import kernel

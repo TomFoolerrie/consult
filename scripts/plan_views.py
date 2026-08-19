@@ -38,14 +38,13 @@ all: the register is reached only through `findings.renderable` /
 rejected claim is STRUCTURALLY unable to reach a rendered document (M40's named
 review risk: register leakage).
 
-THE ONE ALIAS THIS MODULE EXPANDS, and where it is documented: the surveyor's
-sufficiency word `thin`. scripts/definitions.py's `_ALLOWED_COVERAGE_STATUSES`
-comment (the loader's own stage-2 vocabulary) states it: "`thin` is the
-SURVEYOR's sufficiency word for 'known but not yet evidenced'
-(claimed-or-sourced)". `coverage_map.coverage()` never returns `thin`, so a
-consumer of a `coverage:` binding has to collapse it; the collapse below is
-that sentence and nothing more. No other status word is typed here — every one
-of them arrives from the binding.
+THE ONE ALIAS THE REQUEST LIST EXPANDS, and who owns it since M53: the
+surveyor's sufficiency word `thin` (scripts/definitions.py's
+`_ALLOWED_COVERAGE_STATUSES` comment states the sentence it collapses to).
+`coverage_map.coverage()` never returns `thin`, so a consumer of a `coverage:`
+binding has to collapse it; the expansion lives with the shared kind resolvers
+(`kinds.selected_statuses`), and this module delegates to it. No status word
+is typed here — every one of them arrives from the binding.
 
 GROUPING IS NOT REDERIVED HERE. `coverage(root, node_steps)` takes the
 node→step relation as a parameter (it is not a declared relation yet), and
@@ -91,11 +90,12 @@ BINDING_REQUESTS = "requests"        # the coverage feeder (M37)
 BINDING_STEP_GAPS = "step-gaps"      # the step-level callout feeder (M37)
 BINDING_FINDINGS = "accepted-findings"   # the register feeder (M39)
 
-#: The surveyor's alias, and what it collapses to. See the module docstring for
-#: where definitions.py documents this sentence; it is the ONE status expansion
-#: this module performs.
-THIN_ALIAS = "thin"
-THIN_MEANS = ("claimed", "sourced")
+#: The surveyor's alias, and what it collapses to — owned by the shared
+#: resolver home since M53 (kinds.py), re-exported here for older importers.
+import kinds as _kinds  # noqa: E402  (no cycle: kinds imports no engine loader)
+
+THIN_ALIAS = _kinds.THIN_ALIAS
+THIN_MEANS = _kinds.THIN_MEANS
 
 #: An SRC id as it appears in a callout body — coverage_map.SRC_ID_RE's grammar,
 #: mirrored here rather than imported so a view never drags the coverage join in
@@ -141,19 +141,14 @@ def _root_of(area: Path) -> Path:
     """The engagement root for an area.
 
     `engagement.py` publishes no area→root helper (its own root derivations are
-    private to the intake router), so this reuses the derivation the DEFINITION
-    layer already owns — `definitions._engagement_root`, "the parent of the
-    `components/` directory the area lives in" (M13's layout) — rather than
-    spelling the layout a third time. A view of an area outside an engagement
-    tree refuses by name instead of reading the filesystem root."""
-    import definitions
-    root = definitions._engagement_root(area)
-    if root is None:
-        raise ValueError(
-            f"{area}: not inside an engagement's components/ tree, so the "
-            f"engagement root (the ledger and the findings register) cannot be "
-            f"derived")
-    return root
+    private to the intake router), and the derivation is published once from the
+    shared resolver home since M53 — `kinds.engagement_root`, itself the
+    DEFINITION layer's `definitions._engagement_root` read ("the parent of the
+    `components/` directory the area lives in", M13's layout). This private
+    name delegates to it for this module's own callers. A view of an area
+    outside an engagement tree refuses by name instead of reading the
+    filesystem root."""
+    return _kinds.engagement_root(area)
 
 
 # --------------------------------------------------------------------------- #
@@ -164,12 +159,9 @@ def _selected_statuses(spec: dict) -> set[str]:
     """The coverage statuses this binding selects, with `thin` expanded.
 
     Every word here came out of the definition file; the expansion is the one
-    documented alias (module docstring)."""
-    named = _values(spec, "coverage")
-    out: set[str] = set()
-    for status in named:
-        out.update(THIN_MEANS if status == THIN_ALIAS else [status])
-    return out
+    documented alias, owned by `kinds.selected_statuses` since M53 — this
+    private name delegates for this module's own callers."""
+    return _kinds.selected_statuses(spec)
 
 
 def node_steps(area: Path) -> dict[str, list[str]]:

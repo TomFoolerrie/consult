@@ -75,7 +75,10 @@ class TestDispatchHint:
         d = orchestrate.decide(str(area))
         assert d["action"] == "taxonomy"            # name unchanged
         assert d["details"]["mode"] == "initial"
-        assert d["details"]["brief"] == "agents/consult-taxonomist.md"
+        # M52 mechanical repoint: the hint names the ONE assembled work-order
+        # command (was the agent contract path, agents/consult-taxonomist.md)
+        assert d["details"]["brief"] == \
+            "scripts/brief.py taxonomist <area> --kind SCOPING"
 
     def test_central_incremental_names_the_librarian_brief(self, tmp_path):
         root = make_central(tmp_path)
@@ -84,7 +87,10 @@ class TestDispatchHint:
         d = orchestrate.decide(str(area))
         assert d["action"] == "taxonomy"
         assert d["details"]["mode"] == "incremental"
-        assert d["details"]["brief"] == "agents/consult-taxonomist.md"
+        # M52 mechanical repoint: same anchor meaning, new assembly — the
+        # curation kind of the one taxonomist brief command
+        assert d["details"]["brief"] == \
+            "scripts/brief.py taxonomist <area> --kind CURATION"
 
     def test_v1_carries_no_brief_key(self, tmp_path):
         area = make_v1(tmp_path)
