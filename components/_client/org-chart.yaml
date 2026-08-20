@@ -1,0 +1,62 @@
+# _client/org-chart.yaml — Nordhaven Industrial Group
+# Client-supplied person → title map for the Procure to Pay engagement.
+# Covers finance, procurement, receiving and IT contacts named in the source set.
+
+people:
+  - name: Emmett Suzuki
+    title: Chief Financial Officer
+
+  - name: Corinne Baptiste
+    title: Corporate Controller
+    reports_to: Emmett Suzuki
+    notes: "Approves NetSuite payment run and releases ACH/wires in Chase Connect."
+
+  - name: Delphine Arceneaux
+    title: Assistant Controller
+    reports_to: Corinne Baptiste
+    notes: "Bank reconciliation, manual month-end accruals. Emergency vendor master access."
+
+  - name: Marisol Vance
+    title: Accounts Payable Manager
+    reports_to: Corinne Baptiste
+    notes: "Builds weekly payment proposal; dispositions positive pay exceptions. No vendor master or bank release rights."
+
+  - name: Priya Raghunathan
+    title: Senior Accounts Payable Specialist
+    reports_to: Marisol Vance
+    notes: "PO invoice entry, three-way match exception resolution, vendor statement reconciliation."
+
+  - name: Tobias Lindqvist
+    title: Accounts Payable Clerk
+    reports_to: Marisol Vance
+    notes: "Vendor master maintenance in NetSuite plus non-PO invoice entry. Segregation of duties concern raised."
+
+  - name: Bo Whitfield
+    title: Accounts Payable Clerk
+    reports_to: Marisol Vance
+    notes: "Part-time. AP Inbox triage, paper scanning, Concur audit queue."
+
+  - name: Renata Kowalczyk
+    title: Treasury Analyst
+    reports_to: Corinne Baptiste
+    notes: "Wire initiation in Chase Connect, backup ACH release, corporate card program."
+
+  - name: Dev Anand Rao
+    title: Procurement Lead
+    reports_to: Emmett Suzuki
+    notes: "Supplier onboarding approval in Coupa; corporate and Plant 1 buying plus indirect."
+
+  - name: Yusuf Adeyemi
+    title: Buyer
+    reports_to: Dev Anand Rao
+    notes: "Plants 2 and 3. Blanket POs and change orders."
+
+  - name: Hal Ostrowski
+    title: Receiving Supervisor
+    reports_to: Emmett Suzuki
+    notes: "Plant 2 inbound dock. Dotted line to Plant 2 operations; finance contact for goods receipt."
+
+  - name: Gideon Pruitt
+    title: IT Manager
+    reports_to: Emmett Suzuki
+    notes: "NetSuite administrator role; holds vendor master edit through admin access."
