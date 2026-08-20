@@ -17,9 +17,9 @@ and the code part ways:
    (`callouts.py:54–56`, enforced at `kernel.py:487`). `ID_STRICT_RE`
    is compiled once from the hard-coded table —
    `^(CTRL|GAP|IO|PP|SC)-…` — so a user type declaring
-   `{label: RISK, prefix: RSK}` loads cleanly, passes definition
-   stage 2, and then EVERY fragment carrying its callouts is refused at
-   parse: *"malformed callout ID 'RSK-001' … (grammar:
+   `{label: RISK, prefix: RSK, home: issues}` loads cleanly, passes
+   definition stage 2, and then EVERY fragment carrying its callouts is
+   refused at parse: *"malformed callout ID 'RSK-001' … (grammar:
    <PREFIX>-<ALNUM> e.g. RSK-001)"* — an error citing the rejected id
    as the example of correctness. The documented extension path is
    unusable.
@@ -61,8 +61,9 @@ reporting follows wherever `entities:` already reports.
 ### Part C — one `order` rule, one error type
 
 `_order_of(c)` (int or 0, the `display_numbers` rule) is used by every
-sorter — `procedures()`, `assemble()`, `callout_display_ids()` — so the
-model never crashes on a tolerated field. `validate_manifest` keeps
+sorter — `procedures()` and `assemble()`; `callout_display_ids()`
+inherits through `procedures()` — so the model never crashes on a
+tolerated field. `validate_manifest` keeps
 reporting non-int order as a defect; ledger verbs that traverse
 manifests wrap traversal failures in `LedgerError`/`ManifestError` so
 no raw `TypeError` escapes a named-error contract.

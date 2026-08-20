@@ -17,9 +17,12 @@ namespace and its consumer resolves the other:
    with its DISPLAY id; `resolve_grounds()` builds its valid-ground
    universe from LOCAL ids. On p2p-complete, grounding a finding on the
    id the brief displays fails for 26 of 28 conflict records ("ground
-   'GAP-07' does not resolve") — and the 2 that do resolve bind the
-   WRONG callout in a different procedure. `analyst_brief` instructs
-   exactly this grounding; the instruction is unfollowable.
+   'GAP-07' does not resolve") — and of the 2 that do resolve, one
+   binds the WRONG callout in a different procedure outright, and the
+   other resolves only because display and local ids happen to coincide
+   in the first procedure, leaving the bare id ambiguous across every
+   procedure that reuses it. `analyst_brief` instructs exactly this
+   grounding; the instruction is unfollowable.
 
 2. **`findings.for_area` misattributes across areas**
    (`findings.py:441–449`). Area membership is a flat-string join of a

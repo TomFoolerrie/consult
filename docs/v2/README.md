@@ -223,7 +223,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M60](M60-notes-bus-integrity.md) | Notes-bus integrity: control-char-safe emitter, store-form dedup, atomic writes, no silent-empty load (**RECORDED**, review F-05/F-10/F-24) |
 | [M61](M61-xlsx-round-trip.md) | The xlsx round trip: XML-legal writer, date/bool-aware reader, size caps on client files (**RECORDED**, review F-13/F-14/F-25) |
 | [M62](M62-loader-vocabulary-honesty.md) | Loader vocabulary honesty: declared callout prefixes parse, `repeat.over` validated, one `order` rule (**RECORDED**, review F-08/F-19/F-18) |
-| [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2 (**RECORDED**, review F-21/F-22/F-23) |
+| [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2, the render's no-op validate_manifest call gets teeth (**RECORDED**, review F-21/F-22/F-23 + a fact-check find) |
 | [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**RECORDED**, review F-16/F-26/F-27/F-29/F-28) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket

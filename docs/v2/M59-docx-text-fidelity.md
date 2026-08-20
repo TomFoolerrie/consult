@@ -24,9 +24,10 @@ is what the client actually reads:
 
 2. **Escaped emphasis renders as emphasis** (line 353). `clean()`
    unescapes `\*` and `\_` BEFORE the bold/italic regexes run
-   (lines 360–397), so deliberately-literal markers are re-styled and
-   deleted: `Mark \*required\* fields` renders "required" in italics
-   with both asterisks gone; `use \*.xlsx` loses its asterisk. The
+   (lines 360–397), so a deliberately-literal *pair* of markers is
+   re-styled and deleted: `Mark \*required\* fields` renders "required"
+   in italics with both asterisks gone. (A lone escaped marker with no
+   closing twin survives — the defect needs a matching pair.) The
    escape mechanism is silently defeated.
 
 3. **Nested lists render flat** (lines 1178–1179). Every list item gets
@@ -66,8 +67,8 @@ rule written into it.
 - The approval-ladder repro renders every character: `<5k`, `5–25k`,
   `>25k` present in the extracted document text.
 - `&lt;5k` in source renders `<5k`.
-- `\*required\*` renders literal asterisks, no italics; `use \*.xlsx`
-  keeps its glob.
+- `\*required\*` renders literal asterisks, no italics; the lone-marker
+  case (`use \*.xlsx`) stays correct.
 - A 3-level nested list round-trips with three distinct indents
   (docx_compare or direct XML assertion on `w:ind`).
 - The v1 golden compat gate passes untouched — these are new

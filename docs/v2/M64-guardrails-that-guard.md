@@ -17,8 +17,10 @@ failing:
    code under test — `_has(module, attr)` or an exact substring match
    against a source/skill file. Rename `scaffold.promote_client` (live
    code, sole coverage in ONE gated class) and its tests silently skip;
-   `pytest.ini` has no skip budget, CI doesn't report skips, green
-   stays green while coverage evaporates.
+   `pytest.ini` has no skip budget and nothing FAILS on a skip — the
+   count prints in the summary, but no gate guards it and no `-rs`
+   surfaces the reasons — so green stays green while coverage
+   evaporates.
 
 2. **Unpinned dependencies, no lockfile** (`requirements.txt:1`,
    `tests.yml:16`). CI resolves latest-on-PyPI every run. The suite

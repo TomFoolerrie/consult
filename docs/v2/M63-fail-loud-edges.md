@@ -2,13 +2,15 @@
 
 **Status: RECORDED** (not scheduled).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
-findings F-21, F-22, F-23.
+findings F-21, F-22, F-23 — plus a fourth defect found while
+fact-checking this ticket line (the discarded `validate_manifest`
+return, item 4 below).
 
 ## Why
 
 The repo's own doctrine is fail-loud — a permanent audit exists to
-enforce it structurally — yet three edges still drop content with
-exit 0:
+enforce it structurally — yet four edges still drop content or defects
+with exit 0:
 
 1. **`split_doc` discards front matter** (`split_doc.py:132`).
    On import, everything before the first `##` except the H1 title and
@@ -28,7 +30,18 @@ exit 0:
    accepts any `l2`, but every L2-grouped builder iterates only
    `ctx['l2_order']` — a procedure filed under an L2 absent from that
    list vanishes from the procedure index, both appendices, the gap
-   log, and the screenshot index, with no diagnostic.
+   log, and the screenshot index, with no diagnostic from aggregate
+   itself. (`doc_model.validate_manifest` DOES report an unlisted L2 —
+   `doc_model.py:136–139` — and reconcile surfaces it at
+   `reconcile.py:990`; the rule exists, aggregate just doesn't run it.)
+
+4. **`render` calls the validator and throws away its answer**
+   (`render.py:852`). The "M14 enforcement point 2" line reads
+   `doc_model.validate_manifest(manifest)` — but `validate_manifest`
+   returns a `list[str]` of errors and never raises, so the call is a
+   no-op: a manifest defect that reconcile would refuse sails through
+   the render unexamined. Found while fact-checking this ticket line,
+   not in the original review.
 
 ## The shape
 
@@ -51,10 +64,18 @@ lists, no cross-suppression.
 ### Part C — aggregate refuses the unlisted L2
 
 An `l2` outside `l2_order` fails the aggregate with a named error
-listing the offending procedures and the known order — the same
-posture the taxonomy hygiene checks already take upstream. (If a
-deliberate "unfiled" bucket is ever wanted, that is a definition-space
-decision, not a silent drop.)
+listing the offending procedures and the known order — by RUNNING the
+rule `validate_manifest` already owns (`doc_model.py:136–139`), not by
+minting a parallel one. (If a deliberate "unfiled" bucket is ever
+wanted, that is a definition-space decision, not a silent drop.)
+
+### Part D — the render's validator call gets teeth
+
+`render.py:852` consumes the return: a non-empty error list fails the
+render naming every error, matching the enforcement-point comment that
+already sits above the call. Survey the tree for other discarded
+`validate_manifest` returns while there (reconcile's is consumed; any
+other bare call gets the same fix).
 
 ## The gate
 
@@ -67,4 +88,7 @@ decision, not a silent drop.)
   failure listing procedure and L2; with the L2 added to `l2_order`
   the same fixture passes and the procedure appears in index,
   appendices, gap log.
+- A manifest defect `validate_manifest` reports (e.g. the unlisted L2)
+  fails the render with the error text; a clean manifest renders as
+  before.
 - Full suite + compat gate untouched.
