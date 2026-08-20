@@ -14,6 +14,14 @@ The recorded backlog shipped as **M50–M55** (2.3.0): the gap discriminator
 (M50), structured serviceability (M51), the merged taxonomist brief
 (M52), engine housekeeping (M53), table-row comment routing (M54), and
 the recorded wants — ledger verb + appendix optionality (M55).
+A hardening line **M56–M64** is RECORDED (2026-08-20, not scheduled),
+written from an adversarial review of 2.3.0 at `main` @ 8b22e9e — 29
+verified findings folded into nine tickets by shared root cause:
+evidence identity in the ledger (M56, carries the review's one
+critical), callout addressing (M57), the drafter trust boundary (M58),
+docx text fidelity (M59), notes-bus integrity (M60), the xlsx round
+trip (M61), loader vocabulary honesty (M62), fail-loud edges (M63),
+and suite/CI guardrails (M64).
 Items NOT ticketed, each waiting on a ruling or a trigger: the
 PAIN↔CTRL cross-reference field names (M42 A1 — an open human ruling);
 the deeper cut into the drafter's shared law (M48 A1 — a candidate,
@@ -208,6 +216,15 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**BUILT**, 2.3.0-alpha.4, gate 8/8) |
 | [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**BUILT**, 2.3.0-alpha.6, gate 7/7, zero xfails) |
 | [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**BUILT**, 2.3.0-alpha.5, gate 9/9) |
+| [M56](M56-evidence-identity.md) | Evidence identity: the ledger stops keying bytes by basename — credit/centralize/status collision fixes (**RECORDED**, review F-01/F-02/F-03/F-17, carries the one critical) |
+| [M57](M57-callout-addressing.md) | One address per callout: procedure-qualified grounds, `for_area` joins fixed, `node_steps` keyed by slug (**RECORDED**, review F-06/F-12/F-11) |
+| [M58](M58-drafter-trust-boundary.md) | The drafter trust boundary: review items are client data, not orders; the agent grant audit (**RECORDED**, review F-07/F-15) |
+| [M59](M59-docx-text-fidelity.md) | Docx text fidelity: angle-bracket prose survives, escapes stay literal, lists keep their depth (**RECORDED**, review F-04/F-09/F-20) |
+| [M60](M60-notes-bus-integrity.md) | Notes-bus integrity: control-char-safe emitter, store-form dedup, atomic writes, no silent-empty load (**RECORDED**, review F-05/F-10/F-24) |
+| [M61](M61-xlsx-round-trip.md) | The xlsx round trip: XML-legal writer, date/bool-aware reader, size caps on client files (**RECORDED**, review F-13/F-14/F-25) |
+| [M62](M62-loader-vocabulary-honesty.md) | Loader vocabulary honesty: declared callout prefixes parse, `repeat.over` validated, one `order` rule (**RECORDED**, review F-08/F-19/F-18) |
+| [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2 (**RECORDED**, review F-21/F-22/F-23) |
+| [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**RECORDED**, review F-16/F-26/F-27/F-29/F-28) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
