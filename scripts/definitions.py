@@ -419,8 +419,28 @@ def _check_findings_shape(fname: str, bname: str, spec: dict) -> None:
 
 def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     """Every type / part / callout kind / channel a binding names must be
-    DECLARED by that binding's entity type (kernel.load_type)."""
+    DECLARED by that binding's entity type (kernel.load_type) — and every
+    shape block's `repeat.over` entity type resolves the same way (M62 Part
+    B: the repeat used to be stored opaque in stage 1 and its `over:` never
+    checked, an undeclared name sailing through the loader that is advertised
+    as refusing unknown names)."""
     fname = path.name
+
+    for block in defn.shape:
+        rep = block.repeat
+        if rep is None:
+            continue
+        over = rep.get("over") if isinstance(rep, dict) else None
+        if not isinstance(over, str) or not over.strip():
+            raise DefinitionError(
+                f'{fname}: block "{block.id}" "repeat" needs an "over:" '
+                f"entity type name (got {rep!r})")
+        try:
+            kernel.load_type(over.strip())
+        except kernel.TypeDeclError as exc:
+            raise DefinitionError(
+                f'{fname}: block "{block.id}" repeat.over names undeclared '
+                f'entity type "{over.strip()}" ({exc})') from exc
 
     for bname, spec in defn.bindings.items():
         _check_coverage_shape(fname, bname, spec)      # M37, see below

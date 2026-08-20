@@ -54,6 +54,17 @@ DELIM = r"[-–—]"
 ID_STRICT_RE = re.compile(
     r"^(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$"
 )
+
+
+def id_strict_re(prefixes=None):
+    """The anchored id grammar over a DECLARED prefix set (M62 Part A).
+
+    The kernel's contract is that the vocabulary comes from the type
+    declaration, so the alternation is built from the prefixes the loaded
+    types declare — the v1 five remain the shipped floor. `ID_STRICT_RE`
+    stays as the floor-only constant for the v1 aggregate/reconcile path."""
+    pset = sorted(set(PREFIXES) | {str(p) for p in (prefixes or []) if p})
+    return re.compile(r"^(" + "|".join(pset) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$")
 # Any well-formed ID occurrence in prose (for reference tracking).
 ID_INLINE_RE = re.compile(
     r"\b(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b"

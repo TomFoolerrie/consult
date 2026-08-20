@@ -326,7 +326,7 @@ import re
 
 import doc_model
 import aggregate
-from callouts import FragmentError, ID_STRICT_RE, blank_fences  # noqa: F401
+from callouts import FragmentError, ID_STRICT_RE, blank_fences, id_strict_re  # noqa: F401
 
 
 def _part_of_heading(line: str, tdecl: TypeDecl) -> str | None:
@@ -462,6 +462,11 @@ def _parse_callouts(slug: str | None, raw_text: str,
     fence blanking, same blockquote-consumption, same fail-loud refusals —
     only the label->prefix vocabulary comes from the declaration."""
     label_to_prefix = {c.label: c.prefix for c in tdecl.callouts}
+    # M62 Part A: the id grammar is a function of the DECLARATION SET, not a
+    # module constant — a user type's declared prefix parses; an undeclared
+    # one refuses listing what IS declared.
+    declared_prefixes = sorted(set(label_to_prefix.values()))
+    strict_re = id_strict_re(declared_prefixes)
     where = slug if slug is not None else f"<{tdecl.name}>"
     text = blank_fences(raw_text)
     lines = text.splitlines()
@@ -484,10 +489,11 @@ def _parse_callouts(slug: str | None, raw_text: str,
             )
         expected = label_to_prefix[label]
 
-        if not ID_STRICT_RE.match(cid):
+        if not strict_re.match(cid):
             raise FragmentError(
                 f"malformed callout ID {cid!r} at {where}:{i + 1} "
-                f"(grammar: <PREFIX>-<ALNUM> e.g. {expected}-001)"
+                f"(grammar: <PREFIX>-<ALNUM>; declared prefixes: "
+                f"{', '.join(declared_prefixes)})"
             )
         prefix = cid.split("-", 1)[0]
         if prefix != expected:
