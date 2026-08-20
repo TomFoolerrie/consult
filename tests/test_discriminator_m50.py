@@ -19,6 +19,8 @@ import shutil
 from pathlib import Path
 
 import pytest
+
+import gatecheck
 import yaml
 
 REPO = Path(__file__).resolve().parent.parent
@@ -62,7 +64,7 @@ def _fixture_has_unconsumed() -> bool:
     return False
 
 
-needs_enum = pytest.mark.skipif(
+needs_enum = gatecheck.landed(
     not _enum_declared(),
     reason="M50 Nature enum not declared on process-step GAP yet — the target")
 
@@ -71,11 +73,11 @@ def _agenda_split_built() -> bool:
     return src.is_file() and SETTLE_HEADING in src.read_text(
         encoding="utf-8").lower()
 
-needs_split = pytest.mark.skipif(
+needs_split = gatecheck.landed(
     not (_enum_declared() and _agenda_split_built()),
     reason="M50 agenda split not built yet — the target")
 
-needs_unconsumed = pytest.mark.skipif(
+needs_unconsumed = gatecheck.landed(
     not _fixture_has_unconsumed(),
     reason="M50 unconsumed-source fixture not landed yet — the target")
 

@@ -775,6 +775,18 @@ def run(area_arg: str) -> int:
             return 1
 
     manifest = doc_model.load_manifest(area)
+    # M63 Part C: run the rule validate_manifest already owns. Every L2-grouped
+    # builder iterates only l2_order, so a procedure filed under an unlisted L2
+    # would silently vanish from the index, both appendices, the gap log and
+    # the screenshot index — a manifest defect fails the aggregate instead.
+    merrors = doc_model.validate_manifest(manifest)
+    if merrors:
+        for e in merrors:
+            print(f"ERROR: manifest: {e}")
+        print(f"ERROR: known l2_order: {manifest.get('l2_order')!r} — fix the "
+              f"manifest; aggregate refuses to build a document that would "
+              f"silently drop content")
+        return 1
     numbers = doc_model.display_numbers(manifest)  # {slug: "L2.seq"}
 
     components = manifest.get("components", [])

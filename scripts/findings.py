@@ -203,6 +203,29 @@ def _load_types(names) -> list:
     return out
 
 
+GROUND_QUALIFIER = ":"       # <procedure-slug>:<LOCAL callout id> — M57 Part A
+
+
+def qualify_ground(slug: str, local_id: str) -> str:
+    """THE grounding currency (M57): a procedure-qualified callout address.
+
+    A LOCAL callout id (`GAP-01`) restarts per procedure, so a bare local id
+    is ambiguous the moment two procedures reuse it. The one address a callout
+    ground has is `<procedure-slug>:<LOCAL-id>` — the slug of the fragment (or
+    taxonomy node) that carries it, joined by `:` (slugs never contain one)."""
+    return f"{slug}{GROUND_QUALIFIER}{local_id}"
+
+
+def _local_ground_map(callouts: set[str]) -> dict[str, list[str]]:
+    """`{LOCAL id: [qualified addresses carrying it]}` over a qualified-address
+    set — how an unqualified legacy ground is checked for ambiguity."""
+    out: dict[str, list[str]] = {}
+    for addr in sorted(callouts):
+        _slug, _, local = addr.partition(GROUND_QUALIFIER)
+        out.setdefault(local, []).append(addr)
+    return out
+
+
 def _callout_ids_of(path: Path, tdecls) -> set[str]:
     """Every callout id in one fragment, tried against each declared type.
     Declaration-driven: no callout label is typed out here (the shape audit's
@@ -244,13 +267,15 @@ def _area_corpus_ids(area: Path, proc_types=None,
         if comp.get("role") != ENTITY_ROLE:
             continue
         fpath = area / str(comp.get("file") or "")
-        if fpath.is_file():
-            callouts |= _callout_ids_of(fpath, proc_types)
+        if fpath.is_file() and isinstance(slug, str) and slug:
+            callouts |= {qualify_ground(slug, cid)
+                         for cid in _callout_ids_of(fpath, proc_types)}
     tdir = area / TAXONOMY_DIRNAME
     if tdir.is_dir():
         for node in sorted(tdir.glob("*.md")):
             slugs.add(node.stem)
-            callouts |= _callout_ids_of(node, node_types)
+            callouts |= {qualify_ground(node.stem, cid)
+                         for cid in _callout_ids_of(node, node_types)}
     return callouts, slugs
 
 
@@ -297,18 +322,37 @@ def resolve_grounds(root, grounds) -> list[str]:
 
     src = _src_ids(root)
     callouts, slugs = _corpus_ids(root)
+    by_local = _local_ground_map(callouts)
     universe = src | callouts | slugs
+    resolved: list[str] = []
     for ground in cleaned:
-        if ground not in universe:
+        if ground in universe:
+            resolved.append(ground)
+            continue
+        # M57 Part A: an unqualified LOCAL callout id is accepted only while
+        # unambiguous — exactly one procedure in the corpus carries it — and is
+        # normalised to its one qualified address. Ambiguity is refused with
+        # the candidate qualified forms listed, never guessed through.
+        candidates = by_local.get(ground, [])
+        if len(candidates) == 1:
+            resolved.append(candidates[0])
+            continue
+        if len(candidates) > 1:
             raise FindingsError(
-                f"ground {ground!r} does not resolve against this engagement "
-                f"— it is not a ledger SRC id ({len(src)} known), a corpus "
-                f"callout id ({len(callouts)} known) or an entity slug "
-                f"({len(slugs)} known); nothing written")
+                f"ground {ground!r} is ambiguous — {len(candidates)} "
+                f"procedures carry that local callout id. Ground it with the "
+                f"procedure-qualified address: "
+                f"{', '.join(candidates)}; nothing written")
+        raise FindingsError(
+            f"ground {ground!r} does not resolve against this engagement "
+            f"— it is not a ledger SRC id ({len(src)} known), a corpus "
+            f"callout address ({len(callouts)} known, form "
+            f"<procedure-slug>:<local id>) or an entity slug "
+            f"({len(slugs)} known); nothing written")
     # Order-preserving de-duplication: citing the same id twice is not two
     # grounds.
     seen: set[str] = set()
-    return [g for g in cleaned if not (g in seen or seen.add(g))]
+    return [g for g in resolved if not (g in seen or seen.add(g))]
 
 
 # --------------------------------------------------------------------------- #
@@ -445,8 +489,21 @@ def for_area(root, area, status: str | None = None) -> list[dict]:
     mine = callouts | slugs
     if not mine:
         return []
+    # M57 Part B: membership joins on QUALIFIED addresses (or entity slugs).
+    # A legacy unqualified callout ground still attributes, but only through
+    # the engagement-wide map and only while it is unambiguous — a bare local
+    # id that two procedures carry proves membership of neither.
+    all_callouts, _all_slugs = _corpus_ids(root)
+    by_local = _local_ground_map(all_callouts)
+
+    def _member(ground: str) -> bool:
+        if ground in mine:
+            return True
+        candidates = by_local.get(ground, [])
+        return len(candidates) == 1 and candidates[0] in callouts
+
     return [e for e in entries(root, status=status)
-            if mine & {str(g) for g in (e.get("grounds") or [])}]
+            if any(_member(str(g)) for g in (e.get("grounds") or []))]
 
 
 def by_theme(root) -> dict[str, list[dict]]:

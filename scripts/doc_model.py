@@ -419,12 +419,21 @@ def section_title(slug: str) -> str:
 # display_numbers — the ONLY implementation of the display number
 # --------------------------------------------------------------------------- #
 
+def _order_of(comp: dict) -> int:
+    """THE order rule (M62 Part C): a component's `order`, int or 0 — the
+    tolerance `display_numbers` always had, now shared by every sorter so a
+    non-int `order` (a tolerated field: `validate_manifest` reports it as a
+    defect) can never crash `procedures`/`assemble` with a raw TypeError."""
+    order = comp.get("order")
+    return order if isinstance(order, int) else 0
+
+
 def procedures(manifest: dict) -> list[dict]:
     """Module-level convenience: the manifest's `role: procedure` components,
     in manifest `order`. (Callers like scope_delta expect this alongside the
     AssembledDoc.procedures() method.)"""
     procs = [c for c in manifest.get("components", []) if c.get("role") == "procedure"]
-    return sorted(procs, key=lambda c: (c.get("order", 0), c.get("file", "")))
+    return sorted(procs, key=lambda c: (_order_of(c), str(c.get("file") or "")))
 
 
 def display_numbers(manifest: dict) -> dict[str, str]:
@@ -452,9 +461,7 @@ def display_numbers(manifest: dict) -> dict[str, str]:
         l2 = comp.get("l2")
         if not slug or l2 not in l2_ordinal:
             continue
-        order = comp.get("order")
-        order = order if isinstance(order, int) else 0
-        buckets.setdefault(l2, []).append((order, slug))
+        buckets.setdefault(l2, []).append((_order_of(comp), slug))
 
     numbers: dict[str, str] = {}
     for l2, entries in buckets.items():
@@ -718,7 +725,7 @@ def assemble(folder) -> AssembledDoc:
 
     components = sorted(
         manifest.get("components", []),
-        key=lambda c: (c.get("order", 0), c.get("file", "")),
+        key=lambda c: (_order_of(c), str(c.get("file") or "")),
     )
 
     sections: list[Section] = []

@@ -167,22 +167,20 @@ def _selected_statuses(spec: dict) -> set[str]:
 def node_steps(area: Path) -> dict[str, list[str]]:
     """`{node slug: [step slug, …]}` for one area — matrix_views' grouping.
 
-    Imported, never re-derived: `group_steps` returns groups by node TITLE (it
-    is a table's row grouping), so the titles are mapped back to slugs through
-    `_nodes`. The trailing ungrouped group belongs to no node and simply has no
-    key here — an unclaimed step is not evidence for any node."""
+    Imported, never re-derived: `group_step_slugs` carries the node SLUG
+    through (M57 Part C — the old title-keyed round-trip collapsed two nodes
+    sharing an H2 title onto the first slug, and coverage then reported the
+    losing node as covered when it wasn't). The trailing ungrouped group
+    belongs to no node and simply has no key here — an unclaimed step is not
+    evidence for any node."""
     import kernel
-    from matrix_views import STEP_TYPE, _nodes, _steps, group_steps
+    from matrix_views import STEP_TYPE, _nodes, _steps, group_step_slugs
 
     nodes = _nodes(area)
-    by_title: dict[str, str] = {}
-    for node in nodes:
-        by_title.setdefault(node["title"], node["slug"])
     tdecl = kernel.load_type(STEP_TYPE)
 
     out: dict[str, list[str]] = {}
-    for title, steps in group_steps(_steps(area, tdecl), nodes):
-        slug = by_title.get(title)
+    for slug, steps in group_step_slugs(_steps(area, tdecl), nodes):
         if slug:
             out[slug] = [s["slug"] for s in steps]
     return out

@@ -24,7 +24,7 @@ import yaml
 import engagement
 import scaffold
 
-ledger = pytest.importorskip("ledger")
+import ledger
 
 DRAFTED = "## Heading\n\nReal drafted prose, no sentinel here.\n"
 SKELETON = "## Heading\n\n<!-- unfilled -->\n"

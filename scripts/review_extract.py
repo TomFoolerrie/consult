@@ -570,6 +570,7 @@ def render_notes_yaml(slug: str, source_docx: str, items: List[Item]) -> str:
     lines.append("items:")
     for it in items:
         lines.append("  - kind: review")      # M6 bus contract (see notes_util)
+        lines.append('    origin: "client-review-kit"')   # M58 trust boundary
         lines.append(f"    type: {it.kind}")
         lines.append(f"    location: {_yaml_scalar(it.location)}")
         lines.append(f"    anchor: {_yaml_scalar(it.anchor)}")
@@ -618,11 +619,19 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool,
     manifest = load_manifest(area)
     num2slug, title2slug = build_slug_maps(manifest)
 
+    from xlsx_min import MEMBER_CAP    # the one client-file size cap (M61)
     with zipfile.ZipFile(docx_path) as z:
         names = set(z.namelist())
         if "word/document.xml" not in names:
             print("error: not a Word document (no word/document.xml)", file=sys.stderr)
             return 2
+        for member in ("word/document.xml", "word/comments.xml"):
+            if member in names and z.getinfo(member).file_size > MEMBER_CAP:
+                print(f"error: {docx_path}: zip member {member} decompresses "
+                      f"to {z.getinfo(member).file_size} bytes, over the "
+                      f"{MEMBER_CAP}-byte cap — refusing to parse a "
+                      f"decompression bomb", file=sys.stderr)
+                return 2
         doc_bytes = z.read("word/document.xml")
         comments_bytes = z.read("word/comments.xml") if "word/comments.xml" in names else None
 
@@ -647,7 +656,9 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool,
             # `kind: review` is this producer's stamp on the M6 notes bus: it is
             # what keeps a reviewer comment from ever retiring a source (only
             # `kind: source` consumption credits one — see notes_util).
-            d = {"kind": "review",
+            # M58: the item is CLIENT DATA crossing the trust boundary — the
+            # origin stamp is the field the drafter's rules bind to.
+            d = {"kind": "review", "origin": "client-review-kit",
                  "type": it.kind, "location": it.location, "anchor": it.anchor,
                  "author": it.author, "date": it.date, "source": docx_path.name}
             if it.kind == "tracked-change":

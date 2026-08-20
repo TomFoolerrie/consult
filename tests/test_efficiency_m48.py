@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
@@ -25,7 +27,7 @@ ACTIVITY_PATH = REPO / "agents" / "drafting" / "activity.md"
 STEP_PATH = REPO / "agents" / "drafting" / "process-step.md"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
 
-needs_split = pytest.mark.skipif(
+needs_split = gatecheck.landed(
     not (REPO / "agents" / "drafting").is_dir(),
     reason="M48 drafter split not built yet — the target")
 

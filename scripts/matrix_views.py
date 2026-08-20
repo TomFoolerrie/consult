@@ -215,13 +215,15 @@ def _mentions(node_text: str, step: dict) -> bool:
     return bool(heading) and heading in node_text
 
 
-def group_steps(steps: list[dict], nodes: list[dict]) -> list[tuple[str, list]]:
-    """`[(group title, [step, …]), …]` — the grouping, mechanically.
+def group_step_slugs(steps: list[dict],
+                     nodes: list[dict]) -> list[tuple[str, list]]:
+    """`[(node SLUG, [step, …]), …]` — the grouping keyed by node identity.
 
-    Rule 1 (slug identity) wins over rule 2 (naming); a step claimed by two
-    naming nodes goes to the first in slug order; unclaimed steps form the
-    trailing `Ungrouped` group. Group order = the manifest position of each
-    group's first step, so the matrix reads in row order."""
+    The slug-keyed relation (M57 Part C): two taxonomy nodes may share a TITLE
+    (two "Exceptions" sub-cycles), and a title-keyed round-trip silently hands
+    both nodes' steps to whichever slug claimed the title first. The slug is
+    the node's identity; the title is its display. Unclaimed steps form a
+    trailing group keyed by the empty string."""
     owner: dict[str, str] = {}
     for step in steps:
         for node in nodes:                          # rule 1
@@ -235,17 +237,31 @@ def group_steps(steps: list[dict], nodes: list[dict]) -> list[tuple[str, list]]:
                 owner[step["slug"]] = node["slug"]
                 break
 
-    titles = {n["slug"]: n["title"] for n in nodes}
     grouped: dict[str, list] = {}
     for step in steps:
         grouped.setdefault(owner.get(step["slug"], ""), []).append(step)
 
     ordered = sorted((key for key in grouped if key),
                      key=lambda key: (grouped[key][0]["order"], key))
-    out = [(titles.get(key, key), grouped[key]) for key in ordered]
+    out = [(key, grouped[key]) for key in ordered]
     if "" in grouped:                               # rule 3
-        out.append((UNGROUPED_TITLE, grouped[""]))
+        out.append(("", grouped[""]))
     return out
+
+
+def group_steps(steps: list[dict], nodes: list[dict]) -> list[tuple[str, list]]:
+    """`[(group title, [step, …]), …]` — the grouping, mechanically.
+
+    Rule 1 (slug identity) wins over rule 2 (naming); a step claimed by two
+    naming nodes goes to the first in slug order; unclaimed steps form the
+    trailing `Ungrouped` group. Group order = the manifest position of each
+    group's first step, so the matrix reads in row order.
+
+    A DISPLAY view over `group_step_slugs` (M57): the slug-keyed relation is
+    the identity; this projects each slug to its title for the table."""
+    titles = {n["slug"]: n["title"] for n in nodes}
+    return [(titles.get(slug, slug) if slug else UNGROUPED_TITLE, group)
+            for slug, group in group_step_slugs(steps, nodes)]
 
 
 # --------------------------------------------------------------------------- #

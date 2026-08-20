@@ -1,7 +1,8 @@
 """M33 acceptance tests — written BEFORE the kernel, as the build target.
 
 These tests define the kernel's public API (docs/v2/M33-brain-kernel.md).
-Until `scripts/kernel.py` exists, every kernel test SKIPS (importorskip),
+The kernel is BUILT; these are its acceptance gate (the pre-build skip
+gate was retired by M64's skip budget),
 so the pre-M33 suite stays green; the moment the module lands they become
 the acceptance gate. Implementers: make these pass without editing them —
 an API disagreement is a spec conversation, not a test edit.
@@ -25,9 +26,7 @@ import aggregate
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
 AREA = FIXTURE_ROOT / "components" / "procure-to-pay"
 
-kernel = pytest.importorskip(
-    "kernel", reason="M33 kernel not built yet — these are the build target"
-)
+import kernel
 
 
 # (Fixture integrity lives in test_fixture_p2p.py — it must run even while
@@ -39,7 +38,8 @@ kernel = pytest.importorskip(
 
 class TestActivityParity:
     @pytest.fixture(scope="class")
-    def activity(self):
+    @classmethod
+    def activity(cls):
         return kernel.load_type("activity")
 
     def test_part_slugs_and_titles_match_section_registry(self, activity):
@@ -145,7 +145,8 @@ parts:
 
 class TestParseEquivalence:
     @pytest.fixture(scope="class")
-    def corpus(self):
+    @classmethod
+    def corpus(cls):
         manifest = doc_model.load_manifest(AREA)
         out = []
         for comp in doc_model.procedures(manifest):

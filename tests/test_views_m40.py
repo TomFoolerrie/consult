@@ -18,14 +18,15 @@ from pathlib import Path
 
 import pytest
 
-plan_views = pytest.importorskip(
-    "plan_views", reason="M40 view-writer module not built yet — the target")
+import gatecheck
+
+import plan_views
 
 import definitions  # noqa: E402  (present since M35)
 
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 
-needs_materialize = pytest.mark.skipif(
+needs_materialize = gatecheck.landed(
     not hasattr(definitions, "materialize_views"),
     reason="M40 materialize verb not built yet — the target")
 

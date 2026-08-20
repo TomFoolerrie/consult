@@ -11,9 +11,11 @@ engine.
 
 > **v2 is built and tested** — the kernel, the definition language, the
 > eight subagents, and the four skills are all in place, exercised by
-> **1,199 passing tests**, with the compatibility gate green: v1's own
+> **the full pytest suite** (the authoritative count lives in
+> [`docs/v2/README.md`](docs/v2/README.md)), with the compatibility gate
+> green: v1's own
 > desktop procedure, rebuilt through the new engine over a frozen
-> engagement, is normalized-identical to the v1 golden, and all 803 v1
+> engagement, is normalized-identical to the v1 golden, and the v1
 > tests run untouched.
 > See [`docs/v2/README.md`](docs/v2/README.md) for the v2 charter and tickets
 > (M33–M49); [`docs/`](docs/) holds the v1 record (M0–M32).
@@ -188,7 +190,8 @@ consult/
                                  the v1 engine, intact underneath
   docs/                          v1 design record (M0–M32) +
                                  docs/v2/ (charter + tickets M33–M49)
-  tests/                         1,199 pytest cases (803 v1 cases untouched)
+  tests/                         the full pytest suite (v1 cases untouched;
+                                 count owned by docs/v2/README.md)
   requirements.txt
 ```
 
@@ -213,9 +216,9 @@ the second deliverable, the analysis verbs, definition views, the
 engagement objective, the callout doctrine, the process-step drafting
 path, and the engagement-lens line (the needs view, the taxonomist
 merge, the interview agenda, the research pass, the efficiency pass,
-the analyst dispatch path) — with the suite at **1,199 passing**
-(`python3 -m pytest`) and zero of v1's 803 tests edited across the
-entire campaign. 2.0.0 and 2.1.0 merged 2026-08-15, 2.2.0 merged
+the analyst dispatch path) — with the full suite passing
+(`python3 -m pytest`; count owned by docs/v2/README.md) and none of
+v1's tests edited across the entire campaign. 2.0.0 and 2.1.0 merged 2026-08-15, 2.2.0 merged
 2026-08-17, each on an explicit human go. See
 [`docs/v2/README.md`](docs/v2/README.md) for the charter, the ticket index,
 and the recorded follow-up candidates, and [`CHANGELOG.md`](CHANGELOG.md)

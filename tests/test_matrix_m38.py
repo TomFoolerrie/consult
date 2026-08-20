@@ -5,7 +5,8 @@ awkward case the ticket demands), the process-controls-matrix definition
 loading and rendering with zero engine special-cases, the serviceability
 honesty check over the activity-typed v1 fixture, and coexistence.
 
-Skips until both the matrix definition and the IPO fixture exist.
+The matrix definition and IPO fixture are BUILT; their absence fails loud
+(M64 retired the pre-build skip gate).
 """
 
 import shutil
@@ -19,9 +20,8 @@ IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
             / "components" / "procure-to-pay")
 
-if not MATRIX_YAML.is_file() or not IPO_ROOT.is_dir():
-    pytest.skip("M38 matrix definition / IPO fixture not built yet — the target",
-                allow_module_level=True)
+assert MATRIX_YAML.is_file() and IPO_ROOT.is_dir(), (
+    "M38 matrix definition / IPO fixture missing — a failure, not a skip")
 
 import definitions  # noqa: E402
 import render_glue  # noqa: E402
@@ -120,7 +120,8 @@ class TestMatrixDefinition:
 
 class TestMatrixRender:
     @pytest.fixture(scope="class")
-    def rendered(self, tmp_path_factory):
+    @classmethod
+    def rendered(cls, tmp_path_factory):
         tmp = tmp_path_factory.mktemp("m38")
         root, area = ipo_copy(tmp)
         d = definitions.load_definition("process-controls-matrix")
@@ -138,9 +139,56 @@ class TestMatrixRender:
             if c.get("role") == "procedure":
                 assert c["heading"] in rendered, c["heading"]
 
+    @staticmethod
+    def _table_rows(xml: str) -> list[list[str]]:
+        from xml.etree import ElementTree as ET
+        W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        rows = []
+        for tr in ET.fromstring(xml).iter(W + "tr"):
+            rows.append(["".join(t.text or "" for t in tc.iter(W + "t"))
+                         for tc in tr.findall(W + "tc")])
+        return rows
+
     def test_controlless_step_renders_without_crash_and_empty_cell(self,
                                                                    rendered):
-        assert rendered  # reaching here means no crash; presence asserted above
+        """M64 Part C: the assertion the name promises — locate the
+        control-less step's ROW and check the control CELL is empty (and a
+        controlled step's cell is not)."""
+        import json
+        import kernel
+        t = kernel.load_type("process-step")
+        heading_of = {c["slug"]: c["heading"]
+                      for c in json.loads((IPO_AREA / "manifest.json")
+                                          .read_text(encoding="utf-8"))
+                      .get("components", []) if c.get("slug")}
+        controlless, controlled = set(), set()
+        for f in sorted(IPO_AREA.glob("10_*.md")):
+            e = kernel.parse_entity(f.read_text(encoding="utf-8"), t,
+                                    slug=f.stem[3:])
+            has_ctrl = any(str(c.get("id", "")).startswith("CTRL")
+                           for c in e.callout_dicts())
+            (controlled if has_ctrl else controlless).add(f.stem[3:])
+        assert controlless, "fixture must include a control-less step"
+
+        rows = self._table_rows(rendered)
+        headers = next(r for r in rows if r and r[0] == "Process Step")
+        ctrl_col = next(i for i, h in enumerate(headers) if "Control" in h)
+
+        def row_for(slug):
+            heading = heading_of[slug]
+            for r in rows:
+                if r and heading in r[0]:
+                    return r
+            raise AssertionError(f"no matrix row for step {heading!r}")
+
+        for slug in sorted(controlless):
+            row = row_for(slug)
+            assert row[ctrl_col].strip() in ("", "—"), (
+                f"{slug}: control-less step must render an EMPTY control "
+                f"cell (the em-dash placeholder), got {row[ctrl_col]!r}")
+        assert any(row_for(s)[ctrl_col].strip() not in ("", "—")
+                   for s in controlled), (
+            "a controlled step's control cell must carry its CTRL text")
 
     def test_pain_and_gap_material_reaches_the_matrix(self, rendered):
         assert "PP-" in rendered or "pain" in rendered.lower()

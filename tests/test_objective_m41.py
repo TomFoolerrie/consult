@@ -16,13 +16,15 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 import client_config
 import definitions  # noqa: F401
 
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 REPO = Path(__file__).resolve().parent.parent
 
-needs_objective = pytest.mark.skipif(
+needs_objective = gatecheck.landed(
     not hasattr(client_config, "objective"),
     reason="M41 objective accessor not built yet — the target")
 
@@ -33,13 +35,10 @@ def _scaffold_mod():
 
 
 def needs(attr, module="scaffold"):
-    try:
-        mod = __import__(module)
-    except ImportError:
-        return pytest.mark.skip(reason=f"{module} not importable")
-    return pytest.mark.skipif(
-        not hasattr(mod, attr),
-        reason=f"M41 {module}.{attr} not built yet — the target")
+    # M64: the features are BUILT — absence fails loud instead of skipping.
+    mod = __import__(module)
+    return gatecheck.landed(not hasattr(mod, attr),
+                            reason=f"M41 {module}.{attr}")
 
 
 def ipo_copy(tmp_path):

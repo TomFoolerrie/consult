@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
@@ -36,10 +38,10 @@ def _module_missing():
         return True
 
 
-needs_module = pytest.mark.skipif(
+needs_module = gatecheck.landed(
     _module_missing(), reason="M44 needs module not built yet — the target")
 
-needs_prose = pytest.mark.skipif(
+needs_prose = gatecheck.landed(
     "evidenced absence" not in DRAFTER.read_text(encoding="utf-8").lower(),
     reason="M44 two-mint doctrine prose not landed yet — the target")
 
@@ -280,7 +282,7 @@ def _gap_fields_declared():
         return False
 
 
-needs_grammar = pytest.mark.skipif(
+needs_grammar = gatecheck.landed(
     not _gap_fields_declared(),
     reason="M44 A3 grammar amendment not landed yet — the target")
 

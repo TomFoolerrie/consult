@@ -64,6 +64,52 @@ class LedgerError(Exception):
 
 
 # --------------------------------------------------------------------------- #
+# Evidence identity (M56) — bytes are stored under a name the LEDGER controls
+# --------------------------------------------------------------------------- #
+
+_QUALIFIED_RE = None  # compiled lazily; module import stays cheap
+
+
+def _qualified_re():
+    global _QUALIFIED_RE
+    if _QUALIFIED_RE is None:
+        import re
+        _QUALIFIED_RE = re.compile(rf"^{ID_PREFIX}\d+--")
+    return _QUALIFIED_RE
+
+
+def _is_qualified(basename: str) -> bool:
+    return bool(_qualified_re().match(basename))
+
+
+def _display_basename(basename: str) -> str:
+    """The human half of an id-qualified name (`SRC-001--interview.md` ->
+    `interview.md`); an unqualified legacy name passes through unchanged."""
+    return _qualified_re().sub("", basename)
+
+
+def _qualified_name(sid: str, basename: str) -> str:
+    """The id-qualified storage name for an entry's bytes: `<SRC-id>--<basename>`.
+
+    The ledger mints identity by content hash, so the name the bytes live under
+    must be one the LEDGER controls — two clients dropping `interview.md` must
+    never share a destination (M56: the basename-keyed move rule destroyed
+    retired evidence). The basename is preserved after the id for humans."""
+    return f"{sid}--{_display_basename(basename)}"
+
+
+def _owner_of_path(ledger_entries: list[dict], rel: str, except_id: str) -> str:
+    """The id of the OTHER entry recording `rel` as its file, for the refusal
+    message when a move/copy destination already exists with different bytes."""
+    for entry in ledger_entries:
+        sid = str(entry.get("id") or "")
+        if sid != except_id and str(entry.get("file") or "").replace(
+                os.sep, "/") == rel:
+            return sid
+    return "(no ledger entry)"
+
+
+# --------------------------------------------------------------------------- #
 # Paths and I/O
 # --------------------------------------------------------------------------- #
 
@@ -507,19 +553,17 @@ def status(root) -> dict:
     block is quiet.
     """
     known_hashes = set()
-    known_names = set()
     for entry in _load_ledger(root)["sources"]:
         digest = str(entry.get("hash") or "")
         if digest:
             known_hashes.add(digest)
-        recorded = str(entry.get("file") or "").replace(os.sep, "/")
-        if recorded:
-            known_names.add(os.path.basename(recorded))
 
+    # M56 (F-03): a staged file is "known" iff its CONTENT HASH appears in the
+    # ledger — never its basename. Deciding by name against the module's own
+    # doctrine hid `new/batch2/interview.md` with fresh bytes behind an old
+    # registration of the same name.
     unregistered = []
     for name in _new_file_names(root):
-        if os.path.basename(name) in known_names:
-            continue
         if _hash_file(str(new_dir(root) / name)) in known_hashes:
             continue                    # same bytes under a new name: known
         unregistered.append(name)
@@ -649,16 +693,53 @@ def credit(root, area: str, filled=(), updated=()) -> int:
     moved = 0
     for entry, touches, consumed in plan:
         entry["consumed"] = consumed
+        sid = str(entry.get("id") or "")
+        rel = str(entry.get("file") or "").replace(os.sep, "/")
         if entry.get("state") == "processed":
+            # M56 migration: a legacy entry retired under the basename-keyed
+            # rule holds an unqualified processed/ path. The first credit()
+            # touch upgrades it in place — bytes verified by hash first, so an
+            # entry whose recorded file was already clobbered is left alone
+            # (its recorded path stays a visible defect, never papered over).
+            base = os.path.basename(rel)
+            legacy = _root(root) / rel
+            if (rel.startswith(f"{LEDGER_DIRNAME}/processed/")
+                    and not _is_qualified(base) and legacy.is_file()
+                    and _hash_file(str(legacy)) == str(entry.get("hash") or "")):
+                qname = _qualified_name(sid, base)
+                qrel = f"{LEDGER_DIRNAME}/processed/{qname}"
+                qdest = processed_dir(root) / qname
+                if not qdest.exists():
+                    shutil.move(str(legacy), str(qdest))
+                    entry["file"] = qrel
             continue
         if not _fully_consumed(touches, consumed):
             continue
-        name = os.path.basename(str(entry.get("file") or "").replace(os.sep, "/"))
-        src = new_dir(root) / name
+        # M56 (F-01): retire to the ID-QUALIFIED path. The old rule moved
+        # new/<basename> -> processed/<basename>, and shutil.move silently
+        # replaces an existing destination — a re-sent file with the same name
+        # destroyed the earlier source's retired bytes.
+        src = (_root(root) / rel) if rel else None
+        if src is None or not src.is_file():
+            # tolerate a stale recorded path exactly as before: fall back to
+            # the staged basename
+            src = new_dir(root) / os.path.basename(rel)
+        name = _qualified_name(sid, os.path.basename(rel))
+        dest_rel = f"{LEDGER_DIRNAME}/processed/{name}"
         if src.is_file():
             processed_dir(root).mkdir(parents=True, exist_ok=True)
             dest = processed_dir(root) / name
-            shutil.move(str(src), str(dest))
+            if dest.exists():
+                if _hash_file(str(dest)) != str(entry.get("hash") or ""):
+                    raise LedgerError(
+                        f"{dest}: refusing to overwrite existing evidence "
+                        f"bytes while retiring {sid} — the destination holds "
+                        f"different content (recorded by "
+                        f"{_owner_of_path(ledger_entries, dest_rel, sid)})"
+                    )
+                os.unlink(str(src))     # same bytes already retired
+            else:
+                shutil.move(str(src), str(dest))
             # M25: the intake pointer sidecar retires with its source, so a lone
             # sidecar can never keep _sources/new/ "non-empty".
             side = Path(str(src) + ROUTE_SIDECAR_SUFFIX)
@@ -666,7 +747,7 @@ def credit(root, area: str, filled=(), updated=()) -> int:
                 shutil.move(str(side), str(dest) + ROUTE_SIDECAR_SUFFIX)
             moved += 1
         entry["state"] = "processed"
-        entry["file"] = f"{LEDGER_DIRNAME}/processed/{name}"
+        entry["file"] = dest_rel
 
     _dump_ledger(root, data)
     return moved
@@ -828,6 +909,30 @@ def _v1_entries(area_path) -> list[dict]:
     return [e for e in (data.get("sources") or []) if isinstance(e, dict)]
 
 
+def _v1_entries_strict(area_path) -> list[dict]:
+    """The raw entries of a v1 per-area registry — the WRITE-VERB read (M56).
+
+    `centralize` folds what these entries say into the central ledger; a
+    registry that exists but cannot be parsed, or parses to a non-mapping,
+    would silently contribute NOTHING to the fold, and one typo'd area would
+    vanish from the migration. Tolerance is right for the read-only adapter
+    (`_v1_entries`); a writer must fail loud, naming the file."""
+    path = _v1_registry_path(area_path)
+    if not path.is_file():
+        return []
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (yaml.YAMLError, OSError) as exc:
+        raise LedgerError(
+            f"{path}: v1 registry is unreadable — centralize refuses to fold "
+            f"an engagement it cannot read completely: {exc}") from exc
+    if not isinstance(data, dict):
+        raise LedgerError(
+            f"{path}: v1 registry must be a YAML mapping — centralize refuses "
+            f"to fold an engagement it cannot read completely")
+    return [e for e in (data.get("sources") or []) if isinstance(e, dict)]
+
+
 def _prefixed(area_name: str, sid: str) -> str:
     """A v1 area-local id presented at engagement scope: `<area>/SRC-nnn`.
 
@@ -969,9 +1074,13 @@ def centralize(root) -> dict[str, str]:
     remap: dict[str, str] = {}
     bytes_for: dict[str, Path] = {}         # central id -> a copy of the bytes
 
-    for area_path in _v1_area_paths(root):
+    # M56 Part C: validate EVERY area's registry strictly before folding
+    # anything, so a malformed registry can never leave a partial fold.
+    v1_by_area = [(p, _v1_entries_strict(p)) for p in _v1_area_paths(root)]
+
+    for area_path, v1_area_entries in v1_by_area:
         area = area_path.name
-        for v1 in _v1_entries(area_path):
+        for v1 in v1_area_entries:
             old_id = str(v1.get("id") or "").strip()
             if not old_id:
                 raise LedgerError(
@@ -1030,11 +1139,25 @@ def centralize(root) -> dict[str, str]:
         sub = "processed" if done else "new"
         dest_dir = processed_dir(root) if done else new_dir(root)
         dest_dir.mkdir(parents=True, exist_ok=True)
-        name = os.path.basename(str(entry.get("file") or "")) or source.name
+        # M56 (F-02): place bytes under the ID-QUALIFIED name. The basename
+        # rule collided two areas' distinct `interview.md`s and silently
+        # skipped the second copy, corrupting the central ledger at the moment
+        # of migration.
+        base = os.path.basename(str(entry.get("file") or "")) or source.name
+        name = _qualified_name(sid, base)
         dest = dest_dir / name
-        if not dest.is_file():
+        dest_rel = f"{LEDGER_DIRNAME}/{sub}/{name}"
+        if dest.is_file():
+            if _hash_file(str(dest)) != str(entry.get("hash") or ""):
+                raise LedgerError(
+                    f"{dest}: refusing to fold {sid} — the destination "
+                    f"already holds DIFFERENT bytes (recorded by "
+                    f"{_owner_of_path(ledger_entries, dest_rel, sid)}); "
+                    f"centralize never overwrites and never skips silently"
+                )
+        else:
             shutil.copy2(str(source), str(dest))
-        entry["file"] = f"{LEDGER_DIRNAME}/{sub}/{name}"
+        entry["file"] = dest_rel
         entry["state"] = sub
 
     _dump_ledger(root, data)

@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
@@ -40,25 +42,25 @@ def needs_module():
         return True
 
 
-needs_hygiene = pytest.mark.skipif(
+needs_hygiene = gatecheck.landed(
     needs_module(), reason="M43 hygiene module not built yet — the target")
 
 # Gate on the path section's own heading — softer anchors ("process step",
 # "— from") already occur in the M42 doctrine text and would unskip early.
-needs_path = pytest.mark.skipif(
+needs_path = gatecheck.landed(
     "what you produce — a process step" not in _drafter_text().lower(),
     reason="M43 drafting path prose not landed yet — the target")
 
 # WP-H2 gates on its own files, not on WP-H1's module — the packages land
 # and commit independently, and the suite must be green at each commit.
-needs_unit_line = pytest.mark.skipif(
+needs_unit_line = gatecheck.landed(
     "YOUR UNIT" not in (REPO / "scripts" / "brief.py").read_text("utf-8"),
     reason="M43 unit line not built yet — the target")
 
 # M52 mechanical repoint: the CALLOUT HYGIENE section moved into the one
 # assembly site (brief.taxonomist_picture, which engagement.py brief prints
 # by delegation) — same wiring gate, new home for the literal.
-needs_wiring = pytest.mark.skipif(
+needs_wiring = gatecheck.landed(
     "CALLOUT HYGIENE" not in (REPO / "scripts" / "brief.py").read_text("utf-8"),
     reason="M43 librarian wiring not built yet — the target")
 

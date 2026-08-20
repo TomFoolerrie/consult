@@ -14,8 +14,7 @@ from pathlib import Path
 
 import pytest
 
-coverage_map = pytest.importorskip(
-    "coverage_map", reason="M37 coverage function not built yet — the target")
+import coverage_map
 
 import kernel      # noqa: E402
 import ledger      # noqa: E402

@@ -50,7 +50,7 @@ FIXTURE_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
                 / "components" / "procure-to-pay")
 GOLDEN = Path(__file__).resolve().parent / "fixtures" / "golden" / "p2p-v1"
 
-render = pytest.importorskip("render", reason="the v1 render path is the subject")
+import render
 
 DOC = docx_compare.DOCUMENT_PART
 

@@ -49,6 +49,16 @@ If `-o/--output` is omitted, the output path is the input stem plus
   callout, never a broken image.
 - Ordered lists follow CommonMark semantics: a contiguous run is one list
   seeded by its first literal number; any break restarts numbering.
+- Nested lists keep their depth (M59): the nesting unit is **2 spaces** of
+  leading indentation per level, capped at 3 levels (deeper indentation clamps
+  to the third level); each level adds 0.25" of left indent past the 0.25"
+  base. Bullets and numbers both follow the rule.
+- Text fidelity (M59): only tag-shaped tokens are stripped — HTML comments,
+  `<br>`, `<span>`, and the whitelist `</?(b|i|em|strong|u|sub|sup)>` — so
+  angle-bracket prose (`<5k`, `debit < credit`, `<client name>`) renders as
+  written, and `&lt;`-style entities unescape to literal text after the
+  stripping decision. Backslash escapes (`\*`, `\_`, `\|`, `\\`) always render
+  as the literal character, never as emphasis or structure.
 
 ## Out of Scope
 

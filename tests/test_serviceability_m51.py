@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 SCRIPTS = REPO / "scripts"
@@ -31,7 +33,7 @@ def _built() -> bool:
     return hasattr(definitions, "serviceability_records")
 
 
-needs_records = pytest.mark.skipif(
+needs_records = gatecheck.landed(
     not _built(),
     reason="M51 serviceability_records not built yet — the target")
 

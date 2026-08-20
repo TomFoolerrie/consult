@@ -336,9 +336,14 @@ def test_corrupted_bookmark_routes_edit_to_notes(area, returned):
     report = apply_run(area, returned)
     assert (area / "bank-rec.md").read_text(encoding="utf-8") == before
     assert report["files"][0]["applied"] == 0
-    assert report["files"][0]["noted"] == 1
-    (item,) = load_notes(area, review_apply.UNASSIGNED)
-    assert "no verified anchor" in item["change"]
+    # M63 Part B: three distinct reports — the unanchored edit falls back to
+    # notes, the unknown bookmark is its own defect, and the map anchor that
+    # vanished is reported per-anchor (no cross-suppression).
+    assert report["files"][0]["noted"] == 3
+    items = load_notes(area, review_apply.UNASSIGNED)
+    assert any("no verified anchor" in (it.get("change") or "")
+               for it in items)
+    assert any(it.get("type") == "unknown-anchor" for it in items)
 
 
 def test_stripped_bookmark_routes_edit_to_notes(area, returned):

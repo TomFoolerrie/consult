@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
@@ -27,7 +29,7 @@ BRIEF_SRC = REPO / "scripts" / "brief.py"
 
 KINDS = ("SCOPING", "CURATION", "ADOPT-ROUTE")
 
-needs_verb = pytest.mark.skipif(
+needs_verb = gatecheck.landed(
     "taxonomist" not in BRIEF_SRC.read_text(encoding="utf-8"),
     reason="M52 taxonomist brief verb not built yet — the target")
 

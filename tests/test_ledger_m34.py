@@ -2,7 +2,7 @@
 
 These tests define the centralized-sources API
 (docs/v2/M34-centralized-sources.md). Until `scripts/ledger.py` exists,
-every test SKIPS (importorskip); the moment the module lands they become
+the tests ran gated pre-build (gate retired by M64's skip budget); they are
 the acceptance gate. Implementers: make these pass without editing them.
 
 The frozen corpus under tests/fixtures/p2p-complete/ is read-only (adapter
@@ -17,9 +17,7 @@ import yaml
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
 FIXTURE_AREA = FIXTURE_ROOT / "components" / "procure-to-pay"
 
-ledger = pytest.importorskip(
-    "ledger", reason="M34 ledger not built yet — these are the build target"
-)
+import ledger
 
 
 # --------------------------------------------------------------------------- #
@@ -91,14 +89,14 @@ class TestLedgerRoundTrip:
         moved = ledger.credit(root, "r2r", filled=["accrue-ap"])
         assert moved == 1
         assert not (root / "_sources" / "new" / "t.md").exists()
-        assert (root / "_sources" / "processed" / "t.md").is_file()
+        assert (root / "_sources" / "processed" / "SRC-001--t.md").is_file()
 
     def test_one_area_source_behaves_like_v1(self, tmp_path):
         root = make_engagement(tmp_path)
         drop(root, "solo.md")
         ledger.register(root, "solo.md", {"p2p": ["match-po"]})
         assert ledger.credit(root, "p2p", filled=["match-po"]) == 1
-        assert (root / "_sources" / "processed" / "solo.md").is_file()
+        assert (root / "_sources" / "processed" / "SRC-001--solo.md").is_file()
 
     def test_partial_touches_within_area_hold_the_file(self, tmp_path):
         root = make_engagement(tmp_path)
@@ -275,6 +273,6 @@ class TestCentralize:
         root = make_v1_engagement(tmp_path)
         ledger.centralize(root)
         # r2r never consumed it -> someone still owes a read -> new/
-        assert (root / "_sources" / "new" / "shared.md").is_file()
+        assert (root / "_sources" / "new" / "SRC-001--shared.md").is_file()
         assert ledger.credit(root, "r2r", filled=["accrue-ap"]) == 1
-        assert (root / "_sources" / "processed" / "shared.md").is_file()
+        assert (root / "_sources" / "processed" / "SRC-001--shared.md").is_file()

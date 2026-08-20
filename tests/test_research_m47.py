@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
@@ -28,16 +30,16 @@ def _has(module, attr):
     return hasattr(mod, attr)
 
 
-needs_promote = pytest.mark.skipif(
+needs_promote = gatecheck.landed(
     not _has("scaffold", "promote_client"),
     reason="M47 promote_client not built yet — the target")
 
-needs_provenance = pytest.mark.skipif(
+needs_provenance = gatecheck.landed(
     "provenance" not in (REPO / "scripts" / "coverage_map.py").read_text(
         encoding="utf-8"),
     reason="M47 public-provenance read-side not built yet — the target")
 
-needs_recipe = pytest.mark.skipif(
+needs_recipe = gatecheck.landed(
     "_client/.proposed" not in SKILL.read_text(encoding="utf-8"),
     reason="M47 research recipe not landed in the skill yet — the target")
 

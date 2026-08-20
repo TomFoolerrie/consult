@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 
@@ -32,7 +34,7 @@ def _built():
     return "four fields" in _text(DRAFTER).lower()
 
 
-needs_doctrine = pytest.mark.skipif(
+needs_doctrine = gatecheck.landed(
     not _built(), reason="M42 doctrine prose not landed yet — the target")
 
 
