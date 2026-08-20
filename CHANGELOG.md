@@ -14,6 +14,14 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M60 — notes-bus integrity** (`2.4.0-alpha.5`): the notes emitter
+  escapes every control character (C0/DEL/C1) as YAML `\xNN`, so one
+  mojibake byte can no longer invalidate — and on the next append
+  erase — a slug's accumulated client feedback; dedup fingerprints the
+  stored form, making multiline gap-answer ingests idempotent; the
+  rewrite is atomic (same-dir temp + `os.replace`); an existing notes
+  file that fails to parse raises instead of reading as empty.
+
 - **M59 — docx text fidelity** (`2.4.0-alpha.4`): `clean()` stops
   deleting prose between `<` and `>` — stripping is tag-shaped only
   (comments, `<br>`, `<span>`, a b/i/em/strong/u/sub/sup whitelist) and

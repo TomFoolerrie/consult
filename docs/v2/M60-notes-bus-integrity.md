@@ -1,6 +1,6 @@
 # M60 — Notes-bus integrity: escape, dedup, atomic
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.5`, gate 74/74 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-05, F-10, F-24 — F-05 and F-10 reproduced with exact inputs.
 
@@ -78,3 +78,14 @@ the bus never pretends an unreadable history is an empty one.
 - Corrupt-on-disk file + append → loud failure or quarantine; never a
   silent overwrite. Existing producer tests (review_extract,
   review_apply, gaps_ingest) pass untouched.
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* Part A kept the hand-formatted emitter (not yaml.safe_dump): `\xNN`
+  double-quote escapes for C0/DEL/C1; the `\n`/`\t` flatten stays, extended
+  to `\r`/`\r\n`, and is now the shared `_stored_form` encoding decision.
+* Part C's silent-empty fix is the RAISE variant (no quarantine): an existing
+  unparseable or non-mapping notes file raises `NotesError` naming it. One
+  pre-existing test pinning the []-tolerance was updated to pin the refusal.
+* The gate's control-char property test is parametrized over all of
+  U+0000–U+001F and U+007F–U+009F (65 cases), hence the gate count.
