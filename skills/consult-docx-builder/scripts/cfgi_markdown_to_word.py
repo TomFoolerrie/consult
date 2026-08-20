@@ -345,12 +345,48 @@ def configure(doc, landscape: bool = False) -> None:
 # --------------------------------------------------------------------------- #
 # Inline text / segments
 # --------------------------------------------------------------------------- #
-def clean(t: str) -> str:
-    t = html.unescape(t)
+# M59 Part B — backslash escapes are tokenized (private-use placeholders)
+# before any stripping or emphasis pass, and restored as LITERAL characters in
+# the final run text. `\*`, `\_`, `\|`, `\\` mean what the author wrote.
+_ESC_TOKENS = (("\\\\", "", "\\"), ("\\*", "", "*"),
+               ("\\_", "", "_"), ("\\|", "", "|"))
+
+# M59 Part A — tag stripping is TAG-SHAPED only: a known-tag whitelist plus
+# HTML comments. A literal `<5k`, `<client name>`, `debit < credit` passes
+# through untouched and renders as text.
+_TAG_RE = re.compile(r"</?(b|i|em|strong|u|sub|sup)\b[^>]*>", re.I)
+_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+
+
+def _protect_escapes(t: str) -> str:
+    for esc, token, _lit in _ESC_TOKENS:
+        t = t.replace(esc, token)
+    return t
+
+
+def _restore_escapes(t: str) -> str:
+    for _esc, token, lit in _ESC_TOKENS:
+        t = t.replace(token, lit)
+    return t
+
+
+def _clean_protected(t: str) -> str:
+    """`clean` with backslash escapes still tokenized — what `segs` consumes,
+    so the emphasis regexes can never re-style a deliberately-literal marker.
+    `html.unescape` runs AFTER the stripping decisions (M59): an author's
+    `&lt;5k` survives as the literal `<5k` instead of being fed back to a tag
+    regex."""
+    t = _protect_escapes(t)
+    t = _COMMENT_RE.sub("", t)
     t = re.sub(r"<br\s*/?>", "\n", t, flags=re.I)
     t = re.sub(r"</?span[^>]*>", "", t, flags=re.I)
-    t = re.sub(r"<[^>]+>", "", t)
-    return t.replace("\\_", "_").replace("\\*", "*").replace("\\|", "|").strip()
+    t = _TAG_RE.sub("", t)
+    t = html.unescape(t)
+    return t.strip()
+
+
+def clean(t: str) -> str:
+    return _restore_escapes(_clean_protected(t))
 
 
 def strip_links(t: str) -> str:
@@ -367,7 +403,8 @@ _CODE_RE = re.compile(r"`([^`]+?)`")
 def _emit_code(t: str, out: List[Seg], bold: bool = False, italic: bool = False) -> None:
     for k, part in enumerate(_CODE_RE.split(t)):
         if part:
-            out.append(Seg(part, bold=bold, italic=italic, code=(k % 2 == 1)))
+            out.append(Seg(_restore_escapes(part), bold=bold, italic=italic,
+                           code=(k % 2 == 1)))
 
 
 def _emit_italic(t: str, out: List[Seg], bold: bool = False) -> None:
@@ -384,7 +421,8 @@ def _emit_italic(t: str, out: List[Seg], bold: bool = False) -> None:
 def segs(text: str) -> List[Seg]:
     # Nested inline pass: bold outermost, then italics, then code spans, so
     # markers inside a bold span (e.g. **Notes on `A?` rows:**) still resolve.
-    text = strip_links(clean(text))
+    # escapes stay tokenized through the emphasis pass (M59 Part B)
+    text = strip_links(_clean_protected(text))
     out: List[Seg] = []
     pos = 0
     for m in _BOLD_RE.finditer(text):
@@ -1175,7 +1213,12 @@ def render_body(doc, lines: List[str], do_cover: bool = True, prov=None,
                 buf.append(ns)
                 i += 1
             p = para(doc, " ".join(buf), style)
-            p.paragraph_format.left_indent = Inches(0.25)
+            # M59 Part C — authored list depth maps to indent: 2-space unit
+            # (the CommonMark-common nesting step), capped at 3 levels
+            # (depth 0, 1, 2), 0.25" per level past the 0.25" base.
+            lead = len(line) - len(line.lstrip(" "))
+            depth = min(lead // 2, 2)
+            p.paragraph_format.left_indent = Inches(0.25 + 0.25 * depth)
             p.paragraph_format.first_line_indent = Inches(-0.15)
             if om:
                 # CommonMark list semantics: a contiguous run of ordered items
