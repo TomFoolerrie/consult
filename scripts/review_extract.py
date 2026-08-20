@@ -619,11 +619,19 @@ def run(docx_path: Path, area_arg: Optional[str], archive: bool, dry_run: bool,
     manifest = load_manifest(area)
     num2slug, title2slug = build_slug_maps(manifest)
 
+    from xlsx_min import MEMBER_CAP    # the one client-file size cap (M61)
     with zipfile.ZipFile(docx_path) as z:
         names = set(z.namelist())
         if "word/document.xml" not in names:
             print("error: not a Word document (no word/document.xml)", file=sys.stderr)
             return 2
+        for member in ("word/document.xml", "word/comments.xml"):
+            if member in names and z.getinfo(member).file_size > MEMBER_CAP:
+                print(f"error: {docx_path}: zip member {member} decompresses "
+                      f"to {z.getinfo(member).file_size} bytes, over the "
+                      f"{MEMBER_CAP}-byte cap — refusing to parse a "
+                      f"decompression bomb", file=sys.stderr)
+                return 2
         doc_bytes = z.read("word/document.xml")
         comments_bytes = z.read("word/comments.xml") if "word/comments.xml" in names else None
 
