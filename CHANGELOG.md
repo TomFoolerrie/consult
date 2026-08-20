@@ -14,6 +14,15 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M63 — fail-loud edges** (`2.4.0-alpha.8`): `split_doc` preserves
+  front matter to a `00_front-matter.md` component and reports it;
+  `review_apply` reports vanished anchors per-anchor and unknown
+  bookmarks as their own `unknown-anchor` defect (no
+  cross-suppression); `aggregate` refuses a manifest
+  `validate_manifest` refuses — a procedure under an unlisted L2 fails
+  the build instead of vanishing; `render` consumes the
+  `validate_manifest` return it used to discard.
+
 - **M62 — loader vocabulary honesty** (`2.4.0-alpha.7`): the callout
   id grammar is built from the loaded declarations
   (`callouts.id_strict_re`) — a declared `RSK` prefix parses, an

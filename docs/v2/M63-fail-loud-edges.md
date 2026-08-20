@@ -1,6 +1,6 @@
 # M63 — Fail-loud edges: three silent drops become refusals or reports
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.8`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-21, F-22, F-23 — plus a fourth defect found while
 fact-checking this ticket line (the discarded `validate_manifest`
@@ -92,3 +92,19 @@ other bare call gets the same fix).
   fails the render with the error text; a clean manifest renders as
   before.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* **Part A's "preserve or refuse":** preserve — leftover front-matter lines
+  become a `00_front-matter.md` static component (heading "Front Matter",
+  order 1, ahead of the band-10 procedures), so consolidate → render carries
+  them; the import prints how many lines it preserved and where.
+* Part B's rename case now reports twice (unknown bookmark + vanished map
+  anchor) — accepted per the two-lists-no-cross-suppression rule; the
+  pre-existing corrupted-bookmark test was updated from `noted == 1` to the
+  three distinct reports.
+* Part C runs the FULL `validate_manifest` in aggregate (not just the L2
+  rule): fail-loud doctrine, and the rule stays owned in one place. The
+  refusal appends the known `l2_order` after the validator's own error lines.
+* Part D survey: scaffold (×2), definitions and reconcile already consume
+  the return; render.py:852 was the only bare call. Fixed.
