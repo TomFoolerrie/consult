@@ -161,7 +161,7 @@ class TestSourcesModule:
         area = str(root / "components" / "p2p")
         rc = sources_mod.mark_processed(area, filled={"match-po"})
         assert rc == 0
-        assert (root / "_sources" / "processed" / "a.md").is_file()
+        assert (root / "_sources" / "processed" / "SRC-001--a.md").is_file()
 
     def test_two_area_source_survives_one_areas_mark(self, tmp_path):
         root = make_central(tmp_path)
