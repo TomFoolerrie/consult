@@ -14,6 +14,16 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M57 — one address per callout** (`2.4.0-alpha.2`): a ground is a
+  procedure-qualified callout address (`<slug>:<local-id>`) or an
+  entity slug — `resolve_grounds` normalizes unambiguous bare ids and
+  refuses ambiguous ones listing candidates; `conflict_records` emits
+  the qualified address with the display id alongside (`display_id`);
+  `for_area` joins on qualified addresses so a finding can no longer
+  cross areas on a colliding local id; `node_steps` keys by node slug
+  (`matrix_views.group_step_slugs`), so duplicate node titles keep
+  their own steps and coverage stops lying.
+
 - **M56 — evidence identity** (`2.4.0-alpha.1`): the ledger stops
   keying evidence bytes by basename — retired and centralized bytes
   live at `_sources/{new,processed}/<SRC-id>--<basename>`; the move

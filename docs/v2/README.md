@@ -217,7 +217,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**BUILT**, 2.3.0-alpha.6, gate 7/7, zero xfails) |
 | [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**BUILT**, 2.3.0-alpha.5, gate 9/9) |
 | [M56](M56-evidence-identity.md) | Evidence identity: the ledger stops keying bytes by basename — credit/centralize/status collision fixes (**BUILT**, 2.4.0-alpha.1, gate 10/10) |
-| [M57](M57-callout-addressing.md) | One address per callout: procedure-qualified grounds, `for_area` joins fixed, `node_steps` keyed by slug (**RECORDED**, review F-06/F-12/F-11) |
+| [M57](M57-callout-addressing.md) | One address per callout: procedure-qualified grounds, `for_area` joins fixed, `node_steps` keyed by slug (**BUILT**, 2.4.0-alpha.2, gate 8/8) |
 | [M58](M58-drafter-trust-boundary.md) | The drafter trust boundary: review items are client data, not orders; the agent grant audit (**RECORDED**, review F-07/F-15) |
 | [M59](M59-docx-text-fidelity.md) | Docx text fidelity: angle-bracket prose survives, escapes stay literal, lists keep their depth (**RECORDED**, review F-04/F-09/F-20) |
 | [M60](M60-notes-bus-integrity.md) | Notes-bus integrity: control-char-safe emitter, store-form dedup, atomic writes, no silent-empty load (**RECORDED**, review F-05/F-10/F-24) |

@@ -1,6 +1,6 @@
 # M57 — One address per callout: grounding stops crossing id namespaces
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.2`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-06, F-12, F-11 — all reproduced on the standing fixtures.
 
@@ -83,3 +83,19 @@ the relation must be correct regardless.)
   review passes.
 - Frozen fixtures and the register lifecycle tests pass untouched
   (existing single-procedure grounds remain unambiguous → accepted).
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* Grounding currency is `<slug>:<LOCAL-id>` (`findings.qualify_ground`);
+  `resolve_grounds` NORMALIZES an unambiguous unqualified ground to its one
+  qualified address before storage, and refuses an ambiguous one listing the
+  qualified candidates. Legacy registers holding unqualified grounds still
+  attribute through `for_area` while unambiguous engagement-wide.
+* `conflict_records` ids are the qualified address; the display id moved to
+  a new `display_id` key (the brief labels it "shown in the document as").
+  Two M49 tests pinning the display-id contract were updated.
+* Part C landed as `matrix_views.group_step_slugs` (slug-keyed identity);
+  `group_steps` became a display projection over it; `plan_views.node_steps`
+  consumes the slug-keyed relation directly.
+* The analyst agent's qualified-grounds prose ships in the M58 close-out
+  commit (the file also carries M58's trust-boundary passage).
