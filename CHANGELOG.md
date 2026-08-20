@@ -14,6 +14,14 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M61 — the xlsx round trip** (`2.4.0-alpha.6`): `write_xlsx`
+  replaces XML-illegal characters with a visible U+FFFD so a gap kit
+  always re-opens; `read_xlsx` interprets what Excel stored — date/time
+  styled serials come back as ISO text (the 46022 → 2025-12-31 repro),
+  `t="b"` as TRUE/FALSE; a 50 MB per-member decompressed cap
+  (`MEMBER_CAP`) guards every zip member read from client-returned
+  files, including review-kit docx members.
+
 - **M60 — notes-bus integrity** (`2.4.0-alpha.5`): the notes emitter
   escapes every control character (C0/DEL/C1) as YAML `\xNN`, so one
   mojibake byte can no longer invalidate — and on the next append

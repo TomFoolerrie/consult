@@ -1,6 +1,6 @@
 # M61 — The xlsx round trip: what the client typed is what the drafter reads
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.6`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-13, F-14, F-25 — F-13 and F-14 reproduced through the
 gap-kit path.
@@ -74,3 +74,14 @@ refusal naming the file.
 - `gaps_ingest` note text carries the interpreted answer.
 - An over-cap zip member → refusal naming the file, no parse attempt.
 - Existing kit/ingest tests pass untouched.
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* **Sanitize-vs-refuse (Part A's "pick one"):** replace-and-note, per the
+  review's read — illegal characters become U+FFFD, the kit ships, the
+  drafter sees the marker. Policy stated in the module docstring.
+* Part B scope as ticketed: builtin ids 14–22/45–47 plus custom formats with
+  `d`/`m`/`y` (date) or `h`/`s` (time) outside quoted literals; the phantom
+  1900-02-29 handled by the 1899-12-30 epoch with the <60 correction.
+* Part C's cap is `xlsx_min.MEMBER_CAP` (50 MB); `review_extract` guards its
+  docx members through the same constant.
