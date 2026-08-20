@@ -611,13 +611,27 @@ def apply_docx(area: Path, path: Path, report: dict) -> None:
                              "intent in."),
                     "source": path.name,
                 })
-    # A cw_ bookmark present in the doc but absent from the map is a RENAMED
-    # / corrupted anchor: its paragraph's edit already fell back with "no
-    # verified anchor", so its map entry going unseen is the same defect, not
-    # an untracked deletion — reporting both would note one event twice.
+    # M63 Part B: two lists, no cross-suppression. A cw_ bookmark present in
+    # the doc but absent from the map is reported as ITS OWN defect (a renamed
+    # or corrupted anchor), and every map anchor that vanished from the doc is
+    # reported per-anchor — the old global `not unknown_bms` guard let one
+    # corrupted bookmark anywhere silence the warning for every genuinely
+    # vanished anchor in the document.
     unknown_bms = {b for b in seen_bms if b not in entries}
+    for bm in sorted(unknown_bms):
+        untracked.append({
+            "slug": "",
+            "kind": "review", "type": "unknown-anchor",
+            "location": "document body",
+            "anchor": bm,
+            "note": (f"UNKNOWN anchor: bookmark {bm} is present in the "
+                     "document but absent from the anchor map — a renamed or "
+                     "corrupted cw_ bookmark. Its paragraph's edits fell back "
+                     "to unanchored routing; verify them by hand."),
+            "source": path.name,
+        })
     for bm, entry in entries.items():
-        if bm not in seen_bms and not unknown_bms:
+        if bm not in seen_bms:
             untracked.append({
                 "slug": entry.get("slug") or "",
                 "kind": "review", "type": "untracked-deletion",

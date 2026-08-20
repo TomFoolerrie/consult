@@ -849,7 +849,14 @@ def render_folder(folder: Path, out: Path, *,
     # malformed profile fails the render rather than shipping a wrong shape.
     profile = client_config.profile(folder)
     manifest = doc_model.load_manifest(folder)
-    doc_model.validate_manifest(manifest)
+    # M63 Part D: validate_manifest returns an error list and never raises —
+    # the old bare call discarded it, a no-op behind an enforcement-point
+    # comment. A defective manifest now fails the render naming every error.
+    merrors = doc_model.validate_manifest(manifest)
+    if merrors:
+        raise SystemExit(
+            "error: manifest defects — the render refuses to build from a "
+            "manifest reconcile would refuse:\n  " + "\n  ".join(merrors))
     # The profile validator's cross-field rule refuses a `body_omit:` section
     # whose register is not in `derived:` — but it can only vouch for the
     # PROFILE. Registers are manifest components, written at the confirm gate

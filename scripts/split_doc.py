@@ -83,21 +83,30 @@ def split_sections(lines: list[str]):
         yield heading, lines[start:end]
 
 
-def parse_front_matter(front: list[str]) -> tuple[str, str]:
-    """Return (title, subtitle) from the pre-first-## block."""
+def parse_front_matter(front: list[str]) -> tuple[str, str, list[str]]:
+    """`(title, subtitle, leftover lines)` from the pre-first-`##` block.
+
+    M63 Part A: everything the title/subtitle read does NOT consume — scope
+    paragraphs, preambles, disclaimers — is returned instead of vanishing, so
+    the import can preserve it and report what it did."""
     title, subtitle = "", ""
+    leftover: list[str] = []
+    consumed_subtitle = False
     for line in front:
         if not title:
             m = H1_RE.match(line)
             if m:
                 title = m.group(1).strip()
                 continue
-        elif not subtitle and line.strip():
+        elif not subtitle and not consumed_subtitle and line.strip():
             im = ITALIC_RE.match(line.strip())
+            consumed_subtitle = True
             if im:
                 subtitle = (im.group(1) or im.group(2)).strip()
-            break
-    return title, subtitle
+                continue
+        if line.strip():
+            leftover.append(line)
+    return title, subtitle, leftover
 
 
 def band_for(role: str, i_among_procedures: int) -> int:
@@ -127,9 +136,10 @@ def main(argv=None) -> int:
     order = 0
     seen_procedure = False
 
+    front_leftover: list[str] = []
     for heading, body in split_sections(lines):
         if heading is None:
-            title, subtitle = parse_front_matter(body)
+            title, subtitle, front_leftover = parse_front_matter(body)
             continue
 
         joined = "\n".join(body)
@@ -168,6 +178,21 @@ def main(argv=None) -> int:
             comp["derived_kind"] = dm.group(1)
             comp["writer"] = dm.group(2).lower()
         components.append(comp)
+
+    # M63 Part A: unconsumed front matter is PRESERVED as its own component
+    # (a static fragment at the top of the document) and reported — silence
+    # stopped being an option.
+    if front_leftover:
+        fname = "00_front-matter.md"
+        while (out / fname).exists():
+            fname = "0" + fname
+        (out / fname).write_text(
+            "## Front Matter\n\n" + "\n".join(front_leftover).strip("\n")
+            + "\n", encoding="utf-8")
+        components.insert(0, {"file": fname, "role": "static",
+                              "heading": "Front Matter", "order": 1})
+        print(f"  front matter: {len(front_leftover)} unconsumed line(s) "
+              f"preserved to {fname}")
 
     manifest = {
         "schema": "consult-mvp-manifest/v1",
