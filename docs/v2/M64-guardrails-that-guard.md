@@ -1,6 +1,6 @@
 # M64 — Guardrails that guard: the suite and CI stop lying by omission
 
-**Status: BUILT** (`2.4.0-alpha.9`, gate 6/6 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.9`, gate 6/6 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-16, F-26, F-27, F-29, F-28.
 

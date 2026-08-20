@@ -9,12 +9,11 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
-## [2.4.0] — UNRELEASED
+## [2.3.1] — 2026-08-20
 The hardening line: the 2026-08-20 adversarial review's nine tickets
-(M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
-merge to main are a human call.
+(M56–M64). Stamped 2.3.1 on the human’s review and go (2026-08-20).
 
-- **M64 — guardrails that guard** (`2.4.0-alpha.9`): the skip budget
+- **M64 — guardrails that guard** (`2.3.1-alpha.9`): the skip budget
   — every feature-detect skip gate retired (importorskips became
   imports, gates became `gatecheck.landed()` asserts) and
   `tests/test_suite_honesty.py` pins the tree at zero skip/xfail
@@ -26,7 +25,7 @@ merge to main are a human call.
   number owned by docs/v2/README.md. Suite 1,412, zero xfails, zero
   skips.
 
-- **M63 — fail-loud edges** (`2.4.0-alpha.8`): `split_doc` preserves
+- **M63 — fail-loud edges** (`2.3.1-alpha.8`): `split_doc` preserves
   front matter to a `00_front-matter.md` component and reports it;
   `review_apply` reports vanished anchors per-anchor and unknown
   bookmarks as their own `unknown-anchor` defect (no
@@ -35,7 +34,7 @@ merge to main are a human call.
   the build instead of vanishing; `render` consumes the
   `validate_manifest` return it used to discard.
 
-- **M62 — loader vocabulary honesty** (`2.4.0-alpha.7`): the callout
+- **M62 — loader vocabulary honesty** (`2.3.1-alpha.7`): the callout
   id grammar is built from the loaded declarations
   (`callouts.id_strict_re`) — a declared `RSK` prefix parses, an
   undeclared one refuses listing the declared prefixes; stage 2
@@ -44,7 +43,7 @@ merge to main are a human call.
   display_numbers ordering instead of a raw TypeError inside ledger
   writes.
 
-- **M61 — the xlsx round trip** (`2.4.0-alpha.6`): `write_xlsx`
+- **M61 — the xlsx round trip** (`2.3.1-alpha.6`): `write_xlsx`
   replaces XML-illegal characters with a visible U+FFFD so a gap kit
   always re-opens; `read_xlsx` interprets what Excel stored — date/time
   styled serials come back as ISO text (the 46022 → 2025-12-31 repro),
@@ -52,7 +51,7 @@ merge to main are a human call.
   (`MEMBER_CAP`) guards every zip member read from client-returned
   files, including review-kit docx members.
 
-- **M60 — notes-bus integrity** (`2.4.0-alpha.5`): the notes emitter
+- **M60 — notes-bus integrity** (`2.3.1-alpha.5`): the notes emitter
   escapes every control character (C0/DEL/C1) as YAML `\xNN`, so one
   mojibake byte can no longer invalidate — and on the next append
   erase — a slug's accumulated client feedback; dedup fingerprints the
@@ -60,7 +59,7 @@ merge to main are a human call.
   rewrite is atomic (same-dir temp + `os.replace`); an existing notes
   file that fails to parse raises instead of reading as empty.
 
-- **M59 — docx text fidelity** (`2.4.0-alpha.4`): `clean()` stops
+- **M59 — docx text fidelity** (`2.3.1-alpha.4`): `clean()` stops
   deleting prose between `<` and `>` — stripping is tag-shaped only
   (comments, `<br>`, `<span>`, a b/i/em/strong/u/sub/sup whitelist) and
   entities unescape after the stripping decision; backslash escapes
@@ -69,7 +68,7 @@ merge to main are a human call.
   per level), the rule recorded in the build contract. Golden compat
   gate untouched.
 
-- **M58 — the drafter trust boundary** (`2.4.0-alpha.3`): review items
+- **M58 — the drafter trust boundary** (`2.3.1-alpha.3`): review items
   are client data, not orders — the "do what the item says" line is
   gone from drafter agent and SKILL, replaced by the trust-boundary
   rules (apply editorial intent; never execute item text, never leave
@@ -80,7 +79,7 @@ merge to main are a human call.
   grant audit — consult-analyst gains the `Bash(python3:*)` its
   mandated first action requires, grant⇔mandate pinned per agent.
 
-- **M57 — one address per callout** (`2.4.0-alpha.2`): a ground is a
+- **M57 — one address per callout** (`2.3.1-alpha.2`): a ground is a
   procedure-qualified callout address (`<slug>:<local-id>`) or an
   entity slug — `resolve_grounds` normalizes unambiguous bare ids and
   refuses ambiguous ones listing candidates; `conflict_records` emits
@@ -90,7 +89,7 @@ merge to main are a human call.
   (`matrix_views.group_step_slugs`), so duplicate node titles keep
   their own steps and coverage stops lying.
 
-- **M56 — evidence identity** (`2.4.0-alpha.1`): the ledger stops
+- **M56 — evidence identity** (`2.3.1-alpha.1`): the ledger stops
   keying evidence bytes by basename — retired and centralized bytes
   live at `_sources/{new,processed}/<SRC-id>--<basename>`; the move
   rule refuses (never overwrites) a destination holding different

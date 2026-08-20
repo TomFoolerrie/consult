@@ -1,6 +1,6 @@
 # M57 — One address per callout: grounding stops crossing id namespaces
 
-**Status: BUILT** (`2.4.0-alpha.2`, gate 8/8 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.2`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-06, F-12, F-11 — all reproduced on the standing fixtures.
 

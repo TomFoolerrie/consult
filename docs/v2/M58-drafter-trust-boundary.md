@@ -1,6 +1,6 @@
 # M58 — The drafter trust boundary: review items are client data, not orders
 
-**Status: BUILT** (`2.4.0-alpha.3`, gate 18/18 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.3`, gate 18/18 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-07, F-15 — every hop verified against the agent and skill
 files.

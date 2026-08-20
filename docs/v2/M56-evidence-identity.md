@@ -1,6 +1,6 @@
 # M56 — Evidence identity: the ledger stops keying bytes by basename
 
-**Status: BUILT** (`2.4.0-alpha.1`, gate 10/10 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.1`, gate 10/10 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-01 (critical), F-02, F-03, F-17 — all four reproduced
 end-to-end. First of the hardening line: the only critical in the

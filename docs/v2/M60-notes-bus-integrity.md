@@ -1,6 +1,6 @@
 # M60 — Notes-bus integrity: escape, dedup, atomic
 
-**Status: BUILT** (`2.4.0-alpha.5`, gate 74/74 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.5`, gate 74/74 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-05, F-10, F-24 — F-05 and F-10 reproduced with exact inputs.
 

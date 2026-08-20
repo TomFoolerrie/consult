@@ -1,6 +1,6 @@
 # M61 — The xlsx round trip: what the client typed is what the drafter reads
 
-**Status: BUILT** (`2.4.0-alpha.6`, gate 8/8 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.6`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-13, F-14, F-25 — F-13 and F-14 reproduced through the
 gap-kit path.

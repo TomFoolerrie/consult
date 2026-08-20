@@ -1,6 +1,6 @@
 # M63 — Fail-loud edges: three silent drops become refusals or reports
 
-**Status: BUILT** (`2.4.0-alpha.8`, gate 8/8 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.8`, gate 8/8 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-21, F-22, F-23 — plus a fourth defect found while
 fact-checking this ticket line (the discarded `validate_manifest`

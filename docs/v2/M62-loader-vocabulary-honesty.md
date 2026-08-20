@@ -1,6 +1,6 @@
 # M62 — Loader vocabulary honesty: the kernel validates what it claims
 
-**Status: BUILT** (`2.4.0-alpha.7`, gate 9/9 — see Amendment A1).
+**Status: BUILT** (`2.3.1-alpha.7`, gate 9/9 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-08, F-19, F-18 — F-08 reproduced against the documented
 extension path.

@@ -1,12 +1,12 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.3.0 (2026-08-18)** — the spine (M33–M39) plus
+**Status: RELEASED AS 2.3.1 (2026-08-20)** — the spine (M33–M39) plus
 M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
 engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
 gap discriminator, structured serviceability, the merged taxonomist
 brief, engine housekeeping, table-row comment routing, the recorded
-wants) shipped as 2.3.0; the hardening line M56–M64 is BUILT on top
-(2.4.0-alpha). **Authoritative suite count: 1,412 collected, all
+wants) shipped as 2.3.0; the hardening line M56–M64 shipped as
+2.3.1. **Authoritative suite count: 1,412 collected, all
 passing** (`python3 -m pytest --collect-only -q`; the release checklist
 owns this number) with ZERO xfails (the standing M38 table-routing
 xfail retired in M54) and ZERO skips (the M64 skip budget enforces
@@ -18,7 +18,7 @@ The recorded backlog shipped as **M50–M55** (2.3.0): the gap discriminator
 (M50), structured serviceability (M51), the merged taxonomist brief
 (M52), engine housekeeping (M53), table-row comment routing (M54), and
 the recorded wants — ledger verb + appendix optionality (M55).
-A hardening line **M56–M64** is RECORDED (2026-08-20, not scheduled),
+The hardening line **M56–M64** shipped as **2.3.1** (2026-08-20),
 written from an adversarial review of 2.3.0 at `main` @ 8b22e9e — 29
 verified findings folded into nine tickets by shared root cause:
 evidence identity in the ledger (M56, carries the review's one
@@ -220,15 +220,15 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M53](M53-engine-housekeeping.md) | Engine housekeeping: the kind resolvers' public home, docstring refresh, the root helper, the ordering flake (**BUILT**, 2.3.0-alpha.4, gate 8/8) |
 | [M54](M54-table-row-routing.md) | Table-row comment routing: v1 appendix routing characterized, first-cell slug resolution, the M38 xfail retires (**BUILT**, 2.3.0-alpha.6, gate 7/7, zero xfails) |
 | [M55](M55-recorded-wants.md) | Recorded wants: the human-readable ledger verb + appendix-controls optionality in user space (**BUILT**, 2.3.0-alpha.5, gate 9/9) |
-| [M56](M56-evidence-identity.md) | Evidence identity: the ledger stops keying bytes by basename — credit/centralize/status collision fixes (**BUILT**, 2.4.0-alpha.1, gate 10/10) |
-| [M57](M57-callout-addressing.md) | One address per callout: procedure-qualified grounds, `for_area` joins fixed, `node_steps` keyed by slug (**BUILT**, 2.4.0-alpha.2, gate 8/8) |
-| [M58](M58-drafter-trust-boundary.md) | The drafter trust boundary: review items are client data, not orders; the agent grant audit (**BUILT**, 2.4.0-alpha.3, gate 18/18) |
-| [M59](M59-docx-text-fidelity.md) | Docx text fidelity: angle-bracket prose survives, escapes stay literal, lists keep their depth (**BUILT**, 2.4.0-alpha.4, gate 10/10) |
-| [M60](M60-notes-bus-integrity.md) | Notes-bus integrity: control-char-safe emitter, store-form dedup, atomic writes, no silent-empty load (**BUILT**, 2.4.0-alpha.5, gate 74/74) |
-| [M61](M61-xlsx-round-trip.md) | The xlsx round trip: XML-legal writer, date/bool-aware reader, size caps on client files (**BUILT**, 2.4.0-alpha.6, gate 8/8) |
-| [M62](M62-loader-vocabulary-honesty.md) | Loader vocabulary honesty: declared callout prefixes parse, `repeat.over` validated, one `order` rule (**BUILT**, 2.4.0-alpha.7, gate 9/9) |
-| [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2, the render's no-op validate_manifest call gets teeth (**BUILT**, 2.4.0-alpha.8, gate 8/8) |
-| [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**BUILT**, 2.4.0-alpha.9, gate 6/6) |
+| [M56](M56-evidence-identity.md) | Evidence identity: the ledger stops keying bytes by basename — credit/centralize/status collision fixes (**BUILT**, 2.3.1-alpha.1, gate 10/10) |
+| [M57](M57-callout-addressing.md) | One address per callout: procedure-qualified grounds, `for_area` joins fixed, `node_steps` keyed by slug (**BUILT**, 2.3.1-alpha.2, gate 8/8) |
+| [M58](M58-drafter-trust-boundary.md) | The drafter trust boundary: review items are client data, not orders; the agent grant audit (**BUILT**, 2.3.1-alpha.3, gate 18/18) |
+| [M59](M59-docx-text-fidelity.md) | Docx text fidelity: angle-bracket prose survives, escapes stay literal, lists keep their depth (**BUILT**, 2.3.1-alpha.4, gate 10/10) |
+| [M60](M60-notes-bus-integrity.md) | Notes-bus integrity: control-char-safe emitter, store-form dedup, atomic writes, no silent-empty load (**BUILT**, 2.3.1-alpha.5, gate 74/74) |
+| [M61](M61-xlsx-round-trip.md) | The xlsx round trip: XML-legal writer, date/bool-aware reader, size caps on client files (**BUILT**, 2.3.1-alpha.6, gate 8/8) |
+| [M62](M62-loader-vocabulary-honesty.md) | Loader vocabulary honesty: declared callout prefixes parse, `repeat.over` validated, one `order` rule (**BUILT**, 2.3.1-alpha.7, gate 9/9) |
+| [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2, the render's no-op validate_manifest call gets teeth (**BUILT**, 2.3.1-alpha.8, gate 8/8) |
+| [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**BUILT**, 2.3.1-alpha.9, gate 6/6) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
