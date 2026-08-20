@@ -51,8 +51,8 @@ KINDS = ("review", "source", "retirement", "rename", "consolidation")
 # `category` (the finding taxonomy) and `peers` (a comma-joined slug string,
 # never a YAML list: `_scalar` would emit Python list syntax otherwise).
 # Anything else is an error.
-_KEYS = ("kind", "src", "type", "category", "location", "anchor", "change",
-         "note", "peers", "author", "date", "source")
+_KEYS = ("kind", "src", "origin", "type", "category", "location", "anchor",
+         "change", "note", "peers", "author", "date", "source")
 
 NOTES_SUFFIX = ".notes.yaml"
 
