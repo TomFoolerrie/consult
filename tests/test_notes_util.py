@@ -67,12 +67,16 @@ def test_load_items_missing_file(tmp_path):
     assert load_items(tmp_path, "ghost") == []
 
 
-def test_load_items_malformed_yaml(tmp_path):
-    """Unparseable YAML loads as [] rather than raising."""
+def test_load_items_malformed_yaml_raises(tmp_path):
+    """M60: an EXISTING file that fails to parse raises — the bus never
+    pretends an unreadable history is an empty one."""
+    import notes_util
     f = notes_path(tmp_path, "bad")
     f.parent.mkdir(parents=True)
     f.write_text("items: [::", encoding="utf-8")
-    assert load_items(tmp_path, "bad") == []
+    with pytest.raises(notes_util.NotesError) as exc:
+        load_items(tmp_path, "bad")
+    assert "bad.notes.yaml" in str(exc.value)
 
 
 def test_load_items_skips_non_dicts(tmp_path):

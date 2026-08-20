@@ -35,6 +35,7 @@ Python 3, stdlib + pyyaml.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 try:
@@ -61,10 +62,32 @@ class NotesError(Exception):
     """A fail-loud defect in a notes item (never a silent drop)."""
 
 
+def _stored_form(v) -> str:
+    """The NORMALIZED value a scalar is stored as (M60 Part B): `\\n`, `\\r`,
+    `\\t` flatten to single spaces — a deliberate encoding decision (items are
+    one-line records) shared verbatim by `_fingerprint`, so dedup always
+    compares what the file will actually hold."""
+    return (str(v).replace("\r\n", " ").replace("\n", " ")
+            .replace("\r", " ").replace("\t", " "))
+
+
 def _scalar(v: str) -> str:
-    s = str(v).replace("\\", "\\\\").replace('"', '\\"')
-    s = s.replace("\n", " ").replace("\t", " ")
-    return f'"{s}"'
+    """One double-quoted YAML scalar that ALWAYS parses (M60 Part A).
+
+    Every character outside the printable-safe range — C0 controls, DEL, the
+    C1 block (routine Windows-1252 mojibake in client docx) — is written as a
+    YAML `\\xNN` escape. Property: for ANY Python string, write → load
+    round-trips to `_stored_form(value)`. One raw control character used to
+    make the whole file invalid YAML, silently erasing a slug's history."""
+    s = _stored_form(v).replace("\\", "\\\\").replace('"', '\\"')
+    out = []
+    for ch in s:
+        code = ord(ch)
+        if code < 0x20 or code == 0x7F or 0x80 <= code <= 0x9F:
+            out.append(f"\\x{code:02X}")
+        else:
+            out.append(ch)
+    return '"' + "".join(out) + '"'
 
 
 def _emit(slug: str, items: list[dict]) -> str:
@@ -88,7 +111,9 @@ def _emit(slug: str, items: list[dict]) -> str:
 
 
 def _fingerprint(it: dict) -> tuple:
-    return tuple(str(it.get(k, "")) for k in _KEYS)
+    # M60 Part B: fingerprint WHAT IS STORED — a reloaded multiline item must
+    # match its raw incoming twin, or re-running an ingest appends forever.
+    return tuple(_stored_form(it.get(k, "")) for k in _KEYS)
 
 
 def validate_item(item: dict, where: str = "notes item") -> dict:
@@ -133,17 +158,28 @@ def validate_item(item: dict, where: str = "notes item") -> dict:
 def load_items_from(path) -> list[dict]:
     """Items from a notes file at an explicit path (live or archived).
 
-    Absent file / unparseable YAML → `[]` (the pre-existing tolerance); non-dict
-    entries are dropped; every dict is validated and a defect raises."""
+    Absent file → `[]`. An EXISTING file that fails to parse, or parses to a
+    non-mapping, raises `NotesError` (M60 Part C): this store holds real
+    client input that cannot be regenerated, and returning `[]` for it made
+    the NEXT append rewrite the file with only its own items — silent
+    permanent erasure. The bus never pretends an unreadable history is an
+    empty one. Non-dict entries are dropped; every dict is validated and a
+    defect raises."""
     f = Path(path)
     if yaml is None or not f.is_file():
         return []
     try:
         data = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
-    except yaml.YAMLError:
-        return []
+    except yaml.YAMLError as exc:
+        raise NotesError(
+            f"{f}: existing notes file is not parseable YAML — refusing to "
+            f"read it as empty (the accumulated items are client input that "
+            f"cannot be regenerated; fix or archive the file): {exc}"
+        ) from exc
     if not isinstance(data, dict):
-        return []
+        raise NotesError(
+            f"{f}: existing notes file is not a YAML mapping — refusing to "
+            f"read it as empty")
     out = []
     for i, it in enumerate((data.get("items") or []), start=1):
         if not isinstance(it, dict):
@@ -178,5 +214,10 @@ def append_items(area, slug: str, new_items: list[dict]) -> int:
     if added:
         out = area / "_review" / f"{slug}{NOTES_SUFFIX}"
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(_emit(slug, existing), encoding="utf-8")
+        # M60 Part C: never mid-state on disk — the accumulated notes are
+        # unrecoverable client input, so the rewrite goes through a same-dir
+        # temp file and an atomic os.replace.
+        tmp = out.with_name(out.name + ".tmp")
+        tmp.write_text(_emit(slug, existing), encoding="utf-8")
+        os.replace(tmp, out)
     return added
