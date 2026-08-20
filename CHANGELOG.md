@@ -14,6 +14,15 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M62 — loader vocabulary honesty** (`2.4.0-alpha.7`): the callout
+  id grammar is built from the loaded declarations
+  (`callouts.id_strict_re`) — a declared `RSK` prefix parses, an
+  undeclared one refuses listing the declared prefixes; stage 2
+  validates `repeat.over` like `entities:`; `doc_model._order_of` is
+  the one order rule for every sorter, so `order: null` degrades to the
+  display_numbers ordering instead of a raw TypeError inside ledger
+  writes.
+
 - **M61 — the xlsx round trip** (`2.4.0-alpha.6`): `write_xlsx`
   replaces XML-illegal characters with a visible U+FFFD so a gap kit
   always re-opens; `read_xlsx` interprets what Excel stored — date/time

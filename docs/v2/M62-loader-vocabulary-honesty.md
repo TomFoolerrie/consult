@@ -1,6 +1,6 @@
 # M62 — Loader vocabulary honesty: the kernel validates what it claims
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.7`, gate 9/9 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-08, F-19, F-18 — F-08 reproduced against the documented
 extension path.
@@ -80,3 +80,15 @@ no raw `TypeError` escapes a named-error contract.
   succeeds or raises a named error — never `TypeError`.
 - Full suite + compat gate untouched (v1's five prefixes and all frozen
   fixtures parse identically).
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* Part A landed as `callouts.id_strict_re(prefixes)` — grammar assembled
+  where the parse happens (`kernel.parse_entity` builds it from the tdecl's
+  declared prefixes, floor-unioned with the v1 five). `ID_STRICT_RE` stays as
+  the floor-only constant for the v1 aggregate/reconcile path, which is
+  behind the compat gate and reads only the shipped vocabulary.
+* Part C: `_order_of` is shared by `procedures()`, `display_numbers` and
+  `assemble()`; the file tiebreak is coerced through `str()` so a null
+  `file:` can't crash the sort either.
+* Full suite + compat gate verified untouched (v1 five parse identically).
