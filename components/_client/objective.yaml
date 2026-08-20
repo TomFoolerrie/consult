@@ -1,0 +1,20 @@
+# _client/objective.yaml — Nordhaven Industrial Group
+# The engagement objective (M41). Engagement-wide: it sits at the components/
+# layer so it covers every area. It aims the survey (what evidence to chase)
+# and the analyst's clustering (what themes the findings report groups into).
+#
+# The goal is deliberately an improvement brief, not a documentation brief:
+# the deliverable is the findings report — the one shipped shape that renders
+# what the system THINKS rather than what the sources said — so the analyst
+# reads the captured process for opportunity, with an eye on systems,
+# integration, automation, and manual effort.
+
+objective:
+  goal: >
+    Assess the procure-to-pay cycle as it runs today and tell Nordhaven where
+    it can do better — the points where disconnected systems, missing
+    integration, absent automation, and avoidable manual effort hold the
+    process back — and deliver a prioritized recommendation list they can act
+    on.
+  deliverables: [findings-report]
+  cycles: [procure-to-pay]
