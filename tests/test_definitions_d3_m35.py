@@ -27,10 +27,8 @@ import pytest
 FIXTURE_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
                 / "components" / "procure-to-pay")
 
-definitions = pytest.importorskip(
-    "definitions", reason="M35 definition language not built yet — the target"
-)
-client_config = pytest.importorskip("client_config")
+import definitions
+import client_config
 
 
 # --------------------------------------------------------------------------- #

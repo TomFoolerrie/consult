@@ -2,7 +2,7 @@
 
 These tests define the centralized-sources API
 (docs/v2/M34-centralized-sources.md). Until `scripts/ledger.py` exists,
-every test SKIPS (importorskip); the moment the module lands they become
+the tests ran gated pre-build (gate retired by M64's skip budget); they are
 the acceptance gate. Implementers: make these pass without editing them.
 
 The frozen corpus under tests/fixtures/p2p-complete/ is read-only (adapter
@@ -17,9 +17,7 @@ import yaml
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
 FIXTURE_AREA = FIXTURE_ROOT / "components" / "procure-to-pay"
 
-ledger = pytest.importorskip(
-    "ledger", reason="M34 ledger not built yet — these are the build target"
-)
+import ledger
 
 
 # --------------------------------------------------------------------------- #

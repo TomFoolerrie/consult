@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-analysis = pytest.importorskip("analysis")
-findings = pytest.importorskip("findings")
-plan_views = pytest.importorskip("plan_views")
+import analysis
+import findings
+import plan_views
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 P2P_ROOT = FIXTURES / "p2p-complete"

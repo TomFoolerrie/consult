@@ -14,11 +14,13 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 TAXONOMIST = REPO / "agents" / "consult-taxonomist.md"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
 
-needs_merge = pytest.mark.skipif(
+needs_merge = gatecheck.landed(
     not TAXONOMIST.is_file(),
     reason="M45 taxonomist not built yet — the target")
 

@@ -14,10 +14,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-ledger = pytest.importorskip("ledger")
-if not hasattr(ledger, "assess"):
-    pytest.skip("M34 consumer wiring not built yet — these are the target",
-                allow_module_level=True)
+import ledger
+assert hasattr(ledger, "assess"), (
+    "M34 consumer wiring missing — a failure, not a skip")
 
 import sources as sources_mod  # noqa: E402
 import brief as brief_mod      # noqa: E402

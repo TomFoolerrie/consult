@@ -49,9 +49,8 @@ REPO = Path(__file__).resolve().parents[1]
 MATRIX_YAML = REPO / "kernel" / "deliverables" / "process-controls-matrix.yaml"
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 
-if not MATRIX_YAML.is_file() or not IPO_ROOT.is_dir():
-    pytest.skip("M38 matrix definition / IPO fixture not built yet — the target",
-                allow_module_level=True)
+assert MATRIX_YAML.is_file() and IPO_ROOT.is_dir(), (
+    "M38 matrix definition / IPO fixture missing — a failure, not a skip")
 
 from docx import Document              # noqa: E402
 from docx.oxml import OxmlElement      # noqa: E402

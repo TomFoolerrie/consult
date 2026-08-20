@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-docx = pytest.importorskip("docx")
-cfgi = pytest.importorskip("cfgi_markdown_to_word")
+import docx
+import cfgi_markdown_to_word as cfgi
 
 from docx import Document  # noqa: E402
 from docx.shared import Inches  # noqa: E402

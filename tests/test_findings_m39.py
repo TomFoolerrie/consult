@@ -14,8 +14,7 @@ from pathlib import Path
 
 import pytest
 
-findings = pytest.importorskip(
-    "findings", reason="M39 findings module not built yet — the target")
+import findings
 
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 

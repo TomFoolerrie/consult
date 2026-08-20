@@ -9,7 +9,7 @@ import hashlib
 import pytest
 import yaml
 
-ledger = pytest.importorskip("ledger")
+import ledger
 
 from test_ledger_m34 import drop, make_engagement  # noqa: E402
 

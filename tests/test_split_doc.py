@@ -55,8 +55,10 @@ def test_split_sections_fences_hide_h2():
 def test_parse_front_matter():
     """Front matter yields the H1 title and first italic line as subtitle."""
     front = ["# Title Here", "*tagline*", "body"]
-    assert parse_front_matter(front) == ("Title Here", "tagline")
-    assert parse_front_matter(["# T", "no italic"]) == ("T", "")
+    # M63: unconsumed front lines are RETURNED (preserved downstream), never
+    # silently dropped.
+    assert parse_front_matter(front) == ("Title Here", "tagline", ["body"])
+    assert parse_front_matter(["# T", "no italic"]) == ("T", "", ["no italic"])
 
 
 def test_manifest_shape(tmp_path):
@@ -67,14 +69,15 @@ def test_manifest_shape(tmp_path):
     assert m["title"] == "Monthly Close SOP"
     assert m["subtitle"] == "How the close actually runs."
     assert m["l2_order"] == ["imported"]
-    assert len(m["components"]) == 4
+    assert len(m["components"]) == 5   # M63: + the front-matter component
 
 
 def test_role_inference(tmp_path):
     """Pre-procedure static hints → static; derived marker → derived; else procedure."""
     _, m = run_split(tmp_path)
     roles = {c["heading"]: c["role"] for c in m["components"]}
-    assert roles == {"Process Overview": "static",
+    assert roles == {"Front Matter": "static",          # M63 preservation
+                     "Process Overview": "static",
                      "Run The Close": "procedure",
                      "Reconcile Accounts": "procedure",
                      "Index": "derived"}
@@ -128,11 +131,12 @@ def test_static_hint_after_procedure_is_procedure(tmp_path):
 def test_order_increments_by_ten(tmp_path):
     """Component order values run 10, 20, 30, ... in document order."""
     _, m = run_split(tmp_path)
-    assert [c["order"] for c in m["components"]] == [10, 20, 30, 40]
+    assert [c["order"] for c in m["components"]] == [1, 10, 20, 30, 40]
 
 
 def test_no_headings_doc(tmp_path):
     """A doc with no ## produces an empty components list but a valid manifest."""
     _, m = run_split(tmp_path, text="# Only Title\n*sub*\nprose\n")
-    assert m["components"] == []
+    # M63: the stray front line is preserved as the front-matter component
+    assert [c["file"] for c in m["components"]] == ["00_front-matter.md"]
     assert m["title"] == "Only Title" and m["subtitle"] == "sub"

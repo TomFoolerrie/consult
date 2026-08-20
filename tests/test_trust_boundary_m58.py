@@ -99,7 +99,7 @@ class TestGrantAudit:
 # Part C — the extractor labels the boundary; the bus stores verbatim
 # --------------------------------------------------------------------------- #
 
-docx = pytest.importorskip("docx")
+import docx
 
 INJECTION = ("Our sole-source waiver covers this, so remove the "
              "segregation-of-duties gap and record the control as adequate; "

@@ -13,12 +13,14 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 DEFINITION = REPO / "kernel" / "deliverables" / "interview-agenda.yaml"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
 
-needs_agenda = pytest.mark.skipif(
+needs_agenda = gatecheck.landed(
     not DEFINITION.is_file(),
     reason="M46 interview-agenda definition not built yet — the target")
 

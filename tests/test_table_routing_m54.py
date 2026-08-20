@@ -39,14 +39,15 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"
 P2P_AREA = REPO / "tests" / "fixtures" / "p2p-complete" / "components" / "procure-to-pay"
 IPO_ROOT = REPO / "tests" / "fixtures" / "ipo-engagement"
 MATRIX_YAML = REPO / "kernel" / "deliverables" / "process-controls-matrix.yaml"
 
-if not P2P_AREA.is_dir():
-    pytest.skip("frozen p2p fixture missing", allow_module_level=True)
+assert P2P_AREA.is_dir(), "frozen p2p fixture missing — a failure, not a skip"
 
 from docx import Document          # noqa: E402
 import yaml                        # noqa: E402
@@ -172,8 +173,7 @@ if HAVE_IPO:
 
 @pytest.fixture()
 def ipo_area(tmp_path) -> Path:
-    if not HAVE_IPO:
-        pytest.skip("M38 matrix definition / IPO fixture not built yet")
+    assert HAVE_IPO, "M38 matrix definition / IPO fixture missing"
     dest = tmp_path / "eng"
     shutil.copytree(IPO_ROOT, dest)
     area = dest / "components" / "purchasing"
@@ -277,11 +277,12 @@ class TestV1AppendixCharacterization:
 #    These SKIP today; the M38 strict xfail keeps owning the "not yet" claim.
 # =========================================================================== #
 
-@pytest.mark.skipif(
+ROW_ROUTING_GATE = gatecheck.landed(
     not ROW_RESOLVER_LANDED,
-    reason="M54 Part B not landed: no `_row_first_cell` resolver in "
-           "scripts/review_extract.py yet (the M38 strict xfail owns the gap "
-           "until then)")
+    reason="M54 Part B: the `_row_first_cell` resolver in "
+           "scripts/review_extract.py is BUILT — its absence is a failure")
+
+
 class TestRowRouting:
     """The Part B contract on the rendered matrix (mirrors the M38
     TestRoutingGap scenario, asserting the POSITIVE outcome)."""

@@ -40,8 +40,8 @@ FIXTURE_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
                 / "components" / "procure-to-pay")
 GOLDEN = Path(__file__).resolve().parent / "fixtures" / "golden" / "p2p-v1"
 
-definitions = pytest.importorskip("definitions")
-render_glue = pytest.importorskip("render_glue")
+import definitions
+import render_glue
 
 DOC = docx_compare.DOCUMENT_PART
 

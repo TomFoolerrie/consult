@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO / "scripts"
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
@@ -35,7 +37,7 @@ _CROSS_MODULE_PRIVATES = (
     "plan_views._selected_statuses",
 )
 
-needs_kinds = pytest.mark.skipif(
+needs_kinds = gatecheck.landed(
     not KINDS.is_file(),
     reason="M53 kinds.py not built yet — the target")
 

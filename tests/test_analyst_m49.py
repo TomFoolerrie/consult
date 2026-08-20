@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+import gatecheck
+
 REPO = Path(__file__).resolve().parent.parent
 IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 P2P_AREA = (Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
@@ -32,19 +34,19 @@ def _has(module, attr):
     return hasattr(mod, attr)
 
 
-needs_brief = pytest.mark.skipif(
+needs_brief = gatecheck.landed(
     not _has("analysis", "main"),
     reason="M49 analysis.py brief CLI not built yet — the target")
 
-needs_extractor = pytest.mark.skipif(
+needs_extractor = gatecheck.landed(
     not _has("analysis", "conflict_records"),
     reason="M49 conflict_records not built yet — the target")
 
-needs_filter = pytest.mark.skipif(
+needs_filter = gatecheck.landed(
     not _has("findings", "for_area"),
     reason="M49 findings.for_area not built yet — the target")
 
-needs_dispatch = pytest.mark.skipif(
+needs_dispatch = gatecheck.landed(
     "analysis.py brief" not in SKILL.read_text(encoding="utf-8"),
     reason="M49 dispatch passage not landed yet — the target")
 

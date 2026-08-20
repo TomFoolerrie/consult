@@ -17,6 +17,8 @@ import shutil
 from pathlib import Path
 
 import pytest
+
+import gatecheck
 import yaml
 
 REPO = Path(__file__).resolve().parent.parent
@@ -25,7 +27,7 @@ P2P_ROOT = Path(__file__).resolve().parent / "fixtures" / "p2p-complete"
 SKILL = REPO / "skills" / "consult-orchestrate" / "SKILL.md"
 SHIPPED_DP = REPO / "kernel" / "deliverables" / "desktop-procedure.yaml"
 
-needs_show = pytest.mark.skipif(
+needs_show = gatecheck.landed(
     "def show" not in (REPO / "scripts" / "ledger.py").read_text(
         encoding="utf-8"),
     reason="M55 ledger show verb not built yet — the target")
