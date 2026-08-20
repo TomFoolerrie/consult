@@ -14,6 +14,18 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M64 — guardrails that guard** (`2.4.0-alpha.9`): the skip budget
+  — every feature-detect skip gate retired (importorskips became
+  imports, gates became `gatecheck.landed()` asserts) and
+  `tests/test_suite_honesty.py` pins the tree at zero skip/xfail
+  constructs outside a one-entry allowlist; `constraints.txt` pins the
+  dependency resolution (CI installs with `-c`, runs `pip check`); the
+  pytest-10 fixture deprecation fixed at the source; TestMatrixRender
+  asserts the cell-level facts its names promise; CI push triggers
+  match live branches; README counts replaced with one authoritative
+  number owned by docs/v2/README.md. Suite 1,412, zero xfails, zero
+  skips.
+
 - **M63 — fail-loud edges** (`2.4.0-alpha.8`): `split_doc` preserves
   front matter to a `00_front-matter.md` component and reports it;
   `review_apply` reports vanished anchors per-anchor and unknown

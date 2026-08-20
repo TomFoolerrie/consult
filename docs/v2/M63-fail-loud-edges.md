@@ -108,3 +108,7 @@ other bare call gets the same fix).
   refusal appends the known `l2_order` after the validator's own error lines.
 * Part D survey: scaffold (×2), definitions and reconcile already consume
   the return; render.py:852 was the only bare call. Fixed.
+* Post-land fix (caught by the first M64 full run): `tests/test_split_doc.py`
+  pinned the silent front-matter drop and was missed by M63's targeted sweep;
+  its five assertions were updated to the preservation contract in the M64
+  commit.

@@ -5,8 +5,12 @@ M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
 engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
 gap discriminator, structured serviceability, the merged taxonomist
 brief, engine housekeeping, table-row comment routing, the recorded
-wants) shipped as 2.3.0. Suite 1261 passing with ZERO xfails (the
-standing M38 table-routing xfail retired in M54) and zero skips, the
+wants) shipped as 2.3.0; the hardening line M56–M64 is BUILT on top
+(2.4.0-alpha). **Authoritative suite count: 1,412 collected, all
+passing** (`python3 -m pytest --collect-only -q`; the release checklist
+owns this number) with ZERO xfails (the standing M38 table-routing
+xfail retired in M54) and ZERO skips (the M64 skip budget enforces
+this structurally), the
 compatibility gate green, every shipped definition rendering
 end-to-end. All merges made on the human's explicit go.
 v1.20.0 is preserved on `v1.20-stable`.
@@ -224,7 +228,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M61](M61-xlsx-round-trip.md) | The xlsx round trip: XML-legal writer, date/bool-aware reader, size caps on client files (**BUILT**, 2.4.0-alpha.6, gate 8/8) |
 | [M62](M62-loader-vocabulary-honesty.md) | Loader vocabulary honesty: declared callout prefixes parse, `repeat.over` validated, one `order` rule (**BUILT**, 2.4.0-alpha.7, gate 9/9) |
 | [M63](M63-fail-loud-edges.md) | Fail-loud edges: front matter preserved, per-anchor deletion warnings, aggregate refuses the unlisted L2, the render's no-op validate_manifest call gets teeth (**BUILT**, 2.4.0-alpha.8, gate 8/8) |
-| [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**RECORDED**, review F-16/F-26/F-27/F-29/F-28) |
+| [M64](M64-guardrails-that-guard.md) | Guardrails that guard: the skip budget, pinned deps, named assertions, CI triggers, README counts (**BUILT**, 2.4.0-alpha.9, gate 6/6) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.

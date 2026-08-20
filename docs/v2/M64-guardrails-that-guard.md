@@ -1,6 +1,6 @@
 # M64 — Guardrails that guard: the suite and CI stop lying by omission
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.9`, gate 6/6 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-16, F-26, F-27, F-29, F-28.
 
@@ -89,3 +89,32 @@ count in the v2 README that the release checklist owns.
   controlless step to carry a control fails the test.
 - Workflow triggers match live branches; README counts match
   `pytest --collect-only`.
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* **Part A:** the gates were DELETED, the preferred fix — every
+  `pytest.importorskip` became a plain import, every feature-detect
+  `pytest.mark.skipif` gate became `tests/gatecheck.landed()` (ASSERTS the
+  feature is present and returns the registered no-op `gate_retired` mark, so
+  the ~40 decorator sites kept working), and every module-level
+  `pytest.skip(allow_module_level=True)` became an assert. ~30 modules
+  touched mechanically. `tests/test_suite_honesty.py` owns the budget: any
+  skip/xfail construct outside its allowlist (one entry: test_orchestrate's
+  git-worktree environment guard) fails, stale allowlist rows fail, and the
+  rename demo is kept as a permanent unit test
+  (`test_gatecheck_fails_loud_on_a_missing_feature`) instead of a scratch
+  branch.
+* **Part B:** `constraints.txt` pins the known-good resolution; CI installs
+  with `-c constraints.txt` and runs `pip check`. The
+  `PytestRemovedIn10Warning` class-scoped instance-method fixtures fixed per
+  the warning's instruction (`@classmethod`) in test_kernel_m33 and
+  test_matrix_m38 — the pin is safety, not life support.
+* **Part C:** `test_controlless_step_renders_without_crash_and_empty_cell`
+  now locates the control-less step's row and asserts the control cell is
+  the empty placeholder (and that a controlled step's cell is not). The
+  em-dash placeholder is the renderer's empty-cell form and is asserted as
+  such. No other name/assertion gaps found in the TestMatrixRender pass.
+* **Part D:** push triggers `[main, v2, v1.20-stable]`; README literals
+  replaced with "the full suite" pointers; the one authoritative count
+  (1,412 collected) lives in docs/v2/README.md, owned by the release
+  checklist.
