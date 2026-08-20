@@ -14,6 +14,15 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M59 — docx text fidelity** (`2.4.0-alpha.4`): `clean()` stops
+  deleting prose between `<` and `>` — stripping is tag-shaped only
+  (comments, `<br>`, `<span>`, a b/i/em/strong/u/sub/sup whitelist) and
+  entities unescape after the stripping decision; backslash escapes
+  survive the emphasis pass as literal characters in every unit type;
+  nested lists keep authored depth (2-space unit, 3-level cap, 0.25"
+  per level), the rule recorded in the build contract. Golden compat
+  gate untouched.
+
 - **M58 — the drafter trust boundary** (`2.4.0-alpha.3`): review items
   are client data, not orders — the "do what the item says" line is
   gone from drafter agent and SKILL, replaced by the trust-boundary

@@ -1,6 +1,6 @@
 # M59 — Docx text fidelity: the builder stops eating prose
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.4`, gate 10/10 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-04, F-09, F-20 — F-04 reproduced end-to-end through a real
 docx build.
@@ -74,3 +74,19 @@ rule written into it.
 - The v1 golden compat gate passes untouched — these are new
   assertions over inputs the golden corpus never exercised; any golden
   diff means Part A cut too wide and the ticket stops for a ruling.
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* **Strip-vs-whitelist (Part A's "pick one"):** whitelist. The corpus survey
+  found HTML comments (`<!-- derived/scope notes -->`) that the old generic
+  strip was load-bearing for, so deletion-entirely was out; the strip set is
+  comments + `<br>` + `<span>` + `</?(b|i|em|strong|u|sub|sup)>`.
+* **Nesting unit (Part C's "pick one"):** 2 spaces per level, capped at 3
+  levels (depth clamps, never unbounded); documented in
+  `references/docx_build_contract.md`.
+* Escapes are tokenized to private-use placeholders (U+E000–U+E003) inside
+  `_clean_protected`; `segs()` consumes the protected form and restores at
+  `Seg` creation, so every unit type gets the literal characters. `clean()`
+  itself restores before returning, so title/label/width callers are
+  byte-identical for escape-free input.
+* Golden compat gate verified untouched after each part.
