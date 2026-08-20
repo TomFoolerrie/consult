@@ -117,7 +117,8 @@ class TestConflictRecords:
         root, area = ipo_copy(tmp_path)
         recs = analysis.conflict_records(area)
         ids = {r["id"] for r in recs}
-        assert "GAP-01" in ids and "GAP-02" in ids   # the fixture conflicts
+        # M57: record ids are procedure-qualified callout addresses
+        assert "receive-invoice:GAP-01" in ids and "match-po:GAP-02" in ids
         for r in recs:
             assert r["kind"] == "conflict-record"
             assert len(set(r["srcs"])) >= 2 or r.get("nature") == "conflict"
@@ -135,7 +136,7 @@ class TestConflictRecords:
         frag.write_text(text.replace("### Issues", "### Issues\n" + absence,
                                      1), encoding="utf-8")
         recs = analysis.conflict_records(area)
-        assert "GAP-90" not in {r["id"] for r in recs}
+        assert "receive-invoice:GAP-90" not in {r["id"] for r in recs}
 
     def test_v1_nature_conflict_grammar_counts(self):
         import analysis

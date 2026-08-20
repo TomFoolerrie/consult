@@ -514,12 +514,15 @@ def conflict_records(area) -> list[dict]:
     SETTLE something two sources say differently, which is a different ask from
     "we hold no source for this".
 
-    `{"kind", "step", "id", "srcs", "text"}` per record, plus `"nature"` when
-    the field was present. `id` is the DISPLAY id
-    (`doc_model.callout_display_ids` — the document-global numbering authority,
-    the map render.py and the derived views already share), so a record cites a
-    gap by the id the rendered document shows. `text` is the callout's own words
-    with `[[slug]]` tokens flattened; nothing here summarises or grades it.
+    `{"kind", "step", "id", "display_id", "srcs", "text"}` per record, plus
+    `"nature"` when the field was present. `id` is the procedure-qualified
+    callout ADDRESS (`<step-slug>:<LOCAL id>` — findings.qualify_ground, M57):
+    the one grounding currency, guaranteed to resolve through
+    `findings.resolve_grounds` and to bind the callout in the procedure the
+    record came from. `display_id` is the document-global number the rendered
+    document shows (`doc_model.callout_display_ids`) — for the human, never a
+    ground. `text` is the callout's own words with `[[slug]]` tokens
+    flattened; nothing here summarises or grades it.
 
     The gap kind comes from the information request's `step-gaps` binding, not
     from a typed label (`_gap_prefix`). Both unit shapes are served by the one
@@ -532,6 +535,7 @@ def conflict_records(area) -> list[dict]:
     READ-ONLY, like every other generator here. This verb RECORDS a conflict; it
     never resolves one (the M39 one-direction rule)."""
     import doc_model
+    import findings
 
     area = Path(area)
     tdecl, steps = _area_steps(area)
@@ -550,7 +554,12 @@ def conflict_records(area) -> list[dict]:
             record = {
                 "kind": KIND_CONFLICT_RECORD,
                 "step": step["slug"],
-                "id": disp.get((step["slug"], local), local),
+                # M57 Part A: the record's `id` is the procedure-qualified
+                # callout ADDRESS — the one grounding currency, resolvable by
+                # findings.resolve_grounds. The document-global display id
+                # rides alongside for the human, display-only.
+                "id": findings.qualify_ground(step["slug"], local),
+                "display_id": disp.get((step["slug"], local), local),
                 "srcs": srcs,
                 "text": _flatten(str(callout.get("text") or "")),
             }
@@ -588,7 +597,9 @@ def _entry_line(feed: str, item: dict) -> str:
         srcs = ", ".join(item["srcs"]) or "NO SOURCE NAMED"
         return f"{item['id']} on {item['home']} ({srcs}): {item['text']}"
     nature = f", nature: {item['nature']}" if item.get("nature") else ""
-    return (f"{item['id']} on {item['step']} "
+    display = (f" [shown in the document as {item['display_id']}]"
+               if item.get("display_id") else "")
+    return (f"{item['id']}{display} on {item['step']} "
             f"({', '.join(item['srcs']) or 'no SRC cited'}{nature}): "
             f"{item['text']}")
 
