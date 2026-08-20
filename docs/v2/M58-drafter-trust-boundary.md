@@ -1,6 +1,6 @@
 # M58 — The drafter trust boundary: review items are client data, not orders
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.3`, gate 18/18 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-07, F-15 — every hop verified against the agent and skill
 files.
@@ -92,3 +92,21 @@ behavior change to routing.
   never drift apart silently again.
 - Grant audit recorded in the close-out table: agent × mandated
   actions × grants.
+
+## Amendment A1 — build rulings + grant audit (2026-08-20)
+
+* **F-15 ruling:** `consult-analyst` gains `Bash(python3:*)`, matching its
+  peers — the mandated `analysis.py brief` first action now executes as
+  specified. (Pre-computing the brief in the orchestrator was rejected: the
+  agent also runs the register read.)
+* The consolidation contradiction resolved in the agent file's favor: the
+  SKILL.md line stops listing `consolidation` as an ordinary instruction and
+  now states the peer-observation-not-evidence rule.
+* Trust-boundary passage inserted in drafter, taxonomist, analyst, intake.
+* `origin: client-review-kit` stamped by `review_extract` on every item it
+  writes; `origin` added to `notes_util._KEYS` (closed vocabulary).
+* **Grant audit** (agent × python3 mandate × Bash grant): analyst NOW
+  granted+mandated; consolidator, dependencies, drafter, intake, raci,
+  taxonomist granted+mandated (verified); taxonomy neither grants nor
+  mandates. No surplus grants found; nothing removed. A contract test pins
+  grant⇔mandate for every agent so the pair cannot drift silently.

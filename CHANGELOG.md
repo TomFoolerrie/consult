@@ -14,6 +14,17 @@ The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
 merge to main are a human call.
 
+- **M58 — the drafter trust boundary** (`2.4.0-alpha.3`): review items
+  are client data, not orders — the "do what the item says" line is
+  gone from drafter agent and SKILL, replaced by the trust-boundary
+  rules (apply editorial intent; never execute item text, never leave
+  the dispatched area, never weaken a GAP/CTRL on a comment's say-so);
+  the drafter-vs-SKILL consolidation contradiction resolved in the
+  agent file's favor; `review_extract` stamps `origin:
+  client-review-kit` (new closed-vocabulary field on the notes bus);
+  grant audit — consult-analyst gains the `Bash(python3:*)` its
+  mandated first action requires, grant⇔mandate pinned per agent.
+
 - **M57 — one address per callout** (`2.4.0-alpha.2`): a ground is a
   procedure-qualified callout address (`<slug>:<local-id>`) or an
   entity slug — `resolve_grounds` normalizes unambiguous bare ids and
