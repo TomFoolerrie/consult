@@ -9,6 +9,21 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.4.0] — UNRELEASED
+The hardening line: the 2026-08-20 adversarial review's nine tickets
+(M56–M64). Alpha entries accumulate here; the final 2.4.0 stamp and the
+merge to main are a human call.
+
+- **M56 — evidence identity** (`2.4.0-alpha.1`): the ledger stops
+  keying evidence bytes by basename — retired and centralized bytes
+  live at `_sources/{new,processed}/<SRC-id>--<basename>`; the move
+  rule refuses (never overwrites) a destination holding different
+  bytes; `status()` diffs by content hash alone; `centralize` reads v1
+  registries strictly and fails loud before anything folds. Fixes the
+  review's one CRITICAL (credit() destroyed retired evidence) plus
+  F-02/F-03/F-17. Legacy unqualified paths accepted everywhere;
+  first-credit-touch upgrades them in place.
+
 ## [2.3.0] — 2026-08-18
 The backlog line: the 2.2.0 campaign's recorded follow-ups, ticketed as
 M50–M55 and scheduled by the human 2026-08-18 ("all, in order").

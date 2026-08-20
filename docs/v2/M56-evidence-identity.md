@@ -1,6 +1,6 @@
 # M56 — Evidence identity: the ledger stops keying bytes by basename
 
-**Status: RECORDED** (not scheduled).
+**Status: BUILT** (`2.4.0-alpha.1`, gate 10/10 — see Amendment A1).
 Origin: the adversarial review of `main` @ 8b22e9e (2026-08-20),
 findings F-01 (critical), F-02, F-03, F-17 — all four reproduced
 end-to-end. First of the hardening line: the only critical in the
@@ -96,3 +96,21 @@ the read-only adapter; the write verb gets its own strict path (or a
   file; nothing partially folded.
 - Compat gate: v1 golden and all frozen-engagement fixtures pass
   untouched (path-form acceptance in Part A's migration note).
+
+## Amendment A1 — build rulings (2026-08-20)
+
+* **Migration approach (Part A's "pick one"):** acceptance-of-both plus a
+  lazy in-place upgrade — readers accept unqualified legacy paths verbatim,
+  and the first `credit()` touch of a legacy `processed/` entry moves its
+  bytes to the id-qualified path *after verifying the recorded hash*; an
+  entry whose bytes were already clobbered is left alone so the defect stays
+  visible. No eager migration verb.
+* Retirement to an occupied destination with the SAME bytes deletes the
+  staged duplicate rather than refusing (same evidence, one copy); DIFFERENT
+  bytes refuse with `LedgerError` naming both ids.
+* `centralize` validates every v1 registry strictly (`_v1_entries_strict`)
+  BEFORE folding anything, so a malformed area can never leave a partial
+  fold; the tolerant `_v1_entries` remains the read-only adapter's reader.
+* Three pre-existing tests that pinned the basename-keyed placement were
+  updated to the id-qualified paths (`test_ledger_m34.py` ×4 assertions,
+  `test_central_mode_m34.py` ×1). Compat gate and frozen fixtures untouched.
