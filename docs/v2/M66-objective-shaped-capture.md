@@ -135,6 +135,23 @@ end up being a renderer. This is just meant to be the brain."
    corpus stay untouched behind the compat gate — invariant 2 below
    narrows to that.)
 
+2b. **The document furniture stops being scaffolded into capture.**
+   The confirm-gate scaffold today also writes the desktop
+   procedure's STATIC pieces and derived-view stubs into the area —
+   `04_process-overview`, `06_procedure-index`, `07_role-dictionary`,
+   `08_systems`, `82_dependencies`, `84_raci`, the three appendices
+   (`STATIC_FILES` at `scaffold.py:1406`, `profile_derived_files` at
+   `scaffold.py:1425–1426`). Those are pieces of a DOCUMENT, not of
+   the brain: under this ruling the scaffold writes only the
+   process-step fragments plus the manifest, and every
+   static/derived block is produced by the render/materialize path
+   (M40's definition views) for whichever deliverable the objective
+   declares, at render time, outside the capture corpus. The v1
+   activity path keeps its scaffolding unchanged behind the compat
+   gate. (Gate addition: a fresh v2 confirm leaves NO
+   `0x_`/`8x_`/`9x_` document files in the area; a desktop-procedure
+   render still contains all of those blocks in the output document.)
+
 3. **Option 2's honesty line ships too:** the confirm gate states,
    in one sentence, that capture records evidence step-by-step and
    the declared deliverables are renders over it.
