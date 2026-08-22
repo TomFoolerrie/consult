@@ -1,7 +1,8 @@
 # M66 — Objective-shaped capture: the deliverable declared is not the shape drafted
 
-**Status: RECORDED** (2026-08-22) — **ruling deliberately open**; the
-three candidate shapes are recorded below, none chosen.
+**Status: RULED, ready to build** (2026-08-22) — see Amendment A1;
+the ruling goes further than any of the three candidates below. The
+candidates are kept as the decision record.
 Origin: the first live run of the v2 pipeline over the Nordhaven
 synthetic engagement (`examples/nordhaven-industrial`). The objective
 declared `deliverables: [findings-report]` and every document was
@@ -103,3 +104,64 @@ Set by the ruling. Whatever is chosen must hold two invariants:
 - An engagement that DOES declare a procedures deliverable (or ships
   an explicit profile) scaffolds exactly as today — the compat gate
   and the frozen fixtures see no diff.
+
+## Amendment A1 — the ruling (2026-08-22)
+
+The human's ruling goes one step past Option 1: **capture is the
+brain, and every document is a render over it.** In the human's own
+framing: "if I was going to do another desktop procedure, it would
+end up being a renderer. This is just meant to be the brain."
+
+1. **`process-step` becomes THE v2 capture unit — always, not just
+   for findings-only engagements.** All six declared parts (scope /
+   inputs / transformation / outputs / controls / issues,
+   `kernel/types/process-step.yaml`), none dropped: the callout homes
+   pin controls, issues and transformation; inputs and outputs are
+   cheap lists and are exactly where integration/automation friction
+   shows (a manual re-key is one step's output arriving as a
+   hand-typed input of the next); scope is one paragraph. Scaffold
+   stops consulting the activity seven-section default for v2
+   capture, and the manifest title stops claiming "Desktop
+   Procedures".
+
+2. **The desktop procedure is DEMOTED to what it already is in the
+   kernel: a deliverable definition** (`kernel/deliverables/
+   desktop-procedure.yaml`) — a render over the brain, requested
+   through the objective like any other deliverable, never a capture
+   template. No engagement drafts "in the desktop procedure shape"
+   again; one that declares the deliverable renders it from
+   process-step capture. (Definition rework to bind process-step
+   parts is part of the build; the v1 ACTIVITY type and the frozen
+   corpus stay untouched behind the compat gate — invariant 2 below
+   narrows to that.)
+
+3. **Option 2's honesty line ships too:** the confirm gate states,
+   in one sentence, that capture records evidence step-by-step and
+   the declared deliverables are renders over it.
+
+4. **The taxonomist's survey feeds the drafter — read-only.** The
+   drafter's brief lists the procedure's live taxonomy node
+   (`_taxonomy/<slug>.md`, alive per M65) as a READ-ONLY input, so
+   the survey's scope notes inform the draft instead of being
+   re-derived. The one-writer rule is restated mechanically: a
+   drafter writes exactly its own fragment; `_taxonomy/` is written
+   only at the confirm gate (promotion). The build adds the
+   mechanical guard — reconcile (or the audit) fails an area whose
+   `_taxonomy/` files changed outside a confirm — so "the drafter
+   overwrote the survey" is structurally impossible, not just
+   contractually forbidden.
+
+The gate (making the ticket's two invariants concrete):
+
+- A v2 engagement scaffolds process-step skeletons: six part
+  headings, no quick-reference/before-you-start, title without
+  "Desktop Procedures".
+- Every analyst-read callout kind mints and parses on the
+  process-step unit (feed does not thin).
+- An objective declaring `desktop-procedure` renders the definition
+  over process-step capture (or the definition's rework refuses with
+  a named "not yet" until it lands — never a silent wrong render).
+- The v1 compat gate and frozen activity fixtures pass byte-identical.
+- Drafter brief lists the live node read-only; the guard fails an
+  area where `_taxonomy/` changed outside a confirm.
+- The confirm gate prints the capture-vs-render sentence.
