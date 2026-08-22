@@ -45,8 +45,18 @@ def make_central(tmp_path, staged="walkthrough.md"):
     """A central-mode engagement: the root carries the M34 ledger."""
     root = tmp_path / "engagement"
     (root / "_sources" / "new").mkdir(parents=True)
-    (root / "_sources" / "sources.yaml").write_text("sources: []\n",
-                                                    encoding="utf-8")
+    # M68: a staged file arrives ROUTED (sources enter a central engagement
+    # through `route`/`adopt`), so the ledger knows it. An unrouted file is now
+    # the `route` action's business, not the taxonomist's — see
+    # tests/test_central_mode_m68.py.
+    entry = ("sources: []\n" if not staged else
+             "sources:\n"
+             "  - id: SRC-001\n"
+             f"    file: _sources/new/{staged}\n"
+             "    hash: deadbeef\n"
+             "    touches: {p2p: []}\n"
+             "    consumed: {}\n")
+    (root / "_sources" / "sources.yaml").write_text(entry, encoding="utf-8")
     if staged:
         (root / "_sources" / "new" / staged).write_text("transcript\n",
                                                         encoding="utf-8")

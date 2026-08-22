@@ -296,6 +296,51 @@ def _dir_has_files(path: str) -> bool:
     return False
 
 
+def _unrouted_sources(central_root: str) -> list[str]:
+    """The files staged in `<root>/_sources/new/` that the ledger does not
+    know — root-relative, in directory-listing order (M68).
+
+    Central mode only, and the discriminator is REGISTRATION, not hash: a file
+    with no entry has no SRC id, so a scoping dispatch against it can only
+    propose `sources: []`. Matched by basename, because that is what the
+    ledger's `file` records (`_sources/new/<name>`) and a consumed source
+    moves to `processed/` without ceasing to be routed.
+
+    Degrades to "nothing unrouted" whenever the ledger cannot be read: an
+    unreadable ledger is the loaders' error to raise, never a reason for the
+    advisor to invent a gate.
+    """
+    new_dir = os.path.join(central_root, "_sources", "new")
+    if not os.path.isdir(new_dir):
+        return []
+    try:
+        import ledger
+        known = {os.path.basename(str(e.get("file") or "").replace("\\", "/"))
+                 for e in ledger.entries(central_root)}
+    except Exception:
+        return []
+    out = []
+    for name in sorted(os.listdir(new_dir)):
+        if name.startswith("."):
+            continue
+        if not os.path.isfile(os.path.join(new_dir, name)):
+            continue
+        if name not in known:
+            out.append("_sources/new/" + name)
+    return out
+
+
+def _engagement_areas(central_root: str) -> list[str]:
+    """The scoped areas under `<root>/components/`, name order — `_client` and
+    other underscore/dot layers excluded (they are layers, not areas)."""
+    comps = os.path.join(central_root, "components")
+    if not os.path.isdir(comps):
+        return []
+    return sorted(n for n in os.listdir(comps)
+                  if os.path.isdir(os.path.join(comps, n))
+                  and not n.startswith(("_", ".")))
+
+
 def resolve_area(area: str) -> str:
     """Accept either a path to the area folder or a bare area name resolved
     under components/. Returns an absolute-ish folder path.
@@ -683,8 +728,13 @@ HOLDABLE_ACTIONS = ("ingest_returns", "apply_review", "taxonomy", "fill",
 #: scope, and a silently inert line in a policy file reads as policy in force.
 #: `done` and `error` are here too: neither spends anything and neither is a
 #: stage, so there is nothing a hold could stop.
+#: `route` (M68) is here for the `done`/`error` reason rather than the gate
+#: reason: it spends nothing and is not a stage — it hands back the exact
+#: `engagement.py route` commands (single-area) or stops for the human's
+#: classification (multi-area), so there is nothing a hold could stop.
 GATE_ACTIONS = ("confirm", "review_triage", "reprofile", "registry_topup",
-                "draft_ready", "review", "unresolvable", "done", "error")
+                "draft_ready", "review", "unresolvable", "route", "done",
+                "error")
 
 
 def _holds(folder: str):
@@ -960,6 +1010,53 @@ def decide(folder: str) -> dict:
     #     area, so one stray notes file must not divert a brand-new area from
     #     being scoped at all (audit F1, the worst instance).
     if not st.has_manifest and _dir_has_files(st.sources_new):
+        # M68 — the ladder routes BEFORE it scopes, in CENTRAL MODE ONLY.
+        # Centrally, sources enter through `route`/`adopt`; a file sitting in
+        # `<root>/_sources/new/` with no ledger entry has no SRC id, so a
+        # scoping dispatch can only come back proposing `sources: []` and a
+        # second full dispatch is needed purely to stamp ids. Spending an
+        # agent to discover that routing was not done is the ladder's mistake.
+        # v1 doctrine is deliberately untouched: there, an unregistered source
+        # IS genuine taxonomy work (registration happens via proposals at the
+        # confirm gate), which is why this keys off the central seam.
+        unrouted = _unrouted_sources(st.central_root) if st.central_root else []
+        if unrouted:
+            areas = _engagement_areas(st.central_root)
+            verb = ('python3 "${CLAUDE_PLUGIN_ROOT}/scripts/engagement.py" '
+                    'route')
+            cmd = verb + " <root>/_sources/new/<file> --to <area>"
+            if len(areas) == 1:
+                # A single-area engagement makes the target trivial — and only
+                # then. Naming it is the whole reason this is not a gate.
+                only = areas[0]
+                return result(
+                    "route",
+                    "%d staged source(s) in %s/_sources/new/ carry no ledger "
+                    "entry — route them before any scoping dispatch, or the "
+                    "taxonomist runs against an empty ledger"
+                    % (len(unrouted), st.central_root),
+                    unrouted=unrouted,
+                    target_area=only,
+                    commands=["%s %s --to %s"
+                              % (verb, os.path.join(st.central_root, u), only)
+                              for u in unrouted],
+                    then="re-run `next --area %s`; the ladder returns "
+                         "`taxonomy` once every staged file is routed" % only,
+                )
+            return result(
+                "route",
+                "%d staged source(s) in %s/_sources/new/ carry no ledger "
+                "entry, and this engagement has %d areas — which area each "
+                "source informs is a classification decision, never a default"
+                % (len(unrouted), st.central_root, len(areas)),
+                gate=True,
+                unrouted=unrouted,
+                areas=areas,
+                command_shape=cmd,
+                human_action="classify each file above and route it: "
+                             + cmd + " (repeat `--to a,b` for a source two "
+                             "areas both owe a read on), then re-run `next`",
+            )
         return taxonomy_result("no manifest and _sources/new/ non-empty",
                                "initial")
 
@@ -1496,21 +1593,65 @@ AREA_GITIGNORE = """\
 _review/kits/
 """
 
+# M68: seeded into the ENGAGEMENT ROOT on the first central-mode checkpoint,
+# for the same reason the area gets one — the ignore rules have to live in the
+# host repo, and centrally the checkpoint now stages engagement-level folders
+# that collect OS noise. Deliberately minimal: everything at the root that is
+# not noise (`_sources/`, `components/_client/`) IS the engagement.
+ENGAGEMENT_GITIGNORE = """\
+# consult engagement root (M68): OS noise only — the engagement state under
+# _sources/ and components/_client/ IS committed, on purpose.
+.DS_Store
+Thumbs.db
+"""
+
+
+def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
+    """The pathspecs one checkpoint stages, diffs and commits — ALL THREE git
+    calls take this same list (M68).
+
+    Always the area itself (`.`). In central mode the stages also mutate state
+    OUTSIDE the area — the engagement ledger and its `new/`→`processed/` moves
+    (`<root>/_sources/`) and the shared client layer
+    (`<root>/components/_client/`) — so a checkpoint that stopped at the area
+    left the run's most valuable state uncommitted. Still a pathspec commit:
+    unrelated repo work is never swept in.
+
+    Paths are relative to `folder`, because every call runs `git -C <folder>`.
+    A pathspec that does not exist is dropped rather than passed: `git add`
+    and `git commit` both refuse an unmatched pathspec outright, and the
+    absence of `components/_client/` is ordinary.
+    """
+    specs = ["."]
+    if not central_root:
+        return specs
+    for extra in (os.path.join(central_root, "_sources"),
+                  os.path.join(central_root, "components", "_client"),
+                  os.path.join(central_root, ".gitignore")):
+        if os.path.exists(extra):
+            rel_spec = os.path.relpath(extra, folder)
+            if rel_spec not in specs:
+                specs.append(rel_spec)
+    return specs
+
 
 def checkpoint(folder: str, stage: str) -> dict:
     """Commit the area folder's current state as `consult(<area>): <stage>`.
 
     Deterministic and safe to over-call: a no-op (with a reason) when the area
     is not inside a git work tree or nothing under it changed. Stages only the
-    area pathspec, and commits only that pathspec, so unrelated staged work
+    checkpoint's pathspecs, and commits only those, so unrelated staged work
     elsewhere in the repo is never swept into the checkpoint.
 
     Ignore contract: the docs promise the signal files (.aggregate.json etc.)
     and regenerable kit output stay out of git, but those ignore rules must
     exist in the HOST repo — so if the area has no .gitignore yet, one is
-    seeded here before staging. `_sources/` IS committed on purpose: folder
-    state is the only state, and a checkpoint that omits the sources can't
-    restore the engagement. Keep engagement areas in a private repo.
+    seeded here before staging (and, in central mode, one at the engagement
+    root). `_sources/` IS committed on purpose: folder state is the only
+    state, and a checkpoint that omits the sources can't restore the
+    engagement. That is why the central-mode pathspec reaches OUTSIDE the area
+    to `<root>/_sources/` and `<root>/components/_client/` (M68) — the area
+    alone is not the engagement. Keep engagement areas in a private repo.
     """
     import subprocess
 
@@ -1528,17 +1669,27 @@ def checkpoint(folder: str, stage: str) -> dict:
         with open(gi, "w", encoding="utf-8") as fh:
             fh.write(AREA_GITIGNORE)
 
-    add = _git("add", "-A", "--", ".")
+    central = _central_root(folder) if _central_root else None
+    if central:
+        root_gi = os.path.join(central, ".gitignore")
+        if not os.path.exists(root_gi):
+            with open(root_gi, "w", encoding="utf-8") as fh:
+                fh.write(ENGAGEMENT_GITIGNORE)
+
+    specs = _checkpoint_pathspecs(folder, central)
+
+    add = _git("add", "-A", "--", *specs)
     if add.returncode != 0:
         return {"committed": False, "stage": stage,
                 "reason": "git add failed: " + add.stderr.strip()}
 
-    if _git("diff", "--cached", "--quiet", "--", ".").returncode == 0:
+    if _git("diff", "--cached", "--quiet", "--", *specs).returncode == 0:
         return {"committed": False, "stage": stage,
                 "reason": "nothing to commit"}
 
     area_name = os.path.basename(os.path.abspath(folder))
-    commit = _git("commit", "-m", f"consult({area_name}): {stage}", "--", ".")
+    commit = _git("commit", "-m", f"consult({area_name}): {stage}",
+                  "--", *specs)
     if commit.returncode != 0:
         return {"committed": False, "stage": stage,
                 "reason": "git commit failed: " + commit.stderr.strip()}

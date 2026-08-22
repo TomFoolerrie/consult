@@ -362,13 +362,40 @@ def mark_processed(folder: str, filled: set, updated: set | None = None) -> int:
     root = central_root(folder) if ledger is not None else None
     if root is not None:
         area = os.path.basename(folder.rstrip("/").rstrip(os.sep))
+
+        def consumed_now() -> dict[str, set[str]]:
+            """`{SRC id: this area's consumed slugs}` — the ledger's own view,
+            read through the public API."""
+            try:
+                return {str(e.get("id") or ""): set(e.get("consumed") or ())
+                        for e in ledger.area_view(root, area)}
+            except Exception:
+                return {}
+
+        # M68: `credit` returns the MOVED count and nothing else — a contract
+        # six assertions pin, so it stays an int. The credited counts come from
+        # a second read instead: the before/after diff of this area's consumed
+        # slices is exact (a `filled` slug credits unconditionally, an
+        # `updated` one only with note evidence, so the passed sets are NOT
+        # the answer). "moved 0" then stops reading as failure.
+        before = consumed_now()
         try:
             moved = ledger.credit(root, area, filled=sorted(filled or ()),
                                   updated=sorted(updated or ()))
         except ledger.LedgerError as exc:
             print("ERROR: %s" % exc, file=sys.stderr)
             return 1
-        print("moved %d source(s) → processed (ledger: %s)" % (moved, area))
+        after = consumed_now()
+        gained_slugs: set[str] = set()
+        gained_sources = 0
+        for sid, slugs in after.items():
+            gained = slugs - before.get(sid, set())
+            if gained:
+                gained_sources += 1
+                gained_slugs |= gained
+        print("credited %d slug(s) across %d source(s); %d fully consumed and "
+              "moved (ledger: %s)"
+              % (len(gained_slugs), gained_sources, moved, area))
         return 0
     try:
         data = _load_sources(folder)

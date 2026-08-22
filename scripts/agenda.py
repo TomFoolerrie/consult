@@ -371,7 +371,14 @@ def _owed(area: Path, terr: dict) -> list[dict]:
         left = [s for s in (pending.get(row["id"]) or []) if s in mine]
         if not left:
             continue
-        out.append({"id": row["id"], "file": row.get("file") or "",
+        # M68: a ledger `file` is ENGAGEMENT-ROOT-relative, and the ask-list
+        # renders it bare — a client reading `_sources/new/…` from an area
+        # folder is being handed a path that resolves nowhere. Join it to the
+        # root the ledger measures from, then normalize so a relative root
+        # (`.`) leaves the string exactly as the ledger wrote it.
+        out.append({"id": row["id"],
+                    "file": (str(Path(root) / str(row.get("file")))
+                             if row.get("file") else ""),
                     "slugs": left, "note": row.get("note") or ""})
     return out
 

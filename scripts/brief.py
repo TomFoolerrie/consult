@@ -112,11 +112,33 @@ def _procedures(manifest: dict) -> list[dict]:
             if c.get("role") == "procedure"]
 
 
+def _sources_base(folder: Path) -> Path:
+    """THE FOLDER a source entry's `file` value is relative to (M68).
+
+    Centrally that is the ENGAGEMENT ROOT — `ledger.register` records
+    `_sources/new/<name>`, measured from the root, not from the area. Joining
+    it to the area folder named a path that never exists, so every tagged
+    source in every brief printed `[MISSING — report it, do not guess]` and
+    the mark stopped meaning anything. In v1 the entries are area-local and
+    the base is the area, exactly as before.
+
+    Asked separately from `_sources_entries` on purpose: that function's
+    return shape is the loaders' contract and other readers pin it.
+    """
+    if _central_root is not None and _area_view is not None:
+        root = _central_root(str(folder))
+        if root:
+            return Path(root)
+    return Path(folder)
+
+
 def _sources_entries(folder: Path) -> list[dict]:
     # M34: ask the ONE detection seam. In central mode the area owns no
     # `_reference/sources.yaml` — the engagement ledger does — and `area_view`
     # hands back the v1 entry shape (flat area-local touches/consumed + derived
-    # state), so the reading-list block below needs no change.
+    # state), so the reading-list block below needs no change. The entries'
+    # `file` values are ROOT-relative there: pair every read with
+    # `_sources_base(folder)` before resolving one (M68).
     if _central_root is not None and _area_view is not None:
         root = _central_root(str(folder))
         if root:
@@ -718,6 +740,7 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
         _line(out, "READING LIST (complete — nothing else is required "
                    "input):")
     _reading_item(out, folder, frag, "your skeleton/draft")
+    source_base = _sources_base(folder)
     tagged = [e for e in _sources_entries(folder)
               if slug in (e.get("touches") or [])]
     if tagged:
@@ -738,7 +761,7 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
                 trimmed = entry_note if len(entry_note) <= 200 \
                     else entry_note[:197] + "…"
                 note += f"; note: {trimmed}"
-            _reading_item(out, folder, f, note)
+            _reading_item(out, source_base, f, note)
     else:
         _line(out, "  - (no sources tagged to this procedure in "
                    "sources.yaml — if your dispatch passes source paths, "

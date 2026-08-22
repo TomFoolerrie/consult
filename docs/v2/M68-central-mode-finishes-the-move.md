@@ -1,6 +1,6 @@
 # M68 — Central mode finishes the move: the v1 assumptions that survived M34/M37
 
-**Status: RECORDED** (2026-08-22).
+**Status: BUILT** (`2.4.0-alpha.3`, gate 13/13 — see Amendment A1).
 Origin: the Nordhaven build-run audit (2026-08-22), findings F2, F4,
 F5, F6 — four places where central mode still behaves as if the area
 owned its sources. Grouped because the root cause is one: the M34
@@ -163,3 +163,26 @@ not discovered mid-edit.
 - `mark-processed` message asserted in the credited-but-not-consumed
   case.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-22)
+
+* Part A landed as a brief-side seam (`_sources_base()`), not a view
+  change: `_sources_entries`' return shape is pinned by two existing
+  tests, and scaffold/hygiene want `area_view`'s `file` root-relative
+  as it is. `agenda._owed` joins against the engagement root.
+* Part C landed as a distinct `route` action: single-area →
+  `human_gate: false` with the exact commands; multi-area → human
+  gate with the file list and command shape. Classified into
+  `GATE_ACTIONS` (the completeness invariant in `test_sticky_holds`
+  requires every action classified — unanticipated by the ticket).
+  `tests/test_dispatch_hints_m37.py`'s central factory staged a file
+  with an empty ledger — exactly the F2 state this part overturns —
+  so the factory now routes its entry; no assertion changed.
+* Part B: `git -C <area>` kept, pathspecs relative to the area
+  (`.`, `../../_sources`, `../../components/_client`,
+  `../../.gitignore`), one list reused by add/diff/commit; engagement
+  `.gitignore` seeded once and itself committed; docstring and
+  SKILL.md promise corrected for both modes.
+* Part D: `ledger.credit` NOT widened — `mark_processed` diffs
+  `area_view` before/after for the credited counts; the six
+  `test_ledger_m34` assertions stand untouched.
