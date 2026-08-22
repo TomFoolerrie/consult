@@ -1,6 +1,6 @@
 # M65 — The confirm gate consumes the survey: staged taxonomy nodes must survive `--confirm`
 
-**Status: RECORDED** (2026-08-22).
+**Status: BUILT** (`2.4.0-alpha.1`, gate 12/12 — see Amendment A2).
 Origin: the first live run of the v2 pipeline over the Nordhaven
 synthetic engagement (`examples/nordhaven-industrial`, run from branch
 `example/nordhaven-p2p`). The taxonomist's survey notes were destroyed
@@ -155,3 +155,18 @@ Two audit recommendations are adopted into the shape:
   area needs a taxonomist re-dispatch to regenerate its nodes once
   this ticket lands (or the human accepts prose-only sufficiency
   tracking for that area).
+
+## Amendment A2 — build rulings (2026-08-22)
+
+* Part A landed as `taxonomy_collisions()`/`taxonomy_collision_error()`
+  split out of `promote_taxonomy` (which now calls both, unchanged):
+  `confirm()` runs the collision check early beside the profile
+  resolution and the MOVE late in step 6, immediately before the
+  rmtree. Confirm reports `promoted taxonomy nodes: <slugs>` /
+  `no staged taxonomy nodes`.
+* The CLI refusal exits **1**, not 2 — `main()`'s existing
+  `SystemExit(f"error: {exc}")` convention, shared by every verb; the
+  gate pins nonzero + `error:` prefix + no traceback.
+* Part D landed as the advisor flag (`details.uncommitted_proposals` +
+  `details.checkpoint_first` on the confirm action, git-tracked areas
+  only) plus the checkpoint duty stated in the skill's confirm row.

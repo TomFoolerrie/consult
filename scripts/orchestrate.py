@@ -686,6 +686,29 @@ def _holds(folder: str):
     return client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
 
 
+def _uncommitted_proposals(folder: str, proposed_dir: str) -> bool:
+    """True when the area is in a git work tree and `.proposed/` carries work
+    HEAD does not (untracked or modified).
+
+    Advisory only (M65): `--confirm` CONSUMES the proposal set — staged
+    taxonomy nodes included — so an un-checkpointed `.proposed/` is evidence
+    that exists only until the gate runs. Outside a work tree there is nothing
+    to say that `git` in `details` does not already say."""
+    import subprocess
+    try:
+        probe = subprocess.run(
+            ["git", "-C", folder, "rev-parse", "--is-inside-work-tree"],
+            capture_output=True, text=True)
+        if probe.returncode != 0 or probe.stdout.strip() != "true":
+            return False
+        status = subprocess.run(
+            ["git", "-C", folder, "status", "--porcelain", "--", proposed_dir],
+            capture_output=True, text=True)
+    except OSError:
+        return False
+    return status.returncode == 0 and bool(status.stdout.strip())
+
+
 def _git_note(folder: str) -> dict | None:
     """None when the area is inside a git work tree; otherwise the advisory
     payload every decision carries. Checked fresh each call (a `git init`
@@ -797,11 +820,21 @@ def decide(folder: str) -> dict:
 
     # 1 — pending proposal outranks everything (never re-scope an edited proposal)
     if _dir_has_files(st.proposed_dir):
+        pending = {}
+        if _uncommitted_proposals(folder, st.proposed_dir):
+            pending["uncommitted_proposals"] = True
+            pending["checkpoint_first"] = (
+                "`.proposed/` holds uncommitted work — checkpoint BEFORE the "
+                "human gate. `--confirm` consumes the whole proposal set "
+                "(the taxonomist's staged _taxonomy/ nodes included), so "
+                "without a commit there is nothing to diff and nothing to "
+                "revert to.")
         return result(
             "confirm",
             "_reference/.proposed/ exists — human must review/edit, then confirm",
             gate=True,
             proposed_dir=os.path.relpath(st.proposed_dir, folder),
+            **pending,
         )
 
     # 1.5 — returned review-kit files must be ingested before anything else:

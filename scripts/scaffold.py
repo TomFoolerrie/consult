@@ -439,6 +439,30 @@ def seed_taxonomy(area, l1_slug: str, taxonomy_path=None) -> dict:
     return report
 
 
+def taxonomy_collisions(area) -> list[str]:
+    """Staged node slugs whose live `_taxonomy/` node already exists.
+
+    Split out of `promote_taxonomy` so the confirm gate can ask the question
+    EARLY (before it promotes anything) and move the files LATE, without
+    either side re-deriving the staging/live paths (M65).
+    """
+    area = Path(area)
+    staged_dir = proposed_taxonomy_dir(area)
+    live_dir = live_taxonomy_dir(area)
+    staged = sorted(staged_dir.glob("*.md")) if staged_dir.is_dir() else []
+    return [p.stem for p in staged if (live_dir / p.name).exists()]
+
+
+def taxonomy_collision_error(collisions: list[str]) -> ScaffoldError:
+    """The one refusal wording, shared by both callers of the check."""
+    return ScaffoldError(
+        "refusing to promote: live taxonomy node(s) already exist for "
+        + ", ".join(collisions)
+        + " — nothing was moved. The live node is the confirmed truth; "
+          "reconcile the proposal into it by hand (or delete the staged "
+          "file) and re-run.")
+
+
 def promote_taxonomy(area) -> dict:
     """MOVE staged node fragments into the live `_taxonomy/` — the confirm-gate
     verb M37 A1 recorded as missing.
@@ -458,14 +482,9 @@ def promote_taxonomy(area) -> dict:
     if not staged:
         return {"promoted": []}
 
-    collisions = [p.stem for p in staged if (live_dir / p.name).exists()]
+    collisions = taxonomy_collisions(area)
     if collisions:
-        raise ScaffoldError(
-            "refusing to promote: live taxonomy node(s) already exist for "
-            + ", ".join(collisions)
-            + f" — nothing was moved. The live node is the confirmed truth; "
-              f"reconcile the proposal into it by hand (or delete the staged "
-              f"file) and re-run.")
+        raise taxonomy_collision_error(collisions)
 
     live_dir.mkdir(parents=True, exist_ok=True)
     promoted = []
@@ -1356,6 +1375,16 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     # folder untouched — same discipline as the notes shape-check above.
     profile = client_config.profile(area)
 
+    # M65: the staged taxonomy nodes are this gate's business too — the rmtree
+    # in step 6 destroys them otherwise. The COLLISION CHECK belongs here, with
+    # the checks above: a live node that already exists refuses the whole
+    # confirm with `.proposed/` and the live folder untouched. The MOVE waits
+    # for step 6 (after the last raise site), so a later failure never leaves
+    # the survey half-promoted.
+    collisions = taxonomy_collisions(area)
+    if collisions:
+        raise taxonomy_collision_error(collisions)
+
     # 1) Promote (MERGE) the registry, then stamp deterministic byte-work.
     promote_reference(area)
     stamp_sources(area)
@@ -1440,11 +1469,20 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     #    directory must go — otherwise the advisor's guard 1 keeps returning
     #    `confirm` and the build wedges at the first gate. This is the single
     #    stage that clears it; do it only after a fully successful scaffold.
+    #    The staged taxonomy nodes are MOVED out first (M65) — this is the last
+    #    point before the delete and the first point past every raise site, so
+    #    the rmtree consumes only what was actually consumed.
+    taxonomy_report = promote_taxonomy(area)
     shutil.rmtree(proposed, ignore_errors=True)
 
     print(f"scaffolded {area}")
     print(f"  {profile.report_line()}")
     print(f"  l1={l1}  l2_order={l2_order}")
+    if taxonomy_report["promoted"]:
+        print("  promoted taxonomy nodes: "
+              + ", ".join(taxonomy_report["promoted"]))
+    else:
+        print("  no staged taxonomy nodes")
     # M26: surface seam declarations + the gap forecast at the gate — the
     # human reviews the connective tissue and the client ask-list here.
     seams = [(p["slug"], u) for p in procedures
@@ -1603,6 +1641,11 @@ def main(argv: list[str] | None = None) -> int:
     if not area.is_dir():
         raise SystemExit(f"error: area folder not found: {area}")
     taxonomy = Path(args.taxonomy) if args.taxonomy else None
+    if args.sync_profile:
+        return sync_profile(area)
+    # The confirm path is INSIDE the handler (M65): it now promotes taxonomy
+    # nodes, so a collision refusal must print as a refusal rather than escape
+    # as a traceback.
     try:
         if args.seed_taxonomy:
             report = seed_taxonomy(area, resolve_l1(area, args.l1), taxonomy)
@@ -1641,12 +1684,10 @@ def main(argv: list[str] | None = None) -> int:
                 print("promoted researched _client/ files: "
                       + ", ".join(report["promoted"]))
             return 0
+        return confirm(area, args.l1, Path(taxonomy or DEFAULT_TAXONOMY),
+                       args.title, args.subtitle)
     except ScaffoldError as exc:
         raise SystemExit(f"error: {exc}")
-    if args.sync_profile:
-        return sync_profile(area)
-    return confirm(area, args.l1, Path(taxonomy or DEFAULT_TAXONOMY),
-                   args.title, args.subtitle)
 
 
 if __name__ == "__main__":
