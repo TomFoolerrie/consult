@@ -1,6 +1,6 @@
 # M69 — The derived-view readers read the capture type: aggregate, kits, consolidate stop assuming activity
 
-**Status: RECORDED** (2026-08-22).
+**Status: BUILT** (`2.4.0-alpha.7`, gate 14/14 — see Amendment A1).
 Origin: the v1-residue code survey run after M66's ruling (Amendment
 A2 names this split-out). Three consumers of drafted fragments key
 their reads on ACTIVITY part slugs, so on a process-step area each
@@ -60,3 +60,24 @@ v1 areas byte-identical throughout — same parts, same output.
 - Empty-read regression: the three verbs on a process-step area
   produce NO silently-empty view that a v1 run would have filled.
 - v1 golden corpus + compat gate byte-identical.
+
+## Amendment A1 — build rulings (2026-08-22)
+
+* Landed as VIEW SLOTS (`kernel.view_parts(type)`): scope→scope,
+  body→steps/transformation, at_a_glance→quick-reference/None,
+  controls→controls — the one place a derived view asks which part
+  fills a slot.
+* Preparer/owner on process-step: declared CONTROL `Performer` (most
+  frequent, ties by first) → roles channel; `reviewer` has no
+  declared process-step home and stays honestly empty; `frequency`
+  renders the explicit em-dash rather than a blank.
+* Kits step location: `####` heading, else the enclosing part heading
+  when the type's body is not v1's steps.
+* Consolidate primer on process-step is `(scope,)` — NOT the ticket's
+  literal `(scope, transformation)`, which would dump whole
+  transformation bodies into the digest and break the module's
+  context bound; transformation reaches the digest through the body
+  branch (step headings, or a labeled 3-line opening digest), which
+  still delivers the gate's "digest carries transformation text".
+* Shape-audit allowlist updated to match reality: aggregate no longer
+  names read-parts; kits' quick-reference literal is gone.

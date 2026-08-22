@@ -419,6 +419,60 @@ class Entity:
         return self._duplicate_parts
 
 
+#: The derived-view part SLOTS (M69). A view does not want "the part named
+#: `steps`" — it wants "the part where this type keeps the body of the work".
+#: These four slots are the whole vocabulary the three derived-view readers
+#: (`aggregate`, `kits`, `consolidate`) speak; `view_parts` binds them to real
+#: part slugs per capture type.
+#:
+#:   scope        the boundary prose (both types call it `scope`)
+#:   body         the substance of the work — v1 `steps`, v2 `transformation`
+#:   at_a_glance  the summary TABLE — v1 `quick-reference`; process-step has
+#:                NO such part, so the slot is None and the consumer must say
+#:                so honestly (or derive the fact from declared data) rather
+#:                than emit a blank row
+#:   controls     the control statements (both types call it `controls`)
+VIEW_SLOTS = ("scope", "body", "at_a_glance", "controls")
+
+#: The v1 binding, written out — the fallback a stripped install gets, and
+#: the literal `activity` answer (a v1 read of a v1 area must not move).
+_V1_VIEW_PARTS = {"scope": "scope", "body": "steps",
+                  "at_a_glance": "quick-reference", "controls": "controls"}
+
+#: Which declared part slug fills each slot, first match wins.
+_SLOT_CANDIDATES = {
+    "scope": ("scope",),
+    "body": ("steps", "transformation"),
+    "at_a_glance": ("quick-reference",),
+    "controls": ("controls",),
+}
+
+
+def view_parts(type_name: str = "activity") -> dict[str, str | None]:
+    """`{slot: part slug or None}` for `type_name` (M69) — THE one place a
+    derived view asks WHICH part it reads.
+
+    Resolved from the DECLARATION, not from a hard-coded slug list, so a type
+    that keeps its body under another name answers correctly the moment its
+    file names the part. A slot the type has no part for resolves to None:
+    that absence is the honest answer, and every consumer handles it (an
+    absent `at_a_glance` on process-step is why the procedure index reads the
+    CONTROL callout's declared `Performer` there instead of a table that does
+    not exist).
+
+    An unloadable type falls back to the v1 binding, for the same reason
+    `heading_resolver` falls back to the v1 parser: in a stripped install a
+    visible v1 read beats a crash."""
+    try:
+        slugs = {p.slug for p in load_type(type_name).parts}
+    except Exception:                    # pragma: no cover - stripped install
+        return dict(_V1_VIEW_PARTS)
+    out: dict[str, str | None] = {}
+    for slot, candidates in _SLOT_CANDIDATES.items():
+        out[slot] = next((c for c in candidates if c in slugs), None)
+    return out
+
+
 def _split_parts(text: str, tdecl: TypeDecl) -> dict[str, str]:
     """tdecl-driven twin of aggregate.split_subsections: two headings that
     resolve to one slug CONCATENATE their bodies in document order (M16 C+D

@@ -424,11 +424,15 @@ def build_procedure_index(ctx) -> str:
         lines.append("| Ref | Procedure | Frequency | Primary Owner |")
         lines.append("|---|---|---|---|")
         for p in procs:
-            qr = p["quick_ref"]
+            # M69: both cells are resolved per capture type at ctx-build time
+            # (At a Glance on activity, the declared CONTROL Performer on
+            # process-step), so this builder reads one fact per column
+            # whatever the type — and `cell` writes the explicit `—` where a
+            # type declares no home for the fact at all.
             lines.append(
                 f"| [[#{p['slug']}]] | {cell(p['title'])} | "
-                f"{cell(_pick(qr, 'Frequency', 'Cadence'))} | "
-                f"{cell(_pick(qr, 'Primary Owner', 'Owner', 'Preparer'))} |"
+                f"{cell(p['frequency'])} | "
+                f"{cell(p['primary_owner'])} |"
             )
         lines.append("")
     return "\n".join(lines).rstrip()
@@ -792,6 +796,76 @@ def _area_heading_resolver(area: Path):
         return doc_model.section_of_heading
 
 
+def v1_view_parts() -> dict:
+    """The v1 (activity) slot binding, DERIVED from the v1 registry (M69).
+
+    The A/B/E/F letter positions are the v1 engine's own statement of which
+    section is the scope, the At a Glance card, the procedure body and the
+    controls — so the fallback a stripped install gets is read out of
+    `doc_model`, not typed again here. Also the answer to "does this type
+    keep its body where v1 did?", which is what decides whether a `####`
+    step heading means anything in this area."""
+    letters = doc_model.SECTION_LETTER_ALIASES
+    return {"scope": letters["A"], "at_a_glance": letters["B"],
+            "body": letters["E"], "controls": letters["F"]}
+
+
+def area_view_parts(area) -> dict:
+    """`{slot: part slug or None}` for one area's capture type (M69).
+
+    The companion of `_area_heading_resolver`: that one says how a heading
+    resolves to a part, this one says WHICH parts the derived views read.
+    Same degradation posture — v1 is what a stripped install is."""
+    try:
+        import client_config
+        import kernel
+        return kernel.view_parts(client_config.capture_type(area))
+    except Exception:                # pragma: no cover - stripped install
+        return v1_view_parts()
+
+
+def declared_performer(callouts_) -> str:
+    """The `Performer` a fragment's CONTROL callouts declare (M69).
+
+    process-step has no At a Glance table, so the person who does the work is
+    read where the type actually declares it: the CONTROL callout's
+    `Performer` field (`kernel/types/process-step.yaml`). Most frequent wins,
+    ties broken by first appearance — a fragment whose controls name one
+    performer answers with that name, and one that names several answers with
+    the one it names most. Empty when no control declares a performer, which
+    is an honest absence the caller falls back from."""
+    tally: dict[str, int] = {}
+    for co in callouts_:
+        if co.get("prefix") != "CTRL":
+            continue
+        name = (co.get("fields", {}).get("Performer", "") or "").strip()
+        if name:
+            tally[name] = tally.get(name, 0) + 1
+    if not tally:
+        return ""
+    order = list(tally)
+    return max(order, key=lambda n: (tally[n], -order.index(n)))
+
+
+def preparer_from_declarations(callouts_, meta, roles_registry=None) -> str:
+    """Who prepares this fragment's work, from DECLARED data only (M69).
+
+    The CONTROL callout's `Performer` first; the `consult-meta` roles channel
+    (shown by its registry display name where the registry knows the slug)
+    when no control declares one. Both are declarations the drafter made — no
+    prose is guessed at. Empty only when the fragment declares neither, which
+    is a fact worth seeing rather than a name worth inventing."""
+    performer = declared_performer(callouts_)
+    if performer:
+        return performer
+    for slug in (meta or {}).get("roles", []) or []:
+        entry = (roles_registry or {}).get(slug)
+        if isinstance(entry, dict):
+            return str(entry.get("name", slug) or slug)
+        return str(slug)
+    return ""
+
+
 def run(area_arg: str) -> int:
     area = Path(area_arg)
     if area.name == "manifest.json":
@@ -810,6 +884,9 @@ def run(area_arg: str) -> int:
     # area). WHICH parts the derived views then read is not this ticket's
     # business (M69).
     heading_resolver = _area_heading_resolver(area)
+    # M69: the same declaration, one question further on — which PART each
+    # derived view reads. Resolved once, carried on the ctx below.
+    view_slots = area_view_parts(area)
 
     plan_kinds = plan_python_kinds(area)
     if plan_kinds is not None:
@@ -867,7 +944,12 @@ def run(area_arg: str) -> int:
             return 1
 
         sections = split_subsections(raw, heading_resolver)
-        quick_ref = parse_bullets(sections.get("quick-reference", ""))
+        # M69: which part each view slot reads is the TYPE's answer, not a
+        # hard-coded slug. On activity these are `quick-reference`/`steps`
+        # exactly as before; on process-step the body is `transformation` and
+        # there is no at-a-glance table at all.
+        quick_ref = (parse_bullets(sections.get(view_slots["at_a_glance"], ""))
+                     if view_slots["at_a_glance"] else [])
 
         # Severity enum sanity → WARNING (never fail-loud; ID grammar only fails).
         for co in callouts:
@@ -887,13 +969,42 @@ def run(area_arg: str) -> int:
             "callouts": callouts,
             "meta": meta,
             "quick_ref": quick_ref,
-            "section_a": sections.get("scope", ""),
-            "section_e": sections.get("steps", ""),
+            "section_a": sections.get(view_slots["scope"] or "", ""),
+            "section_e": sections.get(view_slots["body"] or "", ""),
+            # The two facts the index needs. On activity they come from the
+            # At a Glance table verbatim (v1, byte for byte). On process-step
+            # the owner is the CONTROL callout's declared Performer and the
+            # cadence has no declared home at all — so it stays empty and the
+            # index renders the explicit `—`, rather than a blank cell that
+            # reads like a fact nobody wrote down.
+            "primary_owner": (
+                _pick(quick_ref, "Primary Owner", "Owner", "Preparer")
+                if view_slots["at_a_glance"] else declared_performer(callouts)
+            ),
+            "frequency": (_pick(quick_ref, "Frequency", "Cadence")
+                          if view_slots["at_a_glance"] else ""),
+            "preparer": (_pick(quick_ref, "Preparer")
+                         if view_slots["at_a_glance"]
+                         else declared_performer(callouts)),
+            "reviewer": (_pick(quick_ref, "Reviewer")
+                         if view_slots["at_a_glance"] else ""),
         })
 
     # ---- Registry joins (nouns via consult-meta slug lists only). ----
     systems_registry = load_registry(area, "systems.yaml", "systems")
     roles_registry = load_registry(area, "roles.yaml", "roles")
+
+    # M69: a type with no at-a-glance table has no declared preparer when its
+    # fragment declares no control either — the roles channel is then the last
+    # declared source before an empty cell. Done here because it needs the
+    # roles registry's display names, which load above.
+    if not view_slots["at_a_glance"]:
+        for p in procedures:
+            fallback = preparer_from_declarations(
+                p["callouts"], p["meta"], roles_registry)
+            for key in ("primary_owner", "preparer"):
+                if not p[key]:
+                    p[key] = fallback
 
     system_related: dict[str, set] = {}
     role_appears_in: dict[str, set] = {}
@@ -924,6 +1035,10 @@ def run(area_arg: str) -> int:
         # here): a writer whose view is a join over more than the procedure
         # fragments — M38's matrix reads `_taxonomy/` too — needs the path.
         "area": area,
+        # M69: {slot: part slug or None} for this area's capture type — a
+        # builder that needs a part beyond the ones already resolved onto each
+        # procedure asks here rather than naming an activity slug.
+        "parts": view_slots,
         # (slug, local-id) -> document-global display id (render-time
         # numbering authority; body sections use the same map in render.py).
         "disp": doc_model.callout_display_ids(area),
@@ -979,8 +1094,8 @@ def run(area_arg: str) -> int:
     raw_dependencies = {p["slug"]: p["section_a"] for p in procedures}
     raci_inputs = {
         p["slug"]: {
-            "preparer": _pick(p["quick_ref"], "Preparer"),
-            "reviewer": _pick(p["quick_ref"], "Reviewer"),
+            "preparer": p["preparer"],
+            "reviewer": p["reviewer"],
             "roles": p["meta"]["roles"],
             "steps_text": p["section_e"],
         }

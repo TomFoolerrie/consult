@@ -189,10 +189,13 @@ ALLOWLIST: dict[tuple[str, str], tuple[set[str], str]] = {
         "from the plan (WP-G2), never from these.",
     ),
     ("aggregate.py", "part-slug"): (
-        {"scope", "quick-reference", "steps"},
-        "Extraction reads of three NAMED sections: the At a Glance card "
-        "bullets, and the scope/steps bodies carried into the extract bundle. "
-        "A view that summarises the card must be able to name the card.",
+        {"scope", "controls"},
+        "M69 ended the three NAMED extraction reads: which part each derived "
+        "view reads is now kernel.view_parts(<capture type>), so aggregate "
+        "names no part it reads. What is left are two VIEW-SLOT keys of that "
+        "map ('scope', 'controls') which happen to spell like part slugs — "
+        "the same exact-match false positive as kits' 'Procedure' column "
+        "header below. The slot->slug table itself lives in kernel.py.",
     ),
     # (aggregate.py names NO callout label and NO derived kind as a literal —
     # its extract-bundle keys are `raci_inputs` / `raw_dependencies`, which are
@@ -225,11 +228,9 @@ ALLOWLIST: dict[tuple[str, str], tuple[set[str], str]] = {
         "The gap kit and screenshot kit each select the callout kind they are "
         "a kit FOR — same writer-identity reasoning as aggregate's builders.",
     ),
-    ("kits.py", "part-slug"): (
-        {"quick-reference"},
-        "Reads the At a Glance card to find the preparer a gap should be "
-        "addressed to (M23 replaced `subs['B']` with this slug).",
-    ),
+    # (kits.py names NO part slug since M69: the preparer read goes through
+    # the capture type's view slots — the At a Glance card where the type has
+    # one, the CONTROL callout's declared Performer where it does not.)
     ("kits.py", "part-title"): (
         {"Procedure"},
         "FALSE POSITIVE of exact-match auditing, kept listed rather than "

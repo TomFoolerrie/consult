@@ -71,7 +71,10 @@ if str(_SCRIPTS_DIR) not in sys.path:
 
 import doc_model  # noqa: E402
 import render as render_mod  # noqa: E402
-from aggregate import parse_callouts, parse_bullets, split_subsections, _pick  # noqa: E402
+from aggregate import (parse_callouts, parse_bullets, parse_consult_meta,  # noqa: E402
+                       split_subsections, _pick, area_view_parts,
+                       _area_heading_resolver, load_registry,
+                       preparer_from_declarations, v1_view_parts)
 from people import People  # noqa: E402
 from xlsx_min import write_xlsx  # noqa: E402
 
@@ -98,18 +101,31 @@ STEP_RE = re.compile(r"^####\s+(.*)$")
 # extraction
 # --------------------------------------------------------------------------- #
 
-def _step_of(raw_text: str) -> dict[str, str]:
-    """{callout-id: enclosing '#### Step …' heading} for one fragment."""
+def _step_of(raw_text: str, part_fallback: bool = False) -> dict[str, str]:
+    """{callout-id: enclosing '#### Step …' heading} for one fragment.
+
+    M69: a `####` step heading is an ACTIVITY structure — a process-step
+    fragment's transformation is prose, with no step headings to enclose
+    anything. With `part_fallback` (set when the type's body part is not
+    `steps`), the enclosing `###` PART heading stands in wherever no step
+    heading has been seen, so a screenshot lands at "Transformation" rather
+    than nowhere. Left off — the v1 path — this is byte-for-byte the function
+    it always was: an unenclosed callout keeps its empty step."""
     out: dict[str, str] = {}
     current = ""
+    part = ""
     for line in raw_text.splitlines():
+        if part_fallback and line.startswith("### "):
+            part = line[4:].strip()
+            current = ""
+            continue
         m = STEP_RE.match(line)
         if m:
             current = m.group(1).strip()
             continue
         cm = re.match(r"^\s*>\s*\*\*.*?[-–—]\s*([A-Z]+-[A-Z0-9-]+)\s*:\*\*", line)
         if cm:
-            out[cm.group(1)] = current
+            out[cm.group(1)] = current or part
     return out
 
 
@@ -124,6 +140,13 @@ def collect(folder: Path):
     numbers = doc_model.display_numbers(manifest)
     disp = doc_model.callout_display_ids(folder)
     ppl = People(folder)
+    # M69: which part the send-to contact is read from is the capture type's
+    # answer. On activity it is the At a Glance card, exactly as before; on
+    # process-step there is no such card, so the preparer comes from declared
+    # data — the CONTROL callout's `Performer`, then the roles channel.
+    view_slots = area_view_parts(folder)
+    heading_resolver = _area_heading_resolver(folder)
+    roles_registry = load_registry(folder, "roles.yaml", "roles")
 
     procs: dict[str, dict] = {}
     gaps: list[dict] = []
@@ -137,10 +160,18 @@ def collect(folder: Path):
         if not fpath.is_file():
             continue
         raw = fpath.read_text(encoding="utf-8")
-        subs = split_subsections(raw)
-        # M23: the At a Glance card, by SLUG — this was `subs["B"]`, a
-        # letter (a render position) standing in for the section's identity.
-        preparer = _pick(parse_bullets(subs.get("quick-reference", "")), "preparer")
+        subs = split_subsections(raw, heading_resolver)
+        fragment_callouts = parse_callouts(slug, raw)
+        if view_slots["at_a_glance"]:
+            # M23: the At a Glance card, by SLUG — this was `subs["B"]`, a
+            # letter (a render position) standing in for the section's
+            # identity.
+            preparer = _pick(
+                parse_bullets(subs.get(view_slots["at_a_glance"], "")),
+                "preparer")
+        else:
+            preparer = preparer_from_declarations(
+                fragment_callouts, parse_consult_meta(raw), roles_registry)
         owner, role = ppl.contact_for_text(preparer)
         label = f"{numbers.get(slug, '')} {comp.get('heading', '')}".strip()
         procs[slug] = {
@@ -149,8 +180,11 @@ def collect(folder: Path):
             "file": comp["file"], "preparer_text": preparer,
             "owner": owner, "role": role,
         }
-        steps = _step_of(raw)
-        for c in parse_callouts(slug, raw):
+        # `####` step headings are the V1 body part's structure; a type that
+        # keeps its body elsewhere locates callouts by part heading instead.
+        steps = _step_of(
+            raw, part_fallback=view_slots["body"] != v1_view_parts()["body"])
+        for c in fragment_callouts:
             d = disp.get((slug, c["id"]), c["id"])
             if c["prefix"] == "GAP":
                 o_text = c["fields"].get("Owner to confirm", "")

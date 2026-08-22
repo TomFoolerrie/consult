@@ -84,7 +84,8 @@ FRAGMENT_BUDGET = 5
 
 #: The primer layer the cross-bucket digest carries verbatim (section SLUGS,
 #: M23): the process overview and the at-a-glance table — where cross-bucket
-#: drift surfaces.
+#: drift surfaces. M69: this is the v1 (activity) answer and the fallback —
+#: `_digest_parts` resolves the primer per CAPTURE TYPE.
 PRIMER_SECTIONS = ("scope", "quick-reference")
 
 REGISTRY_FILES = ("systems.yaml", "roles.yaml", "glossary.yaml")
@@ -418,15 +419,20 @@ def bucket_brief(folder: Path, manifest: dict, bucket_arg: str) -> str:
 # script's guarantee, not agent discipline)
 # --------------------------------------------------------------------------- #
 
-def _sections(text: str) -> list[tuple[str | None, str, list[str]]]:
-    """[(section-slug-or-None, heading line, body lines)] split on `###`."""
+def _sections(text: str, resolver=None) -> list[tuple[str | None, str, list[str]]]:
+    """[(section-slug-or-None, heading line, body lines)] split on `###`.
+
+    M69: `resolver` is the capture type's heading parser (`kernel
+    .heading_resolver`); omitted, this reads with the v1 parser, which is
+    what it always did."""
+    resolve = resolver or doc_model.section_of_heading
     out: list[tuple[str | None, str, list[str]]] = []
     cur: tuple[str | None, str, list[str]] | None = None
     for line in (text or "").split("\n"):
         if line.startswith("### "):
             if cur:
                 out.append(cur)
-            cur = (doc_model.section_of_heading(line), line, [])
+            cur = (resolve(line), line, [])
         elif cur:
             cur[2].append(line)
     if cur:
@@ -455,6 +461,46 @@ def _step_digest(body: list[str]) -> list[str]:
     return out
 
 
+def _digest_parts(folder: Path):
+    """`(primer part slugs, body part slug, heading resolver)` for one area's
+    capture type (M69).
+
+    The primer layer is the SHORT parts carried verbatim — v1's scope
+    paragraph and At a Glance table. A type with no at-a-glance part carries
+    its scope alone: process-step's `transformation` is long prose, so it
+    rides in the BODY branch below (headings + opening lines) rather than
+    verbatim, which is what keeps the digest's context bound a guarantee of
+    this script instead of a hope about fragment length.
+
+    Degrades to the v1 answer — the frozen `PRIMER_SECTIONS` and the v1
+    parser — on any import defect, as every other type seam here does."""
+    try:
+        import client_config
+        import kernel
+        type_name = client_config.capture_type(folder)
+        slots = kernel.view_parts(type_name)
+        resolver = kernel.heading_resolver(type_name)
+    except Exception:                # pragma: no cover - stripped install
+        return PRIMER_SECTIONS, "steps", None
+    primer = tuple(s for s in (slots["scope"], slots["at_a_glance"]) if s)
+    return primer, slots["body"], resolver
+
+
+def _body_digest(body: list[str], limit: int = 3) -> list[str]:
+    """The first `limit` non-empty, non-callout lines of a prose body part
+    (M69). The step digest's counterpart for a body with no `####` headings
+    to hang on — a process-step `Transformation` is prose, and digesting
+    nothing at all is exactly the silent emptiness this ticket ends."""
+    out: list[str] = []
+    for line in body:
+        s = line.strip()
+        if s and not s.startswith(">") and not s.startswith("#"):
+            out.append(f"      {s}")
+            if len(out) == limit:
+                break
+    return out
+
+
 def _digest(folder: Path, comp: dict) -> list[str]:
     out: list[str] = []
     text = _read(folder, comp)
@@ -463,18 +509,31 @@ def _digest(folder: Path, comp: dict) -> list[str]:
         return [f"  [[{slug}]] — fragment file MISSING; report it"]
     out.append(f"  ── [[{slug}]] — {comp.get('heading', '')} "
                f"(l2: {comp.get('l2', '?')})")
-    secs = _sections(text)
+    # M69: primer and body parts per capture type — `scope` + the at-a-glance
+    # table on v1 activity, `scope` + `transformation` on process-step.
+    primer, body_part, resolver = _digest_parts(folder)
+    secs = _sections(text, resolver)
     for sec_slug, heading, body in secs:
-        if sec_slug in PRIMER_SECTIONS:
+        if sec_slug in primer:
             out.append(f"    {heading.lstrip('# ').strip()}:")
             out.extend(f"      {ln}" for ln in body if ln.strip())
-        elif sec_slug == "steps":
+        elif sec_slug == body_part:
             steps = _step_digest(body)
             if steps:
                 out.append("    steps (heading + first line only — the full "
                            "body was NOT read; if a finding needs more, name "
                            "the fragment in your status):")
                 out.extend(steps)
+            elif body_part != "steps":
+                # A prose body part with no step headings: digest its opening
+                # lines instead of dropping the whole substance of the work.
+                lines = _body_digest(body)
+                if lines:
+                    out.append(f"    {heading.lstrip('# ').strip()} (opening "
+                               f"lines only — the full body was NOT read; if "
+                               f"a finding needs more, name the fragment in "
+                               f"your status):")
+                    out.extend(lines)
     # A2: the digest deliberately skips callout (`>`) lines, which is where
     # GAP callouts live — so the open gaps ride along mechanically, or the
     # cross pass would be structurally blind to the gap-answer category.
