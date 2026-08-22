@@ -86,3 +86,29 @@ have been. No ordering for an orchestrator to get wrong.
 - The standalone verb: `--promote-taxonomy` on an empty staging dir
   reports "nothing staged" distinctly from a successful promote.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — corroborated by the run audit (2026-08-22)
+
+The post-hoc audit of the Nordhaven build run (finding F3) confirms
+the loss fired live and at scale: 23 staged node files — reported by
+two independent taxonomist dispatches, the second describing specific
+GAP edits across 16 of them by name — were gone when
+`--promote-taxonomy` ran immediately after `--confirm` ("nothing to
+promote"), and the area has no live `_taxonomy/` today. The audit
+could not settle cause from surviving evidence because `.proposed/`
+was never committed (the first checkpoint came after confirm); the
+code reading in this ticket settles it — the rmtree is unconditional
+and the skill's documented order is the losing one.
+
+Two audit recommendations are adopted into the shape:
+
+* **Part D — checkpoint before the gate consumes.** The staging set
+  is committed when the taxonomist finishes (before the confirm gate),
+  so staged proposals are always recoverable and a future loss of any
+  kind is decidable from history instead of transcript archaeology.
+  (Rides on M68 Part B's central-mode checkpoint scope.)
+* The engagement's lost node set is real damage to a live area, not
+  just a defect record: the build carries a note that the Nordhaven
+  area needs a taxonomist re-dispatch to regenerate its nodes once
+  this ticket lands (or the human accepts prose-only sufficiency
+  tracking for that area).
