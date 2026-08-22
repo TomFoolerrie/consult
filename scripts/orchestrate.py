@@ -1522,15 +1522,40 @@ def signal_definition(sig) -> str:
     return name.strip()
 
 
+#: M66 A2/5 — what a render signal says when NOTHING declares this area's
+#: deliverable. An explicit token, not a silent default: a v2 area that has
+#: not been told what to produce must not report the v1 document.
+UNSET_DEFINITION = "unset"
+
+
 def area_definition(folder: str) -> str:
-    """The deliverable name this area builds. Read-only and best-effort: an
-    unresolvable definition (stripped install, unreadable profile) reads as the
-    default, which is what keeps `decide` from ever failing on a config read."""
+    """The deliverable name this area builds — `UNSET_DEFINITION` when nothing
+    names one.
+
+    Read-only and best-effort: an unresolvable definition (stripped install,
+    unreadable profile) reads as the area's declared name, which is what keeps
+    `decide` from ever failing on a config read. M66 A2/5 moved the AUTHORITY
+    from "the one v1 document" to the objective — see
+    `definitions.area_deliverable`; a v1 area still reads `desktop-procedure`,
+    and the fallback below is the same v1 answer for a stripped install where
+    the capture type itself cannot be read."""
     try:
         import definitions
-        return definitions.resolve_definition(folder).name
+        name = definitions.area_deliverable(folder)
+        if name is None:
+            return UNSET_DEFINITION
+        return definitions.resolve_definition(folder, name).name
     except Exception:
         return DEFAULT_DEFINITION
+
+
+def area_definition_note(folder: str) -> str | None:
+    """The sentence an `unset` signal carries — or None when one is declared."""
+    try:
+        import definitions
+        return definitions.area_deliverable_note(folder)
+    except Exception:
+        return None
 
 
 def emit_render(folder: str, docx: str, awaiting_review: bool = True,
@@ -1545,12 +1570,21 @@ def emit_render(folder: str, docx: str, awaiting_review: bool = True,
     `desktop-procedure` — the one deliverable that exists today, so behavior is
     unchanged."""
     st = AreaState(folder)
-    _write_json(os.path.join(folder, ".render.json"), {
+    name = definition or area_definition(folder)
+    sig = {
         "basis": st.basis_hash(),
         "docx": str(docx),
         "awaiting_review": bool(awaiting_review),
-        "definition": definition or area_definition(folder),
-    })
+        "definition": name,
+    }
+    # M66 A2/5: `unset` is an honest state, so it says WHY on the same read —
+    # additive, and written only in that state (every declared render's signal
+    # is byte-identical to what it was).
+    if name == UNSET_DEFINITION:
+        note = area_definition_note(folder)
+        if note:
+            sig["definition_note"] = note
+    _write_json(os.path.join(folder, ".render.json"), sig)
 
 
 # --------------------------------------------------------------------------- #

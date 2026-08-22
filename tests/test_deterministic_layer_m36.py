@@ -231,8 +231,9 @@ class TestSkeletonFromTheDeclaration:
         """A hard-coded section list could not do this: reverse the declared
         parts and the emitted skeleton reverses with them."""
         parts = scaffold.declared_parts()
+        # M66: declared_parts takes the area's capture type (`unit`).
         monkeypatch.setattr(scaffold, "declared_parts",
-                            lambda: list(reversed(parts)))
+                            lambda unit=None: list(reversed(parts)))
         got = [ln[4:].strip()
                for ln in scaffold._fallback_skeleton("Bank Rec").splitlines()
                if ln.startswith("### ")]

@@ -1,6 +1,7 @@
 # M66 — Objective-shaped capture: the deliverable declared is not the shape drafted
 
-**Status: RULED, ready to build** (2026-08-22) — see Amendment A1;
+**Status: BUILT** (`2.4.0-alpha.6`, gate 77/77 across two work
+packages — see Amendment A3). Ruled per Amendment A1;
 the ruling goes further than any of the three candidates below. The
 candidates are kept as the decision record.
 Origin: the first live run of the v2 pipeline over the Nordhaven
@@ -262,3 +263,53 @@ Split out (not this build): the derived-view READERS that go quietly
 empty on process-step (aggregate ctx, kits preparer, consolidation
 digest) → M69; the M62 vocabulary-floor leftovers (floor-only
 `ID_STRICT_RE` callers, two re-typed prefix regexes) → M70.
+
+## Amendment A3 — build rulings (2026-08-22, two work packages)
+
+**WP1 (the engine reads the type, A2 items 1-3):**
+* `client_config.capture_type(area)`: process-step when
+  `sources.central_root` resolves, else activity; a `_client` override
+  would be one edit inside it. `SectionVocabulary` /
+  `section_vocabulary` / `area_vocabulary` / `default_profile` derive
+  profile vocabulary per type; `Profile` carries its capture type.
+* `kernel.heading_resolver(type)` is the one type-aware `###` parser —
+  for activity it returns `doc_model.section_of_heading` itself, so v1
+  reads cannot shift a byte. Routed: orchestrate `_present_sections` /
+  `profile_drift`, engagement scope digest, `aggregate.
+  split_subsections`, reconcile parse/merged-section checks, render
+  letters/hides/titles (plus `BODY_OMIT_REGISTERS` via the profile).
+* Mandatory sections for a non-activity type derive as `scope` + every
+  callout-home part (process-step: scope, transformation, controls,
+  issues); activity keeps its frozen three verbatim. Process-step gets
+  no invented letter aliases; letters derive from declared order and
+  the review-kit `[A-H]` location regex needs no change (A-F subset).
+
+**WP2 (capture becomes process-step, A1 items 1-4 + A2 items 4-6):**
+* Scaffold skeletons render from the type declaration in v2;
+  `PROCEDURE_SKELETON` is consulted only for activity. v2 default
+  title "{Area} — Process Capture", subtitle "Current-state process
+  capture"; v1 defaults byte-identical.
+* No furniture in v2: `build_manifest(furniture=)` — central-mode
+  areas get fragments + manifest only. The desktop-procedure
+  definition over process-step capture was NOT already safe (the
+  `_TYPE_MANIFEST_ROLE` shortcut counted v2 procedure components as
+  activity entities and would have rendered wrong); the role shortcut
+  now applies only when the role's type IS the area's capture type,
+  so the definition reports honestly unserviceable instead.
+* The brief's unit line derives from `capture_type` (the
+  furniture-read is gone); seam titles translate through the type's
+  declaration; live `_taxonomy/*.md` are listed as read-only inputs.
+* The deliverable authority is `definitions.area_deliverable(area)`
+  (v1 → desktop-procedure; v2 → first objective deliverable, else
+  honest `unset`); `orchestrate.area_definition` reads it (the ticket
+  named a nonexistent `_area_deliverable`). `resolve_definition`'s
+  default deliberately stands — plan-view existence must not become a
+  refusal.
+* The node guard: `<area>/.taxonomy.json` (nodes → sha256) written at
+  confirm and refreshed by `--promote-taxonomy`; reconcile check 15.5
+  errors on changed/added/deleted live nodes, silent with no record.
+* The confirm gate prints `CAPTURE_NOT_RENDER` in v2: "capture is not
+  a render: this area records the process step by step, and the
+  deliverables the objective declares are renders over it."
+* Recorded for follow-up: `scaffold --sync-profile` is v1-shaped and
+  would re-add derived components on a v2 area — out of scope here.

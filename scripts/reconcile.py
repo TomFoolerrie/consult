@@ -893,6 +893,45 @@ def check_note_detail(file: str, lines: list[str], frag: Frag) -> None:
     close()
 
 
+def check_taxonomy_record(ctx: Ctx) -> None:
+    """M66 A1/4 — `_taxonomy/` is written only at the confirm gate.
+
+    The one-writer rule made mechanical: the gate records a hash of every live
+    node (`scaffold.record_taxonomy`), and a live node whose bytes have moved
+    since — edited, added or deleted outside a confirm — is an ERROR naming
+    the file. The taxonomist refines live nodes IN PLACE, so this is not a
+    ban on refinement: it is the requirement that a refined survey go back
+    through the gate that approved it.
+
+    SILENT with no record: a pre-M66 area (and a v1 area that never had a
+    survey) has nothing recorded to differ from, and a guard that fired there
+    would fail every existing engagement on its first reconcile."""
+    try:
+        import scaffold
+    except Exception:                # pragma: no cover - ships beside us
+        return
+    recorded = scaffold.read_taxonomy_record(ctx.folder)
+    if recorded is None:
+        return
+    live = scaffold.taxonomy_hashes(ctx.folder)
+    law = ("taxonomy nodes are written only at the confirm gate "
+           "(scaffold.py --confirm / --promote-taxonomy promotes and records "
+           "them; the drafter reads them and never writes them)")
+    rel = scaffold.LIVE_TAXONOMY
+    for name in sorted(set(recorded) | set(live)):
+        if name not in live:
+            ctx.errors.append(
+                f"{rel}/{name}: recorded at the last confirm and now absent "
+                f"— {law}")
+        elif name not in recorded:
+            ctx.errors.append(
+                f"{rel}/{name}: live node with no confirm-gate record — "
+                f"{law}")
+        elif live[name] != recorded[name]:
+            ctx.errors.append(
+                f"{rel}/{name}: changed since the last confirm — {law}")
+
+
 def _area_heading_resolver(area: Path):
     """The `###` heading parser for one area's capture type (M66 A2/1).
     Degrades to the v1 parser on any import defect."""
@@ -1602,6 +1641,8 @@ CHECKS: list = [
     check_consult_meta_presence,  # 14 M29 — no consult-meta block at all
     check_register_references,    # 15 M29 2.1a/c — register refs resolve;
     #                                  context entries never cited by name
+    check_taxonomy_record,        # 15.5 M66 — `_taxonomy/` changed outside
+    #                                  the confirm gate
     # advisory-only from here down (exit stays 0)
     check_hedge_prose,            # 16 hedges in body prose
     check_british_spellings,      # 17 British spellings

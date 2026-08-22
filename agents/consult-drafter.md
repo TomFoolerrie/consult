@@ -53,6 +53,14 @@ file is the deliverable.
   (the v1 seven-section path, `agents/drafting/activity.md`). Absent or
   unresolved → `activity`, the default. The brief names the path document;
   read that ONE — see "YOUR UNIT names your path document" below.
+- `taxonomy nodes` — the area's live `_taxonomy/*.md` files, when the brief
+  lists them. They are the taxonomist's **survey scope notes**: what this part
+  of the process covers, and where its edges were drawn. Read them as context
+  so you draft inside the scope already settled rather than re-deriving it —
+  and **never edit one**. `_taxonomy/` is written only at the human confirm
+  gate; a node that needs changing is something you say in your return, not
+  something you write. (Mechanical, not just contractual: `reconcile.py` fails
+  the area when a live node changed outside a confirm.)
 - `upstream` — optional (M11): paths to the **already-drafted fragments of
   procedures whose output this one consumes**. Read-only seam context — see
   "Upstream context" below.

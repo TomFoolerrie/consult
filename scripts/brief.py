@@ -609,45 +609,69 @@ def _sibling_areas(folder: Path) -> list[tuple[str, str]]:
 
 # The seam lives in these sections — upstream fragments are read for the
 # handoff only, so these are the only upstream sections a drafter opens.
-SEAM_SECTIONS = "Scope, At a Glance, Outputs & Evidence"
+#
+# M66 A2/4: the titles a drafter is sent to are its CAPTURE TYPE's, not v1's
+# — a process-step drafter told to read "At a Glance" is being sent to a
+# section its unit does not have. There is still exactly ONE spelling of the
+# seam: v1's frozen string below. Every other type's seam is that string
+# TRANSLATED — resolved to slugs through the v1 registry, then kept and
+# re-titled per the type's own declaration — so the policy ("what a handoff
+# is made of: what the upstream step covers, and what it hands over") is
+# stated once and no second table of part slugs exists to drift.
+_V1_SEAM_SECTIONS = "Scope, At a Glance, Outputs & Evidence"
+
+
+def _seam_slugs() -> list[str]:
+    """The seam parts as SLUGS, resolved from the one frozen v1 spelling."""
+    v1 = client_config.section_vocabulary(client_config.ACTIVITY_TYPE)
+    return [s for t in _V1_SEAM_SECTIONS.split(",")
+            if (s := v1.of_title(t.strip())) is not None]
+
+
+def seam_sections(unit: str = "activity") -> str:
+    """The seam section TITLES of one capture type, in declared order.
+
+    `activity` yields v1's frozen three verbatim; `process-step` yields the
+    two of them it declares (`Scope, Outputs`). A type declaring none yields
+    the empty string, which reads correctly in the sentence it lands in."""
+    if unit == client_config.ACTIVITY_TYPE:
+        return _V1_SEAM_SECTIONS
+    try:
+        wanted = set(_seam_slugs())
+        vocab = client_config.section_vocabulary(unit)
+        return ", ".join(vocab.title(s) for s in vocab.sections
+                         if s in wanted)
+    except Exception:                       # pragma: no cover - stripped install
+        return _V1_SEAM_SECTIONS
+
+
+#: The v1 seam titles as a module constant — kept because it is one (v1 tests
+#: and readers reach for it) and DERIVED, so it cannot drift from the type.
+SEAM_SECTIONS = seam_sections()
 
 
 # --------------------------------------------------------------------------- #
 # M43 Part B — the unit line
 #
 # WHICH DRAFTING PATH the drafter reads is not a new dispatch key and not a
-# hand-typed flag: the definition layer already knows what an area is made of.
-# The area's RESOLVED deliverable definition carries an entity-part binding (a
-# binding that selects `parts` of an entity), and that binding NAMES its entity
-# type — `process-step` (the M43 Part A path) or `activity` (the v1
-# seven-section path). We read that name and print it. Nothing is decided here.
+# hand-typed flag: it is WHAT THE AREA CAPTURES, and one resolver already
+# answers that — `client_config.capture_type` (M66 WP1). A central-mode
+# engagement captures in `process-step`, a v1 per-area engagement in
+# `activity`; we read that name and print it. Nothing is decided here.
 #
-# Which definition is the area's is read the same mechanical way: the manifest's
-# derived components carry `derived_kind` values, and a derived kind that names
-# an installed deliverable is that deliverable (the IPO area's
-# `process-controls-matrix`); an area whose derived kinds are all blocks of the
-# default deliverable (every v1 area) resolves the default. Manifest order
-# decides, so the read is deterministic.
+# M66 A2/4 — WHY THIS NO LONGER READS THE MANIFEST: the unit used to be
+# discovered from the manifest's DERIVED components (a derived kind naming an
+# installed deliverable IS that deliverable, and its entity-part binding named
+# the type). A1 item 2b removes those components from v2 capture entirely, so
+# that chain now lands on the desktop-procedure default and tells every v2
+# drafter "YOUR UNIT: activity" — the exact mis-dispatch this line exists to
+# prevent. The capture type is the direct question, and it is answered from
+# the engagement's own shape rather than from document furniture.
 #
-# LOUD fallback, never a dead dispatch: `resolve_definition` raises on config
-# problems (a broken user definition, an unreadable profile), and a broken
-# definition must not stop a drafter from drafting. The line then states the
-# default AND names the error — the drafter reports it instead of guessing.
+# LOUD fallback, never a dead dispatch: any failure to resolve states the v1
+# default AND names the error, so the drafter reports it instead of guessing.
 #: The unit the v1 seven-section path drafts — the stated default.
 DEFAULT_UNIT = "activity"
-
-
-def _entity_part_unit(defn) -> str | None:
-    """The entity type named by `defn`'s entity-part binding, or None when the
-    definition binds no parts of any entity (a channels/callouts-only
-    deliverable has no drafting unit to report)."""
-    for spec in (defn.bindings or {}).values():
-        if not isinstance(spec, dict) or not spec.get("parts"):
-            continue
-        ent = spec.get("entities")
-        if isinstance(ent, str) and ent.strip():
-            return ent.strip()
-    return None
 
 
 UNIT_PATHS = {
@@ -662,37 +686,32 @@ def _unit_path(unit: str) -> str:
     return UNIT_PATHS.get(unit, UNIT_PATHS[DEFAULT_UNIT])
 
 
-def _unit_line(folder: Path, manifest: dict) -> str:
-    """The `YOUR UNIT` line's text — one line, always."""
+def _unit(folder: Path) -> str:
+    """The area's capture type — the drafting unit. Degrades to the v1 default
+    so a config defect costs the seam titles, never the dispatch (the unit
+    LINE reports the defect loudly on the same read)."""
     try:
-        import definitions
-        names = []
-        for comp in manifest.get("components", []):
-            kind = comp.get("derived_kind")
-            if isinstance(kind, str) and kind and kind not in names:
-                names.append(kind)
-        defn = None
-        for name in names:
-            try:
-                defn = definitions.resolve_definition(folder, name)
-                break
-            except Exception:                   # not this area's deliverable
-                defn = None
-        if defn is None:
-            defn = definitions.resolve_definition(folder)
-        unit = _entity_part_unit(defn)
-        if unit is None:
-            return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
-                    f"resolved: {defn.name} binds no entity parts)"
-                    f" — read {_unit_path(DEFAULT_UNIT)}")
-        return (f"YOUR UNIT: {unit}  (deliverable definition: {defn.name})"
+        return client_config.capture_type(folder)
+    except Exception:                       # pragma: no cover - loud in _unit_line
+        return DEFAULT_UNIT
+
+
+def _unit_line(folder: Path, manifest: dict | None = None) -> str:
+    """The `YOUR UNIT` line's text — one line, always.
+
+    `manifest` is accepted and unused: the caller has it, and the signature
+    stays where every dispatch already calls it from (M66 A2/4 removed the
+    read, not the seam)."""
+    try:
+        unit = client_config.capture_type(folder)
+        return (f"YOUR UNIT: {unit}  (the area's capture type)"
                 f" — read {_unit_path(unit)} (that ONE path document, plus "
                 f"the shared law in agents/consult-drafter.md)")
     except Exception as exc:                    # noqa: BLE001 - loud fallback
-        return (f"YOUR UNIT: {DEFAULT_UNIT} (default — no definition "
-                f"resolved: {type(exc).__name__}: {exc}) "
-                f"[report this in your return — the definition layer is "
-                f"broken, the drafting path below is the v1 default]"
+        return (f"YOUR UNIT: {DEFAULT_UNIT} (default — the capture type did "
+                f"not resolve: {type(exc).__name__}: {exc}) "
+                f"[report this in your return — the config layer is broken, "
+                f"the drafting path below is the v1 default]"
                 f" — read {_unit_path(DEFAULT_UNIT)}")
 
 
@@ -706,6 +725,14 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
                     f"(known: {known})")
 
     out: list[str] = []
+    # M66 A2/4: the seam titles this drafter is sent to are its CAPTURE
+    # TYPE's, so a process-step drafter is never pointed at "At a Glance".
+    # `own_seam` names the drafter's own sections in the conditional-read
+    # sentence; v1 keeps the wording it has always printed there verbatim.
+    unit = _unit(folder)
+    seam = seam_sections(unit)
+    own_seam = ("Scope, Before You Start, Outputs & Evidence"
+                if unit == DEFAULT_UNIT else seam)
     frag = comp.get("file", "")
     frag_path = folder / frag
     sentinel = bool(frag_path.is_file() and UNFILLED_RE.search(
@@ -769,6 +796,17 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
     for name in REGISTRY_FILES:
         if (folder / "_reference" / name).is_file():
             _reading_item(out, folder, f"_reference/{name}")
+    # M66 A1/4 — the taxonomist's survey feeds the drafter, READ-ONLY. The
+    # area's live node files carry the scope notes this procedure sits inside;
+    # listing them stops the drafter re-deriving scope the survey already
+    # settled. Node slugs and procedure slugs are different vocabularies (a
+    # node covers several steps), so the WHOLE live set is listed rather than
+    # a guessed node→procedure mapping — they are few, and the wrong one
+    # costs a read. Writing is another matter: `_taxonomy/` is written only at
+    # the confirm gate, and reconcile fails an area whose nodes moved.
+    for node in sorted((folder / "_taxonomy").glob("*.md")):
+        _reading_item(out, folder, str(node.relative_to(folder)),
+                      "survey scope notes — read-only, never edit")
     conv = sorted((folder / "_reference" / "conventions").glob("*.md"))
     for c in conv:
         _reading_item(out, folder, str(c.relative_to(folder)),
@@ -785,11 +823,10 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
             ucomp = next((c for c in procs if c.get("slug") == u), None)
             if ucomp:
                 unote = (f"upstream seam ({u}) — READ-ONLY context; seam "
-                         f"sections only: {SEAM_SECTIONS}")
+                         f"sections only: {seam}")
                 if update_mode:
                     unote += ("; CONDITIONAL: read only if your delta "
-                              "changes your own seam sections (Scope, "
-                              "Before You Start, Outputs & Evidence)")
+                              f"changes your own seam sections ({own_seam})")
                 _reading_item(out, folder, ucomp.get("file", ""), unote)
             continue
         # M26 cross-area seam: the counterpart fragment is READ-ONLY seam
@@ -821,11 +858,10 @@ def drafter_brief(folder: Path, manifest: dict, slug: str,
                      f"[[{u}]] — READ-ONLY: align artifact names, "
                      f"timing and state; write your handoff sentence "
                      f"with the [[{u}]] token; never document that "
-                     f"area's work; seam sections only: {SEAM_SECTIONS}")
+                     f"area's work; seam sections only: {seam}")
             if update_mode:
                 xnote += ("; CONDITIONAL: read only if your delta "
-                          "changes your own seam sections (Scope, "
-                          "Before You Start, Outputs & Evidence)")
+                          f"changes your own seam sections ({own_seam})")
             _line(out, xnote + ")")
         else:
             _line(out, f"  - [[{u}]] — CROSS-AREA upstream: scoped, not "

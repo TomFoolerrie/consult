@@ -574,8 +574,21 @@ def _area_entity_count(area: Path, type_name: str) -> int:
     components = [c for c in (manifest.get("components") or [])
                   if isinstance(c, dict)]
     role = _TYPE_MANIFEST_ROLE.get(type_name)
+    # M66 A1/2: the role shortcut answers only for the area's OWN capture
+    # type. A v2 area's procedure components hold PROCESS-STEP fragments, and
+    # counting them as `activity` entities is exactly how a desktop-procedure
+    # render over process-step capture would look serviceable and then render
+    # wrong — the gate's "never a silent wrong render". Asking the fragments
+    # what they are is the honest count, and it is what `_typed_fragment_count`
+    # already does for every non-roled type.
     if role is not None:
-        return sum(1 for c in components if c.get("role") == role)
+        import client_config          # local: definitions imports alone
+        try:
+            same_type = client_config.capture_type(area) == type_name
+        except Exception:             # pragma: no cover - read-only accessor
+            same_type = True
+        if same_type:
+            return sum(1 for c in components if c.get("role") == role)
     return _typed_fragment_count(area, type_name, components)
 
 
@@ -966,6 +979,45 @@ def load_definition(name: str, area=None) -> Definition:
 
 #: The shipped definition the profile alias shades. v1's document.
 DEFAULT_DEFINITION = "desktop-procedure"
+
+
+def area_deliverable(area) -> str | None:
+    """The deliverable this area is BUILDING, or None when nothing names one.
+
+    M66 A2/5 — the deliverable default dies with the template default. v1 has
+    exactly one document and every v1 area builds it, so a v1 area still reads
+    `desktop-procedure`. A v2 area builds what the OBJECTIVE declares
+    (`client_config.objective(area).deliverables`, validated against real
+    definitions at M41): the first declared deliverable is the area's, and an
+    area whose engagement declared none returns None — which callers report
+    honestly instead of claiming the v1 document. Capture is not a render, so
+    "what this area captures" no longer answers "what document it makes".
+
+    Read-only and never raising: an unreadable objective is an absent one
+    here (the M41 posture — a malformed objective must not take a read down),
+    and the honest answer to "which deliverable?" is then None."""
+    import client_config              # local: keeps definitions importable alone
+
+    try:
+        if client_config.capture_type(area) == client_config.ACTIVITY_TYPE:
+            return DEFAULT_DEFINITION
+        names = [str(d).strip()
+                 for d in (client_config.objective(area).deliverables or [])
+                 if str(d).strip()]
+    except Exception:                       # noqa: BLE001 - read-only accessor
+        return None
+    return names[0] if names else None
+
+
+def area_deliverable_note(area) -> str | None:
+    """Why an area has no deliverable, in one sentence — or None when it has
+    one. The message that rides an `unset` render signal."""
+    if area_deliverable(area) is not None:
+        return None
+    return ("no deliverable is declared for this area: the engagement "
+            "objective names none (components/_client/objective.yaml, "
+            "`deliverables:`), and capture no longer implies a document — "
+            "declare one, then render it over this area's capture")
 
 
 def _definition_to_raw(defn: Definition) -> dict:

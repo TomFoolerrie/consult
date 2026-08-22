@@ -179,6 +179,14 @@ DERIVED_FILES = [
      "heading": "Appendix — Screenshot / Evidence Index", "order": 9100},
 ]
 
+#: M66 A1/3 — the gate's one honesty sentence, printed at every v2 confirm.
+#: Engine-side on purpose: the skill relays what the command prints, so the
+#: statement cannot drift out of a prose file while the behavior stays.
+CAPTURE_NOT_RENDER = (
+    "capture is not a render: this area records the process step by step, "
+    "and the deliverables the objective declares are renders over it"
+)
+
 PROC_BASE = 10   # first procedure order
 PROC_GAP = 10    # sparse gap between procedure orders
 
@@ -501,7 +509,65 @@ def promote_taxonomy(area) -> dict:
     for p in staged:
         shutil.move(str(p), str(live_dir / p.name))
         promoted.append(p.stem)
+    record_taxonomy(area)
     return {"promoted": promoted}
+
+
+# --------------------------------------------------------------------------- #
+# M66 A1/4 — the node guard's record
+#
+# `_taxonomy/` is written at the confirm gate and nowhere else: the taxonomist
+# refines LIVE nodes in place, the drafter reads them and never writes them.
+# That was a contract rule with no mechanism, so this is the mechanism — a
+# hash of every live node, written by the gate that is allowed to write them,
+# checked by reconcile (`check_taxonomy_record`).
+#
+# A SEPARATE STATE FILE, deliberately: manifest.json is validated against the
+# v1 schema by `doc_model.validate_manifest`, and a survey record is not
+# document membership. It sits beside the area's other advisor state files
+# (`.reconcile.json`, `.render.json`) and carries the same dot-prefixed name.
+# --------------------------------------------------------------------------- #
+
+#: The area-relative path of the node record (see above).
+TAXONOMY_RECORD = ".taxonomy.json"
+
+
+def taxonomy_hashes(area) -> dict:
+    """`{filename: sha256}` over the area's LIVE `_taxonomy/*.md`, by bytes."""
+    live_dir = live_taxonomy_dir(Path(area))
+    if not live_dir.is_dir():
+        return {}
+    return {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(live_dir.glob("*.md"))}
+
+
+def record_taxonomy(area) -> dict:
+    """Write the node record — the confirm gate's attestation of what the
+    survey looked like when it left the gate. No live nodes, no record: an
+    area with no survey has nothing to guard, and writing an empty record
+    would make the first hand-added node an error."""
+    area = Path(area)
+    nodes = taxonomy_hashes(area)
+    if not nodes:
+        return {}
+    (area / TAXONOMY_RECORD).write_text(
+        json.dumps({"nodes": nodes}, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8")
+    return nodes
+
+
+def read_taxonomy_record(area) -> dict | None:
+    """The recorded `{filename: sha256}`, or None when there is no record —
+    a pre-M66 area, which the guard must pass in SILENCE rather than fail."""
+    path = Path(area) / TAXONOMY_RECORD
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    nodes = data.get("nodes")
+    return nodes if isinstance(nodes, dict) else None
 
 
 # --------------------------------------------------------------------------- #
@@ -672,6 +738,14 @@ procedures adjoin it. Nothing else.""",
 | Key outputs | TBD |""",
     "before-you-start":
         "- **<Artifact>** — TBD; TBD — the state it must be in.",
+    # M66 A1: the process-step parts v1 has no counterpart for. Inputs and
+    # outputs are the IPO edges — where an upstream step's output arriving as
+    # a hand-typed input is the friction the engagement is looking for.
+    "inputs":
+        "- **<Artifact>** — TBD; where it comes from (the upstream step, "
+        "system or party) and the state it arrives in.",
+    "transformation": """TBD — what is done to the inputs to produce the outputs, in neutral
+current-state language: the work itself, step by step, as performed today.""",
     "steps": """#### Step 1: TBD
 
 TBD — Describe the step in neutral current-state procedural language.""",
@@ -697,30 +771,34 @@ roles:   []
 ```"""
 
 
-def declared_parts():
+def declared_parts(unit: str = client_config.ACTIVITY_TYPE):
     """The entity type's parts (slug + title) in DECLARED order — the authority
     on what sections a procedure has. Falls back to the v1 section registry only
     if the declaration cannot be loaded (a stripped install), so a broken kernel
     file is visible as a refusal at load time rather than a silently different
-    skeleton here."""
+    skeleton here.
+
+    M66 A2/6: `unit` is the area's CAPTURE TYPE (`client_config.capture_type`)
+    — `activity` for a v1 area, `process-step` for a v2 one. It defaults to
+    the v1 type so every pre-M66 caller reads exactly what it always read."""
     try:
         import kernel
-        return [(p.slug, p.title) for p in kernel.load_type("activity").parts]
+        return [(p.slug, p.title) for p in kernel.load_type(unit).parts]
     except Exception:                       # pragma: no cover - stripped install
         return [(s, doc_model.section_title(s))
-                for s in client_config.ALL_SECTIONS]
+                for s in client_config.section_vocabulary(unit).sections]
 
 
-def declared_sections():
+def declared_sections(unit: str = client_config.ACTIVITY_TYPE):
     """Just the part SLUGS, declared order (what `keep_sections` filters on)."""
-    return [slug for slug, _title in declared_parts()]
+    return [slug for slug, _title in declared_parts(unit)]
 
 
-def _fallback_skeleton(heading: str) -> str:
+def _fallback_skeleton(heading: str, unit: str = client_config.ACTIVITY_TYPE) -> str:
     """The minimal skeleton, ASSEMBLED FROM the type declaration: one `###`
     section per declared part, titled as declared, in declared order."""
     out = [f"## {heading}", "", "<!-- unfilled -->", ""]
-    for slug, title in declared_parts():
+    for slug, title in declared_parts(unit):
         body = _FALLBACK_PART_BODIES.get(slug, "TBD")
         out += [f"### {title}", "", body, ""]
     out += [_FALLBACK_END_MATTER, ""]
@@ -736,7 +814,19 @@ def _fallback_skeleton(heading: str) -> str:
 _END_MATTER_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*consult-meta\s*$", re.I)
 
 
-def keep_sections(text: str, sections) -> str:
+def _heading_resolver(unit: str):
+    """`f(line) -> slug | None` for `unit`'s `###` headings (M66 A2/1).
+
+    The v1 type resolves through the shared registry exactly as it always did
+    (WP1's parity pin); any other type resolves through its own declaration,
+    so a `### Transformation` is not silently unfiled here."""
+    if unit == client_config.ACTIVITY_TYPE:
+        return doc_model.section_of_heading
+    return client_config.section_vocabulary(unit).heading_resolver()
+
+
+def keep_sections(text: str, sections,
+                  unit: str = client_config.ACTIVITY_TYPE) -> str:
     """Drop the `###` blocks of every section NOT in `sections` (M14/M23).
 
     `sections` is a list of section SLUGS; headings are resolved to slugs
@@ -752,9 +842,9 @@ def keep_sections(text: str, sections) -> str:
     blank hole would fill it in.
     """
     wanted = set(sections)
+    resolve = _heading_resolver(unit)
     lines = text.splitlines(keepends=True)
-    present = {s for ln in lines
-               if (s := doc_model.section_of_heading(ln)) is not None}
+    present = {s for ln in lines if (s := resolve(ln)) is not None}
     if not present - wanted:
         return text
 
@@ -764,7 +854,7 @@ def keep_sections(text: str, sections) -> str:
         if _END_MATTER_RE.match(ln):
             dropping = False       # end matter belongs to no section
         else:
-            slug = doc_model.section_of_heading(ln)
+            slug = resolve(ln)
             if slug is not None:
                 dropping = slug not in wanted
         if not dropping:
@@ -775,7 +865,8 @@ def keep_sections(text: str, sections) -> str:
     return re.sub(r"\n{3,}", "\n\n", text)
 
 
-def render_skeleton(heading: str, sections=None) -> str:
+def render_skeleton(heading: str, sections=None,
+                    unit: str = client_config.ACTIVITY_TYPE) -> str:
     """Stamp one skeleton for a procedure — LETTERLESS headings (M23).
 
     Prefers M1's `procedure_skeleton.md` (the single definition of procedure
@@ -792,8 +883,12 @@ def render_skeleton(heading: str, sections=None) -> str:
     slugs; `None` stamps the full shape. M1 still owns the SHAPE of each
     section — this only decides which of them exist.
     """
-    wanted = (declared_sections() if sections is None else sections)
-    if PROCEDURE_SKELETON.is_file():
+    wanted = (declared_sections(unit) if sections is None else sections)
+    # M66 A2/6: M1's file is the ACTIVITY shape written down — the v1
+    # seven-section skeleton — so it answers only for the v1 capture type.
+    # Every other type is stamped from its declaration, which is the one
+    # authority on what parts it has.
+    if unit == client_config.ACTIVITY_TYPE and PROCEDURE_SKELETON.is_file():
         raw = PROCEDURE_SKELETON.read_text(encoding="utf-8")
         lines = raw.splitlines(keepends=True)
         start = next((i for i, ln in enumerate(lines) if ln.startswith("## ")), None)
@@ -807,8 +902,8 @@ def render_skeleton(heading: str, sections=None) -> str:
                 body = body.replace(
                     f"## {heading}\n", f"## {heading}\n\n<!-- unfilled -->\n", 1
                 )
-            return keep_sections(body, wanted)
-    return keep_sections(_fallback_skeleton(heading), wanted)
+            return keep_sections(body, wanted, unit)
+    return keep_sections(_fallback_skeleton(heading, unit), wanted, unit)
 
 
 #: The same fallback as a `{heading}` TEMPLATE. Kept as a module attribute
@@ -1200,12 +1295,18 @@ def write_promoted_notes(area: Path, slug_files: dict[str, str],
 
 def build_manifest(area: Path, l1: str, title: str, subtitle: str,
                    procedures: list[dict], l2_order: list[str],
-                   proc_orders: dict[str, int], profile=None) -> dict:
+                   proc_orders: dict[str, int], profile=None,
+                   furniture: bool = True) -> dict:
     """Build the v1 manifest. `profile` (M14) decides WHICH derived components
-    are listed; `None` means today's default set."""
+    are listed; `None` means today's default set.
+
+    M66 A1/2b: `furniture=False` (the v2 capture path) lists ONLY the
+    procedure components. The statics and derived views are pieces of a
+    DOCUMENT, not of the capture corpus — the render/materialize path builds
+    them from the declared deliverable's definition, at render time."""
     components: list[dict] = []
 
-    for sf in STATIC_FILES:
+    for sf in (STATIC_FILES if furniture else []):
         components.append({
             "file": sf["file"], "role": "static",
             "heading": sf["heading"], "order": sf["order"],
@@ -1255,7 +1356,7 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
             comp["upstream"] = valid
         components.append(comp)
 
-    for d in profile_derived_files(profile):
+    for d in (profile_derived_files(profile) if furniture else []):
         components.append({
             "file": d["file"], "role": "derived", "derived_kind": d["kind"],
             "writer": d["writer"], "heading": d["heading"], "order": d["order"],
@@ -1411,15 +1512,27 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     l2_order = compute_l2_order(procedures, tax_buckets, existing_l2_order)
     proc_orders = assign_procedure_orders(procedures, l2_order, existing_orders)
 
+    # M66 A1/A2: WHAT THIS AREA CAPTURES decides the skeleton shape, the
+    # manifest's defaults and whether document furniture is scaffolded at all.
+    # One resolver answers (client_config.capture_type — the mode marker),
+    # never a second flag threaded through the gate.
+    unit = client_config.capture_type(area)
+    v2_capture = unit != client_config.ACTIVITY_TYPE
+
     # 3) Title / subtitle (arg > existing manifest > derived default).
-    title = (title_arg or existing_manifest.get("title")
-             or f"{_titleize(area.name)} — Desktop Procedures")
+    #    M66 A1/1: the v2 default is CAPTURE-neutral — the area is the brain,
+    #    and which document it is rendered into is the objective's business.
+    default_title = (f"{_titleize(area.name)} — Process Capture" if v2_capture
+                     else f"{_titleize(area.name)} — Desktop Procedures")
+    default_subtitle = ("Current-state process capture" if v2_capture
+                        else "Current-state desktop procedures")
+    title = (title_arg or existing_manifest.get("title") or default_title)
     subtitle = (subtitle_arg if subtitle_arg is not None
-                else existing_manifest.get("subtitle", "Current-state desktop procedures"))
+                else existing_manifest.get("subtitle", default_subtitle))
 
     # 4) Build + validate the manifest.
     manifest = build_manifest(area, l1, title, subtitle, procedures, l2_order,
-                              proc_orders, profile)
+                              proc_orders, profile, furniture=not v2_capture)
     if doc_model is not None:
         errors = doc_model.validate_manifest(manifest)
         if errors:
@@ -1442,10 +1555,10 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
             fp.write_text(content, encoding="utf-8")
             created.append(name)
 
-    for sf in STATIC_FILES:
+    for sf in (STATIC_FILES if not v2_capture else []):
         _write_if_absent(sf["file"], render_static(sf["heading"]))
     for p in procedures:
-        content = render_skeleton(p["title"], profile.sections)
+        content = render_skeleton(p["title"], profile.sections, unit)
         # A merged near-duplicate pair carries `variants:` in procedures.yaml.
         # Stamp the coverage into the skeleton so the drafter documents the
         # shared flow once and branches where the variants diverge. HTML
@@ -1461,7 +1574,7 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
                 "<!-- unfilled -->", "<!-- unfilled -->\n\n" + note, 1
             )
         _write_if_absent(f"10_{p['slug']}.md", content)
-    for d in profile_derived_files(profile):
+    for d in (profile_derived_files(profile) if not v2_capture else []):
         _write_if_absent(d["file"], render_derived(d["kind"], d["writer"], d["heading"]))
 
     # 5b) Re-dispatch rides the notes queue (M6/F7). Written AFTER the skeletons
@@ -1483,9 +1596,16 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     #    point before the delete and the first point past every raise site, so
     #    the rmtree consumes only what was actually consumed.
     taxonomy_report = promote_taxonomy(area)
+    # The record is refreshed even when nothing was promoted: the gate is the
+    # only writer of `_taxonomy/`, so every confirm re-attests the survey the
+    # human just approved (a live node the taxonomist refined in place between
+    # gates is approved HERE, and the guard must not fire on it afterwards).
+    record_taxonomy(area)
     shutil.rmtree(proposed, ignore_errors=True)
 
     print(f"scaffolded {area}")
+    if v2_capture:
+        print(f"  {CAPTURE_NOT_RENDER}")
     print(f"  {profile.report_line()}")
     print(f"  l1={l1}  l2_order={l2_order}")
     if taxonomy_report["promoted"]:
