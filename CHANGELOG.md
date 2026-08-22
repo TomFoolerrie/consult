@@ -9,6 +9,51 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.4.0] — 2026-08-22
+
+The brain release, written from the first LIVE RUN of the v2 pipeline
+(the Nordhaven synthetic engagement) and its post-hoc audit: the human
+ruling that capture is the brain and every document is a render over
+it, plus the run's defects. Six tickets, adversarially fact-checked
+before build.
+
+- **M65 — the confirm gate promotes the survey.** `--confirm` owns
+  staged-taxonomy-node promotion (collision refuses whole by name,
+  move lands after the last raise site, report line either way); the
+  advisor flags an uncommitted `.proposed/` at the gate; the skill's
+  two-verb trap is one command. (`docs/v2/M65`, gate 12/12)
+- **M67 — interpreter honesty.** A 3.9-importable version gate atop
+  all 23 entry points, before any first-party import; missing PyYAML
+  is a named refusal, never "no engagement objective configured"; the
+  ≥3.10 floor documented. (`docs/v2/M67`, gate 48/48)
+- **M68 — central mode finishes the move.** Brief/agenda resolve
+  ledger paths at the engagement root; checkpoints sweep
+  `_sources/` + `components/_client/` centrally (promise now true);
+  the advisor routes before it scopes (new `route` action);
+  mark-processed reports credited vs moved. (`docs/v2/M68`, gate 13/13)
+- **M70 — vocabulary-floor leftovers.** Aggregate/reconcile/render
+  build their callout grammars from declarations (label→prefix
+  threaded); the hand-typed alternations are gone. (`docs/v2/M70`,
+  gate 12/12)
+- **M66 — capture is the brain; documents are renders.** Process-step
+  is THE v2 capture unit (six parts, declaration-rendered skeletons,
+  no document furniture, "Process Capture" title); the desktop
+  procedure is demoted to a deliverable definition and reports
+  honestly unserviceable over process-step capture until reworked;
+  profile vocabulary, heading parsing, render lettering and the
+  brief's unit line all derive from the capture type; the objective
+  names the deliverable; the confirm gate says capture ≠ render; live
+  taxonomy nodes are read-only drafter inputs guarded by a hash
+  record reconcile enforces. (`docs/v2/M66`, gate 77/77)
+- **M69 — the derived views read the type.** View slots resolved from
+  the declaration: aggregate/kits/consolidate read transformation +
+  controls on process-step (preparer from the declared CONTROL
+  Performer), honest absences instead of silent empties, v1
+  byte-identical. (`docs/v2/M69`, gate 14/14)
+
+Suite: 1,588 collected, all passing; zero skips, zero xfails; v1
+golden corpus and compatibility gate untouched throughout.
+
 ## [2.3.1] — 2026-08-20
 The hardening line: the 2026-08-20 adversarial review's nine tickets
 (M56–M64). Stamped 2.3.1 on the human’s review and go (2026-08-20).
