@@ -1,6 +1,6 @@
 # M70 — Vocabulary-floor leftovers: the last floor-only prefix readers
 
-**Status: RECORDED** (2026-08-22).
+**Status: BUILT** (`2.4.0-alpha.4`, gate 12/12 — see Amendment A1).
 Origin: the v1-residue code survey run after M66's ruling. Small,
 deliberately separate from M66: harmless for process-step today
 (identical prefix set), but each one re-creates the M62 defect for
@@ -39,3 +39,20 @@ shipped five prefixes.
   by exercising the new-prefix fixture through those code paths).
 - Full suite + compat gate untouched; the shipped five parse
   byte-identically.
+
+## Amendment A1 — build rulings (2026-08-22)
+
+* Prefixes alone would not have opened the gate: aggregate and
+  reconcile also hard-code the LABEL->prefix map, so a declared RISK
+  label was refused before its RSK id was ever tested. The fix
+  threads one declaration-shaped `label_to_prefix` argument (the
+  kernel twin's shape); prefix sets derive from it. Floor-only
+  defaults keep every existing caller byte-identical.
+* `callouts` grew the single alternation builder (`_prefix_alt`) plus
+  `id_inline_re`/`id_mention_re`; aggregate/render/reconcile build
+  from it. Alternation order is now sorted — provably matching-
+  neutral since no prefix prefixes another (pinned by test).
+* Sweep: `reconcile.py:978` was a third declaration-path floor reader
+  (rewired); `reconcile.py:810` and `:1442` are genuinely
+  floor/compat sites (commented as such); `kernel.py:329`'s noqa
+  re-export of ID_STRICT_RE is dead and left for a future tidy.

@@ -92,9 +92,9 @@ import plan_views  # noqa: E402  (M40: the three view writers, registered below)
 # drift. This file keeps only the aggregate-specific matchers built on top.
 # ---------------------------------------------------------------------------
 from callouts import (  # noqa: E402
-    LABEL_TO_PREFIX, SEVERITY_ENUM, DELIM as _DELIM, ID_STRICT_RE,
-    BODY_GAP_RE, BARE_GAP_RE, FragmentError, blank_fences as _blank_fences,
-    DETAIL_FIELD,
+    LABEL_TO_PREFIX, SEVERITY_ENUM, DELIM as _DELIM, id_strict_re,
+    id_mention_re, BODY_GAP_RE, BARE_GAP_RE, FragmentError,
+    blank_fences as _blank_fences, DETAIL_FIELD,
 )
 
 # Callout label line: `> **<LABEL> — <ID>:** <text>` (colon INSIDE the bold).
@@ -236,8 +236,16 @@ def parse_consult_meta(raw_text: str) -> dict[str, list[str]]:
     return {"systems": _slugs("systems"), "roles": _slugs("roles")}
 
 
-def parse_callouts(slug: str, raw_text: str) -> list[dict]:
+def parse_callouts(slug: str, raw_text: str,
+                   label_to_prefix: dict | None = None) -> list[dict]:
     """Parse every inline callout in a procedure fragment.
+
+    M70: the callout VOCABULARY may come from a loaded type declaration —
+    `label_to_prefix` is its {LABEL: PREFIX} map, floor-unioned with the v1
+    five — and the id grammar is assembled here from that set, exactly as
+    kernel._parse_callouts assembles it (M62 A1). Callers with no
+    declaration in hand (the shipped process-step path) pass nothing and get
+    the floor, byte-identically.
 
     Fail-loud (raises FragmentError) on: bad ID grammar, unknown callout label,
     a prefix that does not match its label, or a duplicate ID within this
@@ -245,6 +253,8 @@ def parse_callouts(slug: str, raw_text: str) -> list[dict]:
 
     Returns a list of dicts: {label, prefix, id, text, fields, section?}.
     """
+    vocab = {**LABEL_TO_PREFIX, **(label_to_prefix or {})}
+    strict_re = id_strict_re(vocab.values())
     text = _blank_fences(raw_text)
     lines = text.splitlines()
     callouts: list[dict] = []
@@ -259,14 +269,14 @@ def parse_callouts(slug: str, raw_text: str) -> list[dict]:
         label = re.sub(r"\s+", " ", m.group("label")).strip()
         cid = m.group("id").strip()
 
-        if label not in LABEL_TO_PREFIX:
+        if label not in vocab:
             raise FragmentError(
                 f"unknown callout label {label!r} at {slug}:{i + 1} "
-                f"(expected one of {', '.join(sorted(LABEL_TO_PREFIX))})"
+                f"(expected one of {', '.join(sorted(vocab))})"
             )
-        expected = LABEL_TO_PREFIX[label]
+        expected = vocab[label]
 
-        if not ID_STRICT_RE.match(cid):
+        if not strict_re.match(cid):
             raise FragmentError(
                 f"malformed callout ID {cid!r} at {slug}:{i + 1} "
                 f"(grammar: <PREFIX>-<ALNUM> e.g. {expected}-001)"
@@ -496,7 +506,7 @@ def _disp(ctx, p, c) -> str:
     return ctx["disp"].get((p["slug"], c["id"]), c["id"])
 
 
-_ID_MENTION_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
+_ID_MENTION_RE = id_mention_re()  # M70: built from the vocabulary, not re-typed
 
 
 def _disp_text(ctx, p, text: str) -> str:

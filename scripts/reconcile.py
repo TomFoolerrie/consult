@@ -178,13 +178,15 @@ except ImportError:  # pragma: no cover - orchestrate is always present
 import client_config  # noqa: E402
 
 from callouts import (  # noqa: E402
-    LABEL_PREFIX, DELIM as _DELIM, ID_STRICT_RE, ID_INLINE_RE,
+    LABEL_PREFIX, DELIM as _DELIM, ID_INLINE_RE,
+    id_strict_re, id_inline_re,
     BODY_GAP_RE, BARE_GAP_RE, XREF_RE, blank_fences as strip_fences,
     NOTE_FIELD, DETAIL_FIELD, DETAIL_KINDS, callout_field,
 )
 
 # A callout label line inside a blockquote (loose id capture so a malformed id
-# is still seen here and reported, then validated against ID_STRICT_RE):
+# is still seen here and reported, then validated against the declared id
+# grammar parse_procedure assembles):
 #   > **<LABEL> — <ID>:** <text>
 CALLOUT_RE = re.compile(
     r"^\s*>\s*\*\*\s*(?P<label>[A-Z][A-Z ]+?)\s*" + _DELIM + r"\s*"
@@ -806,6 +808,8 @@ def check_quoted_callout_ids(ctx: Ctx) -> None:
         for n, line in enumerate(f.blanked.splitlines(), start=1):
             if line.lstrip().startswith("|"):
                 continue
+            # Floor-only by design: this walks AGENT-OWNED derived prose,
+            # where no type declaration is in hand (M70).
             for m in ID_INLINE_RE.finditer(line):
                 ctx.errors.append(
                     f"{f.file}:{n}: CALLOUT ID {m.group(0)} in "
@@ -924,10 +928,20 @@ def check_merged_sections(file: str, text: str, frag: Frag) -> None:
 
 
 def parse_procedure(slug: str, file: str, text: str,
-                    blanked: str | None = None) -> Frag:
+                    blanked: str | None = None,
+                    label_to_prefix: dict | None = None) -> Frag:
     """Parse one procedure fragment's callout grammar into a Frag. `blanked`
     takes pre-computed blank_fences output (M28's cache); external callers
-    (review_apply, tests) keep passing raw text alone."""
+    (review_apply, tests) keep passing raw text alone.
+
+    M70: the callout VOCABULARY may come from a loaded type declaration —
+    `label_to_prefix` is its {LABEL: PREFIX} map, floor-unioned with the v1
+    five — and both id patterns are assembled here from that set, exactly as
+    kernel._parse_callouts assembles the strict one (M62 A1). With no
+    declaration in hand the floor applies, byte-identically."""
+    vocab = {**LABEL_PREFIX, **(label_to_prefix or {})}
+    strict_re = id_strict_re(vocab.values())
+    inline_re = id_inline_re(vocab.values())
     frag = Frag(slug, file)
     stripped = blanked if blanked is not None else strip_fences(text)
     lines = stripped.splitlines()
@@ -944,18 +958,18 @@ def parse_procedure(slug: str, file: str, text: str,
         if m:
             label = re.sub(r"\s+", " ", m.group("label")).strip()
             raw_id = m.group("id").strip()
-            if label not in LABEL_PREFIX:
+            if label not in vocab:
                 # unknown label with the callout shape — not our concern here
                 pass
             else:
-                idm = ID_STRICT_RE.match(raw_id)
+                idm = strict_re.match(raw_id)
                 if not idm:
                     frag.errors.append(
                         f"{file}:{n}: MALFORMED ID {raw_id!r} for label {label!r}"
                     )
                 else:
                     prefix = idm.group(1)
-                    expected = LABEL_PREFIX[label]
+                    expected = vocab[label]
                     if prefix != expected:
                         frag.errors.append(
                             f"{file}:{n}: ID PREFIX MISMATCH — label {label!r} "
@@ -975,7 +989,7 @@ def parse_procedure(slug: str, file: str, text: str,
     for n, line in enumerate(lines, start=1):
         if n in def_lines:
             continue
-        for m in ID_INLINE_RE.finditer(line):
+        for m in inline_re.finditer(line):
             _id = f"{m.group(1)}-{m.group(2)}"
             frag.referenced.setdefault(_id, []).append(n)
         for m in BODY_GAP_RE.finditer(line):
@@ -1428,6 +1442,8 @@ def check_derived_tables(ctx: Ctx) -> None:
             # text cells may quote sibling [[slugs]]/IDs, so nothing else on
             # the line is trusted for the pairing.
             first_cell = line.strip().strip("|").split("|", 1)[0]
+            # Floor-only by design: a derived TABLE row carries no type
+            # declaration to build the alternation from (M70).
             ids = {f"{a}-{b}" for a, b in ID_INLINE_RE.findall(first_cell)}
             if not ids:
                 continue

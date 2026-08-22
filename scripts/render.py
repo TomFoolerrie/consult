@@ -199,7 +199,8 @@ def _strip_consult_meta(text: str) -> str:
     return "\n".join(out)
 
 
-_CALLOUT_ID_RE = re.compile(r"\b(?:CTRL|GAP|PP|IO|SC)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
+# M70: built from the callout vocabulary, never re-typed here.
+_CALLOUT_ID_RE = callouts.id_mention_re()
 
 #: Citation scrub (final mode only). SRC-## ids are the drafters' provenance
 #: citations and GAP-## ids point at callouts/log rows that final mode strips —

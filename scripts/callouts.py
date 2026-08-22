@@ -63,8 +63,30 @@ def id_strict_re(prefixes=None):
     declaration, so the alternation is built from the prefixes the loaded
     types declare — the v1 five remain the shipped floor. `ID_STRICT_RE`
     stays as the floor-only constant for the v1 aggregate/reconcile path."""
-    pset = sorted(set(PREFIXES) | {str(p) for p in (prefixes or []) if p})
-    return re.compile(r"^(" + "|".join(pset) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$")
+    return re.compile(r"^(" + _prefix_alt(prefixes)
+                      + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)$")
+
+
+def _prefix_alt(prefixes=None) -> str:
+    """The prefix alternation over a DECLARED set, floor-unioned with the
+    v1 five. One home for the vocabulary every id pattern is built from."""
+    return "|".join(
+        sorted(set(PREFIXES) | {str(p) for p in (prefixes or []) if p}))
+
+
+def id_inline_re(prefixes=None):
+    """`ID_INLINE_RE` over a DECLARED prefix set (M70): any well-formed id
+    in prose, capturing (prefix, rest) exactly as the constant does."""
+    return re.compile(
+        r"\b(" + _prefix_alt(prefixes) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b")
+
+
+def id_mention_re(prefixes=None):
+    """A whole-id mention over a DECLARED prefix set (M70), NON-capturing —
+    the shape aggregate's `Addresses:` resolver and render's display-id
+    rewriter need, where `findall`/`sub` must see the id, not its parts."""
+    return re.compile(
+        r"\b(?:" + _prefix_alt(prefixes) + r")-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
 # Any well-formed ID occurrence in prose (for reference tracking).
 ID_INLINE_RE = re.compile(
     r"\b(" + "|".join(PREFIXES) + r")-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b"
