@@ -203,6 +203,8 @@ data can be gitignored or kept in a private repo.
 
 ## Requirements
 
+Python >= 3.10 (the scripts refuse to run on anything older, and say so).
+
 ```bash
 pip install -r requirements.txt   # python-docx, pyyaml
 ```

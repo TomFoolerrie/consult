@@ -29,6 +29,16 @@ this module imports it rather than re-parsing the manifest.
 
 from __future__ import annotations
 
+# M67 interpreter floor: this block runs BEFORE any first-party import, because
+# a < 3.10 interpreter dies inside `callouts.py` at import time and a check
+# placed after those imports could never fire.
+import os as _os  # noqa: E402
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import _pyfloor  # noqa: E402  (3.9-importable by contract)
+
+_pyfloor.require()
+
 import argparse
 import hashlib
 import json

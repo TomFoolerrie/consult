@@ -1,6 +1,6 @@
 # M67 — Interpreter honesty: the engine checks its Python and says so
 
-**Status: RECORDED** (2026-08-22).
+**Status: BUILT** (`2.4.0-alpha.2`, gate 48/48 — see Amendment A1).
 Origin: the Nordhaven build-run audit (2026-08-22), finding F1
 (severity high, remediated by hand mid-run).
 
@@ -100,3 +100,26 @@ first.)
 - A configured objective and an absent objective file still print
   their two distinct lines under a healthy interpreter.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-22)
+
+* Part A landed as `scripts/_pyfloor.py` (3.9-importable, stdlib-only)
+  with an identical gate block in all 23 real entry points, placed
+  after `from __future__ import annotations` and before every
+  first-party import (`console_compat` included). `definitions`,
+  `findings`, `coverage_map`, `hygiene` have no CLI and are not gated;
+  `doc_model`, `registers`, `migrate_sections` are entry points the
+  ticket had not listed. Gate order pinned per script by AST test.
+* Part B: `client_config.MissingDependencyError`; `_read_yaml` raises,
+  and `load()` refuses up front when PyYAML is absent (a file-level
+  check alone would let an empty `_client/` still render as
+  "unconfigured"). The brief's objective/needs sections surface the
+  refusal through the existing loud `UNREADABLE — …` path; the
+  `--objective` CLI exits 1.
+* Part C: the "use python3.12" prompt guidance does not exist in the
+  tree (it lived in the run's ad-hoc dispatch prompts) — nothing to
+  retire; the floor is now stated in README + requirements.txt.
+* Recorded for follow-up, out of scope here: the same soft
+  `yaml is None -> empty` shape survives at `consolidate.py:502`,
+  `notes_util.py:169`, `people.py:44`, and four sites in
+  `reconcile.py` — same lie-shape, lower blast radius.

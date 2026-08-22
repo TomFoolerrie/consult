@@ -38,6 +38,16 @@ that error to the orchestrator instead of drafting over it.
 """
 from __future__ import annotations
 
+# M67 interpreter floor: this block runs BEFORE any first-party import, because
+# a < 3.10 interpreter dies inside `callouts.py` at import time and a check
+# placed after those imports could never fire.
+import os as _os  # noqa: E402
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import _pyfloor  # noqa: E402  (3.9-importable by contract)
+
+_pyfloor.require()
+
 import argparse
 import json
 import re
@@ -113,8 +123,14 @@ def _sources_entries(folder: Path) -> list[dict]:
             return _area_view(root, Path(folder).name)
     folder = Path(folder)
     p = folder / "_reference" / "sources.yaml"
-    if yaml is None or not p.is_file():
+    if not p.is_file():
         return []
+    # M67: the file EXISTS, so an empty list here would be a lie of the same
+    # shape as the objective one — the reading list would silently drop every
+    # tagged source. No parser, no answer.
+    if yaml is None:
+        raise client_config.MissingDependencyError(
+            client_config._missing_yaml_message(p))
     try:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     except yaml.YAMLError:

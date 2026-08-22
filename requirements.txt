@@ -1,3 +1,4 @@
+# Requires Python >= 3.10 (see docs/v2/M67-interpreter-honesty.md)
 python-docx
 pyyaml
 

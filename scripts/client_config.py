@@ -79,6 +79,31 @@ class ClientConfigError(RuntimeError):
     """Malformed client config — the run stops, with the file named."""
 
 
+class MissingDependencyError(ClientConfigError):
+    """PyYAML is not importable, and the answer asked for needed it (M67).
+
+    A missing parser used to render as an EMPTY config: `load(area)` came back
+    without an `objective:` key and the objective line then said "none (no
+    engagement objective configured)" — a false client-config fact standing in
+    for "I cannot read YAML on this interpreter". Absence-by-choice and
+    absence-by-breakage must not render identically, so every path that
+    REQUIRES the parser now refuses, named and loud.
+    """
+
+
+def _missing_yaml_message(path=None) -> str:
+    """The one refusal text for an absent PyYAML, naming the interpreter."""
+    where = f" (reading {path})" if path is not None else ""
+    return (
+        f"PyYAML is not importable under {sys.executable} "
+        f"(Python {'.'.join(str(n) for n in sys.version_info[:3])})"
+        f"{where} — these inputs are YAML, so this cannot be answered and "
+        f"will NOT be reported as absent configuration. Install it "
+        f"(`{sys.executable} -m pip install pyyaml`) or re-run under an "
+        f"interpreter that has it (e.g. `python3.12`)."
+    )
+
+
 class ClientConfig(dict):
     """The merged client config.
 
@@ -123,8 +148,8 @@ class ClientConfig(dict):
 # --------------------------------------------------------------------- yaml
 def _read_yaml(path: Path) -> dict:
     """Parse one client YAML file. Malformed → fatal, with the file named."""
-    if yaml is None:  # pragma: no cover - pyyaml absent
-        return {}
+    if yaml is None:
+        raise MissingDependencyError(_missing_yaml_message(path))
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
@@ -182,6 +207,12 @@ def load(area) -> ClientConfig:
     Area `_client/` first, then the parent `components/_client/`; merged per
     top-level key, with `conventions/` merged per file.
     """
+    # M67: no parser, no answer. Refusing HERE (not only per file) is what
+    # makes "none (no engagement objective configured)" impossible to print on
+    # an interpreter without PyYAML — an empty walk would otherwise look
+    # exactly like a deliberately unconfigured engagement.
+    if yaml is None:
+        raise MissingDependencyError(_missing_yaml_message())
     area = Path(area)
     dirs = {AREA: area / CLIENT_DIR, ENGAGEMENT: area.parent / CLIENT_DIR}
 
