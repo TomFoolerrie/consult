@@ -182,3 +182,83 @@ The gate (making the ticket's two invariants concrete):
 - Drafter brief lists the live node read-only; the guard fails an
   area where `_taxonomy/` changed outside a confirm.
 - The confirm gate prints the capture-vs-render sentence.
+
+## Amendment A2 — the v1-residue sweep: build items the ruling implied
+## but did not name (2026-08-22)
+
+A code survey for v1 artifacts on the v2 path (post-A1) found the
+ruling's blast radius is wider than the scaffold. These are BUILD
+ITEMS of this ticket — without them the A1 gate can pass at scaffold
+time while the rest of the engine silently mis-reads process-step
+fragments:
+
+1. **The section parser splits by type — the highest-leverage item.**
+   `doc_model.section_of_heading` (registry `doc_model.py:194–271`)
+   is the one heading parser used by aggregate, render, reconcile,
+   kits, consolidate and the advisor — and its table is v1's seven.
+   On process-step it mis-files `### Inputs` → `before-you-start`
+   (alias table), and returns None for `### Transformation` and
+   `### Issues`. The v2 path routes through the kernel's tdecl-driven
+   twins (`kernel._part_of_heading` / `_split_parts` /
+   `parse_entity`, kernel.py:332/388/548); `doc_model`'s table stays
+   as the v1 parser. Consumers that inherit the fix in the same
+   stroke: `orchestrate._present_sections` (:323, feeding the
+   reprofile guard — else guard 4.5 reports transformation/issues
+   permanently missing and dispatches an unterminating reprofile
+   wave), `engagement.py:242`'s scope extraction.
+
+2. **Profile vocabulary becomes a function of the capture type.**
+   `client_config._declared_part_slugs/_declared_callout_labels/
+   _declared_home` all load `"activity"` (`client_config.py:266,
+   275, 285`), so `ALL_SECTIONS` is the seven and
+   `MANDATORY_SECTIONS` demands `quick-reference`/`steps` — a v2
+   area that ships a `profile.yaml` is REFUSED at
+   `client_config.py:524–531`, and `transformation` is an "unknown
+   section". The A1 escape hatch ("an explicit profile still wins")
+   is a trap until this lands.
+
+3. **Render-time lettering and hiding come from the bound type.**
+   `render._apply_profile` (`render.py:426–428`) letters sections
+   via the activity map — a rendered process-step fragment gets
+   `### C. Before You Start` stamped over its authored `### Inputs`,
+   and Transformation/Issues are invisible to the hide logic.
+   `render_glue` already computes `_hidden_parts` from the tdecl
+   (`render_glue.py:157`); lettering joins that seam.
+   (`review_extract`'s `A–H` location regex, :180, is decided with
+   this item.)
+
+4. **The brief's unit line and seam sections derive from the type,
+   not the furniture.** `brief.py:599` defaults `activity`, and unit
+   discovery reads the manifest's DERIVED components — which §2b of
+   A1 removes, so post-A1 the fallback chain lands on
+   `definitions.DEFAULT_DEFINITION = "desktop-procedure"` and every
+   v2 drafter is told "YOUR UNIT: activity" again. Coupled, not a
+   follow-up. `SEAM_SECTIONS` (`brief.py:574` — "Quick
+   Reference"-era titles printed into every brief) derives from the
+   tdecl in the same stroke.
+
+5. **The deliverable default dies with the template default.**
+   `definitions.DEFAULT_DEFINITION` / `orchestrate.py:1346` fall
+   back to `desktop-procedure` for every area's render signal; the
+   OBJECTIVE names the area's deliverable(s), and an area with no
+   objective-named deliverable reports that honestly instead of
+   claiming desktop-procedure.
+
+6. **Skeleton source per unit.** `PROCEDURE_SKELETON`
+   (`scaffold.py:110`, the v1 seven-section file) WINS over the type
+   declaration whenever it exists (`render_skeleton`, 767–781); the
+   process-step path scaffolds from the declaration (or its own
+   skeleton file) — `declared_parts()`'s hard-coded
+   `load_type("activity")` at `scaffold.py:679` resolves per area.
+
+Gate additions: a process-step fragment round-trips aggregate →
+reconcile → render with all six parts read (no part filed under a
+v1 alias, none dropped); a v2 `profile.yaml` naming process-step
+parts resolves instead of refusing; the brief prints
+`YOUR UNIT: process-step` and seam titles from the declaration on a
+furniture-free area; the v1 golden corpus stays byte-identical.
+
+Split out (not this build): the derived-view READERS that go quietly
+empty on process-step (aggregate ctx, kits preparer, consolidation
+digest) → M69; the M62 vocabulary-floor leftovers (floor-only
+`ID_STRICT_RE` callers, two re-typed prefix regexes) → M70.
