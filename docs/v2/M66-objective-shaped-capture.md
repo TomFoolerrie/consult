@@ -12,9 +12,14 @@ procedure, under a manifest titled "— Desktop Procedures".
 
 M41 gave the engagement an objective, and the objective's
 `deliverables:` list is validated against real definitions
-(`client_config.py:917–929`) and consumed by needs, agenda, analysis,
+(`client_config.py:917–931`) and consumed by needs, agenda, analysis,
 brief, client_config and engagement. **Neither `scaffold.py` nor
-`orchestrate.py` reads it.** Concretely:
+`orchestrate.py` reads the OBJECTIVE** — precision matters here: the
+advisor does carry a per-definition deliverable seam
+(`_area_deliverable` and the render signals, `orchestrate.py:1343`
+ff.), so it is objective-blind, not deliverable-blind, and a builder
+should look for the wiring point there rather than concluding no
+seam exists. Concretely:
 
 1. **The confirm-gate scaffold is deliverable-blind.** `do_scaffold`
    resolves the document profile (`client_config.profile`,
@@ -34,7 +39,7 @@ brief, client_config and engagement. **Neither `scaffold.py` nor
    proceeds as if the objective did not exist.
 
 Part of this is defensible: `findings-report` renders the findings
-register, the analyst mints findings from captured CALLOUTS (PAIN /
+register, the analyst mints findings from captured CALLOUTS (PP /
 GAP / CTRL / IO), and drafted fragments are the only place callouts
 live — so some capture drafting is structurally required. The defect
 is that nothing derives the capture SHAPE from what the engagement was
@@ -55,6 +60,18 @@ drop), and the manifest title stops claiming "Desktop Procedures". An
 explicit `profile.yaml` still wins — human config over derivation,
 the M13 order. Moderate build; touches scaffold + client_config +
 the skill's confirm row.
+
+**Honesty note on Option 1's ceiling (from the adversarial review):**
+callouts are HOMED to sections (`kernel/types/activity.yaml:65–68` —
+CTRL→controls, GAP→steps, PP/IO→issues), and `dropped_sections`
+removes a section outright. Holding this ticket's own invariant 1
+(the analyst's feed kinds stay capturable) therefore PINS `steps`,
+`controls` and `issues` — the derived profile can only slim `scope`,
+`quick-reference`, `before-you-start` and `outputs`. Option 1 is a
+real but MODEST reshaping (four droppable sections plus the title);
+anyone expecting capture to become findings-shaped should weigh
+Option 3 instead. Recorded so the ruling is made with the ceiling in
+view, not discovered at build time.
 
 ### Option 2 — capture stays as is, the gate says so
 
