@@ -375,10 +375,18 @@ PENDING_RE = re.compile(r"_Pending synthesis", re.I)
 # not on the letter — `### Key Controls` and a not-yet-migrated
 # `### F. Key Controls` are the same section, so the migration itself can never
 # read as profile drift.
-def _present_sections(text: str) -> set:
-    """The section slugs a fragment carries (doc_model is the one parser)."""
+def _present_sections(text: str, resolver=None) -> set:
+    """The section slugs a fragment carries.
+
+    `resolver` is the area's CAPTURE-TYPE heading parser (M66 A2/1,
+    `kernel.heading_resolver`); with none supplied the v1 parser answers, which
+    is what it always answered. On a process-step fragment the v1 parser
+    mis-files `### Inputs` and cannot see `### Transformation` / `### Issues`
+    at all — and guard 4.5 would then report them permanently missing and
+    dispatch a reprofile wave that can never terminate."""
+    resolve = resolver or doc_model.section_of_heading
     return {s for line in text.splitlines()
-            if (s := doc_model.section_of_heading(line)) is not None}
+            if (s := resolve(line)) is not None}
 
 
 class AreaState:
@@ -545,6 +553,21 @@ class AreaState:
         prof = client_config.profile(self.folder)
         return prof if prof.configured else None
 
+    def _heading_resolver(self):
+        """The heading parser for THIS area's capture type (M66 A2/1).
+
+        Degrades to the v1 parser when the kernel or client_config is not
+        importable — a v1 read of a v1 area is correct, and every stripped
+        install is v1."""
+        if client_config is None:  # pragma: no cover - ships beside us
+            return doc_model.section_of_heading
+        try:
+            import kernel
+            return kernel.heading_resolver(
+                client_config.capture_type(self.folder))
+        except Exception:      # pragma: no cover - stripped install
+            return doc_model.section_of_heading
+
     def profile_drift(self):
         """{slug: [sections]} — profile sections whose heading is missing from a
         fragment (M14 guard 4.5).
@@ -560,11 +583,12 @@ class AreaState:
         prof = self.profile()
         if prof is None:
             return {}
+        resolver = self._heading_resolver()
         out = {}
         for slug, path in self.procedures:
             if not os.path.isfile(path):
                 continue
-            present = _present_sections(_read_text(path))
+            present = _present_sections(_read_text(path), resolver)
             absent = [s for s in prof.sections if s not in present]
             if absent:
                 out[slug] = absent

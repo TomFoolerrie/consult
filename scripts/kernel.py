@@ -354,6 +354,39 @@ def _part_of_heading(line: str, tdecl: TypeDecl) -> str | None:
     return slug
 
 
+def part_of_heading(line: str, tdecl: TypeDecl) -> str | None:
+    """Public spelling of `_part_of_heading` — the tdecl-driven heading parser.
+
+    M66 A2 item 1: consumers outside this module (orchestrate's present-sections
+    scan, engagement's scope digest, aggregate's part split, render's hide and
+    letter passes) ask HERE for "which part is this heading?" on a v2 path,
+    rather than growing a third parser."""
+    return _part_of_heading(line, tdecl)
+
+
+def heading_resolver(type_name: str = "activity"):
+    """`f(line) -> part slug | None` for headings of `type_name` (M66 A2/1).
+
+    THE ONE WAY a caller gets a type-aware heading parser. For the v1
+    `activity` type it returns `doc_model.section_of_heading` itself — the
+    frozen v1 parser, whose tables are test-pinned identical to
+    activity.yaml's (M33 TestActivityParity) — so no v1 read can shift by a
+    byte on the way through this seam. Every other type resolves through its
+    DECLARATION, which is what makes `### Inputs` mean `inputs` on a
+    process-step fragment instead of v1's merged `before-you-start`.
+
+    An unloadable type falls back to the v1 parser: a visible v1 read beats a
+    crash in a stripped install, and the declaration files ship with the
+    plugin."""
+    if type_name == "activity":
+        return doc_model.section_of_heading
+    try:
+        tdecl = load_type(type_name)
+    except (TypeDeclError, OSError):      # pragma: no cover - stripped install
+        return doc_model.section_of_heading
+    return lambda line: _part_of_heading(line, tdecl)
+
+
 @dataclass
 class Entity:
     """One parsed entity: a fragment's text read through its TypeDecl.

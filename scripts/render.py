@@ -319,7 +319,7 @@ _CALLOUT_LABEL_RE = re.compile(
 )
 
 
-def _blank_sections(text: str, slugs) -> str:
+def _blank_sections(text: str, slugs, resolver=None) -> str:
     """Blank the `###` blocks of every section slug in `slugs` (M23).
 
     Keyed on the section SLUG, resolved from the heading by
@@ -333,20 +333,21 @@ def _blank_sections(text: str, slugs) -> str:
     """
     if not slugs:
         return text
+    resolve = resolver or doc_model.section_of_heading
     out: list[str] = []
     dropping = False
     for ln in text.split("\n"):
         if _META_FENCE_RE.match(ln):
             dropping = False
         else:
-            slug = doc_model.section_of_heading(ln)
+            slug = resolve(ln)
             if slug is not None:
                 dropping = slug in slugs
         out.append("" if dropping else ln)
     return "\n".join(out)
 
 
-def _letter_sections(text: str, letters) -> str:
+def _letter_sections(text: str, letters, vocab=None) -> str:
     """Stamp the display LETTER onto every section heading (M23).
 
     The identity/display split for sections: the fragment carries
@@ -369,16 +370,18 @@ def _letter_sections(text: str, letters) -> str:
     resolved it — a heading the registry does not know is local wording this
     transform has no business rewriting.
     """
+    vocab = vocab if vocab is not None else client_config.section_vocabulary()
+    resolve = vocab.heading_resolver()
     out = []
     seen: set[str] = set()
     for ln in text.split("\n"):
-        slug = doc_model.section_of_heading(ln)
+        slug = resolve(ln)
         if slug is None or slug not in letters:
             out.append(ln)
             continue
         written = doc_model.section_heading_title(ln)
-        title = (doc_model.section_title(slug)
-                 if doc_model.section_of_title(written) == slug else written)
+        title = (vocab.title(slug)
+                 if vocab.of_title(written) == slug else written)
         # M16 move 1's C+D merge, pre-content-wave: a fragment carrying BOTH
         # `### Pre-Requisites` and `### Inputs` resolves both to
         # `before-you-start`. Only the FIRST takes the registry title; a repeat
@@ -429,14 +432,21 @@ def _apply_profile(text: str, profile, extra_hidden=()) -> str:
     `sections:`, which `body_omit` does not change, so hiding one never shifts
     another's letter.
 
+    M66 (A2 item 3): every heading question — which part a `###` line is, what
+    that part's canonical title is — is asked of the profile's CAPTURE TYPE, so
+    a process-step body is lettered A–F over its own six parts and never gets
+    `### C. Before You Start` stamped over its authored `### Inputs`.
+
     M36 (WP-G1): `extra_hidden` carries the part slugs THIS BLOCK does not put
     in the body — a plan-driven render's binding `parts:` selection and its
     `Block.body_omit`. Empty on the v1 path (and on any block that binds every
     declared part), so v1 renders byte-identically.
     """
-    text = _blank_sections(text, profile.hidden_sections() | set(extra_hidden))
+    vocab = profile.vocabulary()
+    text = _blank_sections(text, profile.hidden_sections() | set(extra_hidden),
+                           vocab.heading_resolver())
     text = _blank_callouts(text, profile.dropped_callouts())
-    return _letter_sections(text, profile.letters())
+    return _letter_sections(text, profile.letters(), vocab)
 
 
 # --------------------------------------------------------------------------- #
@@ -878,7 +888,8 @@ def render_folder(folder: Path, out: Path, *,
     # against what this render actually builds from.
     manifest_registers = {c.get("derived_kind")
                           for c in manifest.get("components", [])}
-    for section, (register, what) in client_config.BODY_OMIT_REGISTERS.items():
+    for section, (register, what) in profile.vocabulary(
+            ).body_omit_registers.items():
         if section in profile.body_omit and register not in manifest_registers:
             raise SystemExit(
                 f"error: the profile's `body_omit:` hides the `{section}` "
@@ -899,11 +910,12 @@ def render_folder(folder: Path, out: Path, *,
     # is profile-shaped, not export-shaped. Driven entirely by the shared
     # registries (label -> home section -> register), so a new kind or
     # register is covered by its table rows.
+    _registers = profile.vocabulary().body_omit_registers
     homeless_prefixes = sorted(
         callouts.LABEL_TO_PREFIX[label]
         for label, home in callouts.LABEL_TO_HOME_SECTION.items()
-        if home in client_config.BODY_OMIT_REGISTERS
-        and client_config.BODY_OMIT_REGISTERS[home][0] not in manifest_registers
+        if home in _registers
+        and _registers[home][0] not in manifest_registers
         and (home in profile.dropped_sections()
              or label in profile.dropped_callouts()))
     homeless_re = (re.compile(r"\b(?:%s)-\d+\b" % "|".join(homeless_prefixes))

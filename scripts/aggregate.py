@@ -136,8 +136,14 @@ BULLET_KV_RE = re.compile(r"^\s*-\s*\*\*\s*(?P<k>[^:*]+?)\s*:\s*\*\*\s*(?P<v>.*?
 TABLE_KV_RE = re.compile(r"^\s*\|(?P<k>[^|]*)\|(?P<v>[^|]*)\|\s*$")
 
 
-def split_subsections(text: str) -> dict[str, str]:
+def split_subsections(text: str, resolver=None) -> dict[str, str]:
     """Return {section-slug: body_text} for a procedure's `###` sub-sections.
+
+    `resolver` is the area's CAPTURE-TYPE heading parser (M66 A2/1,
+    `kernel.heading_resolver`): a process-step fragment files its bodies under
+    its OWN six part slugs, so `### Inputs` is `inputs` and `### Transformation`
+    is not silently dropped. With none supplied the v1 parser answers, exactly
+    as it always did.
 
     TWO HEADINGS, ONE SLUG (M16 move 1's C+D merge, pre-content-wave): a
     fragment carrying `### Pre-Requisites` AND `### Inputs` resolves both to
@@ -153,10 +159,11 @@ def split_subsections(text: str) -> dict[str, str]:
         prior = sections.get(slug)
         sections[slug] = f"{prior}\n\n{body}".strip() if prior else body
 
+    resolve = resolver or doc_model.section_of_heading
     current: str | None = None
     buf: list[str] = []
     for line in text.splitlines():
-        slug = doc_model.section_of_heading(line)
+        slug = resolve(line)
         if slug is not None:
             if current is not None:
                 _close(current, buf)
@@ -772,6 +779,19 @@ def write_derived(path: Path, heading: str, kind: str, writer: str, body: str) -
 # Main.
 # ---------------------------------------------------------------------------
 
+def _area_heading_resolver(area: Path):
+    """The `###` heading parser for one area's capture type (M66 A2/1).
+
+    Degrades to the v1 parser on any import defect — v1 is what a stripped
+    install is."""
+    try:
+        import client_config
+        import kernel
+        return kernel.heading_resolver(client_config.capture_type(area))
+    except Exception:                # pragma: no cover - stripped install
+        return doc_model.section_of_heading
+
+
 def run(area_arg: str) -> int:
     area = Path(area_arg)
     if area.name == "manifest.json":
@@ -784,6 +804,13 @@ def run(area_arg: str) -> int:
     # area's document has. Resolved BEFORE anything is parsed or written, so a
     # plan naming a view no python writer serves refuses by name with the area
     # untouched (the fail-loud posture the rest of this module uses).
+    # M66 A2/1: the PARSER LAYER splits by capture type. Which part a `###`
+    # heading is depends on the type the area captures in, so every body split
+    # below goes through this area's resolver (the v1 parser itself for a v1
+    # area). WHICH parts the derived views then read is not this ticket's
+    # business (M69).
+    heading_resolver = _area_heading_resolver(area)
+
     plan_kinds = plan_python_kinds(area)
     if plan_kinds is not None:
         unbuildable = unbuildable_plan_views(plan_kinds)
@@ -839,7 +866,7 @@ def run(area_arg: str) -> int:
             print(f"ERROR [{slug}]: {exc}")
             return 1
 
-        sections = split_subsections(raw)
+        sections = split_subsections(raw, heading_resolver)
         quick_ref = parse_bullets(sections.get("quick-reference", ""))
 
         # Severity enum sanity → WARNING (never fail-loud; ID grammar only fails).

@@ -290,30 +290,66 @@ PROFILE_KEY = "profile"
 # visible one. The fallback is documented, not silent: M33 A3's parity tests are
 # the bond that the two agree.
 # --------------------------------------------------------------------------- #
-def _declared_part_slugs() -> list[str]:
+#: The v1 capture unit and the v2 one. M66 A1: `process-step` is THE v2
+#: capture unit — the deliverable-neutral shape every v2 document renders over
+#: — and `activity` stays the v1 compatibility type behind the compat gate.
+ACTIVITY_TYPE = "activity"
+CAPTURE_TYPE_V2 = "process-step"
+
+
+def capture_type(area) -> str:
+    """The entity type an area CAPTURES in (M66 A2) — THE one resolver.
+
+    The engagement MODE decides: a central-mode engagement
+    (`sources.central_root(area)` is not None — the M34 ledger's existence is
+    the mode marker) captures in `process-step`; a v1 per-area engagement
+    captures in `activity`. Scaffold writes the skeleton for this type, the
+    heading parsers read fragments through it, and the profile vocabulary is
+    a function of it.
+
+    There is deliberately NO `_client` override yet: A1 rules that the mode
+    decides, and one authority beats two. An explicit `capture_type:` key may
+    join this resolution later — every consumer already asks here, so it will
+    be one edit inside this function rather than a sweep.
+
+    Degrades to `activity` when `sources` cannot be imported: v1 is the
+    conservative read, and a v1 read of a v1 area is correct."""
+    try:
+        import sources
+    except Exception:                    # pragma: no cover - ships beside us
+        return ACTIVITY_TYPE
+    try:
+        return (CAPTURE_TYPE_V2 if sources.central_root(str(area)) is not None
+                else ACTIVITY_TYPE)
+    except OSError:                      # pragma: no cover - unreadable path
+        return ACTIVITY_TYPE
+
+
+def _declared_part_slugs(type_name: str = ACTIVITY_TYPE) -> list[str]:
     """Part slugs in DECLARED order (what `sections:` may name)."""
     try:
         import kernel
-        return [p.slug for p in kernel.load_type("activity").parts]
+        return [p.slug for p in kernel.load_type(type_name).parts]
     except Exception:                    # pragma: no cover - stripped install
         return list(doc_model.SECTION_SLUGS)
 
 
-def _declared_callout_labels() -> list[str]:
+def _declared_callout_labels(type_name: str = ACTIVITY_TYPE) -> list[str]:
     """Admitted callout LABELS in declared (reading) order."""
     try:
         import kernel
-        return [c.label for c in kernel.load_type("activity").callouts]
+        return [c.label for c in kernel.load_type(type_name).callouts]
     except Exception:                    # pragma: no cover - stripped install
         import callouts as _callouts
         return list(_callouts.LABEL_TO_PREFIX)
 
 
-def _declared_home(label: str, fallback: str) -> str:
+def _declared_home(label: str, fallback: str,
+                   type_name: str = ACTIVITY_TYPE) -> str:
     """The part slug a callout LABEL is homed to, per the declaration."""
     try:
         import kernel
-        for c in kernel.load_type("activity").callouts:
+        for c in kernel.load_type(type_name).callouts:
             if c.label == label:
                 return c.home
     except Exception:                    # pragma: no cover - stripped install
@@ -326,7 +362,10 @@ def _declared_home(label: str, fallback: str) -> str:
 
 
 #: M23 — sections are SLUGS here, canonical order from the type DECLARATION
-#: (M36: no longer a second spelling of the registry). The A–H letters are
+#: (M36: no longer a second spelling of the registry). M66 A2/2: these module
+#: constants stay ACTIVITY-valued (they are the v1 vocabulary, and importers
+#: outside a v2 path read them as they always did); the PER-AREA vocabulary
+#: goes through `section_vocabulary(capture_type(area))` below. The A–H letters are
 #: display, assigned at render from the order of `sections:` below; they remain
 #: accepted as INPUT aliases (see `doc_model.section_slug`) so a profile written
 #: before M23 keeps meaning the same sections through any later rename.
@@ -400,6 +439,141 @@ DEFAULT_INLINE_TAGS = [CONDITION_TAG,
 PROFILE_FIELDS = ("sections", "body_omit", "callouts", "derived", "inline_tags")
 
 
+# --------------------------------------------------------------------------- #
+# M66 A2 item 2 — the profile vocabulary is a function of the CAPTURE TYPE.
+#
+# The constants above are v1's. A v2 area captures in `process-step`, whose
+# parts are scope / inputs / transformation / outputs / controls / issues —
+# so a `profile.yaml` naming them must RESOLVE, `transformation` must not be
+# an "unknown section", and the mandate must not demand `quick-reference` or
+# `steps` of a document shape that declares neither. One dataclass answers
+# every one of those questions for one type, and `activity` answers them with
+# the frozen v1 tables so no v1 profile can shift by a byte.
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class SectionVocabulary:
+    """The section/callout vocabulary of ONE capture type.
+
+    `sections` is the declared part order (what `sections:` may name and the
+    order letters are assigned in), `mandatory` the subset no profile may drop,
+    `callouts` the admitted labels, `homes` {label: part slug} and
+    `body_omit_registers` the "hidden section with no register loses its
+    callouts" table, re-derived per type from those homes.
+    """
+
+    type_name: str
+    sections: tuple[str, ...]
+    titles: dict[str, str]
+    callouts: tuple[str, ...]
+    homes: dict[str, str]
+    mandatory: tuple[str, ...]
+    body_omit_registers: dict[str, tuple[str, str]]
+    _inputs: dict[str, str]
+
+    def slug(self, token) -> str | None:
+        """Canonicalize one profile section reference to its slug, or None.
+
+        For `activity` this IS `doc_model.section_slug` (slugs, titles, past
+        titles, past slugs and the frozen A–H letter aliases). For a born-v2
+        type there are no aliases to honour: the slug, the title, and the
+        LETTER as this type's declared position — which is what lets a v2
+        profile say `body_omit: [C]` and mean its own third part.
+        """
+        if self.type_name == ACTIVITY_TYPE:
+            return doc_model.section_slug(token)
+        if token is None:
+            return None
+        text = str(token).strip().rstrip(".")
+        if not text:
+            return None
+        if len(text) == 1 and text.upper() in self._letters():
+            return self._letters()[text.upper()]
+        return self._inputs.get(doc_model._norm_section_key(text))
+
+    def _letters(self) -> dict[str, str]:
+        """{letter: slug} — the declared position of each part."""
+        return {chr(ord("A") + i): s for i, s in enumerate(self.sections)}
+
+    def title(self, slug: str) -> str:
+        """The canonical title of one part (what render stamps)."""
+        if self.type_name == ACTIVITY_TYPE:
+            return doc_model.section_title(slug)
+        return self.titles.get(slug, slug)
+
+    def of_title(self, title) -> str | None:
+        """The slug whose TITLE this text is, or None — titles only."""
+        if self.type_name == ACTIVITY_TYPE:
+            return doc_model.section_of_title(title)
+        key = doc_model._norm_section_key(title or "")
+        slug = self._inputs.get(key)
+        return slug if slug in self.titles else None
+
+    def heading_resolver(self):
+        """`f(line) -> slug | None` for this type's `###` headings."""
+        import kernel
+        return kernel.heading_resolver(self.type_name)
+
+
+_VOCAB_CACHE: dict[str, SectionVocabulary] = {}
+
+
+def section_vocabulary(type_name: str = ACTIVITY_TYPE) -> SectionVocabulary:
+    """The profile vocabulary of one capture type (M66 A2/2). Cached per type.
+
+    MANDATORY is the one policy the declaration cannot state for itself.
+    `activity` keeps its frozen subset verbatim (scope / quick-reference /
+    steps — M16's "what makes a procedure a procedure"). Any other type
+    derives it: `scope` (nothing captured without a stated scope) plus every
+    part a callout kind is HOMED to, because dropping one of those deletes a
+    kind of evidence from the corpus — the invariant A1's gate names as "the
+    analyst's feed does not thin".
+    """
+    cached = _VOCAB_CACHE.get(type_name)
+    if cached is not None:
+        return cached
+    sections = _declared_part_slugs(type_name)
+    labels = _declared_callout_labels(type_name)
+    homes = {label: _declared_home(label, "issues", type_name)
+             for label in labels}
+    titles: dict[str, str] = {}
+    try:
+        import kernel
+        titles = {p.slug: p.title for p in kernel.load_type(type_name).parts}
+    except Exception:                    # pragma: no cover - stripped install
+        titles = {s: doc_model.section_title(s) for s in sections}
+    if type_name == ACTIVITY_TYPE:
+        mandatory = tuple(MANDATORY_SECTIONS)
+        registers = dict(BODY_OMIT_REGISTERS)
+    else:
+        homed = {h for h in homes.values() if h in sections}
+        mandatory = tuple(s for s in sections
+                          if s == "scope" or s in homed)
+        registers = {}
+        for label, register, what in (
+                ("CONTROL", CONTROLS_REGISTER, "CONTROL callouts"),
+                ("PAIN POINT", ISSUES_REGISTER,
+                 "PAIN POINT / IMPROVEMENT OPPORTUNITY callouts")):
+            home = homes.get(label)
+            if home in sections:
+                registers[home] = (register, what)
+    inputs: dict[str, str] = {}
+    for slug in sections:
+        for key in (slug, doc_model._norm_section_key(slug),
+                    doc_model._norm_section_key(titles.get(slug, slug))):
+            inputs.setdefault(key, slug)
+    vocab = SectionVocabulary(
+        type_name=type_name, sections=tuple(sections), titles=titles,
+        callouts=tuple(labels), homes=homes, mandatory=mandatory,
+        body_omit_registers=registers, _inputs=inputs)
+    _VOCAB_CACHE[type_name] = vocab
+    return vocab
+
+
+def area_vocabulary(area) -> SectionVocabulary:
+    """The section vocabulary of one AREA — its capture type's (M66 A2/2)."""
+    return section_vocabulary(capture_type(area))
+
+
 class ProfileError(ClientConfigError):
     """A malformed document profile. Fail-loud and NAMED: the profile decides
     document shape, so a typo in it must stop the run, never quietly reshape
@@ -424,11 +598,20 @@ class Profile:
     inline_tags: list[str] = field(default_factory=lambda: list(DEFAULT_INLINE_TAGS))
     configured: bool = False
     layer: str | None = None
+    #: The CAPTURE TYPE this profile shapes (M66 A2/2). `activity` is v1 and
+    #: the default, so an unprofiled or hand-built Profile behaves exactly as
+    #: it did; render asks here for the heading vocabulary to letter and hide
+    #: through, so a process-step body is never lettered off the v1 map.
+    capture_type: str = ACTIVITY_TYPE
+
+    def vocabulary(self) -> SectionVocabulary:
+        """This profile's section vocabulary — its capture type's."""
+        return section_vocabulary(self.capture_type)
 
     # ---- what the two enforcement points ask ------------------------------
     def dropped_sections(self) -> set[str]:
         """Sections that do not exist at all (scaffold omits, render strips)."""
-        return set(ALL_SECTIONS) - set(self.sections)
+        return set(self.vocabulary().sections) - set(self.sections)
 
     def hidden_sections(self) -> set[str]:
         """Sections absent from the rendered procedure BODY: the ones that do
@@ -438,7 +621,7 @@ class Profile:
         return self.dropped_sections() | set(self.body_omit)
 
     def dropped_callouts(self) -> set[str]:
-        return set(ALL_CALLOUTS) - set(self.callouts)
+        return set(self.vocabulary().callouts) - set(self.callouts)
 
     def wants(self, derived_kind: str) -> bool:
         return derived_kind in self.derived
@@ -453,7 +636,10 @@ class Profile:
         a surprised reader needs — but only when a profile is actually in play.
         """
         if not self.configured:
-            return f"{prefix}: none (full A–G, nothing omitted)"
+            if self.capture_type == ACTIVITY_TYPE:
+                return f"{prefix}: none (full A–G, nothing omitted)"
+            return (f"{prefix}: none (full {self.capture_type} shape, "
+                    f"nothing omitted)")
         line = (f"{prefix}: {self.layer_label()} — "
                 f"sections {' '.join(self.lettered_sections())}")
         if self.body_omit:
@@ -508,18 +694,21 @@ def _dedupe(items: list[str]) -> list[str]:
     return list(dict.fromkeys(items))
 
 
-def _canon_sections(items) -> list[str]:
+def _canon_sections(items, vocab: SectionVocabulary | None = None) -> list[str]:
     """Canonicalize a profile section list to slugs, order preserved (M23).
 
     An unrecognized token is passed through UNCHANGED rather than dropped, so
     the caller's own "not a section" / "absent from `sections:`" error can name
-    exactly what the human typed.
+    exactly what the human typed. `vocab` is the area's capture-type vocabulary
+    (M66 A2/2); absent, the v1 registry answers exactly as it always did.
     """
-    return _dedupe(doc_model.section_slug(s) or str(s).strip() for s in items)
+    resolve = (vocab or section_vocabulary()).slug
+    return _dedupe(resolve(s) or str(s).strip() for s in items)
 
 
 def parse_profile(raw, where: str = "_client/profile.yaml",
-                  layer: str | None = None) -> Profile:
+                  layer: str | None = None,
+                  capture_type: str = ACTIVITY_TYPE) -> Profile:
     """Validate one `profile:` mapping into a `Profile`. Fail-loud and named.
 
     Every error names the offending value and why it cannot stand, because the
@@ -540,35 +729,45 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
             f"(allowed: {', '.join(PROFILE_FIELDS)})"
         )
 
+    # M66 A2/2: every vocabulary question below is asked of the CAPTURE TYPE.
+    # For `activity` this vocabulary IS the module constants, so a v1 profile
+    # validates against the same registry, the same mandate and the same
+    # letter aliases it always did.
+    vocab = section_vocabulary(capture_type)
+    all_sections = list(vocab.sections)
+    mandatory = list(vocab.mandatory)
+    all_callouts = list(vocab.callouts)
+
     # ---- sections -------------------------------------------------------
     if "sections" in raw:
         named = _string_list(raw["sections"], "sections", where)
-        bad = [s for s in named if doc_model.section_slug(s) is None]
+        bad = [s for s in named if vocab.slug(s) is None]
         if bad:
             raise ProfileError(
                 f"{where}: `sections:` names {', '.join(bad)}, which is not a "
-                f"section — the section registry is "
-                f"{', '.join(ALL_SECTIONS)} (letters A–H are accepted as "
-                f"aliases for the sections they render as)"
+                f"section of the `{vocab.type_name}` capture type — the "
+                f"section registry is {', '.join(all_sections)} (letters are "
+                f"accepted as aliases for the sections they render as)"
             )
-        sections = _canon_sections(named)
-        missing = [s for s in MANDATORY_SECTIONS if s not in sections]
+        sections = _canon_sections(named, vocab)
+        missing = [s for s in mandatory if s not in sections]
         if missing:
             raise ProfileError(
                 f"{where}: `sections:` omits mandatory section(s) "
-                f"{', '.join(missing)} — scope, quick-reference (the At a "
-                f"Glance card) and steps (the Procedure) are what makes a "
-                f"procedure a procedure"
+                f"{', '.join(missing)} — the `{vocab.type_name}` capture type "
+                f"may never drop {', '.join(mandatory)} (scope, and every "
+                f"section a callout kind is homed to: dropping one deletes a "
+                f"kind of evidence from the corpus)"
             )
         # `sections:` IS the order letters are assigned in (M23), so the human's
         # order is kept — with a `sections:` that names today's set in today's
         # order, that is the canonical A–G.
     else:
-        sections = list(ALL_SECTIONS)
+        sections = list(all_sections)
 
     # ---- body_omit ------------------------------------------------------
     body_omit = _canon_sections(_string_list(raw.get("body_omit"),
-                                             "body_omit", where))
+                                             "body_omit", where), vocab)
     absent = [s for s in body_omit if s not in sections]
     if absent:
         raise ProfileError(
@@ -576,22 +775,22 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
             f"absent from `sections:` ({', '.join(sections)}) — omitting "
             f"something that does not exist is a profile error, not a no-op"
         )
-    body_omit = [s for s in ALL_SECTIONS if s in body_omit]
+    body_omit = [s for s in all_sections if s in body_omit]
 
     # ---- callouts -------------------------------------------------------
     if "callouts" in raw:
         callouts = _dedupe(c.upper() for c in _string_list(raw["callouts"],
                                                            "callouts", where))
-        bad = [c for c in callouts if c not in ALL_CALLOUTS]
+        bad = [c for c in callouts if c not in all_callouts]
         if bad:
             raise ProfileError(
                 f"{where}: `callouts:` names unknown callout kind(s) "
                 f"{', '.join(repr(b) for b in bad)} (known: "
-                f"{', '.join(ALL_CALLOUTS)})"
+                f"{', '.join(all_callouts)})"
             )
-        callouts = [c for c in ALL_CALLOUTS if c in callouts]
+        callouts = [c for c in all_callouts if c in callouts]
     else:
-        callouts = list(ALL_CALLOUTS)
+        callouts = list(all_callouts)
 
     # ---- derived --------------------------------------------------------
     if "derived" in raw:
@@ -616,8 +815,9 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
     # simply gone from the document. One table drives every pairing: controls
     # -> appendix-controls (opt-in, so the historical trap), issues ->
     # appendix-a (in the default set, so this only trips when a profile
-    # removed the register while still hiding the section).
-    for section, (register, what) in BODY_OMIT_REGISTERS.items():
+    # removed the register while still hiding the section). The table is the
+    # capture type's (M66 A2/2), re-derived from ITS callout homes.
+    for section, (register, what) in vocab.body_omit_registers.items():
         if section in body_omit and register not in derived:
             raise ProfileError(
                 f"{where}: `body_omit:` hides the `{section}` section from the "
@@ -633,7 +833,7 @@ def parse_profile(raw, where: str = "_client/profile.yaml",
 
     return Profile(sections=sections, body_omit=body_omit, callouts=callouts,
                    derived=derived, inline_tags=_dedupe(inline_tags),
-                   configured=True, layer=layer)
+                   configured=True, layer=layer, capture_type=capture_type)
 
 
 def profile(area) -> Profile:
@@ -643,13 +843,34 @@ def profile(area) -> Profile:
     `components/_client/profile.yaml` covers every area and an area's own
     `_client/profile.yaml` shadows it whole. No `profile:` key anywhere →
     today's shape, `configured = False`.
+
+    M66 A2/2: "today's shape" is the shape of the area's CAPTURE TYPE. A v1
+    area with no profile gets the byte-identical seven-section default it
+    always got; an unprofiled v2 area gets its six declared parts, so nothing
+    downstream (render's lettering above all) reads a process-step fragment
+    through v1's vocabulary just because nobody wrote a profile.yaml.
     """
     cfg = load(area)
+    ctype = capture_type(area)
     if PROFILE_KEY not in cfg:
-        return Profile()
+        return default_profile(ctype)
     layer = cfg.layers.get(PROFILE_KEY)
     where = f"{LAYER_LABELS[layer]} profile.yaml" if layer else "profile.yaml"
-    return parse_profile(cfg[PROFILE_KEY], where, layer)
+    return parse_profile(cfg[PROFILE_KEY], where, layer, ctype)
+
+
+def default_profile(type_name: str = ACTIVITY_TYPE) -> Profile:
+    """The unconfigured profile of one capture type (M66 A2/2).
+
+    `configured = False` — every consumer's "no profile in play" short-circuit
+    still fires — but the section and callout vocabulary is the type's, which
+    is what an unprofiled v2 area needs from every reader."""
+    if type_name == ACTIVITY_TYPE:
+        return Profile()
+    vocab = section_vocabulary(type_name)
+    return Profile(sections=list(vocab.sections),
+                   callouts=list(vocab.callouts),
+                   capture_type=type_name)
 
 
 # --------------------------------------------------------------------------- #

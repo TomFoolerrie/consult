@@ -381,6 +381,10 @@ class Ctx:
         # Sibling areas, scanned once — the xref check and the cross-area
         # ownership check both consume them (doc_model owns the one scanner).
         self.siblings = doc_model.sibling_procedures(folder)
+        # M66 A2/1: the `###` heading parser for THIS area's capture type —
+        # the v1 parser itself for a v1 area, the process-step declaration for
+        # a central-mode one. Resolved once per run.
+        self.part_of_heading = _area_heading_resolver(folder)
 
     def _entry(self, comp: dict) -> tuple[str | None, str | None, bool]:
         file = comp.get("file", "")
@@ -889,7 +893,18 @@ def check_note_detail(file: str, lines: list[str], frag: Frag) -> None:
     close()
 
 
-def check_merged_sections(file: str, text: str, frag: Frag) -> None:
+def _area_heading_resolver(area: Path):
+    """The `###` heading parser for one area's capture type (M66 A2/1).
+    Degrades to the v1 parser on any import defect."""
+    try:
+        import kernel
+        return kernel.heading_resolver(client_config.capture_type(area))
+    except Exception:                # pragma: no cover - stripped install
+        return doc_model.section_of_heading
+
+
+def check_merged_sections(file: str, text: str, frag: Frag,
+                          part_of_heading=None) -> None:
     """M16 move 1 — TWO HEADINGS, ONE SECTION: the transition state, as a WARNING.
 
     The registry merged `Pre-Requisites` + `Inputs` into `Before You Start`, so a
@@ -903,13 +918,20 @@ def check_merged_sections(file: str, text: str, frag: Frag) -> None:
     fragment, the merged section and the two headings, so it doubles as the
     content wave's work list.
     """
-    dups = doc_model.duplicate_sections(text)
+    resolve = part_of_heading or doc_model.section_of_heading
+    headings = [(slug, doc_model.section_heading_title(line) or "")
+                for line in text.split("\n")
+                if (slug := resolve(line)) is not None]
+    seen: dict[str, list[str]] = {}
+    for slug, written in headings:
+        seen.setdefault(slug, []).append(written)
+    dups = {slug: titles for slug, titles in seen.items() if len(titles) > 1}
     if not dups:
         return
-    # Heading line numbers, via the one section-heading scanner.
+    # Heading line numbers, via the same resolver.
     lines_of: dict[str, list[int]] = {}
     for n, line in enumerate(text.split("\n"), start=1):
-        s = doc_model.section_of_heading(line)
+        s = resolve(line)
         if s is not None:
             lines_of.setdefault(s, []).append(n)
     for slug, titles in dups.items():
@@ -929,7 +951,8 @@ def check_merged_sections(file: str, text: str, frag: Frag) -> None:
 
 def parse_procedure(slug: str, file: str, text: str,
                     blanked: str | None = None,
-                    label_to_prefix: dict | None = None) -> Frag:
+                    label_to_prefix: dict | None = None,
+                    part_of_heading=None) -> Frag:
     """Parse one procedure fragment's callout grammar into a Frag. `blanked`
     takes pre-computed blank_fences output (M28's cache); external callers
     (review_apply, tests) keep passing raw text alone.
@@ -997,7 +1020,7 @@ def parse_procedure(slug: str, file: str, text: str,
             frag.referenced.setdefault(_id, []).append(n)
 
     check_note_detail(file, lines, frag)
-    check_merged_sections(file, text, frag)
+    check_merged_sections(file, text, frag, part_of_heading)
 
     # per-fragment dangling: every referenced id defined in THIS procedure
     for _id, ref_lines in frag.referenced.items():
@@ -1026,7 +1049,8 @@ def check_procedure_parse(ctx: Ctx) -> None:
             ctx.errors.append(
                 f"manifest.json: procedure file {file!r} not found on disk")
             continue
-        frag = parse_procedure(slug, file, raw, blanked=ctx.blanked(comp))
+        frag = parse_procedure(slug, file, raw, blanked=ctx.blanked(comp),
+                               part_of_heading=ctx.part_of_heading)
         ctx.errors.extend(frag.errors)
         ctx.warnings.extend(frag.warnings)
         ctx.frags[slug] = frag

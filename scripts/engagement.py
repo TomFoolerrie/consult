@@ -241,15 +241,31 @@ def open_gap_register(root: Path, areas) -> tuple[int, list[str]]:
     return n, lines
 
 
+def _heading_resolver(area: Path):
+    """The `###` heading parser for one area's CAPTURE TYPE (M66 A2/1).
+
+    v1 areas resolve through the frozen v1 parser; a v2 (central-mode) area
+    resolves through `process-step`'s declaration, where `Scope` is its own
+    part and `Inputs` is not v1's merged `before-you-start`. Any import defect
+    degrades to the v1 parser."""
+    try:
+        import client_config
+        import kernel
+        return kernel.heading_resolver(client_config.capture_type(area))
+    except Exception:                # pragma: no cover - stripped install
+        return doc_model.section_of_heading
+
+
 def _scope_digest(root: Path, a: str, comp: dict) -> list[str]:
     """The fragment's Scope section body — enough for the placement pass to
     judge what an area covers without reading the fragments."""
     text = _fragment_text(root, a, comp)
+    resolve = _heading_resolver(root / a)
     out: list[str] = []
     in_scope = False
     for line in text.split("\n"):
         if line.startswith("### "):
-            in_scope = doc_model.section_of_heading(line) == "scope"
+            in_scope = resolve(line) == "scope"
             continue
         if in_scope and line.strip():
             out.append(f"      {line.strip()}")
