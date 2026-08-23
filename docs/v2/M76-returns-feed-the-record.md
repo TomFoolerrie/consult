@@ -1,6 +1,6 @@
 # M76 — Returns feed the record: agent judgment gets a home, the audit gets a contract
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0-alpha.6`, gate 50/50 — see Amendment A1).
 Origin: the full-cycle data-flow trace (2026-08-23) run after M71–M75
 were queued. Every other leak found in the trace was already ticketed;
 these two were new. Principle under both: a token spent on judgment
@@ -171,3 +171,25 @@ carries the set's close-out (README rows, CHANGELOG, version
   `test_needs_m44.py:26`, `test_trust_boundary_m58.py:18`,
   `test_hygiene_m43.py:26`).
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* `flags.py` owns its own schema entirely (imports no notes_util
+  machinery); refusals are `FlagsError` exit 2, nothing written; a
+  closed flag cannot be re-closed; per-entry `history:` list makes
+  state changes append-only.
+* CLI shape: `--area` flag on every verb (flags are area-scoped;
+  asks are engagement-scoped with positional root) — the two CLIs
+  differ deliberately.
+* Gate detail key is `open_flags`, additive beside M73's
+  `register_warnings`, absent when the area has no queue.
+* Brief section landed in `taxonomist_picture` so BOTH taxonomist
+  entrypoints print it; analysis gains `_flags_block` beside the
+  four feeds; both conditional on the queue file.
+* Skill has no literal return-handling table row — the CHECK duty
+  landed as its own prose section (send-back default, self-file
+  fallback, never pad), as Part B describes.
+* `_checkpoint_pathspecs` gains `_registers`/`_records` central-mode
+  entries; existing drop-if-absent handling covers missing dirs.
+* `flags` joined the M67 entry-point gate. Suite 1729 → 1779, zero
+  skips/xfails.

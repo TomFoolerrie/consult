@@ -36,7 +36,7 @@ IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 ENTRY_POINTS = [
     "agenda", "aggregate", "analysis", "asks", "brief", "consolidate",
     "doc_model",
-    "engagement", "gaps_ingest", "kits", "ledger", "migrate_sections",
+    "engagement", "flags", "gaps_ingest", "kits", "ledger", "migrate_sections",
     "needs", "orchestrate", "reconcile", "registers", "render",
     "review_apply", "review_extract", "scaffold", "scope_delta",
     "screens_ingest", "sources", "split_doc",

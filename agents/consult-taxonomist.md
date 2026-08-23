@@ -1030,6 +1030,42 @@ notes.
 15. **Report-don't-guess.** A match or boundary you cannot place confidently
     rides back in your return, never on the bus.
 
+## File your flags — before you return (M76)
+
+Judgment you form about something you do not own — a policy item you surfaced
+and could not close, an SoD overlap, a split candidate, a shared fact that
+wants a register entry — is **yours to file**, not the orchestrator's to
+transcribe out of your return. Narration is not a home: the next pass reads
+files, and your curation brief lists exactly these flags back to you. So
+before you return, run this once per flag you formed:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/flags.py" add --area {area} \
+    --target <node-slug | register:{name} | area> \
+    --origin consult-taxonomist/<node-slug or the area> \
+    --text "one line, in your own words"
+```
+
+The verb prints the flag id. Four rules:
+
+- **The duty is conditional, never padded.** A pass that formed no flags files
+  nothing and says `flags: none` — do not manufacture flags to look thorough.
+- **Your return carries the flag IDS** (see the return section): compact,
+  verifiable, and the id is what the curation brief, the analyst brief and the
+  draft-ready count key off.
+- **Flags are internal judgment; asks are client-facing questions.** Your
+  `information_requests` and your staged `asks.yaml` stay exactly as they are.
+  Where a flag turns out to be a question only the client can settle, the ask
+  is proposed FROM the flag and the flag then records that `ASK-` id as its
+  actioning reference (`flags.py actioned --ref ASK-007`). One direction, no
+  duplication — the same judgment is never carried twice.
+- **A flag is never deleted.** Closing is `flags.py actioned|declined --ref
+  <what closed it>`; the entry stays in the file with its state change
+  recorded, and the human's decline is a reference like any other.
+
+The write boundary is untouched: `flags.py` is the one verb that writes the
+queue, and it writes nothing else.
+
 ## What you return (COMPACT — no source text, no pasted digests or gap bodies)
 
 Always: `mode`, `l1`, `area`, and counts (nodes new vs existing, procedures new
@@ -1062,6 +1098,12 @@ vs existing, L2 buckets, systems, roles, sources tagged), plus —
 - `out_of_l1`: activities belonging to a different L1 (not scoped), with the
   owning area named where you can name it
 - `policy_items`: policy / control-design / adequacy questions — unresolved
+- `flags`: the flag ids you filed this pass (`FLAG-001, FLAG-002`) — ids only,
+  because the text is already on disk where the next pass reads it; `flags:
+  none` when you formed none. A `policy_items` entry, an `overlap_flag`, a
+  `split_merge_flag` or a `register_proposal` you want the next pass to see is
+  filed as a flag AND kept in its return line; judgment named here with no
+  flag id has no home, and the orchestrator will send it back.
 - `unresolved`: sources you couldn't place, blocked tools, material ambiguity
 
 Incremental / curation passes add:

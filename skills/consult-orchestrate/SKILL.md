@@ -431,6 +431,43 @@ not fire it as a warm follow-up round. Fold it into the next
 trigger-shaped dispatch that touches those procedures, so it rides a batch
 that was going to run anyway.
 
+## Checking returns (M76) — you CHECK, you do not transcribe
+
+Agent judgment now has a home on disk: `scripts/flags.py` writes a per-area
+flag queue (`<area>/_reference/flags.yaml`), and **the agent that formed the
+judgment runs the verb**. `consult-drafter` and `consult-taxonomist` both
+carry the duty — before returning, one `flags.py add` per flag formed — so
+their returns carry flag IDS, not narration.
+
+That makes your job at every return a CHECK, not a transcription:
+
+- A return names flag ids (or `flags: none`) → note the count in your
+  one-liner and move on. **You do not transcribe the judgment anywhere**;
+  it is already on disk, and the next curation brief, the analyst brief and
+  the draft-ready gate's `open_flags` count all read it there.
+- A return **narrates a structural judgment and names no flag id** — "this
+  node really spans two processes", "this threshold belongs in a register",
+  "nobody owns this control" — → **send it back to file it** (a warm
+  follow-up to that same agent, same invocation, is the cheap path), or, as
+  the FALLBACK when you cannot, file it yourself:
+
+  ```
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/flags.py" add --area <area> \
+      --target <node-slug | register:{name} | area> \
+      --origin <agent-kind>/<slug> --text "…"
+  ```
+
+  Filing it yourself is the fallback duty, not the default path — the agent
+  that formed the judgment is the one that should own its words.
+- **Never pad.** A pass with no flags files nothing; an empty `flags` line is
+  a correct return, not a missing one.
+- Closing a flag is a named move, never a deletion: `flags.py actioned --ref
+  <what closed it>` (a taxonomy change, a register entry, a `FIND-` id, an
+  `ASK-` id when the curator turned the flag into a client question) or
+  `flags.py declined --ref "<the human's decision>"`. Open flags are visible
+  at the draft-ready gate; accepting a draft with them open stays the human's
+  choice to make out loud.
+
 ## Merged batches (M32) — notes + new sources in one drafter pass
 
 When queued review notes and unassessed `_sources/new/` files coexist, the
@@ -896,6 +933,39 @@ The verb refuses a live collision **by name** and moves nothing when it refuses
 (a live `_client/` file is reviewed truth); it touches nothing outside `_client/`;
 and it is a graceful no-op when nothing is staged, so the go is safe to repeat.
 Reconcile a refused file by hand, never by deleting the live one.
+
+## The session record (M76) — a standing duty of every session
+
+Every orchestration session writes one **session record**, at a ruled home and
+name:
+
+```
+<engagement>/_records/<date>-session.md
+```
+
+Write it at the end of the session (or as you go, if the session is long).
+It is a standing duty, not a favour: without it, what a session actually spent
+and decided survives only in a transcript nobody can read back. Keep it SLIM —
+four sections, no prose essays:
+
+1. **Timeline** — the stages you walked, in order, one line each.
+2. **Dispatch / cost table** — one row per subagent dispatch: agent, mode or
+   kind, slug or area, tier, and the outcome in a few words.
+3. **Deviations** — anything you did that the ladder did not tell you to do,
+   and why; every human gate you stopped at and what the human answered.
+4. **End-state checks** — where the engagement stands at the close: the last
+   checkpoint commit, open flags, open asks, whether reconcile was clean.
+
+And one section that is **EXPECTED EMPTY**:
+
+5. **Findings on the output** — anything wrong with the work itself.
+
+That emptiness is the whole design. A defect you can only write down here is a
+defect you should have filed WHILE the session ran: a structural judgment is a
+flag (`flags.py add`, above), a defect in the machinery is a ticket. If you
+find yourself with something to write in section 5, stop and file it properly
+first, then note in section 5 where it went. The record's job is to verify that
+nothing leaked — it is not the last resort for the leak.
 
 ## Reporting
 

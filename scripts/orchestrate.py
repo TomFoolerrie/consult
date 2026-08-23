@@ -884,6 +884,25 @@ def _register_warnings(folder: str, manifest: dict | None) -> int | None:
         return None
 
 
+def _open_flags(folder: str) -> int | None:
+    """How many OPEN flags this area carries (M76 Part C), or None where the
+    area has no flag queue at all (the key is then omitted — a queue-less
+    area's gate is byte-identical to pre-M76).
+
+    The seam M73's `_register_warnings` documented: a standalone helper
+    feeding an ADDITIVE key in guard 8.5's details, no severity change and
+    the `answers` list untouched. ADVISOR-ONLY, never a reconcile check —
+    accepting a draft with unactioned flags stays a visible choice, and the
+    count is what makes it visible at the last free stop."""
+    try:
+        import flags as _flags
+        if not _flags.flags_path(folder).is_file():
+            return None
+        return _flags.open_count(folder)
+    except Exception:
+        return None
+
+
 def _deliverable_report(folder: str, name: str) -> dict | None:
     """What the area's deliverable would report if it were rendered NOW (M71).
 
@@ -1679,6 +1698,12 @@ def decide(folder: str) -> dict:
             ask_counts = _ask_counts(folder)
             if ask_counts is not None:
                 extra["asks"] = ask_counts
+            # M76: the open-flag count, beside the register warnings — agent
+            # judgment filed against this area that nothing has closed yet.
+            # Additive, absent without a queue, and advisory: it never blocks.
+            open_flags = _open_flags(folder)
+            if open_flags is not None:
+                extra["open_flags"] = open_flags
             # M71: the gate reads the deliverable it is gating FOR. The note
             # names the spend the gate is actually holding back (already
             # computed below as `would_spend`), and a render-bound gate carries
@@ -1986,8 +2011,13 @@ def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
     Always the area itself (`.`). In central mode the stages also mutate state
     OUTSIDE the area — the engagement ledger and its `new/`→`processed/` moves
     (`<root>/_sources/`) and the shared client layer
-    (`<root>/components/_client/`) — so a checkpoint that stopped at the area
-    left the run's most valuable state uncommitted. Still a pathspec commit:
+    (`<root>/components/_client/`) — and, since M76, the engagement's
+    JUDGMENT STATE: the registers (`<root>/_registers/` — findings.yaml,
+    asks.yaml) and the session records (`<root>/_records/`). Those two were a
+    live leak: a register written every pass and committed by no checkpoint
+    ever. Same one-list-three-calls discipline; a checkpoint that stopped at
+    the area left the run's most valuable state uncommitted. Still a pathspec
+    commit:
     unrelated repo work is never swept in.
 
     Paths are relative to `folder`, because every call runs `git -C <folder>`.
@@ -1999,6 +2029,8 @@ def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
     if not central_root:
         return specs
     for extra in (os.path.join(central_root, "_sources"),
+                  os.path.join(central_root, "_registers"),
+                  os.path.join(central_root, "_records"),
                   os.path.join(central_root, "components", "_client"),
                   os.path.join(central_root, ".gitignore")):
         if os.path.exists(extra):

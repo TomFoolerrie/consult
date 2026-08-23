@@ -644,6 +644,34 @@ def _register_block(out: list[str], root: Path) -> None:
         out.append(f"  {status}: {len(rows)}  [{ids}]")
 
 
+def _flags_block(out: list[str], area: Path) -> None:
+    """OPEN FLAGS (M76 Part C) — the area's flag queue beside the four feeds.
+
+    Candidate material with provenance: a policy observation the taxonomist
+    surfaced and could not close is exactly the raw material an assessment
+    pass exists to weigh. Like every feed here it is CANDIDATES, never
+    verdicts — and wholly conditional on the queue existing, so an area with
+    no `_reference/flags.yaml` prints a brief byte-identical to pre-M76."""
+    try:
+        import flags as flags_mod
+        if not flags_mod.flags_path(area).is_file():
+            return
+        rows = flags_mod.open_entries(area)
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        out.append(f"OPEN FLAGS: UNAVAILABLE — {type(exc).__name__}: {exc}")
+        out.append("  report this in your return; do not assess around a "
+                   "feed that refused.")
+        out.append("")
+        return
+    out.append(f"OPEN FLAGS ({len(rows)}) — judgment other passes filed and "
+               f"did not close; candidate material, with provenance:")
+    if not rows:
+        out.append("  none")
+    for entry in rows:
+        out.append(f"  - {flags_mod.line(entry)}")
+    out.append("")
+
+
 def analyst_brief(area: Path, root: Path) -> str:
     """The analyst's work order as one printable block. Read-only."""
     import brief
@@ -667,6 +695,8 @@ def analyst_brief(area: Path, root: Path) -> str:
         for item in items:
             out.append(f"  - {_entry_line(name, item)}")
         out.append("")
+
+    _flags_block(out, area)
 
     _register_block(out, root)
 

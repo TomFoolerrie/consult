@@ -458,6 +458,37 @@ def _grooming_section(out: list[str], root: Path) -> None:
     _line(out)
 
 
+def _flags_section(out: list[str], area: Path) -> None:
+    """OPEN FLAGS (M76 Part C) — the area's flag queue, open items only.
+
+    A structural flag another pass formed (a split candidate, a register
+    candidate, a policy item surfaced and not closed) is work-order material
+    for the next taxonomy pass, not transcript. Wholly CONDITIONAL: an area
+    with no `_reference/flags.yaml` prints nothing at all, so every brief in
+    a queue-less engagement is byte-identical to pre-M76. Loud, never fatal —
+    the M41 objective-section precedent."""
+    try:
+        import flags as flags_mod
+        if not flags_mod.flags_path(area).is_file():
+            return
+        rows = flags_mod.open_entries(area)
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        _line(out, f"OPEN FLAGS: UNREADABLE — {type(exc).__name__}: {exc}; "
+                   f"report it, do not reconstruct the queue yourself")
+        _line(out)
+        return
+    _line(out, "OPEN FLAGS (agent judgment filed against this area's nodes, "
+               "its registers or the area itself — each one is in your work "
+               "order; close it with `flags.py actioned|declined` naming what "
+               "closed it, or leave it open and say why):")
+    if not rows:
+        _line(out, "  none open — every filed flag has been actioned or "
+                   "declined")
+    for entry in rows:
+        _line(out, f"  - {flags_mod.line(entry)}")
+    _line(out)
+
+
 def taxonomist_picture(root, area=None) -> str:
     """The taxonomist's engagement picture (M52) — THE one assembly site.
 
@@ -494,6 +525,8 @@ def taxonomist_picture(root, area=None) -> str:
     if area is not None:
         _needs_section(out, area)
     _grooming_section(out, root)
+    if area is not None:
+        _flags_section(out, area)
     _line(out, "WRITE BOUNDARY (M45 — said once, the same for every "
                "dispatch):")
     _line(out, "  - LIVE node refinement happens IN PLACE: you edit "

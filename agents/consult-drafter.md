@@ -858,6 +858,37 @@ This is a read of YOUR fragment only — it takes a minute, and it is the
 difference between a clean export and a reviewer finding "See." in the
 middle of a step.
 
+### File your flags — before you return (M76)
+Structural judgment you formed while drafting — this node spans five performers
+and two systems and reads like a split candidate; the performer changes
+mid-sequence; this recurring fact wants a register entry — is **yours to file,
+not the orchestrator's to transcribe**. Narrating it in your return loses it:
+the transcript is not a home, and the next pass never sees it. So before you
+return, run this once per flag you formed:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/flags.py" add --area {area} \
+    --target <node-slug | register:{name} | area> \
+    --origin consult-drafter/{slug} \
+    --text "one line, in your own words"
+```
+
+The verb prints the flag id. Three rules:
+
+- **The duty is conditional, never padded.** A pass that formed no flags files
+  nothing and says `flags: none`. Do not manufacture a flag to look thorough.
+- **Your return carries the flag IDS, not the narration** (see the return
+  section) — compact and verifiable, and the id is what the next pass, the
+  curation brief and the draft-ready count all key off.
+- **A flag is judgment, not a work order for you.** You never act on your own
+  flag in the same pass, and you never delete or close one: closing names the
+  thing that closed it (`flags.py actioned|declined ... --ref`), which is a
+  later pass's or the human's move.
+
+A `register_candidates` item is exactly this shape: file it as a flag with
+`--target register:<name>` AND keep the return line, so the human's register
+conversation still has the SRC ids and the proposed entry id in front of it.
+
 ### Reconcile
 Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py" {area}` if available
 (it takes the **area folder**, not a single file) and fix any **ERRORS** attributed
@@ -898,6 +929,11 @@ A short status object/paragraph:
   `conditions_added`, `callouts_split`
 - on an M16 content-wave pass: `sections_merged` (the headings you collapsed) and
   `facts_relocated` (one line per fact that changed section)
+- `flags`: the flag ids you filed this pass (`FLAG-003, FLAG-004`) — ids only,
+  because the text is already on disk where the next pass reads it; `flags:
+  none` when you formed none. Never narrate a structural judgment here without
+  its flag id: judgment with no flag id has no home, and the orchestrator will
+  send it back.
 - `reconcile`: pass / the ERRORS you couldn't resolve
 
 Do not return the procedure prose. The orchestrator only needs the status; the
