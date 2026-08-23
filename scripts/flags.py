@@ -314,6 +314,229 @@ def declined(area, fid: str, reference: str) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# The TENURE RECORD (M77 Part A) — the taxonomist's own working record
+#
+# A flag is judgment aimed OUTWARD, at something the forming pass does not own.
+# A tenure entry is judgment aimed INWARD: the taxonomist's own reasoning about
+# its own house — a structural ruling and its rationale, a decision explicitly
+# deferred with what would settle it, a call made reluctantly and worth
+# revisiting. Before M77 that reasoning lived in the return transcript and the
+# next incremental dispatch re-derived it from scratch, possibly DIFFERENTLY,
+# because a fresh judge has no case law.
+#
+#     tenure_add(area, kind=..., text=...)     -> "TEN-001"
+#     tenure_entries(area, state=None)         -> [entry dicts]
+#     tenure_standing(area)                    -> the brief's view
+#     tenure_supersede(area, tid, reference=...) / tenure_resolve(...)
+#
+# HOSTED HERE, NOT IN A NEW MODULE (the M77 set ruling): two near-identical
+# one-writer library+CLI modules is exactly the harness sprawl this set's
+# doctrine — grow the tenancy, not the harness — warns against. Same posture
+# as the queue above: one file, one writer, append-only, fail-loud.
+#
+# THE BOUNDARY (M77 Part C): the tenure record is REASONING, not state. Its one
+# reader is the taxonomist's own brief. The advisor never reads it, no guard
+# keys off it, render never sees it. A tenure entry another agent needs is, by
+# definition, a flag — file it as one, above.
+#
+# NO COLLISION WITH THE M66 NODE GUARD: `scaffold.taxonomy_hashes` globs
+# `_taxonomy/*.md`, so this dot-named yaml inside the same folder is invisible
+# to reconcile check 15.5.
+# --------------------------------------------------------------------------- #
+
+#: The record's home, relative to the AREA folder — inside `_taxonomy/`, the
+#: house the taxonomist already owns, dot-named like the M66 guard file.
+LIVE_TAXONOMY_DIRNAME = "_taxonomy"
+TENURE_FILENAME = ".tenure.yaml"
+
+#: The entry types. A tenure entry is one of exactly three things.
+RULING, DEFERRED, DOUBT = "ruling", "deferred", "doubt"
+TENURE_TYPES = (RULING, DEFERRED, DOUBT)
+
+#: The states. An entry stands until it is closed one of two ways, and a close
+#: always carries its superseding/resolving reference.
+STANDING, SUPERSEDED, RESOLVED = "standing", "superseded", "resolved"
+TENURE_STATES = (STANDING, SUPERSEDED, RESOLVED)
+TENURE_CLOSED_STATES = (SUPERSEDED, RESOLVED)
+
+#: `TEN-nnn` — the id grammar, mirroring FLAG-nnn / ASK-nnn / FIND-nnn.
+TENURE_ID_PREFIX = "TEN"
+TENURE_ID_RE = re.compile(rf"^{TENURE_ID_PREFIX}-(\d+)$")
+
+
+def tenure_path(area) -> Path:
+    """`<area>/_taxonomy/.tenure.yaml` — the record's one location."""
+    return Path(area) / LIVE_TAXONOMY_DIRNAME / TENURE_FILENAME
+
+
+def _tenure_empty() -> dict:
+    return {"tenure": []}
+
+
+def _tenure_load(area) -> dict:
+    """The record as a mapping. A missing file is an EMPTY record, not an
+    error (an area whose taxonomist has filed nothing is normal, and every v1
+    area is exactly that); a malformed one is fail-loud."""
+    path = tenure_path(area)
+    if not path.is_file():
+        return _tenure_empty()
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise FlagsError(f"{path}: tenure record is unreadable ({exc})") from exc
+    if data is None:
+        return _tenure_empty()
+    if not isinstance(data, dict) or not isinstance(data.get("tenure"), list):
+        raise FlagsError(
+            f'{path}: tenure record must be a mapping with a "tenure" list '
+            f"(got {type(data).__name__})")
+    for entry in data["tenure"]:
+        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str):
+            raise FlagsError(f"{path}: every tenure entry must be a mapping "
+                             f"with an id (got {entry!r})")
+    return data
+
+
+def _tenure_dump(area, data: dict) -> None:
+    """THE ONLY WRITE to the tenure record in this codebase."""
+    path = tenure_path(area)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        yaml.safe_dump(data, sort_keys=False, allow_unicode=True,
+                       default_flow_style=False),
+        encoding="utf-8")
+
+
+def clean_tenure_type(kind) -> str:
+    """One of `ruling | deferred | doubt`, or a refusal naming the value."""
+    value = str(kind or "").strip().lower()
+    if value not in TENURE_TYPES:
+        raise FlagsError(
+            f"unknown tenure type {kind!r} — an entry is a "
+            f"{' | '.join(TENURE_TYPES)} (a structural decision and its "
+            f"rationale, a decision NOT taken with what would settle it, or "
+            f"a call made reluctantly); nothing written")
+    return value
+
+
+def _tenure_mint(existing: list[dict]) -> str:
+    """`TEN-nnn`, area-scoped, max existing + 1 — ids are never reused: a
+    superseded entry keeps its id forever and its successor cites it."""
+    highest = 0
+    for entry in existing:
+        m = TENURE_ID_RE.match(str(entry.get("id") or ""))
+        if m:
+            highest = max(highest, int(m.group(1)))
+    return f"{TENURE_ID_PREFIX}-{highest + 1:03d}"
+
+
+def tenure_add(area, kind: str, text: str) -> str:
+    """File one tenure entry and return its id.
+
+    THE taxonomist's own verb (the M76 Part B tenancy ruling applies verbatim:
+    the agent that formed the judgment files it, before it returns)."""
+    kind = clean_tenure_type(kind)
+    text = _text_field(text, "TEXT — one line of reasoning in your own words")
+
+    data = _tenure_load(area)
+    tid = _tenure_mint(data["tenure"])
+    data["tenure"].append({
+        "id": tid,
+        "type": kind,
+        "state": STANDING,
+        "text": text,
+        "history": [{"state": STANDING}],
+    })
+    _tenure_dump(area, data)
+    return tid
+
+
+def tenure_entries(area, state: str | None = None) -> list[dict]:
+    """The entries, in filing order; `state` filters. Read-only; copies."""
+    if state is not None and state not in TENURE_STATES:
+        raise FlagsError(f"unknown tenure state {state!r} "
+                         f"(known: {', '.join(TENURE_STATES)})")
+    out = []
+    for entry in _tenure_load(area)["tenure"]:
+        if state is not None and entry.get("state") != state:
+            continue
+        out.append(dict(entry))
+    return out
+
+
+def tenure_standing(area) -> list[dict]:
+    """The STANDING entries — the precedent the next dispatch starts from
+    (standing rulings, open deferrals, live doubts). Superseded and resolved
+    entries stay on disk and drop out of this view."""
+    return tenure_entries(area, state=STANDING)
+
+
+def _tenure_find(data: dict, tid: str) -> dict:
+    hit = next((e for e in data["tenure"] if e.get("id") == tid), None)
+    if hit is None:
+        known = ", ".join(str(e.get("id")) for e in data["tenure"]) or "none"
+        raise FlagsError(f"no tenure entry {tid!r} in this area's record "
+                         f"(known: {known})")
+    return hit
+
+
+def tenure_close(area, tid: str, state: str, reference: str) -> dict:
+    """Close an entry `superseded` or `resolved`, WITH its reference.
+
+    Nothing is deleted: precedent accumulates append-only, and a later pass
+    can always read what was decided, by whom it was overturned, and why."""
+    if state not in TENURE_CLOSED_STATES:
+        raise FlagsError(f"a tenure entry closes "
+                         f"{' or '.join(TENURE_CLOSED_STATES)}, not "
+                         f"{state!r}; nothing written")
+    ref = _text_field(reference,
+                      "a REFERENCE (the superseding TEN- id, the ASK id or "
+                      "evidence that settled it, or the taxonomy change that "
+                      "carried it out)")
+    data = _tenure_load(area)
+    hit = _tenure_find(data, tid)
+    current = hit.get("state")
+    if current != STANDING:
+        raise FlagsError(f"{tid} is already {current} (reference: "
+                         f"{hit.get('reference')!r}) — a closed tenure entry "
+                         f"is kept, never re-closed; nothing written")
+    hit["state"] = state
+    hit["reference"] = ref
+    history = hit.get("history")
+    if not isinstance(history, list):
+        history = []
+    history.append({"state": state, "reference": ref})
+    hit["history"] = history
+    _tenure_dump(area, data)
+    return dict(hit)
+
+
+def tenure_supersede(area, tid: str, reference: str) -> dict:
+    """The ruling was overturned — KNOWINGLY, by naming what replaces it."""
+    return tenure_close(area, tid, SUPERSEDED, reference)
+
+
+def tenure_resolve(area, tid: str, reference: str) -> dict:
+    """The deferral or doubt was settled — `reference` names what settled
+    it."""
+    return tenure_close(area, tid, RESOLVED, reference)
+
+
+def tenure_line(entry: dict) -> str:
+    """One compact line for a tenure entry — the same words in the brief and
+    in the CLI listing, so no two surfaces describe precedent differently."""
+    ref = entry.get("reference")
+    tail = f"  [{entry.get('state')}: {ref}]" if ref else ""
+    return (f"{entry.get('id')}  {entry.get('type')}: "
+            f"{entry.get('text')}{tail}")
+
+
+def tenure_render(area, state: str | None = None) -> list[str]:
+    """The tenure lines for one area. Read-only."""
+    return [tenure_line(e) for e in tenure_entries(area, state=state)]
+
+
+# --------------------------------------------------------------------------- #
 # The readers' render (one line per flag, shared by every surface)
 # --------------------------------------------------------------------------- #
 
@@ -373,6 +596,24 @@ def main(argv=None) -> int:
     q = _area(sub.add_parser("list", help="print the queue"))
     q.add_argument("--state", choices=list(STATES), default=None)
 
+    # M77 — the taxonomist's own working record, hosted here (not a new
+    # module): the same one-writer, append-only, fail-loud posture.
+    t = _area(sub.add_parser("tenure-add", help="file one tenure entry"))
+    t.add_argument("--type", required=True, dest="kind",
+                   help=" | ".join(TENURE_TYPES))
+    t.add_argument("--text", required=True, help="one line of reasoning")
+
+    for verb, state in (("tenure-supersede", SUPERSEDED),
+                        ("tenure-resolve", RESOLVED)):
+        t = _area(sub.add_parser(verb, help=f"close an entry {state}"))
+        t.add_argument("entry", help="the TEN id")
+        t.add_argument("--ref", required=True,
+                       help="the superseding TEN id, the ASK id or evidence "
+                            "that settled it, or the taxonomy change")
+
+    t = _area(sub.add_parser("tenure-list", help="print the tenure record"))
+    t.add_argument("--state", choices=list(TENURE_STATES), default=None)
+
     a = ap.parse_args(argv)
     area = Path(a.area)
     try:
@@ -380,6 +621,15 @@ def main(argv=None) -> int:
             print(add(area, target=a.target, origin=a.origin, text=a.text))
         elif a.cmd in CLOSED_STATES:
             print(close(area, a.flag, a.cmd, a.ref)["state"])
+        elif a.cmd == "tenure-add":
+            print(tenure_add(area, kind=a.kind, text=a.text))
+        elif a.cmd in ("tenure-supersede", "tenure-resolve"):
+            state = (SUPERSEDED if a.cmd == "tenure-supersede" else RESOLVED)
+            print(tenure_close(area, a.entry, state, a.ref)["state"])
+        elif a.cmd == "tenure-list":
+            lines = tenure_render(area, state=a.state)
+            print("\n".join(lines) if lines
+                  else "(the tenure record is empty)")
         else:
             lines = render(area, state=a.state)
             print("\n".join(lines) if lines else "(the flag queue is empty)")

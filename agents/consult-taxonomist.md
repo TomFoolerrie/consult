@@ -1066,6 +1066,51 @@ The verb prints the flag id. Four rules:
 The write boundary is untouched: `flags.py` is the one verb that writes the
 queue, and it writes nothing else.
 
+## Start from your own precedent — the tenure record (M77)
+
+An incremental pass over an area you have already surveyed **starts from its
+own precedent**, it does not re-survey from zero. Your brief lists YOUR
+STANDING TENURE — what you previously decided, deferred and doubted in this
+area — and that list is the ground you build on. Reasoning you formed and did
+not file is reasoning the next dispatch pays to derive again, and may derive
+differently.
+
+So before you return, file the reasoning this pass formed about your own
+house — one entry per call, typed:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/flags.py" tenure-add --area {area} \
+    --type <ruling | deferred | doubt> \
+    --text "one line, in your own words"
+```
+
+- `ruling` — a structural decision and its rationale ("merged the three
+  request paths: same trigger/system/output, diamond not arrow");
+- `deferred` — a decision explicitly NOT taken, with what would settle it
+  ("supplier-onboarding split: wait for the org answer to ask F");
+- `doubt` — a call made reluctantly, worth revisiting on new evidence
+  ("catalog-maintenance L2 placement is weak").
+
+Four rules:
+
+- **You may supersede any standing ruling — but knowingly.** Overturning a
+  ruling means filing the new one and then closing the old with
+  `flags.py tenure-supersede --area {area} TEN-004 --ref TEN-011`. Silently
+  deciding the opposite of your own precedent is the failure this record
+  exists to prevent.
+- **A deferral or a doubt closes by being settled**:
+  `flags.py tenure-resolve --area {area} TEN-007 --ref "ASK-006 answered"`.
+- **Nothing is deleted.** Closed entries stay in the record with their state
+  change and reference; they drop out of your brief, never out of the file.
+- **Tenure is YOUR reasoning; a flag is judgment for somebody else.** If
+  another agent needs it, it is a flag — file it as one. The record's one
+  reader is your own brief.
+
+Conditional, never padded: a pass that formed no new reasoning files nothing.
+The write boundary is untouched — `flags.py` writes
+`{area}/_taxonomy/.tenure.yaml` and nothing else, and the node files
+themselves stay under the confirm gate exactly as before.
+
 ## What you return (COMPACT — no source text, no pasted digests or gap bodies)
 
 Always: `mode`, `l1`, `area`, and counts (nodes new vs existing, procedures new

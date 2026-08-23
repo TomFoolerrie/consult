@@ -489,6 +489,39 @@ def _flags_section(out: list[str], area: Path) -> None:
     _line(out)
 
 
+def _tenure_section(out: list[str], area: Path) -> None:
+    """YOUR STANDING TENURE (M77 Part B) — the taxonomist's own precedent.
+
+    An incremental pass STARTS FROM what it previously decided, deferred and
+    doubted instead of re-surveying: standing rulings, open deferrals, live
+    doubts. Superseded and resolved entries stay on disk and are omitted here
+    — precedent, not history. Wholly CONDITIONAL: an area with no
+    `_taxonomy/.tenure.yaml` prints nothing at all, so every brief in a
+    tenure-less engagement is byte-identical to pre-M77. Loud, never fatal —
+    the M41 objective-section precedent."""
+    try:
+        import flags as flags_mod
+        if not flags_mod.tenure_path(area).is_file():
+            return
+        rows = flags_mod.tenure_standing(area)
+    except Exception as exc:                     # noqa: BLE001 - loud, not fatal
+        _line(out, f"YOUR STANDING TENURE: UNREADABLE — "
+                   f"{type(exc).__name__}: {exc}; report it, do not "
+                   f"reconstruct the record yourself")
+        _line(out)
+        return
+    _line(out, "YOUR STANDING TENURE (what you previously decided, deferred "
+               "and doubted in this area — start from it, do not re-derive "
+               "it; you may supersede any ruling, but knowingly: file the "
+               "superseding entry with `flags.py tenure-supersede`):")
+    if not rows:
+        _line(out, "  none standing — every filed entry has been superseded "
+                   "or resolved")
+    for entry in rows:
+        _line(out, f"  - {flags_mod.tenure_line(entry)}")
+    _line(out)
+
+
 def taxonomist_picture(root, area=None) -> str:
     """The taxonomist's engagement picture (M52) — THE one assembly site.
 
@@ -527,6 +560,8 @@ def taxonomist_picture(root, area=None) -> str:
     _grooming_section(out, root)
     if area is not None:
         _flags_section(out, area)
+    if area is not None:
+        _tenure_section(out, area)
     _line(out, "WRITE BOUNDARY (M45 — said once, the same for every "
                "dispatch):")
     _line(out, "  - LIVE node refinement happens IN PLACE: you edit "

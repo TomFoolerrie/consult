@@ -1,6 +1,6 @@
 # M77 — Standing tenancy: the taxonomist's judgment survives between dispatches
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0`, gate 41/41 — see Amendment A1).
 Origin: the agent-ownership design conversation (2026-08-23) after the
 second Nordhaven run. The governing observation: across both live
 runs, the agents' error count is approximately zero and every defect
@@ -117,3 +117,25 @@ without retiring one."
 - Contract text: the taxonomist's filing duty and start-from-precedent
   framing present.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* Verb landed as hyphen-prefixed flat siblings in `flags.py`
+  (`tenure-add/-supersede/-resolve/-list`) — argparse subparsers are
+  flat; the prefix keeps the two vocabularies unambiguous and the
+  flag verbs byte-unchanged. Ids are `TEN-nnn` (area-scoped, max+1,
+  never reused).
+* File shape `{tenure: [{id,type,state,text,history[,reference]}]}`;
+  history appends on close; re-close refused naming the current
+  state; malformed record is loud-never-fatal in the brief.
+* Brief section lands in `taxonomist_picture` beside M76's flags
+  section — both taxonomist entrypoints print it; heading "YOUR
+  STANDING TENURE", standing entries only.
+* Boundary pinned three ways: advisor output byte-identical with and
+  without the file (path-scrubbed comparison); grep over scripts/
+  that only brief.py/flags.py name the file; `scripts/tenure.py`
+  asserted absent.
+* Non-collision claim verified true: `taxonomy_hashes` and reconcile
+  check 15.5 are silent over the tenure file.
+* Suite 1779 -> 1820, zero skips/xfails. Set close-out (Part D) done
+  by the orchestrator in the release commit.

@@ -9,6 +9,61 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.5.0] — 2026-08-23
+
+The ask-loop release, written from the SECOND live run of the v2
+pipeline (Nordhaven, post-2.4.0 — a clean run: route before taxonomy,
+survey survived confirm, ledger balanced) and its audit, the
+full-cycle data-flow trace, and the agent-ownership design
+conversation. Seven tickets, twice-reviewed (adversarial fact-check +
+set-level composition/test-collision pass) before build. Two doctrines
+recorded as law with this release: **grow the tenancy, not the
+harness** (agents invoke the verbs themselves; briefs over guards;
+judgment persists in files the agents own), and **no new persistent
+stores without retiring one** (the set adds exactly three:
+`_registers/asks.yaml`, `_reference/flags.yaml`,
+`_taxonomy/.tenure.yaml`).
+
+- **M72 — one id width.** The drafter contract and skeleton seeds
+  teach 2-digit local callout ids; `SRC-` stays engine-minted
+  3-digit; display-transform tolerance for both widths pinned.
+- **M73 — run-2 paper cuts.** The taxonomist contract catches up to
+  M65's one-verb confirm; `checkpoint --dry-run` discloses the first
+  sweep of a session; the missing-folder error distinguishes a typo
+  from a never-scaffolded area; the check-23 register-blanks count
+  reaches the draft-ready gate.
+- **M74 — thin nodes wait for evidence.** Confirm persists the
+  taxonomist's confidence call into the manifest; the fill wave
+  partitions on it (`details.thin`, non-gate); thin-excluded
+  upstreams release their downstream chains; the M48 tier table
+  gains the thin lane.
+- **M75 — the ask loop.** `scripts/asks.py` and the curated ask
+  register: taxonomist-staged asks consumed at confirm, gap-id
+  mapping, the `asks:` binding verb, information-request led by
+  curated asks (raw feeds demoted, never dropped), the agenda reads
+  the same register, the intake matcher records which asks a routed
+  source answers, reconcile check 15.6 pins gap-in-register-exactly-
+  once, and the confirm gate offers fill-now/ask-first (the human
+  writes the hold).
+- **M71 — the tail reads the objective.** The draft-ready accept note
+  reads `would_spend` and names the render target; an unserved
+  deliverable's gate and render action carry the not-yet report; the
+  skill states the findings path runs through the human-called
+  analyst — never dispatched.
+- **M76 — returns feed the record.** `scripts/flags.py` and the
+  per-area flag queue; drafters and the taxonomist file their own
+  flags and return ids; briefs and the draft-ready gate read the open
+  queue; central checkpoints commit `_registers/` and `_records/`
+  (closing the pre-existing findings.yaml leak); the session record
+  becomes a standing duty with an expected-empty findings section.
+- **M77 — standing tenancy.** The taxonomist's rulings, deferrals and
+  doubts persist in `_taxonomy/.tenure.yaml` (verb-written, append-
+  only, `TEN-nnn`); its brief feeds its own precedent back; the
+  boundary is pinned — reasoning, not state; no guard reads it.
+
+Suite 1,588 → 1,820, zero skips/xfails, v1 compat gate byte-identical
+throughout.
+
 ## [2.4.0] — 2026-08-22
 
 The brain release, written from the first LIVE RUN of the v2 pipeline

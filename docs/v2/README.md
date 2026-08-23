@@ -1,13 +1,17 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.4.0 (2026-08-22)** — the spine (M33–M39) plus
+**Status: RELEASED AS 2.5.0 (2026-08-23)** — the spine (M33–M39) plus
 M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
 engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
 gap discriminator, structured serviceability, the merged taxonomist
 brief, engine housekeeping, table-row comment routing, the recorded
 wants) shipped as 2.3.0; the hardening line M56–M64 shipped as
 2.3.1; the brain line M65–M70 (capture is the brain, documents are
-renders — from the first live run and its audit) shipped as 2.4.0. **Authoritative suite count: 1,588 collected, all
+renders — from the first live run and its audit) shipped as 2.4.0;
+the ask-loop line M71–M77 (the tail reads the objective, one id
+width, the paper cuts, thin nodes wait, the ask register, the flag
+queue, standing tenancy — from the second live run, its audit, and
+the full-cycle data-flow trace) shipped as 2.5.0. **Authoritative suite count: 1,820 collected, all
 passing** (`python3 -m pytest --collect-only -q`; the release checklist
 owns this number) with ZERO xfails (the standing M38 table-routing
 xfail retired in M54) and ZERO skips (the M64 skip budget enforces
@@ -236,13 +240,13 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M68](M68-central-mode-finishes-the-move.md) | Central mode finishes the move: root-resolved paths, engagement-wide checkpoints, route-before-scope, honest messages (**BUILT**, 2.4.0-alpha.3, gate 13/13) |
 | [M69](M69-derived-views-read-the-type.md) | The derived views read the type: view slots from the declaration, declared-Performer preparer, honest absences (**BUILT**, 2.4.0-alpha.7, gate 14/14) |
 | [M70](M70-vocabulary-floor-leftovers.md) | Vocabulary-floor leftovers: aggregate/reconcile/render build callout grammars from declarations (**BUILT**, 2.4.0-alpha.4, gate 12/12) |
-| [M71](M71-the-tail-reads-the-objective.md) | The tail reads the objective: draft-ready/render prose becomes deliverable-aware, names the analyst path (**TICKETED**) |
-| [M72](M72-one-id-width.md) | One id width: drafter contract and skeletons teach 2-digit local callout ids; display transform tolerance pinned (**TICKETED**) |
-| [M73](M73-run-2-paper-cuts.md) | Run-2 paper cuts: taxonomist contract catches up to M65, first-checkpoint sweep disclosure, missing-folder error states both readings (**TICKETED**) |
-| [M74](M74-thin-nodes-wait-for-evidence.md) | Thin nodes wait for evidence: confirm persists the confidence call, fill partitions the wave, low-confidence drafting is a human choice on the cheap tier (**TICKETED**) |
-| [M75](M75-the-ask-loop.md) | The ask loop: curated ask register with gap-id mapping, taxonomist stages its asks, curator pass post-draft, information-request/agenda read the register, confirm gate offers ask-first rounds before fill (**TICKETED**) |
-| [M76](M76-returns-feed-the-record.md) | Returns feed the record: a flag queue for agent return judgment (own bus, not notes), agents file their own flags through the verb, briefs and gates read it, the session audit becomes a contract with an empty-by-design findings section (**TICKETED**) |
-| [M77](M77-taxonomist-standing-tenancy.md) | Standing tenancy: the taxonomist's rulings/deferrals/doubts persist in a tenure file it writes itself, its brief feeds its own precedent back; doctrine — grow the tenancy, not the harness (**TICKETED**) |
+| [M71](M71-the-tail-reads-the-objective.md) | The tail reads the objective: draft-ready/render prose becomes deliverable-aware, names the analyst path (**BUILT**, 2.5.0-alpha.5, gate 16/16) |
+| [M72](M72-one-id-width.md) | One id width: drafter contract and skeletons teach 2-digit local callout ids; display transform tolerance pinned (**BUILT**, 2.5.0-alpha.1, gate 8/8) |
+| [M73](M73-run-2-paper-cuts.md) | Run-2 paper cuts: taxonomist contract catches up to M65, checkpoint dry-run disclosure, missing-folder error states both readings, register-blanks count at draft-ready (**BUILT**, 2.5.0-alpha.2, gate 19/19) |
+| [M74](M74-thin-nodes-wait-for-evidence.md) | Thin nodes wait for evidence: confirm persists the confidence call, fill partitions the wave, low-confidence drafting is a human choice on the cheap tier (**BUILT**, 2.5.0-alpha.3, gate 21/21) |
+| [M75](M75-the-ask-loop.md) | The ask loop: curated ask register with gap-id mapping, taxonomist stages its asks, information-request/agenda read the register, confirm gate offers ask-first rounds before fill (**BUILT**, 2.5.0-alpha.4, gate 77/77) |
+| [M76](M76-returns-feed-the-record.md) | Returns feed the record: a flag queue for agent return judgment (own bus, not notes), agents file their own flags through the verb, briefs and gates read it, the session record becomes a contract (**BUILT**, 2.5.0-alpha.6, gate 50/50) |
+| [M77](M77-taxonomist-standing-tenancy.md) | Standing tenancy: the taxonomist's rulings/deferrals/doubts persist in a tenure file it writes itself, its brief feeds its own precedent back; doctrine - grow the tenancy, not the harness (**BUILT**, 2.5.0, gate 41/41) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
