@@ -1,6 +1,6 @@
 # M72 — One id width: our own contract text mints both
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0-alpha.1`, gate 8/8 — see Amendment A1).
 Origin: the second Nordhaven build run (audit 2026-08-23, finding 7.1).
 Sixteen drafters minted 2-digit local callout ids (`GAP-01`); three
 minted 3-digit (`GAP-001`, `goods-receipt` / `return-to-vendor` /
@@ -102,3 +102,17 @@ Then:
 - The declared width rule appears in the drafter contract (asserted as
   presence, not prose).
 - Full suite + compat gate untouched; v1 skeleton bytes unchanged.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* Sweep found two sites the ticket missed, same defect, inside the
+  boundary: `IO-001` at `scaffold.py:763` (same shared `issues` body
+  as the enumerated PP seeds) and the drafter contract's own "start
+  each series at 001/01" phrase — the contract taught both widths in
+  prose, not just in examples. Both swept.
+* Compat prediction held: `_FALLBACK_PART_BODIES` seeds do not reach
+  v1 golden output; direct edit, no per-type split. The v1
+  `procedure_skeleton.md` is byte-identical and its mixed widths are
+  PINNED BY TEST as the deliberate ruling, so a future tidy is a
+  conscious act.
+* Suite 1588 → 1596, zero skips/xfails.

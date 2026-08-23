@@ -752,16 +752,16 @@ TBD — Describe the step in neutral current-state procedural language.""",
     "outputs": """- **Output 1:** TBD
 - **Evidence retained:** TBD
 - **Not retained:** TBD""",
-    "controls": """> **CONTROL — CTRL-001:** TBD — what is checked / reconciled / approved.
+    "controls": """> **CONTROL — CTRL-01:** TBD — what is checked / reconciled / approved.
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** TBD
 > - **Owner:** TBD""",
-    "issues": """> **PAIN POINT — PP-001:** TBD — observed current-state friction, source-grounded.
+    "issues": """> **PAIN POINT — PP-01:** TBD — observed current-state friction, source-grounded.
 > - **Impact:** TBD
 > - **Severity:** High | Medium | Low
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** TBD — the proposed improvement.
-> - **Addresses:** PP-001""",
+> **IMPROVEMENT OPPORTUNITY — IO-01:** TBD — the proposed improvement.
+> - **Addresses:** PP-01""",
 }
 
 # End matter: belongs to no section, so it is not part of the declaration.

@@ -535,43 +535,43 @@ same invoice-capture step:
 ```
 ### Controls
 
-> **CONTROL — CTRL-001:** The AP Supervisor reconciles the daily capture log
+> **CONTROL — CTRL-01:** The AP Supervisor reconciles the daily capture log
 > against the Ephesoft submitted-batch count before the batch is released, and
 > signs the log (SRC-001, SRC-004).
 > - **Performer:** AP Supervisor
 > - **Comparison:** the daily capture log against the Ephesoft submitted-batch count
 > - **Trigger:** each daily batch, before release
 > - **Evidence:** signature on the filed capture log
-> - **Reported pain:** PP-001
+> - **Reported pain:** PP-01
 
 Invoices above the manager review threshold are reviewed by the Purchasing
 Manager before the bill is completed (SRC-002).
 
 ### Issues
 
-> **VALIDATION REQUIRED — GAP-002:** What the Purchasing Manager's invoice
+> **VALIDATION REQUIRED — GAP-02:** What the Purchasing Manager's invoice
 > review compares against, when it is performed, and where performance is
 > recorded — three fields SRC-002, the only source describing the review,
 > does not state.
 > - **Nature:** evidenced-absence
 > - **Grounds:** SRC-002 read in full; no other tagged source mentions the review
 
-> **PAIN POINT — PP-001:** "We sign the log at the end of the day whether or
+> **PAIN POINT — PP-01:** "We sign the log at the end of the day whether or
 > not anybody actually counted the batch — nobody has time before release." —
 > AP Clerk (SRC-001).
 > - **Impact:** the batch reconciliation can be signed without being performed (SRC-001)
 > - **Severity:** High
-> - **Control:** CTRL-001
+> - **Control:** CTRL-01
 ```
 
-Read it as three rulings. **CTRL-001** clears the bar: four fields, all
+Read it as three rulings. **CTRL-01** clears the bar: four fields, all
 sourced, evidence named — so it is a record, and it says nothing about whether
 the control is good. **The Purchasing Manager review does not mint**: one
 sourced sentence supports the performer and roughly the trigger, and nothing
 supports the comparison or the evidence, so it stays prose in Controls plus
-ONE GAP (GAP-002) naming exactly the missing fields **as an evidenced
+ONE GAP (GAP-02) naming exactly the missing fields **as an evidenced
 absence** — the fields, and the grounds for saying the sources do not carry
-them; no owner to chase, no blocked deliverable named. **PP-001 and CTRL-001 are
+them; no owner to chase, no blocked deliverable named. **PP-01 and CTRL-01 are
 two records of one situation**, cross-referenced by id and neither weakening
 the other: the control statement stays clean, the speaker's account stays in
 their own words, and whether the pair is a finding is the analyst's call, not
@@ -580,12 +580,14 @@ yours.
 ### Callouts — formalized, each in its home section
 Callouts are **not** a separate block; each type lives in its semantic section.
 The label line grammar is exact (delimiter may be `-`/`–`/`—`); IDs are
-**procedure-local** (start each series at 001/01 — other procedures reuse the same
-numbers, which is correct). Fixed structures:
+**procedure-local** (start each series at `-01` — other procedures reuse the same
+numbers, which is correct). **One width: local callout ids are 2-digit, `-01`
+up (`GAP-01`, `CTRL-01`); `SRC-` ids are engine-minted 3-digit (`SRC-002`) and
+are not callouts — never renumber them.** Fixed structures:
 
 **In `Key Controls`** — CONTROL callouts (replace the old table):
 ```
-> **CONTROL — CTRL-001:** <what is checked / reconciled / approved>
+> **CONTROL — CTRL-01:** <what is checked / reconciled / approved>
 > - **Type:** Preventive | Detective | Corrective
 > - **Frequency:** <e.g. each run / monthly>   (TBD + raise GAP if unknown)
 > - **Owner:** <role>                           (TBD + raise GAP if unknown)
@@ -605,11 +607,11 @@ callouts (this section IS the structured source for the register "Appendix — P
 Improvement Opportunities, which is assembled **mechanically** from these
 callouts, so fill every field):
 ```
-> **PAIN POINT — PP-001:** <observed current-state friction, source-grounded>
+> **PAIN POINT — PP-01:** <observed current-state friction, source-grounded>
 > - **Impact:** <the consequence, from the source>   (TBD if the source is silent)
 > - **Severity:** High | Medium | Low                 (your local read of how the client described it)
 
-> **IMPROVEMENT OPPORTUNITY — IO-001:** <the proposed improvement — this IS the recommendation>
+> **IMPROVEMENT OPPORTUNITY — IO-01:** <the proposed improvement — this IS the recommendation>
 > - **Addresses:** <PP-id(s) it mitigates, if any>
 ```
 Severity is a **per-item** read (how painful the client made it sound), not a
@@ -762,12 +764,12 @@ no ask.
 - **Citations are parenthetical-only — never woven into sentence meaning.**
   The final-mode render mechanically scrubs exactly two shapes: a parenthetical
   containing NOTHING but SRC/GAP ids and separators — `(SRC-002, SRC-005)`,
-  `(GAP-011)` — and a pure-citation sentence `See GAP-011.`. Write ONLY those
-  shapes. Never make an id do grammatical work: not *"see GAP-011, which is
-  unresolved"*, not *"(SRC-004; see GAP-011, which is open)"* — those survive
+  `(GAP-11)` — and a pure-citation sentence `See GAP-11.`. Write ONLY those
+  shapes. Never make an id do grammatical work: not *"see GAP-11, which is
+  unresolved"*, not *"(SRC-004; see GAP-11, which is open)"* — those survive
   into the client export as dangling references a human must hand-edit. If the
   sentence needs the fact, say it in words and cite after: *"The approver is
-  disputed and unresolved (SRC-004, GAP-011)."* The meaning survives the
+  disputed and unresolved (SRC-004, GAP-11)."* The meaning survives the
   scrub; the ids vanish cleanly.
 - **Citing a section of an EXTERNAL document** (the client's prior SOP, a policy
   PDF, an audit memo): never write the bare pattern `section 9.4`. Reconcile fails
