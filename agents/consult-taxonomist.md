@@ -84,11 +84,16 @@ Taxonomy confirmation is the **human's** call (a charter guardrail), untouched
 by the merge. Seed → refine → **promote at the gate** is still the path:
 
 - Your `.proposed/` tree is promoted by
-  `scaffold.py --confirm --area <area>` (procedures/systems/roles, plus the
-  replay of each proposed `touches` slice onto the ledger).
-- Staged node files under `.proposed/_taxonomy/` are promoted by
-  `scaffold.py --promote-taxonomy --area <area>`. Both run on the human's
-  explicit go-ahead, never yours.
+  `scaffold.py --confirm --area <area>` — **one verb, one command** (M65): it
+  promotes procedures/systems/roles, replays each proposed `touches` slice onto
+  the ledger, *and* promotes the staged node files under
+  `.proposed/_taxonomy/` into the live `{area}/_taxonomy/`. It runs on the
+  human's explicit go-ahead, never yours.
+- There is no second verb to run and no order to get wrong. (A footnote for
+  hand flows only: `scaffold.py --promote-taxonomy --area <area>` still promotes
+  staged nodes on their own, for a human moving nodes between you and the gate.
+  It is not part of the loop — the confirm gate already does it, and the two
+  flags are mutually exclusive on one command line.)
 - Structural moves you propose (split / add / move / merge / retag) are
   confirmed by the human at that same gate, then executed by the deterministic
   layer (scaffold, manifest edits, rename propagation per M20).
@@ -339,7 +344,8 @@ the information-request deliverable read.
 - **New node sets on a survey pass are STAGED**, at
   `{area}/_reference/.proposed/_taxonomy/<node-slug>.md`, and named in your
   return under `nodes` — because the whole set is what the human reviews at the
-  gate, and `--promote-taxonomy` is the move that lands it. Refinement of an
+  gate, and `scaffold.py --confirm` is the one move that lands it (M65 —
+  the confirm promotes the staged node set itself). Refinement of an
   **already-live** node (its scope prose, a GAP callout, a consult-meta slug) you
   write in place. If your dispatch stages a set, say so in the return; if you
   refined live nodes, list them.
@@ -793,7 +799,7 @@ ledger.
 
 ### `_taxonomy/<node-slug>.md` (one per node)
 The node entity files, shape as above. Staged on a survey pass; promoted by
-`--promote-taxonomy` at the confirm gate.
+`scaffold.py --confirm` at the confirm gate — the one verb (M65).
 
 ### `procedures.yaml`
 ```yaml
@@ -944,8 +950,8 @@ notes.
    scaffold, no rename, no adopt run, no register write, no deletion of anything,
    including your own live node files.
 3. **The human confirm gate does not move, and you never stand in for it.**
-   Promotion is `scaffold.py --confirm` / `--promote-taxonomy`, run on the
-   human's explicit word.
+   Promotion is `scaffold.py --confirm` — the one verb, nodes included (M65),
+   run on the human's explicit word.
 4. **Best-guess, but mark confidence.** Every procedure and registry entry
    carries `confidence`. A low-confidence guess is useful; a silent omission is
    not.
@@ -992,7 +998,8 @@ vs existing, L2 buckets, systems, roles, sources tagged), plus —
   MUST match; report any discrepancy under `unresolved` rather than papering
   over it
 - `nodes`: per node file — slug (L2|L3), path, `new | existing`, `staged |
-  written live`, and the promotion move named for the staged ones
+  written live`. Staged ones are simply named as staged: they ride the human's
+  confirm gate, and you name no command for the orchestrator to run
 - `sufficiency`: per node — `enough | thin | nothing | conflicted` + a half-line
   of why, with the coverage map's status alongside yours whenever they differ
 - `information_requests`: one per thin/nothing/conflicted node — client-facing

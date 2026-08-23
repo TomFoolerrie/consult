@@ -793,6 +793,77 @@ def _uncommitted_proposals(folder: str, proposed_dir: str) -> bool:
     return status.returncode == 0 and bool(status.stdout.strip())
 
 
+def _register_warnings(folder: str, manifest: dict | None) -> int | None:
+    """How many check-23 warnings the area carries right now (M73, run-2 7.2).
+
+    Check 23 is `reconcile.check_required_register_fields` — the register cells
+    a client deliverable must not ship blank (`reports_to`, a system's role
+    text, a PAIN POINT without `Impact:`). WARNING-only, so it never blocks —
+    which meant it surfaced only in reconcile output, after drafting had
+    already shipped. The draft-ready gate is the last free stop, so the COUNT
+    rides in its details: cheap to re-derive, additive, and no severity change.
+
+    Re-derived here rather than read from `.reconcile.json` because that file
+    records pass/fail, not warning bodies. Defensive like every other seam
+    read in this module: `None` (the key is then omitted) if reconcile is
+    unimportable or the check raises. This is the seam M76's open-flag count
+    joins — one helper per count, both keys additive in guard 8.5's details.
+    """
+    if not manifest:
+        return None
+    try:
+        import reconcile as _reconcile
+        from pathlib import Path as _Path
+        ctx = _reconcile.Ctx(_Path(folder), manifest)
+        _reconcile.check_required_register_fields(ctx)
+        return len(ctx.warnings)
+    except Exception:
+        return None
+
+
+def _committed_content(folder: str) -> bool | None:
+    """Does the committed tree carry anything under `folder`? (M73, audit 6.1)
+
+    `True` — the folder is absent from disk but HEAD has content under that
+    path: a typo, or a deletion. `False` — HEAD has never carried anything
+    there: most likely an area that was never scaffolded. `None` —
+    INCONCLUSIVE (no git, no commits yet, path outside the work tree, no git
+    binary), and guard 0 keeps today's message for it.
+
+    Strictly read-only and cheap: `rev-parse` on the nearest EXISTING ancestor
+    (the folder itself is gone, so `git -C <folder>` cannot run) plus one
+    `ls-tree` restricted to the path. Nothing is staged, written or fetched.
+    """
+    import subprocess
+    target = os.path.abspath(folder)
+    anc = os.path.dirname(target)
+    while not os.path.isdir(anc):
+        parent = os.path.dirname(anc)
+        if parent == anc:
+            return None
+        anc = parent
+    try:
+        top = subprocess.run(["git", "-C", anc, "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True)
+        if top.returncode != 0:
+            return None
+        root = top.stdout.strip()
+        if not root:
+            return None
+        rel = os.path.relpath(target, root)
+        if rel == os.pardir or rel.startswith(os.pardir + os.sep):
+            return None
+        listing = subprocess.run(
+            ["git", "-C", root, "ls-tree", "-r", "--name-only", "HEAD",
+             "--", rel],
+            capture_output=True, text=True)
+    except OSError:
+        return None
+    if listing.returncode != 0:      # unborn HEAD, or any other refusal
+        return None
+    return bool(listing.stdout.strip())
+
+
 def _git_note(folder: str) -> dict | None:
     """None when the area is inside a git work tree; otherwise the advisory
     payload every decision carries. Checked fresh each call (a `git init`
@@ -888,11 +959,32 @@ def decide(folder: str) -> dict:
     #     area that is not there (audit F3). An error, never a gate: `next`
     #     exits nonzero so the driver stops instead of resting.
     if not os.path.isdir(folder):
+        #     M73: the error states BOTH readings it can distinguish. A folder
+        #     absent from disk but PRESENT in the committed tree is a typo (or
+        #     a deletion) — today's message. A folder the committed tree has
+        #     never carried is more likely a never-scaffolded area, and saying
+        #     only "check the --area name" is the wrong explanation offered
+        #     alone (audit 6.1: it invites a silent mkdir). Both keep the
+        #     substring "does not exist"; both stay `error` and exit nonzero —
+        #     the folder is still not there and it is still the human's call.
+        seen = _committed_content(folder)
+        if seen is False:
+            return result(
+                "error",
+                "area folder does not exist: %s — no committed content under "
+                "this path — if this is a new area, create the folder and "
+                "re-run (otherwise check the --area name; a bare name "
+                "resolves under components/)" % folder,
+                missing_folder=folder,
+                committed_content=False,
+            )
+        extra = {} if seen is None else {"committed_content": True}
         return result(
             "error",
             "area folder does not exist: %s — check the --area name (a bare "
             "name resolves under components/)" % folder,
             missing_folder=folder,
+            **extra,
         )
 
     st = AreaState(folder)
@@ -1389,6 +1481,10 @@ def decide(folder: str) -> dict:
                 and dr.get("draft_basis") == draft_basis):
             slugs = ",".join(sorted(st.procedure_slugs))
             cons = _load_json(os.path.join(folder, ".consolidate.json")) or {}
+            # M73: check-23's blank register cells, counted at the last free
+            # stop. ADDITIVE — `answers` and `would_spend` are unchanged.
+            reg_warn = _register_warnings(folder, st.manifest)
+            extra = {} if reg_warn is None else {"register_warnings": reg_warn}
             return result(
                 "draft_ready",
                 "drafted and verified, and this draft has not been accepted — "
@@ -1427,6 +1523,7 @@ def decide(folder: str) -> dict:
                 ],
                 would_spend=("synthesize" if (pending or stale_kinds)
                              else "render"),
+                **extra,
             )
 
     # 9 — synthesize: judgment views stale vs the changed procedures.
@@ -1693,7 +1790,7 @@ def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
     return specs
 
 
-def checkpoint(folder: str, stage: str) -> dict:
+def checkpoint(folder: str, stage: str, dry_run: bool = False) -> dict:
     """Commit the area folder's current state as `consult(<area>): <stage>`.
 
     Deterministic and safe to over-call: a no-op (with a reason) when the area
@@ -1710,6 +1807,15 @@ def checkpoint(folder: str, stage: str) -> dict:
     engagement. That is why the central-mode pathspec reaches OUTSIDE the area
     to `<root>/_sources/` and `<root>/components/_client/` (M68) — the area
     alone is not the engagement. Keep engagement areas in a private repo.
+
+    `dry_run=True` is the DISCLOSURE seam (M73, audit 7.3): a strictly
+    read-only preview that stages nothing, seeds no `.gitignore` and commits
+    nothing — it returns the pathspecs this checkpoint would commit and the
+    porcelain lines already dirty under them. The pathspecs are engine
+    knowledge (M68 widened them past the area), so the caller cannot compute
+    this list itself; the skill runs it before the FIRST checkpoint of a
+    session and names the pre-existing dirt it is about to commit under this
+    stage's message.
     """
     import subprocess
 
@@ -1719,8 +1825,20 @@ def checkpoint(folder: str, stage: str) -> dict:
 
     probe = _git("rev-parse", "--is-inside-work-tree")
     if probe.returncode != 0 or probe.stdout.strip() != "true":
-        return {"committed": False, "stage": stage,
-                "reason": "area is not inside a git work tree"}
+        out = {"committed": False, "stage": stage,
+               "reason": "area is not inside a git work tree"}
+        if dry_run:
+            out.update(dry_run=True, pathspecs=[], dirty=[])
+        return out
+
+    if dry_run:
+        specs = _checkpoint_pathspecs(
+            folder, _central_root(folder) if _central_root else None)
+        status = _git("status", "--porcelain", "--", *specs)
+        dirty = [ln for ln in status.stdout.splitlines() if ln.strip()]
+        return {"committed": False, "stage": stage, "dry_run": True,
+                "reason": "dry run — nothing staged, nothing committed",
+                "pathspecs": specs, "dirty": dirty}
 
     gi = os.path.join(folder, ".gitignore")
     if not os.path.exists(gi):
@@ -1775,6 +1893,11 @@ def main(argv=None):
                         help="area folder path or bare area name under components/")
     p_ckpt.add_argument("--stage", required=True,
                         help="stage name just completed (goes in the commit message)")
+    p_ckpt.add_argument("--dry-run", action="store_true",
+                        help="read-only preview: print the pathspecs this "
+                             "checkpoint would commit and what is already "
+                             "dirty under them; stage and commit nothing "
+                             "(M73 first-checkpoint disclosure)")
     p_acc = sub.add_parser(
         "accept",
         help="record the user's acceptance of the rendered docx "
@@ -1808,7 +1931,7 @@ def main(argv=None):
         return 2 if decision.get("action") == "error" else 0
     if args.cmd == "checkpoint":
         folder = resolve_area(args.area)
-        outcome = checkpoint(folder, args.stage)
+        outcome = checkpoint(folder, args.stage, dry_run=args.dry_run)
         print(json.dumps(outcome, indent=2, sort_keys=False))
         return 0
     return 2

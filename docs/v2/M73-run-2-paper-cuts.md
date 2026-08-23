@@ -1,6 +1,6 @@
 # M73 — Run-2 paper cuts: stale contracts and undisclosed sweeps
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0-alpha.2`, gate 19/19 — see Amendment A1).
 Origin: the second Nordhaven build run (audit 2026-08-23, findings 6.1,
 7.3, 7.4). Three small items, none data loss, each a place where the
 run succeeded only because the orchestrator was careful — grouped
@@ -105,3 +105,25 @@ it.
 - Part B asserted where testable (engine seam if chosen; else the
   skill row's duty text asserted by presence).
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* Part B landed as an ENGINE seam after all: `checkpoint --dry-run`
+  (~12 lines, strictly read-only preview returning pathspecs + dirty
+  porcelain lines). Rationale: the pathspecs are engine knowledge
+  post-M68 — the orchestrator cannot run the right `git status`
+  without duplicating `_checkpoint_pathspecs`. The skill duty says
+  "run the dry-run, name what is pre-existing, then commit."
+* Part C: `_committed_content()` probes read-only (`rev-parse` on the
+  nearest existing ancestor + one `ls-tree`); unborn-HEAD repos are
+  INCONCLUSIVE, not fresh-area — "no committed content" in a repo
+  with no commits at all would be true and misleading. Inconclusive
+  degrades to today's typo message. `details.committed_content`
+  added (omitted when inconclusive).
+* Part D: `_register_warnings()` is a standalone helper feeding an
+  additive `extra` dict — M76's flag count slots beside it with no
+  restructuring. Note for M76: most gate fixtures now carry
+  `register_warnings: 1` (the shared `simple()` fixture has a
+  description-less system); nothing asserts details by equality.
+* Ticket precision: the four taxonomist sites were 87/90, 342, 796,
+  947; only two were true two-verb pairings — both classes fixed.
