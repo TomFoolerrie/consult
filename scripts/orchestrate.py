@@ -884,6 +884,67 @@ def _register_warnings(folder: str, manifest: dict | None) -> int | None:
         return None
 
 
+def _deliverable_report(folder: str, name: str) -> dict | None:
+    """What the area's deliverable would report if it were rendered NOW (M71).
+
+    `{"definition": <name>, "gaps": [...], "note": <one sentence>}` when the
+    target reports "not yet"; `{"definition": <name>, "gaps": []}` when it is
+    fully serviceable; `None` where the question cannot be asked at all (no
+    deliverable is declared, the definition will not resolve, the manifest is
+    unreadable).
+
+    The serviceability read is REUSED, never re-derived:
+    `definitions.serviceability_records` is the one place a gap is formatted,
+    and its `gap` sentences ARE what the flat `definitions.serviceability`
+    renders (M51 pins that parity), so this surface cannot disagree with
+    brief.py, needs.py or the renderer about what a deliverable still needs.
+
+    Only the ENGAGEMENT-side binding kinds count as "not yet" here —
+    `findings:`, `asks:`, `coverage:`, the three whose whole question is what
+    the engagement has produced. A declaration-half gap (a registry file the
+    area has not got) is a different ladder's business — guard 7's registry
+    top-up — and reporting it as the deliverable's "not yet" would make the
+    render action noisier for every v1 area without telling the human anything
+    the ladder does not already say.
+
+    Read-only and never raising into a decision — the posture every seam read
+    in this module has."""
+    if not name or name == UNSET_DEFINITION:
+        return None
+    try:
+        import definitions
+        defn = definitions.resolve_definition(folder, name)
+        records = definitions.serviceability_records(defn, folder)
+        bindings = defn.bindings or {}
+    except Exception:
+        return None
+
+    def _engagement_side(bname: str) -> bool:
+        spec = bindings.get(bname) or {}
+        return any(k in spec for k in ("findings", "asks", "coverage"))
+
+    gaps = [r["gap"] for r in records if _engagement_side(r.get("binding"))]
+    report = {"definition": name, "gaps": gaps}
+    if not gaps:
+        return report
+    unserved = {r.get("binding") for r in records}
+    findings_bound = any("findings" in (bindings.get(b) or {})
+                         for b in unserved if b in bindings)
+    note = ("render would report: not yet — %s" % "; ".join(gaps))
+    if findings_bound:
+        # A STATEMENT of the path, never a dispatch: the analyst is
+        # human-called by design (M39/M49) and no handler fires it.
+        note += (". The deliverable renders from ACCEPTED findings and none "
+                 "exist yet; the analyst is the human-called verb that "
+                 "proposes them — no handler dispatches it, so the human "
+                 "decides whether to call one before paying a render")
+    else:
+        note += (". The human decides whether to close these gaps before "
+                 "paying a render")
+    report["note"] = note
+    return report
+
+
 def _committed_content(folder: str) -> bool | None:
     """Does the committed tree carry anything under `folder`? (M73, audit 6.1)
 
@@ -1618,6 +1679,20 @@ def decide(folder: str) -> dict:
             ask_counts = _ask_counts(folder)
             if ask_counts is not None:
                 extra["asks"] = ask_counts
+            # M71: the gate reads the deliverable it is gating FOR. The note
+            # names the spend the gate is actually holding back (already
+            # computed below as `would_spend`), and a render-bound gate carries
+            # the render TARGET plus, when that target would report "not yet",
+            # the one sentence naming the path to it. Additive: `answers`,
+            # `would_spend` and the accept COMMAND are unchanged.
+            spend = "synthesize" if (pending or stale_kinds) else "render"
+            if spend == "render":
+                dname = area_definition(folder)
+                extra["definition"] = dname
+                report = _deliverable_report(folder, dname)
+                if report is not None and report["gaps"]:
+                    extra["deliverable_not_yet"] = {
+                        "gaps": report["gaps"], "note": report["note"]}
             return result(
                 "draft_ready",
                 "drafted and verified, and this draft has not been accepted — "
@@ -1652,10 +1727,9 @@ def decide(folder: str) -> dict:
                                 % folder,
                      "cost": "free",
                      "note": "records this draft_basis in .draft_ready.json and "
-                             "lets the ladder through to synthesize"},
+                             "lets the ladder through to %s" % spend},
                 ],
-                would_spend=("synthesize" if (pending or stale_kinds)
-                             else "render"),
+                would_spend=spend,
                 **extra,
             )
 
@@ -1673,9 +1747,20 @@ def decide(folder: str) -> dict:
     #      different deliverable is not this area's document, however current its
     #      basis. One deliverable exists today and a pre-M36 signal reads as it,
     #      so this is behavior-identical for every v1 area.
-    if (ren.get("basis") != basis
-            or signal_definition(ren) != area_definition(folder)):
-        return result("render", "views current and reconciled; no fresh .docx")
+    target = area_definition(folder)
+    if (ren.get("basis") != basis or signal_definition(ren) != target):
+        # M71 Part B: refuse FORWARD. A deliverable whose serviceability is
+        # "not yet" would answer the render with a report, not a document —
+        # so the report rides the action and the human decides before paying
+        # for it. Same read as guard 8.5, and additive: a serviceable target
+        # (every v1 area at this point) carries nothing new.
+        extra = {}
+        report = _deliverable_report(folder, target)
+        if report is not None and report["gaps"]:
+            extra = {"definition": target, "serviceability": "not yet",
+                     "gaps": report["gaps"], "note": report["note"]}
+        return result("render", "views current and reconciled; no fresh .docx",
+                      **extra)
 
     # 11 — review: rendered, awaiting human sign-off (resting gate)
     if ren.get("awaiting_review"):

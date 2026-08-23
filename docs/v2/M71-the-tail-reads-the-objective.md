@@ -1,6 +1,6 @@
 # M71 — The tail reads the objective: post-draft prose still speaks v1
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0-alpha.5`, gate 16/16 — see Amendment A1).
 Origin: the second Nordhaven build run (audit 2026-08-23) reaching the
 `draft_ready` gate. The gate's machinery is v2-clean — the manifest has
 no agent-derived views, so `synthesize` structurally cannot fire, and
@@ -114,3 +114,21 @@ goes.
   review, mandatory): M75 builds first — its asks serviceability
   producer must exist before Part A's read is written.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* Landed as `_deliverable_report()` reusing
+  `definitions.resolve_definition` + `serviceability_records`; guard
+  8.5 accept note reads the computed `would_spend`, adds
+  `details.definition` and `details.deliverable_not_yet` when the
+  render target is unserved; guard 10 mirrors with
+  `serviceability: "not yet"` + gaps.
+* One deliberate scope ruling: the not-yet report counts
+  ENGAGEMENT-side binding kinds only (`findings:`, `asks:`,
+  `coverage:`), not declaration-half gaps — the ticket's "v1 areas
+  are always serviceable here" is FALSE for synthetic fixtures
+  (registry-absence gaps), and registry absence is guard 7's
+  business. Unfiltered, v1 byte-identity would have broken.
+* Analyst human-trigger doctrine untouched and now pinned by a new
+  test (consult-analyst absent from orchestrate.py).
+* Suite 1713 → 1729, zero skips/xfails.
