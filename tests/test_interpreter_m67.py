@@ -34,7 +34,8 @@ IPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "ipo-engagement"
 # all of them; the list is asserted complete below, so a new entry point that
 # forgets the gate fails here rather than lying on someone's 3.9 laptop.
 ENTRY_POINTS = [
-    "agenda", "aggregate", "analysis", "brief", "consolidate", "doc_model",
+    "agenda", "aggregate", "analysis", "asks", "brief", "consolidate",
+    "doc_model",
     "engagement", "gaps_ingest", "kits", "ledger", "migrate_sections",
     "needs", "orchestrate", "reconcile", "registers", "render",
     "review_apply", "review_extract", "scaffold", "scope_delta",

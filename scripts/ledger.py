@@ -399,6 +399,36 @@ def annotate(root, src_id: str, note: str) -> str:
     return str(entry["note"])
 
 
+def record_answers(root, src_id: str, ask_ids) -> list[str]:
+    """Record which ASKS this source answers — M75's `answers:` field.
+
+    THE MATCHER'S LEDGER SEAM. `scripts/asks.py match` owns the judgment half
+    (which asks an artifact answers) and the ask register; the ledger has
+    exactly ONE writer and it is this module, so the entry-side stamp is a verb
+    here rather than a second module reaching into `sources.yaml`.
+
+    Advisory metadata, per the M75 lifecycle ruling: no gate fires on the
+    match, and the settle dispatch it drives still surfaces in the advisor
+    before any spend — a wrong match costs a wrong line, never a wrong
+    dispatch. Order-preserving and idempotent: re-recording the same ids is a
+    no-op (a re-drop must not grow the list), the `annotate` fold's rule.
+    Returns the resulting list. An unknown SRC id refuses by name.
+    """
+    data = _load_ledger(root)
+    entry = _by_id(data["sources"], src_id)
+    current = [str(a) for a in (entry.get("answers") or [])]
+    merged = list(current)
+    for aid in (ask_ids or []):
+        aid = str(aid).strip()
+        if aid and aid not in merged:
+            merged.append(aid)
+    if merged == current:
+        return current
+    entry["answers"] = merged
+    _dump_ledger(root, data)
+    return merged
+
+
 # --------------------------------------------------------------------------- #
 # Outstanding-ness — a ledger query, never a folder listing
 # --------------------------------------------------------------------------- #

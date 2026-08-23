@@ -481,6 +481,100 @@ def taxonomy_collision_error(collisions: list[str]) -> ScaffoldError:
           "file) and re-run.")
 
 
+# --------------------------------------------------------------------------- #
+# M75 — the staged ASK register
+#
+# The taxonomist's best gap work is a set of grouped, client-voiced asks. Before
+# M75 it lived in a return transcript and was thrown away. Now it is STAGED at
+# `_reference/.proposed/asks.yaml` and consumed HERE, at the gate — into the
+# ENGAGEMENT-root register (`_registers/asks.yaml`, asks.py's home), a different
+# target tree than `_reference/` promotion, which is why it needs its own step
+# rather than a new entry in REGISTRY_FILES.
+#
+# M65's discipline, verbatim: the file is READ AND VALIDATED early (with the
+# other pre-promotion checks, so a malformed staging refuses the whole confirm
+# with nothing moved) and CONSUMED LATE (past the last raise site, immediately
+# before the step-6 rmtree that would otherwise destroy it silently — the exact
+# loss shape M65 was built to close).
+# --------------------------------------------------------------------------- #
+
+PROPOSED_ASKS_FILENAME = "asks.yaml"
+
+
+def proposed_asks_path(area) -> Path:
+    """`<area>/_reference/.proposed/asks.yaml` — where the taxonomist stages
+    its curated asks."""
+    return Path(area) / "_reference" / ".proposed" / PROPOSED_ASKS_FILENAME
+
+
+def staged_asks(area) -> list[dict]:
+    """The staged ask entries, validated. `[]` when nothing is staged.
+
+    Fail-loud on a malformed file (a ScaffoldError naming `asks.yaml` and the
+    offending entry): a staged ask the gate cannot read is client-facing work
+    about to be lost, which is exactly what must stop the run rather than be
+    skipped. Shape-checked through `asks.clean_gaps` and the same required
+    fields `asks.propose` refuses without, so a staged entry and a hand-made
+    one can never disagree about what an ask is."""
+    path = proposed_asks_path(area)
+    if not path.is_file():
+        return []
+    try:
+        data = _load_yaml(path)
+    except Exception as exc:                       # pragma: no cover - IO
+        raise ScaffoldError(f"{path}: asks.yaml is unreadable ({exc})")
+    entries = data.get("asks") if isinstance(data, dict) else None
+    if entries is None:
+        return []
+    if not isinstance(entries, list):
+        raise ScaffoldError(f"{path}: asks.yaml must carry an \"asks\" list "
+                            f"(got {type(entries).__name__}); nothing promoted")
+    import asks as asks_mod
+    out = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ScaffoldError(f"{path}: every asks.yaml entry is a mapping "
+                                f"(got {entry!r}); nothing promoted")
+        try:
+            gaps = asks_mod.clean_gaps(entry.get("gaps"))
+            text = str(entry.get("text") or "").strip()
+            audience = str(entry.get("audience") or "").strip()
+            artifact = str(entry.get("artifact") or "").strip()
+        except asks_mod.AsksError as exc:
+            raise ScaffoldError(f"{path}: {exc}") from exc
+        missing = [name for name, value in (("text", text),
+                                            ("audience", audience),
+                                            ("artifact", artifact)) if not value]
+        if missing:
+            raise ScaffoldError(
+                f"{path}: staged ask missing {', '.join(missing)} "
+                f"({entry!r}); nothing promoted")
+        out.append({"text": text, "gaps": gaps, "audience": audience,
+                    "artifact": artifact})
+    return out
+
+
+def promote_asks(area, entries) -> dict:
+    """Consume the staged asks into the ENGAGEMENT ask register.
+
+    They land as `proposed` — the human gate is `asks.py accept`, and confirm
+    approves the SURVEY, not the client-facing wording. An area outside an
+    engagement tree (or an empty staging set) is a graceful no-op, so the
+    human's go is safe to repeat. Returns `{"promoted": [ASK ids]}`."""
+    if not entries:
+        return {"promoted": []}
+    import asks as asks_mod
+    import kinds
+    try:
+        root = kinds.engagement_root(Path(area))
+    except Exception:
+        return {"promoted": []}
+    promoted = [asks_mod.propose(root, text=e["text"], gaps=e["gaps"],
+                                 audience=e["audience"],
+                                 artifact=e["artifact"]) for e in entries]
+    return {"promoted": promoted}
+
+
 def promote_taxonomy(area) -> dict:
     """MOVE staged node fragments into the live `_taxonomy/` — the confirm-gate
     verb M37 A1 recorded as missing.
@@ -503,6 +597,13 @@ def promote_taxonomy(area) -> dict:
     collisions = taxonomy_collisions(area)
     if collisions:
         raise taxonomy_collision_error(collisions)
+
+    # M75: the staged asks are read and SHAPE-CHECKED here, with the other
+    # pre-promotion checks — a malformed `asks.yaml` refuses the whole confirm
+    # with `.proposed/` and the live folder untouched. The write waits for step
+    # 6 (M65's early-check/late-move discipline), so a later failure leaves the
+    # curation staged and reviewable rather than half-consumed.
+    pending_asks = staged_asks(area)
 
     live_dir.mkdir(parents=True, exist_ok=True)
     promoted = []
@@ -1504,6 +1605,13 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     if collisions:
         raise taxonomy_collision_error(collisions)
 
+    # M75: the staged asks are read and SHAPE-CHECKED here, with the other
+    # pre-promotion checks — a malformed `asks.yaml` refuses the whole confirm
+    # with `.proposed/` and the live folder untouched. The write waits for step
+    # 6 (M65's early-check/late-move discipline), so a later failure leaves the
+    # curation staged and reviewable rather than half-consumed.
+    pending_asks = staged_asks(area)
+
     # 1) Promote (MERGE) the registry, then stamp deterministic byte-work.
     promote_reference(area)
     stamp_sources(area)
@@ -1604,6 +1712,7 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
     #    point before the delete and the first point past every raise site, so
     #    the rmtree consumes only what was actually consumed.
     taxonomy_report = promote_taxonomy(area)
+    asks_report = promote_asks(area, pending_asks)
     # The record is refreshed even when nothing was promoted: the gate is the
     # only writer of `_taxonomy/`, so every confirm re-attests the survey the
     # human just approved (a live node the taxonomist refined in place between
@@ -1621,6 +1730,10 @@ def confirm(area: Path, l1_arg: str | None, taxonomy: Path,
               + ", ".join(taxonomy_report["promoted"]))
     else:
         print("  no staged taxonomy nodes")
+    if asks_report["promoted"]:
+        print(f"  promoted {len(asks_report['promoted'])} staged ask(s) to "
+              f"the engagement register: "
+              + ", ".join(asks_report["promoted"]))
     # M26: surface seam declarations + the gap forecast at the gate — the
     # human reviews the connective tissue and the client ask-list here.
     seams = [(p["slug"], u) for p in procedures

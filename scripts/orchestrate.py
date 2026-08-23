@@ -799,6 +799,63 @@ def _uncommitted_proposals(folder: str, proposed_dir: str) -> bool:
     return status.returncode == 0 and bool(status.stdout.strip())
 
 
+def _ask_register(folder: str):
+    """The engagement's ask register module + root, or `(None, None)`.
+
+    ONE conditional seam for every M75 read below, the central-mode pattern
+    verbatim: no register file, no engagement root, or an unimportable module
+    and the advisor behaves exactly as it did before M75. Nothing here writes,
+    and nothing here can raise into a decision."""
+    try:
+        import asks
+        import kinds
+        root = kinds.engagement_root(folder)
+    except Exception:
+        return None, None
+    try:
+        if not asks.asks_path(root).is_file():
+            return None, None
+    except Exception:
+        return None, None
+    return asks, root
+
+
+def _ask_counts(folder: str) -> dict | None:
+    """`{"open": n, "answered": n}` for the gates that size the ask loop
+    (M75's advisor signal), or None where there is no register. Open counts
+    the outstanding client requests; answered counts the answered-but-unsettled
+    ones — the work the engagement now owes itself (invariant 2, surfaced as a
+    gate DETAIL and never as an error)."""
+    asks, root = _ask_register(folder)
+    if asks is None:
+        return None
+    try:
+        return asks.counts(root)
+    except Exception:
+        return None
+
+
+def _asks_release(folder: str) -> set:
+    """The slugs an ANSWERED, UNSETTLED ask touches (M75 x M74's join).
+
+    The two release rules are ONE rule: M74 says a thin node drafts on new
+    evidence or the human's explicit go, and an ask flipping to answered IS
+    the arrival of new evidence, made machine-readable. So guard 4's partition
+    reads one predicate — `confidence == low AND no answered-unsettled asks
+    touching the node` — and this is its second half.
+
+    The mapping goes through the ask's own gap references (everything left of
+    the `:` qualifier IS the slug), which keeps the join at node level and
+    free: no display-id resolution, no corpus walk, no fragment read."""
+    asks, root = _ask_register(folder)
+    if asks is None:
+        return set()
+    try:
+        return asks.touched(root, status=asks.ANSWERED, unsettled=True)
+    except Exception:
+        return set()
+
+
 def _register_warnings(folder: str, manifest: dict | None) -> int | None:
     """How many check-23 warnings the area carries right now (M73, run-2 7.2).
 
@@ -1011,11 +1068,39 @@ def decide(folder: str) -> dict:
                 "(the taxonomist's staged _taxonomy/ nodes included), so "
                 "without a commit there is nothing to diff and nothing to "
                 "revert to.")
+        # M75 Part C3/D: the gate OFFERS the ask-first loop as a first-class
+        # second answer. `fill now` is today's behavior, untouched and still
+        # the default shape; `ask first` hands the human the EXACT hold edit
+        # and stops. Nothing here writes `consult.yaml` — holds are
+        # human-owned config with no programmatic writer, and that doctrine is
+        # the reason the answer carries an instruction rather than a command.
+        # The counts, where a register exists, size the choice.
+        counts = _ask_counts(folder)
+        if counts is not None:
+            pending["asks"] = counts
         return result(
             "confirm",
             "_reference/.proposed/ exists — human must review/edit, then confirm",
             gate=True,
             proposed_dir=os.path.relpath(st.proposed_dir, folder),
+            answers=[
+                {"name": "fill now",
+                 "cost": "1 drafter dispatch per unfilled procedure",
+                 "note": "confirm, then let the ladder dispatch the fill wave "
+                         "against the evidence in hand — the default shape"},
+                {"name": "ask first",
+                 "cost": "free (the information-request render is python)",
+                 "human_action": "add `fill` to `hold:` in "
+                                 "%s/_client/consult.yaml, then confirm: the "
+                                 "fill wave stops at a gate while the curated "
+                                 "asks go out, and removing the hold is your "
+                                 "\"I have what I need — draft\""
+                                 % os.path.basename(os.path.abspath(folder)),
+                 "note": "each round: render information-request -> client "
+                         "material arrives -> route -> taxonomist curation "
+                         "-> updated register -> re-render. The fill fan-out "
+                         "then runs ONCE against full evidence"},
+            ],
             **pending,
         )
 
@@ -1218,8 +1303,13 @@ def decide(folder: str) -> dict:
         # is the fail-safe direction. `fill` stays a NON-gate holdable: the
         # HOLDABLE ∩ GATE disjointness doctrine is untouched, the human's
         # brake is the M17 hold and the human's go is dispatching the list.
+        # M75 join, per the M74 reconciliation: an answered-and-unsettled ask
+        # touching a node IS new evidence for it, so the node leaves the thin
+        # partition and rides this wave. Empty set without a register, which
+        # is what keeps every pre-M75 area's partition byte-identical.
+        released = _asks_release(folder)
         thin = {s: st.confidence[s] for s in unfilled
-                if st.confidence.get(s) == "low"}
+                if st.confidence.get(s) == "low" and s not in released}
         dispatchable = [s for s in unfilled if s not in thin]
         # M74 Part D ruling: a thin-and-excluded upstream is treated as
         # ABSENT for wave release. Deferring on it would strand its whole
@@ -1522,6 +1612,12 @@ def decide(folder: str) -> dict:
             # stop. ADDITIVE — `answers` and `would_spend` are unchanged.
             reg_warn = _register_warnings(folder, st.manifest)
             extra = {} if reg_warn is None else {"register_warnings": reg_warn}
+            # M75's advisor signal: accepting this draft with open asks ships
+            # KNOWN holes, and an answered-unsettled ask is a settle dispatch
+            # nobody has run. Additive keys, absent without a register.
+            ask_counts = _ask_counts(folder)
+            if ask_counts is not None:
+                extra["asks"] = ask_counts
             return result(
                 "draft_ready",
                 "drafted and verified, and this draft has not been accepted — "

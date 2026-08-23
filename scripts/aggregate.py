@@ -710,6 +710,9 @@ PY_BUILDERS = {
     matrix_views.MATRIX_KIND: matrix_views.build_process_controls_matrix,
     # M40: the three views the information-request and findings-report
     # definitions have always named and no writer served — same mechanism.
+    # M75: the curated ask list — the information-request's LEAD view, same
+    # mechanism again (the two feeds below it are unchanged, demoted only).
+    plan_views.ASKS_KIND: plan_views.build_client_asks,
     plan_views.REQUESTS_KIND: plan_views.build_information_requests,
     plan_views.VALIDATIONS_KIND: plan_views.build_open_validations,
     plan_views.FINDINGS_KIND: plan_views.build_findings_by_theme,

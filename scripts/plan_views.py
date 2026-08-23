@@ -72,6 +72,7 @@ from pathlib import Path
 
 #: The three derived kinds / view-block ids / `PY_BUILDERS` keys. One string,
 #: three roles (D1's convention).
+ASKS_KIND = "client-asks"
 REQUESTS_KIND = "information-requests"
 VALIDATIONS_KIND = "open-validations"
 FINDINGS_KIND = "findings-by-theme"
@@ -89,6 +90,7 @@ FINDINGS_DEFINITION = "findings-report"
 BINDING_REQUESTS = "requests"        # the coverage feeder (M37)
 BINDING_STEP_GAPS = "step-gaps"      # the step-level callout feeder (M37)
 BINDING_FINDINGS = "accepted-findings"   # the register feeder (M39)
+BINDING_ASKS = "client-asks"             # the ask-register feeder (M75)
 
 #: The surveyor's alias, and what it collapses to — owned by the shared
 #: resolver home since M53 (kinds.py), re-exported here for older importers.
@@ -249,6 +251,58 @@ def _node_asks(area: Path, slug: str) -> list[str]:
         if text:
             asks.append(" ".join(text.split()))
     return asks
+
+
+def build_client_asks(ctx) -> str:
+    """`client-asks` — M75's LEAD view: the curated request list.
+
+    The one judgment layer between the registers and the render. Where
+    `build_information_requests` renders every thin node and
+    `build_open_validations` every open GAP callout, this renders the asks a
+    human ACCEPTED — client-voiced text, grouped by WHO can answer and WHAT
+    would settle it, each one closing however many gaps it closes.
+
+    Reads the register through `asks.renderable()` and nowhere else, so a
+    proposed ask cannot reach a client document by any route. NO PIPELINE
+    VOCABULARY reaches the page: the ASK ids, the gap ids and the statuses stay
+    inside the register — the client reads a request for information, not a
+    report on our machinery. An engagement with no register (or no accepted
+    asks) gets the honest sentence, never a crash: the two feeds below still
+    carry the mechanical list.
+
+    Read-only and deterministic, like every writer in this module."""
+    import asks as _asks
+
+    area = _area_of(ctx, ASKS_KIND)
+    try:
+        root = _root_of(area)
+    except Exception:
+        root = None
+    entries = [] if root is None else _asks.renderable(root)
+
+    lines = ["_The requests below are the ones we would like answered first. "
+             "Each names who we think can answer it and what would settle it "
+             "— a walkthrough, an existing procedure, a config export or a "
+             "short written answer are all equally welcome._", ""]
+    if not entries:
+        lines += ["—", "",
+                  "_No consolidated requests are outstanding; the detail "
+                  "below is the full picture as the record stands._"]
+        return "\n".join(lines)
+
+    grouped: dict[str, list[dict]] = {}
+    for entry in entries:
+        grouped.setdefault(str(entry.get("audience") or ""), []).append(entry)
+    for audience, group in grouped.items():
+        lines += [f"### {audience}" if audience else "### Anyone who can help",
+                  ""]
+        for entry in group:
+            lines.append(f"- {str(entry.get('text') or '').strip()}")
+            artifact = str(entry.get("artifact") or "").strip()
+            if artifact:
+                lines.append(f"    - _What would settle it: {artifact}._")
+        lines.append("")
+    return "\n".join(lines).rstrip()
 
 
 def build_information_requests(ctx) -> str:

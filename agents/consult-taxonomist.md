@@ -801,6 +801,48 @@ ledger.
 The node entity files, shape as above. Staged on a survey pass; promoted by
 `scaffold.py --confirm` at the confirm gate — the one verb (M65).
 
+### `asks.yaml` — THE CURATED CLIENT ASKS (M75)
+Your information requests, PERSISTED. Before M75 they lived in your return
+transcript and were thrown away; the confirm gate now consumes this file into
+the engagement register (`_registers/asks.yaml`) and the client-facing
+`information-request` document renders from it. One entry per request:
+
+```yaml
+asks:
+  - text: >-                       # the CLIENT-VOICED request, verbatim as it
+      The three-way match tolerance in force today — the dollar and percentage
+      thresholds, and who can override them.
+    audience: AP Manager           # WHO can answer it
+    artifact: a short written answer   # WHAT would settle it
+    gaps:                          # the gap ids it would settle
+      - match-po:GAP-02
+      - invoice-handling
+```
+
+- `text` is the request itself, under every rule in INFORMATION REQUESTS above
+  — client language, no pipeline vocabulary, phrased as a request. Nothing
+  downstream rewrites it.
+- `audience` and `artifact` are the two grouping fields: who can answer, and
+  what would settle it (a config pull, a walkthrough, an SOP, a written
+  answer).
+- `gaps` is the mapping that makes the loop work. A reference is a
+  procedure-qualified callout address (`<slug>:GAP-02`) or a bare node/procedure
+  slug for a whole-node ask. **One good ask closes many gaps** — grouping six
+  conflicts into one settlement ask is the best work you do here, and it is
+  rewarded: the answer routes back to every gap the ask names.
+- **Every gap id gets a route.** A gap you deliberately do NOT put to the
+  client is recorded as unasked, with the reason, through
+  `python3 <plugin>/scripts/asks.py unask <root> <gap> --reason "ours to
+  resolve, not the client's"`. A gap in neither is a reconcile ERROR once the
+  register exists — that is the loss hole this closes.
+- They land as `proposed`. The human accepts each one (`asks.py accept`) before
+  anything renders for a client; confirm approves the survey, not the wording.
+- **Ask first is a real path.** When the survey is thin, say so in your return:
+  the human may hold `fill` and run the ask loop — render the requests, let the
+  client answer, route what arrives, and dispatch you again for a curation pass
+  — before paying for the drafter fan-out. Your staged asks are what makes that
+  round cheap.
+
 ### `procedures.yaml`
 ```yaml
 procedures:

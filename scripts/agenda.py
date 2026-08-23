@@ -312,6 +312,28 @@ def _split_recorded(area: Path, recorded: list[dict]) -> tuple[list, list]:
     return settle, confirm
 
 
+def _ask_territory(area: Path) -> dict:
+    """`{ASK id: {slugs it touches}}` — M75's ask→territory join.
+
+    The mapping goes through the ask's own gap references (everything left of
+    the qualifier IS the slug), so nothing here re-derives what a gap belongs
+    to. Empty for an engagement with no register, which is what keeps a
+    register-less agenda byte-identical to its pre-M75 self."""
+    try:
+        import asks
+        import kinds
+        root = kinds.engagement_root(area)
+    except Exception:
+        return {}
+    if not asks.asks_path(root).is_file():
+        return {}
+    try:
+        return {str(e["id"]): asks.touched_slugs(e)
+                for e in asks.renderable(root)}
+    except Exception:
+        return {}
+
+
 def _for_role(area: Path, entries: list[dict], terr: dict) -> dict:
     """The needs entries this role can answer, split by feed.
 
@@ -327,9 +349,17 @@ def _for_role(area: Path, entries: list[dict], terr: dict) -> dict:
     mine_steps = set(terr["entities"])
     mine_nodes = set(terr["nodes"])
     out = {kind: [] for kind in needs.KIND_ORDER}
+    ask_terr = _ask_territory(area)
     for entry in entries:
         kind, where = entry["kind"], entry["where"]
-        if kind == needs.KIND_RECORDED and where in mine_steps:
+        if kind == needs.KIND_ASK:
+            # M75: an ask sits on the GAPS it would settle, so it is this
+            # role's when any of those gaps live on their steps or nodes —
+            # the same territory join the two feeds below use, reached
+            # through the ask's own gap references.
+            if ask_terr.get(where, set()) & (mine_steps | mine_nodes):
+                out[kind].append(entry)
+        elif kind == needs.KIND_RECORDED and where in mine_steps:
             out[kind].append(entry)
         elif kind == needs.KIND_COVERAGE and where in mine_nodes:
             out[kind].append(entry)
@@ -425,6 +455,10 @@ LEAD_MISSING = (
 LEAD_UNASKED = (
     "_Ground we have not covered with anyone yet: what the document we are "
     "producing still needs before it can be written._")
+LEAD_ASKS = (
+    "_The consolidated requests we have already put to you (or are about to). "
+    "Each one is here because it settles several of the open points below at "
+    "once — if you can answer these, most of the rest follows._")
 LEAD_OWED = (
     "_What you have already given us and we have not finished working through. "
     "Nothing here is a request — it is on us, and it is listed so you know we "
@@ -445,6 +479,16 @@ def _bullet(entry: dict, headings: dict) -> list[str]:
     where = entry["where"]
     label = headings.get(where, where)
     lines = [f"- **{label}** — {entry['need']}"]
+    for ground in entry["grounds"]:
+        lines.append(f"    - _{ground}_")
+    return lines
+
+
+def _ask_bullet(entry: dict) -> list[str]:
+    """One curated ask: the client-voiced text as the human wrote it, then the
+    mechanical grounds — never a rewrite (the register's text is the request,
+    and nothing downstream re-voices it)."""
+    lines = [f"- {entry['need']}"]
     for ground in entry["grounds"]:
         lines.append(f"    - _{ground}_")
     return lines
@@ -501,7 +545,19 @@ def render(area, role=None) -> str:
         ("What we have not asked about yet", LEAD_UNASKED,
          grouped[needs.KIND_UNSERVED]),
     ]
-    asked = 0
+    # M75: the curated asks LEAD when there are any — the one part of this
+    # agenda a human already wrote for a client. The section is omitted
+    # entirely when the register holds none (or does not exist), so an
+    # engagement that has never curated an ask renders exactly the five
+    # sections it always did, byte for byte.
+    curated = grouped[needs.KIND_ASK]
+    if curated:
+        lines += ["## What we are asking you for", "", LEAD_ASKS, ""]
+        for entry in curated:
+            lines += _ask_bullet(entry)
+        lines.append("")
+
+    asked = len(curated)
     for title, lead, items in sections:
         lines += [f"## {title}", "", lead, ""]
         if not items:

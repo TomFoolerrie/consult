@@ -1,8 +1,8 @@
 # M75 — The ask loop: a curated request register, and asking before drafting
 
-**Status: TICKETED** (design settled with the human 2026-08-23 —
-see "The lifecycle ruling" below, which governs where the Parts
-overlap it).
+**Status: BUILT** (`2.5.0-alpha.4`, gate 77/77 — see Amendment A1).
+Design settled with the human 2026-08-23 — see "The lifecycle ruling"
+below, which governs where the Parts overlap it.
 Origin: the second Nordhaven build run (audit 2026-08-23) plus the
 design conversation after it. Three observations, one missing organ:
 
@@ -324,3 +324,31 @@ the M76 close discipline, no duplication.
 - v1 areas: byte-identical advisor output; no new dispatch fires from
   any handler without the human's answer.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* `renderable()` = accepted + sent (a sent ask is still the
+  outstanding request the client answers from); answered/retired
+  never render. The DEFINITIONS binding still admits only `accepted`
+  — the human gate; the widening is the register's own.
+* `settled` is a FLAG on an answered ask, not a status — it is what
+  the M74 join and invariant 2 read.
+* Match host: `asks.py match` owns register + judgment; the ledger
+  write goes through NEW `ledger.record_answers` (idempotent).
+  Ticket error corrected: `ledger.py`, not `engagement.py`, is the
+  one ledger writer — pinned by test.
+* Needs feed BUILT (`open-ask`, leading `KIND_ORDER`, conditional on
+  the register file) — the silent unknown-verb skip is fixed.
+* Join shape: node-level through the ask's own gap references (bare
+  slug = whole node); no display-id resolution, no corpus walk.
+* Reconcile check is 15.6, beside the node guard; area-scoped gap
+  addresses (other areas' gaps are not this area's business); the
+  writer also refuses `unask` on a gap already inside an ask.
+* Agenda deviation: register-less byte-identity made the LEAD_*
+  prose load-bearing, so asks land as a new leading section emitted
+  only when curated asks exist — `test_agenda_m46` needed no
+  movement; the budgeted change was not spent.
+* Staged asks promote as `proposed` — confirm approves the survey,
+  not client-facing wording.
+* `asks` joined the M67 entry-point gate (new CLI). Suite 1636 →
+  1713, zero skips/xfails.

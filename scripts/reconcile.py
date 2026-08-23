@@ -932,6 +932,87 @@ def check_taxonomy_record(ctx: Ctx) -> None:
                 f"{rel}/{name}: changed since the last confirm — {law}")
 
 
+def check_ask_coverage(ctx: Ctx) -> None:
+    """M75 invariant 1 — every gap id appears in the ask register EXACTLY ONCE.
+
+    One route for every gap: a gap id is either inside an ask (somebody is
+    asking the client about it) or in the explicit `unasked` bucket with a
+    recorded reason ("ours to resolve, not the client's"). A gap in neither is
+    a gap nobody decided about — the silent loss this ticket exists to close —
+    and it is an ERROR naming the id. A gap in two places is the same defect
+    from the other side: "exactly once" is what makes the register a decision
+    record rather than a pile.
+
+    SCOPED, and the scope is the whole compatibility story: the check runs ONLY
+    where `_registers/asks.yaml` exists for this engagement. Every pre-M75 area
+    carries GAP callouts and no register, so an unscoped check would fail all
+    of them (and every fixture) on their first reconcile. No register = the
+    invariant is not in force, the same conditional shape as every central-mode
+    seam.
+
+    Area-scoped, like every check here: only the gap addresses THIS area's
+    corpus carries are required to be covered. The register is
+    engagement-wide, so a reference to another area's gap is simply not this
+    area's business — never an error.
+
+    Ids only (ruling (a)): node prose stays capture, and prose without an id
+    is commentary, not a gap."""
+    try:
+        import asks
+        import findings
+        import kinds
+        root = kinds.engagement_root(ctx.folder)
+    except Exception:
+        return
+    try:
+        if not asks.asks_path(root).is_file():
+            return
+        register = asks._load(root)
+    except Exception as exc:
+        ctx.errors.append(f"{asks.REGISTERS_DIRNAME}/{asks.ASKS_FILENAME}: "
+                          f"asks register is unreadable ({exc})")
+        return
+
+    # This area's gap ADDRESSES, in findings.py's grounding currency
+    # (`<slug>:<LOCAL id>`) — the same walk a finding's grounds resolve
+    # against, so an ask and a finding can never disagree about what a gap id
+    # is. The gap kind is resolved, never typed (kinds.gap_prefix).
+    try:
+        callouts, _slugs = findings._area_corpus_ids(Path(ctx.folder))
+        tdecl, _steps = kinds.area_steps(Path(ctx.folder))
+        prefix = kinds.gap_prefix(tdecl, Path(ctx.folder))
+    except Exception:
+        return
+    mine = sorted(addr for addr in callouts
+                  if addr.split(findings.GROUND_QUALIFIER, 1)[-1]
+                  .startswith(prefix))
+    if not mine:
+        return
+
+    where: dict[str, list[str]] = {}
+    for entry in register.get("asks") or []:
+        for gap in (entry.get("gaps") or []):
+            where.setdefault(str(gap), []).append(str(entry.get("id")))
+    for entry in register.get("unasked") or []:
+        if isinstance(entry, dict) and entry.get("gap"):
+            where.setdefault(str(entry["gap"]), []).append("the unasked bucket")
+
+    rel = f"{asks.REGISTERS_DIRNAME}/{asks.ASKS_FILENAME}"
+    for addr in mine:
+        homes = where.get(addr) or []
+        if not homes:
+            ctx.errors.append(
+                f"{rel}: gap {addr} is in no ask and not in the unasked "
+                f"bucket — every gap id appears in the asks register exactly "
+                f"once (ask about it, or record why it is ours to resolve "
+                f"with `asks.py unask`)")
+        elif len(homes) > 1:
+            ctx.errors.append(
+                f"{rel}: gap {addr} appears twice in the asks register "
+                f"({', '.join(homes)}) — a gap id appears exactly once, so "
+                f"an answer routes back to one place")
+
+
 def _area_heading_resolver(area: Path):
     """The `###` heading parser for one area's capture type (M66 A2/1).
     Degrades to the v1 parser on any import defect."""
@@ -1643,6 +1724,9 @@ CHECKS: list = [
     #                                  context entries never cited by name
     check_taxonomy_record,        # 15.5 M66 — `_taxonomy/` changed outside
     #                                  the confirm gate
+    check_ask_coverage,           # 15.6 M75 — every gap id in the ask
+    #                                  register exactly once (SCOPED: only
+    #                                  where _registers/asks.yaml exists)
     # advisory-only from here down (exit stays 0)
     check_hedge_prose,            # 16 hedges in body prose
     check_british_spellings,      # 17 British spellings

@@ -134,12 +134,23 @@ NEEDS_KIND = "engagement-needs"
 KIND_UNSERVED = "binding-unserved"
 KIND_COVERAGE = "coverage"
 KIND_RECORDED = "recorded-gap"
-KIND_ORDER = (KIND_UNSERVED, KIND_COVERAGE, KIND_RECORDED)
+#: M75's fourth feed: the CURATED asks — the outstanding client requests the
+#: engagement has accepted. It leads the render because it is the only feed a
+#: human has already curated: the three below it are mechanical populations,
+#: this one is the question actually being asked. CONDITIONAL on the engagement
+#: having an ask register at all — no register, no entries, and every pre-M75
+#: area's needs view is byte-identical to what it was.
+KIND_ASK = "open-ask"
+KIND_ORDER = (KIND_ASK, KIND_UNSERVED, KIND_COVERAGE, KIND_RECORDED)
 
 #: The binding key that marks a coverage selection. Not a status word — the KEY
 #: definitions.py's stage-2 admits for the derived coverage selection, the same
 #: key `definitions.serviceability` switches on.
 COVERAGE_KEY = "coverage"
+
+#: The binding key that marks an ask-register selection (M75) — the same
+#: relationship to `_asks` that COVERAGE_KEY has to `_coverage`.
+ASKS_KEY = "asks"
 
 #: An SRC id as it appears in a callout body (coverage_map's grammar, mirrored
 #: as plan_views mirrors it — grounds cite sources, they do not join on them).
@@ -214,6 +225,72 @@ def _unserved(defn, area: Path) -> list[dict]:
 # --------------------------------------------------------------------------- #
 # Feed 2 — coverage (only where a coverage binding asks for it)
 # --------------------------------------------------------------------------- #
+
+def _asks_bindings(defn) -> list[tuple[str, dict]]:
+    """The definition's ask-register selections, declaration order.
+
+    `_coverage_bindings`' twin, and the reason it exists: that function
+    switches on ONE key and every other binding verb falls through it
+    SILENTLY, so a new verb produces no needs feed until this module learns
+    it. M75's `asks:` is learned here — the register would otherwise be
+    invisible to the needs view, the agenda and every consumer downstream of
+    them."""
+    return [(bname, spec) for bname, spec in (defn.bindings or {}).items()
+            if ASKS_KEY in spec]
+
+
+def _asks(defn, area: Path) -> list[dict]:
+    """One entry per RENDERABLE ask (M75) — the curated client request.
+
+    Reached through `asks.renderable()`, the same seam the rendered document
+    binds, so the needs view and the request list can never disagree about
+    which asks are live. `where` is the ASK id (the address a need has),
+    `need` is the client-voiced text verbatim — this module never rewrites an
+    ask, exactly as it never rewrites a callout — and the grounds carry the
+    binding, the audience/artifact grouping and the gap ids the ask would
+    settle, which is the mechanical basis for it being on the page.
+
+    Empty (never an error) for a deliverable that binds no asks, an area
+    outside an engagement tree, or an engagement with no register: this feed
+    is conditional on the register existing, which is what keeps every
+    pre-M75 render byte-identical."""
+    specs = _asks_bindings(defn)
+    if not specs:
+        return []
+    import asks as _asks_mod
+    import kinds
+    try:
+        root = kinds.engagement_root(area)
+    except ValueError:
+        return []
+    if not _asks_mod.asks_path(root).is_file():
+        return []
+    try:
+        entries = _asks_mod.renderable(root)
+    except Exception:
+        # An unreadable register is reconcile's business to name, not a
+        # reason for the needs view to refuse to render.
+        return []
+
+    out: list[dict] = []
+    for bname, _spec in specs:
+        for entry in entries:
+            gaps = [str(g) for g in (entry.get("gaps") or [])]
+            grounds = [f'binding "{bname}" of deliverable "{defn.name}" '
+                       f"selects accepted asks",
+                       f"{entry.get('id')}: {entry.get('audience')} — "
+                       f"{entry.get('artifact')}"]
+            if gaps:
+                grounds.append("would settle: " + ", ".join(gaps))
+            out.append({
+                "deliverable": defn.name,
+                "kind": KIND_ASK,
+                "need": str(entry.get("text") or "").strip(),
+                "where": str(entry.get("id") or ""),
+                "grounds": grounds,
+            })
+    return out
+
 
 def _coverage_bindings(defn) -> list[tuple[str, dict]]:
     """The definition's coverage selections, declaration order. Empty for a
@@ -408,7 +485,7 @@ def _preflight(area: Path) -> None:
 def needs(area, deliverable=None) -> list[dict]:
     """The needs view for one engagement area: what blocks each target.
 
-    Order: targets as named, then the three feeds in `KIND_ORDER`, then
+    Order: targets as named, then the four feeds in `KIND_ORDER`, then
     document order inside each feed — built in that order rather than sorted
     afterwards, so the order is the walk and cannot drift from it. Read-only,
     cache-free, byte-equal on a repeat call.
@@ -421,6 +498,7 @@ def needs(area, deliverable=None) -> list[dict]:
     out: list[dict] = []
     for name in targets(area, deliverable):
         defn = _definition(name, area)
+        out.extend(_asks(defn, area))
         out.extend(_unserved(defn, area))
         out.extend(_coverage(defn, area))
         out.extend(_recorded(defn, area))

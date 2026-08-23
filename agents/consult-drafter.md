@@ -85,6 +85,16 @@ file is the deliverable.
     your draft does not have. Add exactly those, from your existing sources and
     draft. See "The document profile" below for the one rule that makes this
     terminate.
+  - `update` via **answered ask** → the client answered a question the
+    engagement had put to them, and the work order names the GAP IDS the ask
+    was going to settle plus the **answering `SRC-` id**. Read your current
+    draft, the registry and that source; change **exactly the fragments those
+    gap ids live in** and nothing else — this is the cheapest update trigger
+    there is, and it is cheap precisely because the join already told you
+    where to look. A gap the answer really does settle loses its callout (the
+    fact goes into the body, cited); a gap the answer does NOT settle keeps
+    its callout, and saying so plainly is the right outcome — a half-answer is
+    not a settlement.
   You are never handed two triggers at once; act on the one in your dispatch.
 
 **Notes items carry a `kind:` — route on it.** The notes file is a bus with five

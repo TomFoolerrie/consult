@@ -147,7 +147,19 @@ _ALLOWED_BINDING_KEYS = {"entities", "parts", "callouts", "channels",
                          # a rendered deliverable may bind, and saying so in the
                          # definition keeps that visible to a reader of the YAML
                          # instead of hiding it inside the feeder.
-                         "findings"}
+                         "findings",
+                         # M75: the ASKS verb — the curated client-request
+                         # population, admitted exactly like `findings` was.
+                         # Consumer: kernel/deliverables/information-request
+                         # .yaml, binding `client-asks` — `{asks: accepted}`.
+                         # Like `findings` it names no entity type: an ask is
+                         # not an entity in an area's corpus, it is an entry in
+                         # the engagement ask register (scripts/asks.py),
+                         # reached through `asks.renderable()`. Status-valued
+                         # for the same reason: the human gate IS the point,
+                         # and a definition says out loud that it renders
+                         # ACCEPTED asks rather than proposals.
+                         "asks"}
 
 #: The coverage statuses a `coverage:` binding may name. Four come straight from
 #: coverage_map.coverage()'s contract; `thin` is the SURVEYOR's sufficiency word
@@ -175,6 +187,20 @@ _ALLOWED_FINDING_STATUSES = {"proposed", "accepted", "rejected"}
 #: than silently narrowed — a report that thinks it renders proposals is a
 #: definition defect, not a presentation choice.
 _RENDERABLE_FINDING_STATUS = "accepted"
+
+#: The ask statuses an `asks:` binding may name (M75), and the one a rendered
+#: deliverable may bind. Mirrored from asks.STATUSES rather than imported, for
+#: the reason the finding statuses are: stage 2 must stay loadable with zero
+#: engagement and zero ask machinery — this is a VALUE-SHAPE check, not a
+#: computation. Parity is test-enforced.
+#:
+#: `accepted` is the name a definition writes because `accepted` is the HUMAN
+#: GATE. What `asks.renderable()` then returns is accepted PLUS sent — a sent
+#: ask is still an outstanding request — but that widening is the register's
+#: ruling to make, not a definition's: no definition may ask for `sent` (or
+#: `proposed`) asks by name.
+_ALLOWED_ASK_STATUSES = {"proposed", "accepted", "sent", "answered", "retired"}
+_RENDERABLE_ASK_STATUS = "accepted"
 _ALLOWED_SKIN_KEYS = {"format", "requires"}
 
 #: Renderer capability registry — renderers DECLARE what they can do and the
@@ -417,6 +443,35 @@ def _check_findings_shape(fname: str, bname: str, spec: dict) -> None:
             f"rendered deliverable (M39: the human gate)")
 
 
+def _check_asks_shape(fname: str, bname: str, spec: dict) -> None:
+    """Stage-2's check for an `asks:` binding (M75).
+
+    `_check_findings_shape`'s twin, ask-shaped: no entity type, so the
+    declaration half of stage 2 is vacuous and what remains is the VALUE
+    SHAPE — one status name from a closed vocabulary, which must be the
+    renderable one, and no entity population in the same binding. The
+    accepted-only rule is enforced HERE, at load, so a definition can never
+    quietly ask a renderer for unaccepted client requests."""
+    if "asks" not in spec:
+        return
+    if "entities" in spec:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" names both "asks" and "entities" — '
+            f"an ask-register selection and an entity population are two "
+            f"different queries; use two bindings")
+    status = spec["asks"]
+    if not isinstance(status, str) or status.strip() not in \
+            _ALLOWED_ASK_STATUSES:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" "asks" must be one status name '
+            f"(known: {sorted(_ALLOWED_ASK_STATUSES)}; got {status!r})")
+    if status.strip() != _RENDERABLE_ASK_STATUS:
+        raise DefinitionError(
+            f'{fname}: binding "{bname}" binds "{status.strip()}" asks — only '
+            f'"{_RENDERABLE_ASK_STATUS}" asks may reach a rendered '
+            f"deliverable (M75: the human gate)")
+
+
 def _stage2_vocabulary(defn: Definition, path: Path) -> None:
     """Every type / part / callout kind / channel a binding names must be
     DECLARED by that binding's entity type (kernel.load_type) — and every
@@ -446,6 +501,7 @@ def _stage2_vocabulary(defn: Definition, path: Path) -> None:
         _check_coverage_shape(fname, bname, spec)      # M37, see below
         _check_count_shape(fname, bname, spec)         # M38, see above
         _check_findings_shape(fname, bname, spec)      # M39, see above
+        _check_asks_shape(fname, bname, spec)          # M75, see above
 
         tname = spec.get("entities")
         if tname is None:
@@ -525,6 +581,10 @@ _TAXONOMY_DIRNAME = "_taxonomy"
 #: cannot live in M30's `components/_client/registers/` home.
 _FINDINGS_DIRNAME = "_registers"
 _FINDINGS_FILENAME = "findings.yaml"
+
+#: The engagement ASK register's home (scripts/asks.py's convention, mirrored
+#: for the same reason — see _asks_gaps).
+_ASKS_FILENAME = "asks.yaml"
 
 #: The manifest component `role` that holds each entity type's entities in an
 #: engagement area. v1's areas carry exactly one entity population — the
@@ -712,6 +772,43 @@ def _findings_gaps(bname: str, spec: dict, area: Path) -> list[str]:
             f"has nothing to render"]
 
 
+def _asks_gaps(bname: str, spec: dict, area: Path) -> list[str]:
+    """The engagement half of serviceability for an `asks:` binding (M75).
+
+    `_findings_gaps`'s twin, and honest in exactly the same way (M35): an
+    engagement with no ask register, or one whose asks are all still proposed,
+    has nothing a curated request list could render — and that is a **"not
+    yet"**, never a refusal. The gap NAMES the register so the reader knows
+    what to go and do (curate asks, then accept them at the gate).
+
+    The RENDERABLE set is asks.py's ruling — accepted PLUS sent — and it is
+    read here through the same widening rather than through the definition's
+    status word alone, so serviceability and the view can never disagree about
+    whether the deliverable has anything to say. Read-only, and it does not
+    import asks.py: one file existence check and one YAML read is cheaper than
+    the register machinery, and serviceability must stay answerable for an
+    engagement that has never run an ask verb."""
+    root = _engagement_root(area)
+    status = str(spec.get("asks") or _RENDERABLE_ASK_STATUS).strip()
+    wanted = {status, "sent"} if status == _RENDERABLE_ASK_STATUS else {status}
+    apath = None if root is None else root / _FINDINGS_DIRNAME / _ASKS_FILENAME
+    entries: list = []
+    if apath is not None and apath.is_file():
+        try:
+            data = yaml.safe_load(apath.read_text(encoding="utf-8")) or {}
+        except (OSError, yaml.YAMLError):
+            data = {}
+        if isinstance(data, dict) and isinstance(data.get("asks"), list):
+            entries = [e for e in data["asks"] if isinstance(e, dict)
+                       and e.get("status") in wanted]
+    if entries:
+        return []
+    where = f"{_FINDINGS_DIRNAME}/{_ASKS_FILENAME}"
+    return [f'binding "{bname}": this engagement holds no {status} asks yet '
+            f"({where} is absent or carries none), so the curated request "
+            f"list has nothing to render"]
+
+
 def serviceability_records(defn: Definition, area) -> list[dict]:
     """Can this engagement area serve every binding of this definition? —
     the structured answer (M51).
@@ -749,6 +846,9 @@ def serviceability_records(defn: Definition, area) -> list[dict]:
             continue
         if "findings" in spec:
             _add(bname, _findings_gaps(bname, spec, area))
+            continue
+        if "asks" in spec:
+            _add(bname, _asks_gaps(bname, spec, area))
             continue
 
         requirements = {k: spec[k] for k in _CAN_SERVE_KEYS if k in spec}
