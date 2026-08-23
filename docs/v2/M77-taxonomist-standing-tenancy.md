@@ -38,10 +38,15 @@ judgment persists in files the agents own.
 
 One taxonomist-owned working record per area — likeliest
 `<area>/_taxonomy/.tenure.yaml` (inside the house it already owns,
-dot-named like the guard file; builder confirms placement), written
-only through a deterministic verb (host: `scripts/flags.py` grows a
-sibling, or a slim `scripts/tenure.py` — builder's call, same
-library+CLI pattern, NOT `notes_util`). Entries are typed:
+dot-named like the guard file; builder confirms placement — the
+set review verified the obvious objection away: `taxonomy_hashes`
+globs `_taxonomy/*.md` only (`scaffold.py:535–541`), so a
+`.tenure.yaml` there does NOT trip the M66 node guard, reconcile
+check 15.5), written only through a deterministic verb — **hosted in
+`scripts/flags.py`** (ruled per the set review: two near-identical
+one-writer library+CLI modules is exactly the harness sprawl this
+ticket's doctrine warns against; `flags.py` grows a `tenure`
+subcommand, NOT a new module, NOT `notes_util`). Entries are typed:
 
 - `ruling` — a structural decision and its one-line rationale
   ("merged the three request paths: same trigger/system/output,
@@ -86,6 +91,17 @@ matching.
   one reader, the narrowest possible tenancy.
 - v1 areas: file absent → brief byte-identical; nothing creates it
   outside a taxonomist dispatch on a v2 area.
+
+### Part D — set close-out (M77 builds LAST)
+
+Per the set build order (recorded in M76), M77 carries the release
+close-out for M71–M77: README rows, CHANGELOG section, version
+**2.5.0** (three new persistent stores, a new binding verb, a new
+reconcile check, two agent-tenancy contract changes — minor-version
+weight, same bar as 2.4.0's six), plugin.json bump. The CHANGELOG
+entry records the two set doctrines where releases record law:
+"grow the tenancy, not the harness" and "no new persistent stores
+without retiring one."
 
 ## The gate
 

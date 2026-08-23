@@ -64,12 +64,17 @@ Then:
   the rule is declared, not inferred from examples.
 - `_FALLBACK_PART_BODIES`' seeded examples (`CTRL-001` at
   `scaffold.py:755`, `PP-001` at 759/764) become 2-digit. This dict
-  is shared with the v1 fallback path — the compat gate (byte-level
-  v1 golden) is the arbiter: if v1 golden output embeds these seeds,
-  the build splits the dict per type rather than editing shared
-  bytes; if the seeds never reach v1 golden output (skeletons are
-  drafted over), the edit is safe as-is. Builder verifies, amendment
-  records which.
+  is shared with the v1 fallback path — but the set review verified
+  the seeds do NOT reach v1 golden output (`tests/fixtures/
+  p2p-complete/` carries `CTRL-001` only in DRAFTED fragments;
+  `test_shape_audit_m36.py:151,259` pins keys, not bytes;
+  `test_deterministic_layer_m36.py:238–248` pins head/tail only), so
+  the direct edit is expected safe and the split-per-type
+  contingency is likely moot. Builder confirms against the compat
+  gate; amendment records the outcome. Tolerance pins that must NOT
+  be "fixed": `test_aggregate.py:111–124,204–206` and
+  `test_callout_addressing_m57.py:51–64` deliberately mix widths —
+  they ARE the both-widths-accepted guarantee.
 - **The v1 skeleton file gets an explicit ruling, not silence** (per
   review): `skills/consult-drafter/reference/procedure_skeleton.md`
   itself mixes widths (`GAP-01`/`SC-01` at 81/85 vs

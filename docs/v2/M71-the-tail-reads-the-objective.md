@@ -106,8 +106,11 @@ goes.
   if present, else by grep-shaped test).
 - Test seams, per review: `test_stage_gates.py:172` pins the answers
   list and `:183` the accept COMMAND (both unchanged — Part A edits
-  the note only); `:160/:214` pin `would_spend` both ways (read, not
-  changed). Sequencing: if M75 lands first, `information-request`
-  gains an asks-bound serviceability producer — Part A's read must
-  handle both shapes.
+  the note only; NO answer-list additions); `:160/:214` pin
+  `would_spend` both ways (read, not changed);
+  `test_serviceability_m51.py:94–105` pins records/flat PARITY
+  across all three deliverables — Part A must call the named
+  functions, never re-derive, or parity breaks. Sequencing (per set
+  review, mandatory): M75 builds first — its asks serviceability
+  producer must exist before Part A's read is written.
 - Full suite + compat gate untouched.

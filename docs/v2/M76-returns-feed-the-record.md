@@ -103,29 +103,49 @@ is conditional, never padded.
   review: the earlier draft named both surfaces for one duty).
   Accepting a draft with unactioned flags stays a visible choice.
 
-### Part D — the audit becomes a contract with an empty-by-design core
+### Part D — the SESSION RECORD becomes a contract with an empty-by-design core
 
-The orchestrate skill names the session audit a standing duty of every
-orchestration session (a dated file at the engagement root, as run 2
-did by instinct), with a slim expected shape: timeline, dispatch/cost
-table, deviations, end-state checks. Its "findings on the output"
-section is EXPECTED EMPTY — anything that would land there should have
-been filed as a flag (Part A) or a ticket-worthy defect while the
-session ran. The audit verifies nothing leaked; it is no longer the
-leak's last resort. Skill prose, not engine machinery; asserted where
-testable (the duty text present, the flag verb referenced).
+Renamed per the set review: "audit" already names the
+`engagement.py audit` verb (SKILL.md:589–592) — one word, one
+meaning; this artifact is the **session record**. The orchestrate
+skill names it a standing duty of every orchestration session, with
+a ruled home and name — `<engagement>/_records/<date>-session.md` —
+and a slim expected shape: timeline, dispatch/cost table, deviations,
+end-state checks. Its "findings on the output" section is EXPECTED
+EMPTY — anything that would land there should have been filed as a
+flag (Part A) or a ticket-worthy defect while the session ran. The
+record verifies nothing leaked; it is no longer the leak's last
+resort. Skill prose, not engine machinery; asserted where testable
+(the duty text present, the flag verb referenced).
+
+### Part E — the checkpoint commits the engagement's registers
+(added per the set review — a PRE-EXISTING leak this set widens)
+
+`_checkpoint_pathspecs` (`orchestrate.py:1667–1693`) stages area
+`.`, root `_sources/`, root `components/_client/`, root `.gitignore`
+— and nothing else. So `_registers/findings.yaml` is ALREADY never
+committed by any checkpoint (a live M39-era hole), and M75's
+`asks.yaml` plus this ticket's session record would inherit it: the
+run's judgment state accumulating uncommitted, the exact F5 shape
+M68 fixed for `_sources/`. Fix: the central-mode pathspec list gains
+`../../_registers` and `../../_records` (same one-list-three-calls
+discipline M68 Part B established; both directories may be absent —
+git pathspecs tolerate that with the existing glob/exists handling
+the build verifies). v1 areas: no central root, no change.
 
 ## Build order for the M71–M76 set (recorded here as the last ticket)
 
-Per the adversarial review: M72, M73 and M76 all edit
-`agents/consult-taxonomist.md` (M72 and M76 also
-`agents/consult-drafter.md`) — they build sequentially, each rebasing
-on the last, in ticket order (M72 → M73 → M76). M74 builds before
-M75 (M75's release rule reads M74's confidence partition); M75
-before M76's Part C curator hook and before M71's serviceability
-read where possible (M71's Part A must otherwise handle both
-serviceability shapes). Recommended: M72 → M73 → M74 → M75 → M71 →
-M76.
+Per the two reviews (adversarial + set-level): M72, M73, M75, M76
+and M77 all touch `agents/consult-taxonomist.md` (M72 and M76 also
+`agents/consult-drafter.md`) — sequential builds, each rebasing on
+the last. M74 before M75 (release rule reads the confidence
+partition); M75 before M71 (mandatory, not preferential — M71's
+serviceability read must see the asks producer) and before M76's
+curator hook; **M77 LAST**: its brief section lands after M76's
+flags section and M75's register state in the same renderer, and it
+carries the set's close-out (README rows, CHANGELOG, version
+**2.5.0** per the set review, plugin.json). Final order:
+**M72 → M73 → M74 → M75 → M71 → M76 → M77.**
 
 ## The gate
 
@@ -140,6 +160,14 @@ M76.
   file-your-own-flags duty and the return-ids shape; the skill
   carries the check-not-transcribe duty and the audit duty
   (presence-asserted).
+- Checkpoint: a central-mode stage that writes `_registers/` or
+  `_records/` commits the delta (the M68 test pattern); a v1-area
+  checkpoint's committed set is byte-identical to today's.
 - v1 areas: no flags file → every brief and gate byte-identical to
   today.
+- Brief sections respect `test_taxonomist_brief_m52.py:82` (no
+  `KIND` token) and `:109` (read-only); agent-contract prose passes
+  the banned-phrase greps (`test_doctrine_m42.py:24`,
+  `test_needs_m44.py:26`, `test_trust_boundary_m58.py:18`,
+  `test_hygiene_m43.py:26`).
 - Full suite + compat gate untouched.

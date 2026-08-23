@@ -79,13 +79,23 @@ this is the persistence seam.
 Guard 4 splits the ready wave by confidence: `unfilled` (the
 dispatchable wave, as today) now carries only nodes with evidence
 behind them; a new `details.thin` names the low-confidence remainder,
-each with its confidence value. The action stays `fill` and is a gate
-only when the READY wave is empty and thin nodes are all that remain
-— then the human is asked once: draft the thin set anyway, or leave
-it unfilled for the agenda to chase (the M46 agenda and the needs
-view already speak "cannot yet document with confidence",
-`agenda.py:422` — no new machinery, the waiting state is already
-rendered to the client as asks). `medium` stays in the ready wave —
+each with its confidence value. **The action stays `fill` and stays
+a NON-gate — ruling per the set review:** an earlier draft made it a
+conditional gate when only thin nodes remain, but `fill` is a
+HOLDABLE action and the HOLDABLE ∩ GATE disjointness doctrine
+(`orchestrate.py:751–753`, pinned by `test_sticky_holds.py:261`)
+forbids a sometimes-gate holdable — and the gate bought nothing the
+existing machinery lacks: when only thin nodes remain, the advisor
+returns `fill` with an empty `unfilled` wave and a `details`
+sentence naming the choice ("N thin nodes remain: dispatch them
+[details.thin], or hold `fill` and chase the asks — see M75
+ask-first"), and the ORCHESTRATOR relays it and stops for the human
+exactly as it does for any empty work order. The human's brake is
+the M17 hold; the human's go is dispatching the thin list. No new
+gate, no doctrine change, same behavior (the M46 agenda and the
+needs view already speak "cannot yet document with confidence",
+`agenda.py:422` — the waiting state is already rendered to the
+client as asks). `medium` stays in the ready wave —
 only `low` waits; the boundary is one word in one place so a later
 ruling can move it. Build constraint, per review: `details.unfilled`
 keeps its name and shape — it is asserted across four test modules
@@ -120,9 +130,10 @@ keeps returning `fill` for them, exactly as today.
   without it.
 - Fill fixture: mixed-confidence area → `unfilled` wave excludes
   `low`, `details.thin` names them with values; all-thin remainder →
-  gate with the two answers; human "draft anyway" path dispatches
-  them (asserted via the action's details, the advisor stays
-  read-only).
+  `fill` with empty `unfilled`, populated `thin`, and the choice
+  sentence (NOT a gate — HOLDABLE ∩ GATE disjointness pinned by
+  `test_sticky_holds.py:261` stands untouched); the advisor stays
+  read-only.
 - Scope guard: a thin node is present in the manifest, the coverage
   map and the agenda feed while held (nothing disappears).
 - v1 areas and confidence-free manifests: fill output byte-identical

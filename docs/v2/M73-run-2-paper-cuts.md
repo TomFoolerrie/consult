@@ -78,7 +78,22 @@ nonzero, still the human's call — the advisor just stops offering
 only the wrong explanation. Same-diff duty (per review): the skill's
 `error` row (`SKILL.md:328`) recites the current typo-only
 explanation and is updated with the message, or skill and engine
-contradict.
+contradict. Test pin (per set review): BOTH branches keep the
+substring "does not exist" in `reason` — `test_advisor_honesty.py:
+322–330` and `test_decide_states.py:88` assert it; the non-git
+degrade path keeps today's message and its bare-tmp_path fixture;
+the git-aware branch gets its own fixture.
+
+### Part D — the register-blanks warning reaches the gate (fourth cut)
+
+Run-2 finding 7.2, previously accepted as out of scope: the five
+`reports_to` blanks are check 23 (`check_required_register_fields`,
+`reconcile.py:1552–1580`), WARNING-only, surfacing only in reconcile
+output after drafting shipped. One-line fix riding M76's mechanism:
+the draft-ready gate's details carry the check-23 warning count
+beside M76's open-flag count — same additive-details shape, no new
+check, no severity change. Whichever of M73/M76 builds second wires
+it.
 
 ## The gate
 

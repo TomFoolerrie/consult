@@ -102,10 +102,20 @@ duplicates.
 
 ### Part C — the renders read the register
 
-`information-request` re-binds its lead view to the accepted asks
-(the curated list is the document; the raw coverage/step-gap feeds
-demote to an appendix or drop — build decides, recorded in the
-amendment). Named cost, per review — this is a definitions-language
+`information-request` gains the accepted asks as its LEAD view; the
+raw coverage/step-gap feeds **demote to an appendix — never drop**
+(pre-ruled per the set review, no longer builder's choice: the
+`coverage` binding's named consumer is a definitions-discipline
+invariant and is pinned by `test_surveyor_m37.py:172–177`, and the
+derived kinds `information-requests`/`open-validations` are pinned
+by `test_views_m40.py:60–80`; needs/research feeds key off the
+deliverable at `test_needs_m44.py:108,186` and
+`test_research_m47.py:134` — dropping the bindings fails all four
+modules). Companion edit the build must not skip:
+`needs._coverage_bindings` (`needs.py:218–235`) skips unknown verbs
+SILENTLY, so the new `asks:` binding produces no needs feed unless
+`needs.py` learns it — amend it or the register is invisible to
+needs. Named cost, per review — this is a definitions-language
 change, not a re-point: `_ALLOWED_BINDING_KEYS`
 (`definitions.py:105`) is a closed set with a named-consumer
 discipline, so the build adds an `asks:` binding verb with its
@@ -118,6 +128,49 @@ hard-coded lead prose (`agenda.py:415–430`), not a drop-in — so the
 written request list and an interview agenda cannot drift.
 Serviceability stays honest per M35: no accepted asks → a "not yet"
 naming the register, exactly like findings-report.
+
+### Part C2 — the matcher is a contract change, not an improvisation
+(added per the set review — this was the set's biggest hole)
+
+The lifecycle ruling's matcher runs "as part of intake" — but
+`consult-intake.md` is ROUTING-ONLY by its own contract ("routing
+judgment only — you never scope, never draft, never summarize"), and
+the ledger entry shape has no `answers:` field. Two named edits:
+
+- `agents/consult-intake.md` gains the match duty: after routing a
+  file, read it against the OPEN asks' text (the one summarization
+  license the contract grants, scoped to "which asks does this
+  artifact answer") and record the match through the verb — never
+  free-prose. The trust-boundary section already covers ingested
+  content; the duty slots under it.
+- The ledger entry gains the `answers: [ASK-…]` field, written by a
+  deterministic verb (`asks.py match SRC-… ASK-…` or an
+  `engagement.py` flag — builder picks the host, `engagement.py`
+  stays the one ledger writer either way). Advisory metadata, per
+  the lifecycle ruling: no gate on the match, the settle dispatch it
+  drives still surfaces in the advisor first.
+
+Companion contract line (review gap a): `consult-drafter.md`'s
+update-mode trigger list (three today: new source, review,
+reprofile) gains the fourth — **answered ask**: the settle work
+order names the gap ids and the answering SRC id, and the drafter's
+update edit is scoped to exactly those.
+
+### Part C3 — the confirm surface, owned here
+(added per the set review — four tickets add confirm lines, none
+owned the inventory)
+
+Confirm's report after this set, in one place: the M65 lines
+(`promoted taxonomy nodes: <slugs>` / `no staged taxonomy nodes` —
+stdout strings pinned by `test_confirm_survey_m65.py:98,200,215,226`,
+ADDITIVE ONLY, never reworded), the M66 capture notice, the M74
+confidence passthrough (silent — manifest content, no new line
+needed), and this ticket's ask-consume count (`promoted N staged
+ask(s) to the engagement register` / nothing when none staged). The
+ask-first offer at the confirm gate is NEW SHAPE: guard 1's result
+carries no `answers` list today (unlike guard 8.5) — the build
+introduces it as a new key on the confirm action, additive, with the
+two entries (fill now / ask first + the hold edit text).
 
 ### Part D — the ask-first sequencing (the gate offers the loop)
 
@@ -255,7 +308,14 @@ the M76 close discipline, no duplication.
 - Confirm consumption: a staged `.proposed/asks.yaml` lands in the
   engagement register BEFORE the step-6 rmtree; a confirm that fails
   late leaves it staged (M65 discipline); confirm's report carries the
-  ask count.
+  ask count and the M65 stdout strings verbatim.
+- Matcher: intake contract carries the match duty; the ledger
+  `answers:` field round-trips through the verb; the drafter
+  contract's trigger list carries "answered ask".
+- Known test movement, budgeted: `test_agenda_m46.py:64–96` renders
+  agenda output from the `LEAD_*` constants Part C rewrites — those
+  assertions are EXPECTED to be updated with the feature, not
+  worked around.
 - Lifecycle invariants: a register-less gap id (in no ask, not in
   `unasked`) is a reconcile ERROR; an answered ask with unsettled gap
   ids surfaces at the next gate; the matcher's `answers:` metadata on
