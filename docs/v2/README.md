@@ -240,6 +240,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M72](M72-one-id-width.md) | One id width: drafter contract and skeletons teach 2-digit local callout ids; display transform tolerance pinned (**TICKETED**) |
 | [M73](M73-run-2-paper-cuts.md) | Run-2 paper cuts: taxonomist contract catches up to M65, first-checkpoint sweep disclosure, missing-folder error states both readings (**TICKETED**) |
 | [M74](M74-thin-nodes-wait-for-evidence.md) | Thin nodes wait for evidence: confirm persists the confidence call, fill partitions the wave, low-confidence drafting is a human choice on the cheap tier (**TICKETED**) |
+| [M75](M75-the-ask-loop.md) | The ask loop: curated ask register with gap-id mapping, taxonomist stages its asks, curator pass post-draft, information-request/agenda read the register, confirm gate offers ask-first rounds before fill (**TICKETED**) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
