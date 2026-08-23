@@ -9,15 +9,20 @@ because all three are one build day and none deserves its own ticket.
 ## Why
 
 1. **The taxonomist's contract still teaches the two-verb confirm**
-   (audit 7.4). M65 made `--confirm` own taxonomy promotion and
-   rewrote the SKILL's confirm row — but `agents/consult-taxonomist.md`
-   still instructs `--confirm` THEN `--promote-taxonomy` in four
-   places (lines 90, 342, 796, 947). The run's taxonomist dutifully
-   relayed that sequence in its return; the orchestrator happened to
-   know better. The flags are mutually exclusive
-   (`scaffold.py:1594–1600`), so a less careful orchestrator gets a
-   confusing refusal — the exact prose-sequence trap M65 closed in
-   the skill, still open in the agent.
+   (audit 7.4). M65 made `--confirm` own taxonomy promotion
+   (`promote_taxonomy(area)` called inside `confirm()`,
+   `scaffold.py:1598`) and rewrote the SKILL's confirm row — but
+   `agents/consult-taxonomist.md` still teaches the old promoter in
+   four places: two-verb pairings at lines 88–90 and 947, and
+   `--promote-taxonomy` alone as the promoter at 342 and 796. The
+   run's taxonomist dutifully relayed the sequence in its return; the
+   orchestrator happened to know better. Failure modes, stated
+   precisely (per review): both flags on ONE command line hit the
+   mutual-exclusion refusal (`scaffold.py:1758–1768`); run as the two
+   SEPARATE invocations the prose teaches, `--promote-taxonomy` after
+   `--confirm` hits the graceful no-op ("nothing to promote", exit 0)
+   — not harmful post-M65, but the agent contract asserting a false
+   mechanism is the defect either way.
 
 2. **The first checkpoint sweeps pre-session state under the wrong
    label** (audit 7.3). M68's widened pathspec is correct — engagement
@@ -31,7 +36,8 @@ because all three are one build day and none deserves its own ticket.
 
 3. **The advisor's missing-folder error can't tell a typo from a
    fresh area** (audit 6.1). Guard 0 returns `error` ("check the
-   --area name") for any absent folder (`orchestrate.py:890–896`).
+   --area name") for any absent folder (`orchestrate.py:891–896`;
+   message string at 893–894).
    The run's area was a legitimately-never-scaffolded placeholder;
    the orchestrator broke the write-nothing rule with a silent
    `mkdir` because the error's only offered explanation was wrong.
@@ -69,7 +75,10 @@ typo-shaped; if it carries none, the message says so and names the
 safe move ("no committed content under this path — if this is a new
 area, create the folder and re-run"). Still an `error`, still exits
 nonzero, still the human's call — the advisor just stops offering
-only the wrong explanation.
+only the wrong explanation. Same-diff duty (per review): the skill's
+`error` row (`SKILL.md:328`) recites the current typo-only
+explanation and is updated with the message, or skill and engine
+contradict.
 
 ## The gate
 

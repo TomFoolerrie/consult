@@ -14,15 +14,19 @@ any participant").
 
 ## Why
 
-1. **The signal exists and dies at the confirm gate.** The staged
-   `procedures.yaml` carries `confidence: high | medium | low` per
-   procedure (the taxonomist contract's own schema,
-   `consult-taxonomist.md:804`, alongside `gap_forecast`). Confirm
-   consumes the staged registry (`scaffold.py:1425–1450`) and builds
-   manifest components with slug/title/l2/order/upstream only — the
-   confidence call is read for nothing and discarded. By fill time
-   the sufficiency verdict survives only as prose in the node files,
-   which the advisor cannot read.
+1. **The signal exists and dies INSIDE `build_manifest`** (site
+   corrected per review). The staged `procedures.yaml` carries
+   `confidence: high | medium | low` per procedure (the taxonomist
+   contract's own schema, `consult-taxonomist.md:804`, alongside
+   `gap_forecast`). Confirm's merge (`_merge_by_key`,
+   `scaffold.py:235–265`, field-wise `{**existing, **proposed}`)
+   already carries `confidence` through to the procedures list — it
+   is `build_manifest`'s component literal (`scaffold.py:1321–1325`,
+   keys `file/role/slug/heading/l2/order` + optional `upstream`;
+   note the manifest key is `heading`, the staged key is `title` —
+   do not conflate) that drops it. By fill time the sufficiency
+   verdict survives only as prose in the node files, which the
+   advisor cannot read.
 
 2. **The fill guard partitions on structure, never on evidence.**
    Guard 4 waves on upstream hints alone (`orchestrate.py:1103–1140`):
@@ -50,14 +54,25 @@ The ruling first: **confidence gates COST, never SCOPE.** A thin node
 stays in the taxonomy, keeps its manifest component and its unfilled
 skeleton, and appears in every coverage view — it waits visibly. It is
 drafted on new evidence or on the human's explicit "draft it anyway",
-and nothing else; no node ever silently drops out of the document.
+and nothing else — where "new evidence" includes its machine-readable
+form once M75 lands: an ask touching the node flipping to answered IS
+new evidence, and releases the node back into the wave (the M74/M75
+reconciliation recorded in M75; one rule, not two). No node ever
+silently drops out of the document.
 
 ### Part A — confirm carries the call into the manifest
 
-`build_manifest` copies the staged registry's `confidence` onto each
-procedure component (absent stays absent — a pre-M74 or hand-built
+The edit is a one-key passthrough in `build_manifest`'s component
+literal (`scaffold.py:1321–1325`) — the merge already delivers
+`confidence` on each proposed procedure (see Why #1); the literal
+just copies it (absent stays absent — a pre-M74 or hand-built
 registry entry without the key reads as no-opinion, which behaves as
-high). Nothing else consumes it yet; this is the persistence seam.
+high). `doc_model.validate_manifest` runs positive checks only and
+rejects no unknown keys (verified per review), so no schema change.
+The taxonomist schema's OTHER `confidence` carriers
+(registry entries, `consult-taxonomist.md:821,829`) are out of scope
+— only the procedure one persists. Nothing else consumes it yet;
+this is the persistence seam.
 
 ### Part B — the fill action partitions the wave
 
@@ -72,7 +87,12 @@ view already speak "cannot yet document with confidence",
 `agenda.py:422` — no new machinery, the waiting state is already
 rendered to the client as asks). `medium` stays in the ready wave —
 only `low` waits; the boundary is one word in one place so a later
-ruling can move it.
+ruling can move it. Build constraint, per review: `details.unfilled`
+keeps its name and shape — it is asserted across four test modules
+(`test_decide_states`, `test_m26_seams`, `test_m6_reassessment`,
+`test_orchestrate`), all on confidence-free fixtures, so the split
+is additive (`thin` is a new key) and those fixtures stay
+byte-identical.
 
 ### Part C — the skill routes the thin dispatch to the cheap tier
 

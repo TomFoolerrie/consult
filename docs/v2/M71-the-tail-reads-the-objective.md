@@ -14,12 +14,13 @@ shaped" — and the words were, even though the behavior was not.
 
 1. **The accept answer promises a step that cannot happen.** The
    `draft_ready` gate's `accept` note reads "lets the ladder through to
-   synthesize" (`orchestrate.py:1426–1427`), unconditionally. For a
+   synthesize" (`orchestrate.py:1425–1426`), unconditionally. For a
    process-step area the manifest carries zero agent-derived components,
    `st.agent_derived_kinds` is empty, `stale_kinds` is always empty, and
    guard 9 can never return `synthesize`. The advisor's own
    `would_spend` already computes the truth (`render`, not
-   `synthesize`) two lines up — the prose just doesn't read it.
+   `synthesize`) two lines below, in the same `result(...)` call
+   (`orchestrate.py:1428–1429`) — the note just doesn't read it.
 
 2. **The skill's tail narrative is the v1 tail.** The orchestrate
    skill's framing prose presents dependencies+RACI as the standing
@@ -57,8 +58,11 @@ The `draft_ready` gate's prose becomes a function of
   (`definition: <name>`) so the human is told which document accepting
   leads to.
 - When that definition is findings-bound and the register would report
-  "not yet" (the serviceability read `definitions` already implements —
-  reuse it, do not re-derive), the gate says so in one sentence: the
+  "not yet" (the serviceability reads named, per review:
+  `definitions.serviceability_records(defn, area)` at
+  `definitions.py:715`, the flat `definitions.serviceability` at
+  `:768`, and the findings gap producer `_findings_gaps` at `:677` —
+  reuse these, do not re-derive), the gate says so in one sentence: the
   deliverable renders from ACCEPTED findings, none exist yet, and the
   analyst is the human-called verb that proposes them. A statement of
   the path, never a dispatch: the analyst's human-trigger rule
@@ -100,4 +104,10 @@ goes.
 - No new dispatch: nothing in the diff fires `consult-analyst` from
   any handler (asserted by the existing human-trigger doctrine tests
   if present, else by grep-shaped test).
+- Test seams, per review: `test_stage_gates.py:172` pins the answers
+  list and `:183` the accept COMMAND (both unchanged — Part A edits
+  the note only); `:160/:214` pin `would_spend` both ways (read, not
+  changed). Sequencing: if M75 lands first, `information-request`
+  gains an asks-bound serviceability producer — Part A's read must
+  handle both shapes.
 - Full suite + compat gate untouched.

@@ -75,9 +75,19 @@ duplicates.
 
 - **Pre-drafting:** the taxonomist. It already synthesizes grouped
   asks in its return (run 2's A–M); the contract change is that it
-  STAGES them (`.proposed/asks.yaml`, promoted at confirm like every
-  other proposal) instead of narrating them into a transcript. No new
-  agent, no new dispatch — the same pass, its best output persisted.
+  STAGES them (`.proposed/asks.yaml`) instead of narrating them into
+  a transcript. No new agent, no new dispatch — the same pass, its
+  best output persisted. **Promotion is NOT free** (per review):
+  confirm's promotion whitelist is fixed (`REGISTRY_FILES`,
+  `scaffold.py:129`; `promote_taxonomy` reads nothing else), and
+  step 6's `shutil.rmtree(proposed, …)` (`scaffold.py:1605`) would
+  silently DESTROY a staged file no verb consumed — the exact M65
+  failure shape. The build adds an explicit consume step to
+  `confirm()`: staged asks are merged into the ENGAGEMENT-root
+  register (`_registers/asks.yaml`, the `findings.py:84,116`
+  mechanism — a different target tree than area `_reference/`
+  promotion) BEFORE the rmtree, with the same early-check/late-move
+  discipline M65 established, and confirm's report names the count.
 - **Post-drafting (draft-ready and later):** a curator pass over the
   full GAP population — the fragment callouts with `Nature:`, the
   node GAPs, the open register. It consolidates, regroups, merges new
@@ -95,22 +105,37 @@ duplicates.
 `information-request` re-binds its lead view to the accepted asks
 (the curated list is the document; the raw coverage/step-gap feeds
 demote to an appendix or drop — build decides, recorded in the
-amendment). The agenda (M46) reads the same register for its ask
-content, so the written request list and an interview agenda cannot
-drift. Serviceability stays honest per M35: no accepted asks → a
-"not yet" naming the register, exactly like findings-report.
+amendment). Named cost, per review — this is a definitions-language
+change, not a re-point: `_ALLOWED_BINDING_KEYS`
+(`definitions.py:105`) is a closed set with a named-consumer
+discipline, so the build adds an `asks:` binding verb with its
+status value-shape (the `_ALLOWED_FINDING_STATUSES`/
+`_RENDERABLE_FINDING_STATUS` pattern, `definitions.py:171,180`), an
+`asks.renderable()`, and an asks serviceability producer registered
+in `serviceability_records` (`definitions.py:715`). The agenda (M46)
+reads the same register for its ask content — a real rewrite of its
+hard-coded lead prose (`agenda.py:415–430`), not a drop-in — so the
+written request list and an interview agenda cannot drift.
+Serviceability stays honest per M35: no accepted asks → a "not yet"
+naming the register, exactly like findings-report.
 
 ### Part D — the ask-first sequencing (the gate offers the loop)
 
 The confirm gate's answers gain the second path, first-class:
 
 - **fill now** — today's behavior, untouched, still the default shape.
-- **ask first** — the gate applies `hold: fill` (existing M17
-  machinery, now surfaced), renders the information-request from the
-  taxonomist's promoted asks, and the loop runs as many rounds as the
-  human wants: client material arrives → `route` → taxonomist
+- **ask first** — the gate OFFERS the path; **the human writes the
+  hold** (correction, per review: holds are human-owned config with
+  no programmatic writer — `SKILL.md:166,319`, `client_config.holds()`
+  read-only, zero `_client/` YAML writers in `scripts/` — and that
+  doctrine stands; nothing in this build writes `consult.yaml`). The
+  answer carries the exact edit ("add `fill` to `hold:` in
+  `<area>/_client/consult.yaml`"), the same shape as the skill's
+  existing release instruction. With the hold in place the loop runs
+  as many rounds as the human wants: information-request renders from
+  the promoted asks → client material arrives → `route` → taxonomist
   curation dispatch (M45 — refreshed sufficiency + refreshed asks) →
-  updated register → re-render → ask again. Releasing the hold is the
+  updated register → re-render → ask again. Removing the hold is the
   human's "I have what I need — draft"; the fill fan-out then runs
   ONCE against full evidence.
 
@@ -168,7 +193,12 @@ discover ──► record ──► curate ──► ask ──► answer ──
 1. Every gap id appears in the register exactly once — inside some
    ask, or in the explicit `unasked` bucket with a recorded reason
    ("ours to resolve, not the client's" — **ruling (b):** the bucket
-   is real). A gap id in neither is an ERROR.
+   is real). A gap id in neither is an ERROR — **scoped, per review:
+   the check runs ONLY where `_registers/asks.yaml` exists.** Every
+   pre-M75 area and every existing fixture carries GAP callouts and
+   no register; an unscoped check fails all of them and the compat
+   gate with them. No register = the invariant is not in force, the
+   same conditional shape as every central-mode seam.
 2. An answered ask either settles its gaps or re-opens: the settle
    dispatch closes the ids, or the curator splits the remainder into
    a follow-up ask. No zombie answered-asks with live gaps behind
@@ -180,6 +210,28 @@ node automatically when its asks flip to answered (M74 composed:
 thin ≈ open asks), the draft-ready gate says whether accepting ships
 known holes, and the analyst brief can distinguish
 "asked, unanswered" from "never asked" — a finding-grade distinction.
+
+**M74 reconciliation (per review — the two release rules are one
+rule):** M74 Part B says a thin node drafts "on new evidence or on
+the human's explicit draft-anyway, and nothing else." This ticket's
+automatic release is not a second rule: an ask flipping to answered
+IS the arrival of new evidence, made machine-readable — the matcher's
+`answers:` metadata is how "new evidence for THIS node" gets a
+signal at all. M74's "nothing else" is amended to read: new evidence
+(of which an answered ask is the recorded form) or the human's
+explicit go. Whichever ticket builds second wires the join;
+built together, guard 4's partition reads one predicate:
+`confidence == low AND no answered-unsettled asks touching the node`.
+
+**M76 boundary (per review — two queues, one ownership rule):**
+`_registers/asks.yaml` owns CLIENT-FACING questions;
+`_reference/flags.yaml` (M76) owns INTERNAL judgment — split
+candidates, register candidates, policy observations. A flag never
+renders for a client; an ask never carries internal work. The bridge
+is one-directional: the curator MAY propose an ask from a flag
+(a "policy item surfaced, not closed" often becomes a confirm-ask),
+and then the flag records the ask id as its actioning reference —
+the M76 close discipline, no duplication.
 
 ## The gate
 
@@ -194,10 +246,16 @@ known holes, and the analyst brief can distinguish
   curated list; empty register → honest "not yet"; agenda and
   information-request draw ask text from the same entries (asserted by
   shared-source, not byte-equality).
-- Sequencing: confirm gate carries both answers; "ask first" writes the
-  fill hold; route → taxonomist-refresh → updated register loop
-  exercised across two rounds in fixture; releasing the hold restores
-  guard 4 exactly as today.
+- Sequencing: confirm gate carries both answers; "ask first" hands the
+  human the exact hold edit (no script writes `consult.yaml` — pinned
+  by test: zero `_client/` YAML writers); route → taxonomist-refresh →
+  updated register loop exercised across two rounds in fixture (the
+  hold applied by the fixture as the human would); removing the hold
+  restores guard 4 exactly as today.
+- Confirm consumption: a staged `.proposed/asks.yaml` lands in the
+  engagement register BEFORE the step-6 rmtree; a confirm that fails
+  late leaves it staged (M65 discipline); confirm's report carries the
+  ask count.
 - Lifecycle invariants: a register-less gap id (in no ask, not in
   `unasked`) is a reconcile ERROR; an answered ask with unsettled gap
   ids surfaces at the next gate; the matcher's `answers:` metadata on
