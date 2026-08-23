@@ -1,6 +1,6 @@
 # M74 — Thin nodes wait for evidence: the fill wave reads the confidence call
 
-**Status: TICKETED.**
+**Status: BUILT** (`2.5.0-alpha.3`, gate 21/21 — see Amendment A1).
 Origin: the second Nordhaven build run (audit 2026-08-23), cost table.
 The taxonomist judged 6 nodes thin and 2 with nothing, and the fill
 stage dispatched a full-price drafter for every one of them anyway:
@@ -139,3 +139,27 @@ keeps returning `fill` for them, exactly as today.
 - v1 areas and confidence-free manifests: fill output byte-identical
   to today's.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-23)
+
+* Upstream ruling (Part B/D): a thin-and-excluded upstream is ABSENT
+  for wave release — blockers are `pending − thin`, so a downstream
+  chain never strands behind a node that is by design waiting
+  indefinitely; its seam read degrades to the node scope prose. A
+  non-thin unfilled upstream still defers, unchanged. Pinned by two
+  tests.
+* All-thin is checked BEFORE the cycle branch (an empty wave with no
+  dispatchable nodes is not a cycle), and cycle degradation sweeps
+  only dispatchable slugs, never the thin remainder.
+* Fail-safe direction pinned: anything not exactly `low` (medium,
+  high, unrecognized, keyless) dispatches.
+* Hold path verified: `hold: [fill]` on an all-thin remainder gates
+  with `held_by`, `thin`, empty `unfilled` intact.
+* Scope guard asserted structurally (component + confidence + file +
+  ownership survive while waiting); coverage/agenda read no
+  confidence, so no filter exists for them to acquire.
+* Guard 4 now sits at ~1195–1235 (ticket's 1103–1140 predated
+  M72/M73 shifts); v1-identity tests compare details minus the
+  advisory keys added since M65/M73 — `unfilled`/`deferred` and both
+  reason strings byte-identical, the four pinned modules untouched.
+* Suite 1615 → 1636, zero skips/xfails.

@@ -406,6 +406,10 @@ class AreaState:
         # procedure + derived components from the manifest
         self.procedures = []   # list of (slug, abspath)
         self.upstream = {}     # slug -> [upstream slugs] (M11 ordering hints)
+        # M74: slug -> the taxonomist's confidence call, only where the
+        # manifest carries one. A missing slug is NO OPINION, which behaves
+        # as `high` — so a pre-M74 manifest partitions exactly as it did.
+        self.confidence = {}
         self.agent_derived = []  # abspaths of writer==agent derived files
         self.derived_files = []  # all derived abspaths
         # M14: the agent-owned derived KINDS this manifest actually lists. The
@@ -430,6 +434,8 @@ class AreaState:
                     self.owner_of[c["file"]] = "procedure"
                     if c.get("upstream"):
                         self.upstream[slug] = list(c["upstream"])
+                    if c.get("confidence"):
+                        self.confidence[slug] = str(c["confidence"])
                 elif role == "derived":
                     self.derived_files.append(path)
                     if c.get("writer") == "agent":
@@ -1202,22 +1208,53 @@ def decide(folder: str) -> dict:
         # the advisor stays a pure function of folder state. A cycle (empty
         # wave while work remains) degrades to dispatching everything.
         pending = set(unfilled)
-        wave = [s for s in unfilled
-                if not any(u in pending for u in st.upstream.get(s, []))]
-        deferred = [s for s in unfilled if s not in wave]
-        if not wave:
-            wave, deferred = unfilled, []
+        # M74 Part B: confidence gates COST, never SCOPE. A `low`-confidence
+        # node keeps its component, its skeleton and its place in the count
+        # above — it just leaves the DISPATCHABLE wave and is named in
+        # `details.thin` with its value, so the orchestrator can put the
+        # choice to the human. Only `low` waits (one word, one place, so a
+        # later ruling can move the boundary); anything else — `medium`,
+        # `high`, an unrecognised value, or no key at all — dispatches, which
+        # is the fail-safe direction. `fill` stays a NON-gate holdable: the
+        # HOLDABLE ∩ GATE disjointness doctrine is untouched, the human's
+        # brake is the M17 hold and the human's go is dispatching the list.
+        thin = {s: st.confidence[s] for s in unfilled
+                if st.confidence.get(s) == "low"}
+        dispatchable = [s for s in unfilled if s not in thin]
+        # M74 Part D ruling: a thin-and-excluded upstream is treated as
+        # ABSENT for wave release. Deferring on it would strand its whole
+        # downstream behind a node that is, by design, waiting indefinitely;
+        # the drafter simply gets no `upstream_files` entry for it and its
+        # seam read degrades to the node scope prose. Blockers are therefore
+        # the unfilled nodes that are still coming: `pending` minus `thin`.
+        blocking = pending - set(thin)
+        wave = [s for s in dispatchable
+                if not any(u in blocking for u in st.upstream.get(s, []))]
+        deferred = [s for s in dispatchable if s not in wave]
+        thin_tail = ("; %d thin node(s) wait on evidence (details.thin)"
+                     % len(thin)) if thin else ""
+        if not wave and not dispatchable:
+            # Only thin nodes remain. An empty work order plus the choice —
+            # the orchestrator relays it and stops for the human exactly as
+            # it does for any empty wave. No gate, no doctrine change.
+            reason = ("%d thin node(s) remain: dispatch them [details.thin], "
+                      "or hold `fill` and chase the asks" % len(thin))
+        elif not wave:
+            wave, deferred = dispatchable, []
             reason = ("%d procedure(s) unfilled; upstream hints form a cycle "
-                      "— dispatching all at once" % len(unfilled))
+                      "— dispatching all at once%s" % (len(unfilled), thin_tail))
         elif deferred:
             reason = ("%d procedure(s) unfilled; wave of %d ready "
-                      "(upstream filled), %d deferred to later waves"
-                      % (len(unfilled), len(wave), len(deferred)))
+                      "(upstream filled), %d deferred to later waves%s"
+                      % (len(unfilled), len(wave), len(deferred), thin_tail))
         else:
-            reason = "%d procedure(s) still carry the unfilled sentinel" % len(unfilled)
+            reason = ("%d procedure(s) still carry the unfilled sentinel%s"
+                      % (len(unfilled), thin_tail))
         details = {"unfilled": wave}
         if deferred:
             details["deferred"] = deferred
+        if thin:
+            details["thin"] = thin
         paths = dict(st.procedures)
         upstream_files = {}
         for s in wave:

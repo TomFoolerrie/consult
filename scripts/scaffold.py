@@ -1323,6 +1323,14 @@ def build_manifest(area: Path, l1: str, title: str, subtitle: str,
             "slug": slug, "heading": p["title"], "l2": p["l2"],
             "order": proc_orders[slug],
         }
+        # M74 Part A: the taxonomist's sufficiency call, carried through the
+        # merge (`_merge_by_key`) and persisted here so the fill guard can
+        # read it. One key, copied verbatim; ABSENT STAYS ABSENT — a pre-M74
+        # or hand-built registry entry without it reads as no-opinion, which
+        # behaves as `high`. `validate_manifest` is positive-only, so this
+        # needs no schema change, and nothing else consumes it yet.
+        if p.get("confidence"):
+            comp["confidence"] = p["confidence"]
         # M11 ordering hints: validated here (mechanics), decided by taxonomy
         # (judgment). Unknown or self references are dropped with a warning —
         # the manifest only ever carries hints the advisor can act on.
