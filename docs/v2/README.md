@@ -236,6 +236,9 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M68](M68-central-mode-finishes-the-move.md) | Central mode finishes the move: root-resolved paths, engagement-wide checkpoints, route-before-scope, honest messages (**BUILT**, 2.4.0-alpha.3, gate 13/13) |
 | [M69](M69-derived-views-read-the-type.md) | The derived views read the type: view slots from the declaration, declared-Performer preparer, honest absences (**BUILT**, 2.4.0-alpha.7, gate 14/14) |
 | [M70](M70-vocabulary-floor-leftovers.md) | Vocabulary-floor leftovers: aggregate/reconcile/render build callout grammars from declarations (**BUILT**, 2.4.0-alpha.4, gate 12/12) |
+| [M71](M71-the-tail-reads-the-objective.md) | The tail reads the objective: draft-ready/render prose becomes deliverable-aware, names the analyst path (**TICKETED**) |
+| [M72](M72-one-id-width.md) | One id width: drafter contract and skeletons teach 2-digit local callout ids; display transform tolerance pinned (**TICKETED**) |
+| [M73](M73-run-2-paper-cuts.md) | Run-2 paper cuts: taxonomist contract catches up to M65, first-checkpoint sweep disclosure, missing-folder error states both readings (**TICKETED**) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
