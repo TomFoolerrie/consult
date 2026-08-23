@@ -1,6 +1,8 @@
 # M75 — The ask loop: a curated request register, and asking before drafting
 
-**Status: TICKETED.**
+**Status: TICKETED** (design settled with the human 2026-08-23 —
+see "The lifecycle ruling" below, which governs where the Parts
+overlap it).
 Origin: the second Nordhaven build run (audit 2026-08-23) plus the
 design conversation after it. Three observations, one missing organ:
 
@@ -119,6 +121,66 @@ answered engagement can draft what is evidenced (M74's thin partition
 composes here: thin nodes are precisely the ones whose asks are still
 open) while the remaining asks stay live.
 
+## The lifecycle ruling (2026-08-23, sketched with the human)
+
+One route for every gap, one purpose for every token:
+
+```
+discover ──► record ──► curate ──► ask ──► answer ──► route back ──► settle
+(agent)      (files)    (agent)    (human) (client)   (mechanical)   (agent)
+```
+
+- **Discover:** only the taxonomist and the drafters ever read raw
+  sources; every gap is born in one of those two passes. No third
+  discoverer.
+- **Record:** a gap EXISTS only if it has an id the register can hold.
+  Drafter gaps have ids today; the taxonomist's gaps get ids at
+  staging (the id-less prose forecast is the loss hole this closes).
+  **Ruling (a):** node prose stays — it is capture, the node is the
+  brain — but the id'd entry is the canonical fact; prose without an
+  id is commentary, not a gap. Reconcile's invariants run over ids
+  only.
+- **Curate:** the taxonomist (pre-draft) or curator (post-draft) reads
+  ONLY the recorded gap population — ids and one-line texts, never
+  fragments, never sources. Cheapest agent in the system, by
+  construction.
+- **Ask:** human gate; accepted asks render (Part C).
+- **Answer — ruling (c): humans just drop artifacts.** The drop is the
+  whole human interface. File lands in `_sources/new/` → `route` mints
+  the SRC id → the MATCHER runs as part of intake: a cheap-tier
+  dispatch that reads the new source (the one ask-loop agent allowed
+  to read a raw source — someone must know what the artifact is) plus
+  the open asks' text, and records `answers: [ASK-…]` on the source's
+  ledger entry. No human typing, no approval gate on the match — it is
+  advisory metadata; the settle dispatch it drives still surfaces in
+  the advisor before any spend, so a wrong match costs a wrong line,
+  never a wrong dispatch. The next gate reports the machine's reading:
+  "SRC-007 → answers ASK-003, ASK-007 → touches 4 nodes."
+- **Route back:** mechanical join, zero tokens: ask → gap ids → the
+  nodes/fragments those gaps live in. The output is a WORK ORDER.
+- **Settle:** the work order drives the dispatch — taxonomist refresh
+  over touched nodes (pre-draft) or update-mode drafters over exactly
+  the touched fragments (post-draft, cheap tier per M48). Never a
+  full-area rescan to learn what a source changed.
+
+**The two not-lost invariants** (reconcile-enforced):
+
+1. Every gap id appears in the register exactly once — inside some
+   ask, or in the explicit `unasked` bucket with a recorded reason
+   ("ours to resolve, not the client's" — **ruling (b):** the bucket
+   is real). A gap id in neither is an ERROR.
+2. An answered ask either settles its gaps or re-opens: the settle
+   dispatch closes the ids, or the curator splits the remainder into
+   a follow-up ask. No zombie answered-asks with live gaps behind
+   them.
+
+**Signal:** the advisor reads open/answered counts per node — the
+confirm gate sizes the ask-first path, the fill wave releases a thin
+node automatically when its asks flip to answered (M74 composed:
+thin ≈ open asks), the draft-ready gate says whether accepting ships
+known holes, and the analyst brief can distinguish
+"asked, unanswered" from "never asked" — a finding-grade distinction.
+
 ## The gate
 
 - Register round-trip: taxonomist-staged asks promoted at confirm;
@@ -136,6 +198,11 @@ open) while the remaining asks stay live.
   fill hold; route → taxonomist-refresh → updated register loop
   exercised across two rounds in fixture; releasing the hold restores
   guard 4 exactly as today.
+- Lifecycle invariants: a register-less gap id (in no ask, not in
+  `unasked`) is a reconcile ERROR; an answered ask with unsettled gap
+  ids surfaces at the next gate; the matcher's `answers:` metadata on
+  a routed source produces the work-order join (asserted mechanically,
+  no dispatch).
 - v1 areas: byte-identical advisor output; no new dispatch fires from
   any handler without the human's answer.
 - Full suite + compat gate untouched.
