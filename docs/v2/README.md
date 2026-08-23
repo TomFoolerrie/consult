@@ -241,7 +241,8 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M73](M73-run-2-paper-cuts.md) | Run-2 paper cuts: taxonomist contract catches up to M65, first-checkpoint sweep disclosure, missing-folder error states both readings (**TICKETED**) |
 | [M74](M74-thin-nodes-wait-for-evidence.md) | Thin nodes wait for evidence: confirm persists the confidence call, fill partitions the wave, low-confidence drafting is a human choice on the cheap tier (**TICKETED**) |
 | [M75](M75-the-ask-loop.md) | The ask loop: curated ask register with gap-id mapping, taxonomist stages its asks, curator pass post-draft, information-request/agenda read the register, confirm gate offers ask-first rounds before fill (**TICKETED**) |
-| [M76](M76-returns-feed-the-record.md) | Returns feed the record: a flag queue for agent return judgment (own bus, not notes), agents' contracts gain a flags block, briefs and gates read it, the session audit becomes a contract with an empty-by-design findings section (**TICKETED**) |
+| [M76](M76-returns-feed-the-record.md) | Returns feed the record: a flag queue for agent return judgment (own bus, not notes), agents file their own flags through the verb, briefs and gates read it, the session audit becomes a contract with an empty-by-design findings section (**TICKETED**) |
+| [M77](M77-taxonomist-standing-tenancy.md) | Standing tenancy: the taxonomist's rulings/deferrals/doubts persist in a tenure file it writes itself, its brief feeds its own precedent back; doctrine — grow the tenancy, not the harness (**TICKETED**) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.

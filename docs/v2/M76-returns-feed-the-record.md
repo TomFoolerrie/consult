@@ -57,22 +57,28 @@ only by a new deterministic verb hosted in a NEW `scripts/flags.py`
 Correction, per review: `notes_util.py` is a LIBRARY with no CLI (no
 argparse, no `main()`) and stays that way — the verb does not live
 there; `flags.py` may import `notes_util.validate_item`-style
-helpers but owns its own file and schema. The contract is that the
-ORCHESTRATOR runs the verb verbatim from each return's flag block,
-staying inside write-nothing-except-scripts. Each flag: target, origin,
+helpers but owns its own file and schema. Each flag: target, origin,
 text, state (`open | actioned | declined`), and the actioning
 reference when closed (the taxonomy change, the register entry, the
 finding id, or the human's declared decline — a flag never just
 disappears; state changes are as append-only as the ledger's).
 
-### Part B — the agents' contracts name the flag block
+### Part B — the agents file their own flags (tenancy ruling, 2026-08-23)
 
-`consult-drafter` and `consult-taxonomist` return contracts gain a
-structured `flags:` block (target/text pairs) replacing today's
-narrate-it-and-hope; the orchestrate skill's return-handling row makes
-filing them a numbered duty, one verb call per flag, before
-`mark-processed`. A return with no flags files nothing — the block is
-optional, never padded.
+**The agent that formed the judgment runs the verb** — not the
+orchestrator transcribing it. Drafters and the taxonomist already
+carry `Bash(python3:*)` and already run `reconcile.py` themselves;
+the verb layer, not the invoker, is the safety mechanism, and the
+orchestrator's clerical relay is where this system historically
+fumbles. So: `consult-drafter` and `consult-taxonomist` contracts
+gain a filing duty — before returning, run `flags.py add` once per
+flag formed during the pass — and their RETURN carries only the
+filed flag ids (compact, verifiable), replacing today's
+narrate-it-and-hope. The orchestrate skill's return-handling row
+becomes a CHECK, not a transcription: if a return narrates judgment
+that names no flag id, send it back or file it — the fallback duty,
+not the default path. A pass with no flags files nothing — the duty
+is conditional, never padded.
 
 ### Part C — the queue feeds the readers that need it
 
@@ -130,9 +136,10 @@ M76.
 - Wrong-bus guard: a `flag` kind is refused by `notes_util`
   validation (KINDS unchanged); the notes bus and the flag queue
   cannot cross-contaminate.
-- Contract text: drafter and taxonomist return contracts carry the
-  `flags:` block; the skill carries the filing duty and the audit
-  duty (presence-asserted).
+- Contract text: drafter and taxonomist contracts carry the
+  file-your-own-flags duty and the return-ids shape; the skill
+  carries the check-not-transcribe duty and the audit duty
+  (presence-asserted).
 - v1 areas: no flags file → every brief and gate byte-identical to
   today.
 - Full suite + compat gate untouched.
