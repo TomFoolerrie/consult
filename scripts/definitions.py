@@ -81,6 +81,10 @@ class Definition:
     bindings: dict[str, dict] = field(default_factory=dict)
     skin: Skin | None = None
     path: Path | None = None
+    #: M78 Part B: the cover title a definition-shaped render carries. None
+    #: means unstated, and `deliverable_title` derives one from the name — a
+    #: definition is never untitled, it is only ever untitled BY HAND.
+    title: str | None = None
     #: WP-D3: the M14 document-profile provenance line for the area this
     #: definition was resolved for (`client_config.Profile.report_line()`).
     #: None when the definition was loaded without an area (no profile in
@@ -93,7 +97,7 @@ class Definition:
 # Vocabularies the loader admits (unknown = refused, named)
 # --------------------------------------------------------------------------- #
 
-_ALLOWED_TOP_KEYS = {"deliverable", "shape", "bindings", "skin"}
+_ALLOWED_TOP_KEYS = {"deliverable", "title", "shape", "bindings", "skin"}
 _ALLOWED_BLOCK_KEYS = {"id", "title", "kind", "binding", "repeat",
                        "numbering", "text", "writer"}
 _ALLOWED_BLOCK_KINDS = {"entity-part", "view", "static"}
@@ -259,6 +263,14 @@ def _stage1_syntax(path: Path, data) -> Definition:
             f"(got {data.get('deliverable')!r})")
     name = name.strip()
 
+    doc_title = data.get("title")
+    if doc_title is not None and (
+            not isinstance(doc_title, str) or not doc_title.strip()):
+        raise DefinitionError(
+            f'{fname}: "title" must be a non-empty string '
+            f"(got {doc_title!r})")
+    doc_title = doc_title.strip() if isinstance(doc_title, str) else None
+
     raw_bindings = data.get("bindings")
     if raw_bindings is None:
         raw_bindings = {}
@@ -337,7 +349,8 @@ def _stage1_syntax(path: Path, data) -> Definition:
                             repeat=entry.get("repeat"), numbering=numbering,
                             text=text, writer=writer))
 
-    return Definition(name=name, shape=blocks, bindings=bindings, path=path)
+    return Definition(name=name, title=doc_title, shape=blocks,
+                      bindings=bindings, path=path)
 
 
 # --------------------------------------------------------------------------- #
@@ -1081,6 +1094,17 @@ def load_definition(name: str, area=None) -> Definition:
 DEFAULT_DEFINITION = "desktop-procedure"
 
 
+def deliverable_title(defn: Definition) -> str:
+    """The cover title for a definition-shaped render (M78 Part B).
+
+    The definition's own `title:` when it states one; otherwise derived from
+    the deliverable NAME, so an untitled definition still names itself rather
+    than borrowing the capture manifest's title."""
+    if defn.title:
+        return defn.title
+    return (defn.name or "").replace("-", " ").replace("_", " ").title()
+
+
 def area_deliverable(area) -> str | None:
     """The deliverable this area is BUILDING, or None when nothing names one.
 
@@ -1139,6 +1163,8 @@ def _definition_to_raw(defn: Definition) -> dict:
         shape.append(entry)
     raw = {"deliverable": defn.name, "shape": shape,
            "bindings": {k: dict(v) for k, v in defn.bindings.items()}}
+    if defn.title:
+        raw["title"] = defn.title
     if defn.skin is not None:
         raw["skin"] = {"format": defn.skin.format,
                        "requires": list(defn.skin.requires)}
@@ -1196,8 +1222,8 @@ def _shade_with_profile(defn: Definition, prof) -> Definition:
     referenced = {b.binding for b in shape if b.binding}
     bindings = {k: v for k, v in bindings.items() if k in referenced}
 
-    return Definition(name=defn.name, shape=shape, bindings=bindings,
-                      skin=defn.skin, path=defn.path)
+    return Definition(name=defn.name, title=defn.title, shape=shape,
+                      bindings=bindings, skin=defn.skin, path=defn.path)
 
 
 def _has_user_deliverables(area) -> bool:

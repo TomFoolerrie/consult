@@ -39,6 +39,11 @@
 
 deliverable: information-request
 
+# The cover title (M78 Part B). Without it the render borrows the capture
+# manifest's title and the client reads a process document's cover over an
+# information request.
+title: Information Request
+
 shape:
   - id: request-preamble
     title: About This Request

@@ -707,8 +707,19 @@ _REQUIRED_COLS = {
     "appendix-a": {1: "Impact", 2: "Severity"},
 }
 
+#: M78: `Pending generation` is materialize_views' stub marker
+#: (definitions._stub_text) and was in no alternative — final-mode readiness
+#: reported CLEAN over a document whose every content section was a stub.
 _PLACEHOLDER_RE = re.compile(
-    r"\bTBD\b|Pending user input|Pending synthesis", re.IGNORECASE)
+    r"\bTBD\b|Pending user input|Pending synthesis|Pending generation",
+    re.IGNORECASE)
+
+#: The pending-stub markers a definition's bound view must not still carry
+#: when a DELIVERABLE render is asked for (M78 Part A step 2). Narrower than
+#: `_PLACEHOLDER_RE` on purpose: this one refuses the render, so it matches
+#: only the two "no writer has run here yet" stubs, never authored prose that
+#: happens to say TBD.
+_PENDING_STUB_RE = re.compile(r"_Pending (?:generation|synthesis)")
 _DOUBLE_SPACE_RE = re.compile(r"(?<=\S)  +(?=\S)")
 _DOUBLE_PUNCT_RE = re.compile(r"(?<!\.)\.\.(?!\.)|,,|;;")
 
@@ -851,7 +862,8 @@ def render_folder(folder: Path, out: Path, *,
                   landscape: bool = False, do_cover: bool = True,
                   mode: str = "working", slugs: list[str] | None = None,
                   track_changes: bool = False, emit_signal: bool = True,
-                  shape=None) -> dict:
+                  shape=None, furniture=None,
+                  title_override: str | None = None) -> dict:
     """Render an area folder. Returns a stats dict (counts + doc_id/map).
 
     M36 (WP-G1) — `shape` is the ONE seam the plan-driven path needs. None (the
@@ -864,8 +876,28 @@ def render_folder(folder: Path, out: Path, *,
     (numbering, token resolution, callout display ids, profile enforcement,
     modes, dividers, provenance) is shared verbatim, which is what makes
     "assembled from the definition" and "assembled from the manifest" the same
-    document. See scripts/render_glue.py for the shape the glue builds."""
+    document. See scripts/render_glue.py for the shape the glue builds.
+
+    M78 Part B — `furniture` and `title_override` are the definition-shaped
+    render's other two seams, and both default to None = v1's glue exactly as
+    it was (golden-pinned). `furniture` is a definition's `skin.requires`
+    capability list: the cover page, the Document Control front-matter table
+    and the TOC-scaffolding dividers (Introduction, the L2 chapters, Reference
+    & Appendices) are hard-coded glue in this function rather than data, so
+    each is gated on the capability that names it (`cover-page`,
+    `document-control`, `toc`) when a skin is consulted at all.
+    `title_override` names the cover: a deliverable is titled by the
+    DELIVERABLE, not by the capture manifest it happens to render over."""
     folder = Path(folder)
+    # Furniture gating (M78 Part B). None = consult no skin: every piece of
+    # v1's furniture is emitted, which is what keeps the plain area render
+    # byte-identical.
+    skinned = furniture is not None
+    caps = set(furniture or ())
+    want_cover = (not skinned) or "cover-page" in caps
+    want_control = (not skinned) or "document-control" in caps
+    want_dividers = (not skinned) or "toc" in caps
+    do_cover = do_cover and want_cover
     # M14 enforcement point 2. Resolved before any body is touched so a
     # malformed profile fails the render rather than shipping a wrong shape.
     profile = client_config.profile(folder)
@@ -953,6 +985,11 @@ def render_folder(folder: Path, out: Path, *,
 
     title = _attr(assembled, "title") or ""
     subtitle = _attr(assembled, "subtitle") or ""
+    if title_override:
+        # The area's own title drops to the subtitle: the reader still learns
+        # WHICH area this request is about, under the deliverable's name.
+        title, subtitle = title_override, title
+
     stats = {"mode": mode, "gaps_stripped": 0, "gap_tags_stripped": 0,
              "citations_scrubbed": 0,
              "dangling_gap_refs": {}, "dangling_gap_ref_count": 0,
@@ -1006,7 +1043,7 @@ def render_folder(folder: Path, out: Path, *,
     # Document Control front matter: a blank fill-by-hand table under its own
     # chapter heading, straight after the cover + TOC. Emitted glue, never a
     # fragment — there is nothing to draft, only version history to record.
-    if do_cover and not subset:
+    if do_cover and not subset and want_control:
         emit("# Document Control")
         emit("")
         emit("| Version | Date | Author | Summary of Changes |")
@@ -1015,7 +1052,7 @@ def render_folder(folder: Path, out: Path, *,
         emit("")
 
     def emit_divider(section, role, slug):
-        if subset:
+        if subset or not want_dividers:
             return
         if role == "procedure":
             divider_state["in_procedures"] = True
@@ -1166,7 +1203,7 @@ def render_folder(folder: Path, out: Path, *,
                 if cit:
                     blocks.append((rtitle, cit))
             if blocks:
-                if divider_state["in_procedures"] \
+                if divider_state["in_procedures"] and want_dividers \
                         and not divider_state["backmatter"]:
                     emit("# Reference & Appendices")
                     emit("")
@@ -1203,7 +1240,8 @@ def render_folder(folder: Path, out: Path, *,
                 stats["readiness"]["cover_fields"].append(cells[0])
     cfgi.convert_assembled(
         body_md, out, title=title, subtitle=subtitle, profile_md=profile_md,
-        include_toc=not subset, landscape=landscape, do_cover=do_cover,
+        include_toc=not subset and want_dividers,
+        landscape=landscape, do_cover=do_cover,
         prov=prov, track_changes=track_changes, break_headings=break_headings,
     )
     stats["docx"] = str(out)
@@ -1233,6 +1271,167 @@ def render_folder(folder: Path, out: Path, *,
         import orchestrate
         orchestrate.emit_render(str(folder), str(out), awaiting_review=True)
     return stats
+
+
+# --------------------------------------------------------------------------- #
+# M78 Part A — the deliverable render path
+#
+# One verb, one concrete pipeline: materialize_views -> aggregate over the AREA
+# -> compile_plan -> render_plan. The fill is aggregate's own manifest-driven
+# derived loop, not a builder ctx assembled here: only the four plan_views
+# builders take a minimal ctx and every other registered builder needs the big
+# one aggregate builds, so a second ctx assembler is a second document shape.
+# --------------------------------------------------------------------------- #
+
+#: Where a definition render lands when `-o` says nothing: engagement state,
+#: not a scratch file (the document a client reads is the run's output). v1
+#: areas have no central root and keep the export beside the area.
+_EXPORTS_DIRNAME = "_exports"
+
+
+def _deliverable_output(area: Path, name: str) -> Path:
+    """`<central_root>/_exports/<area>_<deliverable>.docx`, or the area itself
+    for a v1 folder. The area name is in the filename because one engagement
+    renders the same deliverable over several areas."""
+    import sources
+
+    root = sources.central_root(str(area))
+    base = Path(root) / _EXPORTS_DIRNAME if root else area
+    return base / f"{area.name}_{name}.docx"
+
+
+def _pending_views(area: Path, plan) -> list[str]:
+    """The plan's view kinds whose bound FILE still carries a pending stub.
+
+    Read after the fill, over the files the render would assemble — the one
+    place that can tell "no writer has run here" from "the writer ran and the
+    engagement has nothing to say". Refusing here is why `Pending generation`
+    can never again reach a client page as clean output."""
+    try:
+        manifest = json.loads(
+            (area / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    by_kind = {c.get("derived_kind"): c
+               for c in (manifest.get("components") or [])
+               if isinstance(c, dict) and c.get("role") == "derived"}
+    pending = []
+    for view in plan.views:
+        comp = by_kind.get(view.kind)
+        if not comp:
+            continue
+        path = area / str(comp.get("file") or "")
+        body = path.read_text(encoding="utf-8") if path.is_file() else ""
+        if not body.strip() or _PENDING_STUB_RE.search(body):
+            pending.append(view.kind)
+    return pending
+
+
+def _bound_ask_statuses(defn) -> list[str]:
+    """The ask statuses this definition's bindings name (`asks: accepted`).
+
+    `--mark-sent` is only meaningful for a deliverable that BINDS the ask
+    register; a definition that binds none refuses the flag rather than
+    sweeping a register it does not render."""
+    out = []
+    for spec in (defn.bindings or {}).values():
+        status = (spec or {}).get("asks")
+        if isinstance(status, str):
+            out.append(status)
+        elif isinstance(status, list):
+            out.extend(str(s) for s in status)
+    return out
+
+
+def _mark_sent(area: Path, defn) -> int:
+    """Record that this deliverable's ACCEPTED asks went to the client.
+
+    FILTERED to accepted (`asks._FROM[SENT] == (ACCEPTED,)`): `renderable()`
+    is accepted + sent, so an unfiltered sweep crashes on the second round of
+    a loop designed to run many. Already-sent asks are skipped silently —
+    that is already the recorded state. `_transition` persists per call, so a
+    mid-list refusal leaves the register partially ADVANCED, never
+    inconsistent, and re-running is idempotent."""
+    import asks
+    import sources
+
+    root = sources.central_root(str(area))
+    if root is None:
+        print("--mark-sent: no engagement ledger above this area — the ask "
+              "register is engagement state (central mode only); nothing "
+              "recorded")
+        return 1
+    accepted = [e["id"] for e in asks.entries(root)
+                if e.get("status") == asks.ACCEPTED]
+    sent: list[str] = []
+    try:
+        for aid in accepted:
+            asks.send(root, aid)
+            sent.append(aid)
+    except asks.AsksError as exc:
+        print(f"--mark-sent: stopped at {exc}")
+        if sent:
+            print("  sent (recorded): " + ", ".join(sent))
+        return 1
+    if sent:
+        print(f"--mark-sent: {len(sent)} ask(s) recorded as sent: "
+              + ", ".join(sent))
+    else:
+        print("--mark-sent: no accepted asks to send (already-sent asks are "
+              "left alone)")
+    return 0
+
+
+def _render_deliverable(area: Path, out, name: str, *, mode: str,
+                        do_cover: bool, track_changes: bool,
+                        mark_sent: bool) -> int:
+    """The whole verb. Function-local imports: this module imports neither
+    `definitions` nor `render_glue` at module scope (and must not start —
+    `kernel` imports `aggregate` imports this tree)."""
+    import aggregate
+    import definitions
+    import render_glue
+
+    definitions.materialize_views(area, name=name)
+    rc = aggregate.run(str(area))
+    if rc != 0:
+        # Aggregate has already named the defect. Its registry WARNINGS are
+        # nonfatal and reach the console through its own report; only its exit
+        # code stops the render.
+        print(f"error: aggregate refused over {area.name} — the deliverable "
+              f"cannot be filled; nothing rendered")
+        return rc
+
+    defn = definitions.load_definition(name, area=area)
+    plan = definitions.compile_plan(defn, area)
+    if mark_sent and not _bound_ask_statuses(defn):
+        raise SystemExit(
+            f"error: --mark-sent needs a deliverable that binds the ask "
+            f'register; "{name}" binds none')
+
+    pending = _pending_views(area, plan)
+    if pending:
+        print(f"error: {area.name}: the fill left {len(pending)} bound view(s) "
+              f"of \"{name}\" carrying the pending stub — nothing rendered:")
+        for kind in pending:
+            print(f"  - {kind}")
+        print("  no registered writer produced this view (aggregate reports it "
+              "as skipped) — build the writer, or drop the block from the "
+              "definition; a placeholder is not a deliverable")
+        return 1
+
+    out = Path(out) if out else _deliverable_output(area, name)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    stats = render_glue.render_plan(
+        plan, area, out, mode=mode, skin=defn.skin, do_cover=do_cover,
+        track_changes=track_changes,
+        furniture=(defn.skin.requires if defn.skin else []),
+        title_override=definitions.deliverable_title(defn))
+    print("Wrote " + str(out))
+    print(stats["profile"])
+    if mark_sent:
+        return _mark_sent(area, defn)
+    return 0
 
 
 # --------------------------------------------------------------------------- #
@@ -1271,6 +1470,16 @@ def main(argv=None) -> int:
                     help="working: everything visible + provenance; final: client-facing (gaps stripped, screenshots embedded)")
     ap.add_argument("--slugs", default=None,
                     help="comma-separated procedure slugs — subset (kit) render")
+    ap.add_argument("--deliverable", default=None,
+                    help="render a DELIVERABLE DEFINITION over this area "
+                         "(materialize views, fill them by aggregating the "
+                         "area, then render the definition's shape and shell); "
+                         "mutually exclusive with --slugs")
+    ap.add_argument("--mark-sent", action="store_true",
+                    help="--deliverable only: record the bound register's "
+                         "ACCEPTED asks as sent (run it on the human's yes to "
+                         "\"did this go to the client?\"); default OFF — "
+                         "rendering a working copy is not sending it")
     ap.add_argument("--track-changes", action="store_true",
                     help="emit the docx with tracked changes on by default")
     ap.add_argument("--strict", action="store_true",
@@ -1284,7 +1493,24 @@ def main(argv=None) -> int:
     ap.add_argument("--no-cover", action="store_true", help="Skip the generated cover page")
     a = ap.parse_args(argv)
 
+    if a.deliverable and a.slugs:
+        raise SystemExit("error: --deliverable renders a definition's shape "
+                         "and --slugs a subset of the area's procedures; "
+                         "they are mutually exclusive")
+    if a.mark_sent and not a.deliverable:
+        raise SystemExit("error: --mark-sent records the asks a DELIVERABLE "
+                         "carried to the client; it needs --deliverable")
+
     kind, path = _resolve_input(a.area)
+    if a.deliverable:
+        if kind != "folder":
+            raise SystemExit("error: --deliverable requires an area folder "
+                             "(a definition renders over a manifest)")
+        return _render_deliverable(
+            path, a.output, a.deliverable, mode=a.mode,
+            do_cover=not a.no_cover, track_changes=a.track_changes,
+            mark_sent=a.mark_sent)
+
     out = _infer_output(kind, path, a.output)
     do_cover = not a.no_cover
     if kind == "folder":

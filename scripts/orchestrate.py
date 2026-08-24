@@ -2015,7 +2015,8 @@ def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
     JUDGMENT STATE: the registers (`<root>/_registers/` — findings.yaml,
     asks.yaml) and the session records (`<root>/_records/`). Those two were a
     live leak: a register written every pass and committed by no checkpoint
-    ever. Same one-list-three-calls discipline; a checkpoint that stopped at
+    ever. M78 adds the third: the rendered deliverables (`<root>/_exports/`) —
+    the document sent to a client is engagement state, not an ephemeral file. Same one-list-three-calls discipline; a checkpoint that stopped at
     the area left the run's most valuable state uncommitted. Still a pathspec
     commit:
     unrelated repo work is never swept in.
@@ -2031,6 +2032,7 @@ def _checkpoint_pathspecs(folder: str, central_root: str | None) -> list[str]:
     for extra in (os.path.join(central_root, "_sources"),
                   os.path.join(central_root, "_registers"),
                   os.path.join(central_root, "_records"),
+                  os.path.join(central_root, "_exports"),
                   os.path.join(central_root, "components", "_client"),
                   os.path.join(central_root, ".gitignore")):
         if os.path.exists(extra):

@@ -283,7 +283,9 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
                 track_changes: bool = False,
                 emit_signal: bool = False,
                 bindings: dict | None = None,
-                require_views: bool = True) -> dict:
+                require_views: bool = True,
+                furniture=None,
+                title_override: str | None = None) -> dict:
     """Assemble a compiled Plan over `area` into `out_path`. Returns render.py's
     stats dict.
 
@@ -313,6 +315,13 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
     `plan.name` would silently re-page every existing plan render (v1's own
     definition declares `landscape-tables` too, for its wide registers).
 
+    `furniture` and `title_override` are M78 Part B's two shell seams, passed
+    straight through to render.py: the skin's `requires` capability list gates
+    v1's hard-coded furniture (cover, Document Control, the TOC-scaffolding
+    dividers) and the override titles the cover from the DELIVERABLE. Both
+    default to None = v1's glue unchanged, so every plan render that predates
+    M78 keeps the shell it had.
+
     `emit_signal` defaults to False here (a plan render is not v1's pipeline
     step, so it must not drop v1's signal file into the area unless asked)."""
     area = Path(area)
@@ -334,4 +343,4 @@ def render_plan(plan, area, out_path, *, mode: str = "working",
     return render.render_folder(
         area, out_path, landscape=landscape, do_cover=do_cover, mode=mode,
         slugs=None, track_changes=track_changes, emit_signal=emit_signal,
-        shape=shape)
+        shape=shape, furniture=furniture, title_override=title_override)
