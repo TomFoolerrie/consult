@@ -1,8 +1,9 @@
 # M78 — The last hundred yards: the ask loop's render path, run 3's one real bug
 
-**Status: PROPOSED** (adversarial review applied 2026-08-24 — corrections
-marked "per review" throughout; the review's findings R1–R5/H1–H7 are all
-folded in).
+**Status: BUILT** (`2.5.1`, gate 66/66 across two work packages — see
+Amendment A1). Adversarial review applied 2026-08-24 pre-build —
+corrections marked "per review" throughout; the review's findings
+R1–R5/H1–H7 are all folded in.
 Origin: the third Nordhaven run (session audit 2026-08-24, the first live
 exercise of the 2.5.0 ask loop). The register side of the loop worked on
 first contact — the taxonomist staged 14 curated asks, confirm promoted
@@ -307,3 +308,48 @@ byte-identical.
 - Skill: the confirm row carries the hold verb (on explicit answer
   only) and the render row carries the one-command deliverable path.
 - Full suite + compat gate untouched.
+
+## Amendment A1 — build rulings (2026-08-24)
+
+**WP1 (Parts A–D, `2.5.1-alpha.1`, gate 32/32):**
+
+* The gate's "the asks section names the ask ids" was refuted by the
+  code: `plan_views.build_client_asks` deliberately keeps ASK/gap ids
+  and statuses off the page (no pipeline vocabulary reaches the
+  client). The pin asserts the accepted asks' client-voiced text and
+  audience instead.
+* Review N6 resolved to option 2: a named `--deliverable`'s unserved
+  kind rides aggregate's fallback WARNING and the surviving stub is
+  caught by the placeholder refusal, which names the view. No
+  aggregate.py change at all.
+* The Introduction heading (and the L2/Reference dividers — all
+  `emit_divider` front-matter) gate on the `toc` skin token; they are
+  TOC scaffolding and have no token of their own.
+* Nonfatal aggregate output surfaces verbatim; only a nonzero aggregate
+  exit stops the render. Registry warnings never block a deliverable.
+* Export filename is `<area>_<deliverable>.docx` — `_exports/` is flat
+  and one engagement renders the same deliverable over several areas.
+* `--mark-sent` REFUSES (never silently no-ops) a definition binding no
+  ask register, and refuses in v1 mode where no engagement register
+  exists.
+* `title_override` moves the manifest title to the cover subtitle
+  rather than dropping it.
+
+**WP2 (Parts E–F, `2.5.1-alpha.2`, gate 34/34):**
+
+* `client_config` gained a read-only `key_files` map (key → owning
+  file) populated from the `owners` map `_layer_keys` already built and
+  discarded — the verb reads it instead of re-deriving ownership. No
+  writer added to client_config.
+* The zero-writers doctrine test re-based from per-line grep to
+  per-`def`-block attribution (docstrings/comments stripped, writer
+  tokens widened) with a two-function allowlist — a line-scoped grep is
+  exactly what a split write call evades.
+* The marker check applies at ALL THREE `done` returns via one nested
+  helper — "where the advisor would otherwise say done" is three
+  sites, not one.
+* Hold-list line surgery supports block sequences and one-line flow
+  lists; a bare scalar (`hold: fill`) and a multi-line flow list refuse
+  BY NAME with the original bytes pinned unchanged.
+* Suite across the ticket: 1820 → 1886, zero skips/xfails; v1 compat
+  gate green throughout.

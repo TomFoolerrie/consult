@@ -9,6 +9,43 @@ This project is pre-1.0 in spirit despite the `1.x` line — the `1.x` numbers
 count feature milestones of the second (current) architecture, not a stability
 guarantee.
 
+## [2.5.1] — 2026-08-24
+
+The last-hundred-yards release, written from the THIRD live Nordhaven run —
+the first exercise of the 2.5.0 ask loop. The register side worked on first
+contact; everything that failed sat between the register and the page the
+client reads. One ticket (M78, adversarially reviewed pre-build), two work
+packages, both doctrines of 2.5.0 honored: the hold verbs grow the tenancy
+around an explicit human answer, and no new persistent store lands
+(`_exports/` holds renders, not state).
+
+### Added
+
+- **M78 WP1 — one verb renders a deliverable** (`docs/v2/M78`): `render.py
+  --deliverable <name>` runs the real fill pipeline (materialize →
+  aggregate → compile → render), REFUSES by view name when any bound view
+  still carries a placeholder stub, gates cover/Document Control/TOC by the
+  definition's `skin.requires`, titles the cover from the new
+  loader-validated `title:` key, lands the docx in `<root>/_exports/`
+  (now in the checkpoint pathspecs), and `--mark-sent` flips the bound
+  ACCEPTED asks to `sent` (skipping already-sent — the loop runs many
+  rounds). `Pending generation` joins `_PLACEHOLDER_RE`, so final-mode
+  readiness can never again report clean over the stubs run 3 shipped.
+- **M78 WP2 — the gate answer writes the hold**: `orchestrate.py hold` /
+  `release-hold` — line surgery on the `hold:` block of the OWNING
+  `_client/` file (comments and every other byte preserved, post-edit
+  self-verification with restore), refusing unknown/gate actions, no-ops,
+  wrong-layer releases and unsupported list shapes by name. The M17
+  doctrine narrows, not falls: no writer outside an explicit human gate
+  answer; a hand edit still wins. Four SKILL.md "no verb exists" sites and
+  three M75 doctrine tests re-pinned as spec.
+- **M78 WP2 — damage is not done**: a central-shaped tree (`_sources/` +
+  `components/` at one ancestor) missing its `sources.yaml` marker now
+  routes to the `unresolvable` gate naming the recovery, instead of the
+  advisor reading a wiped engagement as `done`.
+
+Suite 1,820 → 1,886; zero skips, zero xfails; v1 compat gate green.
+
 ## [2.5.0] — 2026-08-23
 
 The ask-loop release, written from the SECOND live run of the v2

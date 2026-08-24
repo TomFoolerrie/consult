@@ -1,6 +1,6 @@
 # CONSULT v2 — Architecture Charter
 
-**Status: RELEASED AS 2.5.0 (2026-08-23)** — the spine (M33–M39) plus
+**Status: RELEASED AS 2.5.1 (2026-08-24)** — the spine (M33–M39) plus
 M40 shipped as 2.0.0; M41–M43 shipped as 2.1.0; M44–M49 (the
 engagement-lens line) shipped as 2.2.0; M50–M55 (the backlog line: the
 gap discriminator, structured serviceability, the merged taxonomist
@@ -11,7 +11,10 @@ renders — from the first live run and its audit) shipped as 2.4.0;
 the ask-loop line M71–M77 (the tail reads the objective, one id
 width, the paper cuts, thin nodes wait, the ask register, the flag
 queue, standing tenancy — from the second live run, its audit, and
-the full-cycle data-flow trace) shipped as 2.5.0. **Authoritative suite count: 1,820 collected, all
+the full-cycle data-flow trace) shipped as 2.5.0; M78 (the last
+hundred yards: the deliverable render verb, the hold verbs, damage is
+not done — from the third live run, the first exercise of the ask
+loop) shipped as 2.5.1. **Authoritative suite count: 1,886 collected, all
 passing** (`python3 -m pytest --collect-only -q`; the release checklist
 owns this number) with ZERO xfails (the standing M38 table-routing
 xfail retired in M54) and ZERO skips (the M64 skip budget enforces
@@ -247,6 +250,7 @@ Numbering continues from v1 (M0–M32 under [`../`](../)).
 | [M75](M75-the-ask-loop.md) | The ask loop: curated ask register with gap-id mapping, taxonomist stages its asks, information-request/agenda read the register, confirm gate offers ask-first rounds before fill (**BUILT**, 2.5.0-alpha.4, gate 77/77) |
 | [M76](M76-returns-feed-the-record.md) | Returns feed the record: a flag queue for agent return judgment (own bus, not notes), agents file their own flags through the verb, briefs and gates read it, the session record becomes a contract (**BUILT**, 2.5.0-alpha.6, gate 50/50) |
 | [M77](M77-taxonomist-standing-tenancy.md) | Standing tenancy: the taxonomist's rulings/deferrals/doubts persist in a tenure file it writes itself, its brief feeds its own precedent back; doctrine - grow the tenancy, not the harness (**BUILT**, 2.5.0, gate 41/41) |
+| [M78](M78-the-last-hundred-yards.md) | The last hundred yards: `render.py --deliverable` fills-refuses-renders in one verb, the definition owns its shell, exports land in `_exports/`, the gate answer writes the hold, a wiped engagement reads as damage not done (**BUILT**, 2.5.1, gate 66/66) |
 
 This spine is provisional; tickets get full contract specs (in the v1 M-ticket
 style) before implementation, and the list will grow as v2 ideas land.
