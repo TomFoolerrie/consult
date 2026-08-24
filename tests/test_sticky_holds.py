@@ -190,8 +190,13 @@ def test_a_hold_never_forces_an_unready_stage(tmp_path):
 # --------------------------------------------------------------------------- #
 
 def test_a_hold_is_sticky_because_it_is_config(tmp_path):
-    """No "clear once" verb exists: repeated calls return the same gate until the
-    human edits `_client/`, and editing it releases the hold immediately."""
+    """Nothing clears a hold automatically: repeated calls return the same gate
+    until `_client/` changes, and changing it releases the hold immediately.
+
+    M78 Part E narrowed the doctrine — `orchestrate.py release-hold` now edits
+    that file, but ONLY as the recorded outcome of an explicit human answer, so
+    the stickiness pinned here is unchanged: the advisor itself never clears a
+    hold, and a hand edit still wins (which is what this test does)."""
     folder = area_with(tmp_path, hold=["synthesize"])
     at_synthesize(folder)
     for _ in range(3):

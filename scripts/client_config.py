@@ -111,6 +111,7 @@ class ClientConfig(dict):
     as the spec says), carrying provenance on the side:
 
       - ``layers``            top-level key -> "area" | "engagement"
+      - ``key_files``         top-level key -> the file that supplied it
       - ``conventions``       file name -> resolved Path
       - ``convention_layers`` file name -> "area" | "engagement"
       - ``present``           layers that exist on disk with at least one file
@@ -119,6 +120,10 @@ class ClientConfig(dict):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.layers: dict[str, str] = {}
+        # M78: which FILE supplies each key. `hold:` lives in the merged
+        # `_client/` namespace, only conventionally in `consult.yaml`, so the
+        # hold verbs must edit the owning file rather than guess the name.
+        self.key_files: dict[str, Path] = {}
         self.conventions: dict[str, Path] = {}
         self.convention_layers: dict[str, str] = {}
         self.present: list[str] = []
@@ -166,7 +171,7 @@ def _read_yaml(path: Path) -> dict:
     return data
 
 
-def _layer_keys(client_dir: Path) -> tuple[dict, list[Path]]:
+def _layer_keys(client_dir: Path) -> tuple[dict, list[Path], dict]:
     """Merge every `*.yaml` / `*.yml` in one `_client/` into a key namespace.
 
     The files carry disjoint top-level keys by convention (`org-chart.yaml` →
@@ -189,7 +194,7 @@ def _layer_keys(client_dir: Path) -> tuple[dict, list[Path]]:
                 )
             owners[key] = path
             merged[key] = value
-    return merged, files
+    return merged, files, owners
 
 
 def _layer_conventions(client_dir: Path) -> dict[str, Path]:
@@ -220,13 +225,14 @@ def load(area) -> ClientConfig:
     # Engagement first so the area layer can shadow it key by key.
     for name in (ENGAGEMENT, AREA):
         client_dir = dirs[name]
-        keys, files = _layer_keys(client_dir)
+        keys, files, owners = _layer_keys(client_dir)
         conventions = _layer_conventions(client_dir)
         if files or conventions:
             cfg.present.append(name)
         for key, value in keys.items():
             cfg[key] = value
             cfg.layers[key] = name
+            cfg.key_files[key] = owners[key]
         for fname, path in conventions.items():
             cfg.conventions[fname] = path
             cfg.convention_layers[fname] = name

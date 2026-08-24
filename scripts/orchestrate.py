@@ -6,8 +6,10 @@ state and print it (``next --area <area> --json``). The advisor (``next`` /
 ``decide``) **never mutates**: it is a pure function of on-disk state, so
 re-running it is always safe and idempotent (M7 "Design note"). The only
 mutating pieces hosted here are the centralized signal-file writers (emit_*),
-the two human-acceptance verbs (``accept`` → ``.render.json``, ``accept-draft``
-→ ``.draft_ready.json``: each the SOLE writer of its flag) and the ``checkpoint``
+the human-answer verbs (``accept`` → ``.render.json``, ``accept-draft``
+→ ``.draft_ready.json``: each the SOLE writer of its flag; ``hold`` /
+``release-hold`` → the `hold:` block of the area's own ``_client/`` file, by
+line surgery, M78 Part E) and the ``checkpoint``
 subcommand — a git commit of the area folder the driver
 runs after each successful mutating stage, so engagement state is durable
 without any agent remembering to commit. All state changes happen in the stage
@@ -44,7 +46,10 @@ the SAME action, with `human_gate: true` and `details.held_by`. It never skips,
 never reorders and never forces, so the ladder above is untouched: the hold only
 decides whether a human sees the next action before it runs. Holding something
 that is already a stop (a gate, `done`, `error`) is a load-time validation error,
-and so is an unknown name — see client_config.parse_holds.
+and so is an unknown name — see client_config.parse_holds. The list is
+human-owned config and a hand edit always wins; ``hold``/``release-hold``
+(M78 Part E) edit it only as the recorded outcome of an explicit human answer
+at a gate, never from a guard.
 
 The overlap between guards is real (e.g. after scaffold `_sources/new/` is still
 full because sources move only after fill) — precedence is what makes the walk
@@ -776,6 +781,39 @@ def _holds(folder: str):
     return client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
 
 
+#: M78 Part F — the central-mode marker (`_sources/sources.yaml`, the one
+#: detection seam, `sources.central_root`) is a FILE, so deleting it turns a
+#: half-built engagement into a v1 area with nothing to scope, which reads as
+#: `done`. Detection is a CONJUNCTION at ONE ancestor: `X/_sources/` is a
+#: directory AND `X/components/` is a directory AND `X/_sources/sources.yaml`
+#: is gone. The components-sibling requirement at the SAME ancestor is what
+#: keeps a real v1 area's own markerless `_sources/` out of this (the named
+#: negative pin: tests/fixtures/p2p-complete/components/procure-to-pay).
+def _marker_gap(folder: str):
+    """The ancestor whose central-mode marker was deleted, or None.
+
+    Read-only, and consulted only where the advisor would otherwise say
+    `done`. Walks up from the area (itself included) and stops AT the git root
+    — the engagement lives in one repo, so nothing above it can be the
+    engagement."""
+    try:
+        current = os.path.abspath(os.path.realpath(folder))
+    except OSError:                              # pragma: no cover - defensive
+        return None
+    while True:
+        if (os.path.isdir(os.path.join(current, "_sources"))
+                and os.path.isdir(os.path.join(current, "components"))
+                and not os.path.isfile(os.path.join(current, "_sources",
+                                                    "sources.yaml"))):
+            return current
+        if os.path.isdir(os.path.join(current, ".git")):
+            return None
+        parent = os.path.dirname(current)
+        if parent == current:
+            return None
+        current = parent
+
+
 def _uncommitted_proposals(folder: str, proposed_dir: str) -> bool:
     """True when the area is in a git work tree and `.proposed/` carries work
     HEAD does not (untracked or modified).
@@ -1096,6 +1134,29 @@ def decide(folder: str) -> dict:
                       why_no_stage=why_no_stage, human_action=human_action,
                       **details)
 
+    def done(reason, **details):
+        """`done` — unless the engagement's central marker was DELETED (M78
+        Part F). A wiped engagement has nothing to scope and nothing to fix,
+        which is exactly what a finished one looks like, so the one state that
+        must not be reported as finished routes to the EXISTING `unresolvable`
+        gate: no new action name, no classification change, and the gate
+        already carries the reporting contract this needs."""
+        gap = _marker_gap(folder)
+        if gap is None:
+            return result("done", reason, **details)
+        return unresolvable(
+            "central marker missing",
+            "no stage can restore a deleted registry file — `%s/_sources/"
+            "sources.yaml` IS the central-mode marker, and without it this "
+            "engagement's areas read as v1 areas with nothing to scope"
+            % os.path.relpath(gap, folder),
+            "restore `_sources/sources.yaml` from git (`git -C %s checkout -- "
+            "_sources/sources.yaml`), or start a fresh engagement folder — "
+            "then re-run `next`" % os.path.relpath(gap, folder),
+            engagement_root=os.path.relpath(gap, folder),
+            would_have_been="done: " + reason,
+        )
+
     # 0 — the area must exist. resolve_area() happily returns components/<name>
     #     for a name that was never scoped, and "no manifest and no sources"
     #     used to report `done` — the most reassuring possible answer for an
@@ -1150,10 +1211,12 @@ def decide(folder: str) -> dict:
                 "revert to.")
         # M75 Part C3/D: the gate OFFERS the ask-first loop as a first-class
         # second answer. `fill now` is today's behavior, untouched and still
-        # the default shape; `ask first` hands the human the EXACT hold edit
-        # and stops. Nothing here writes `consult.yaml` — holds are
-        # human-owned config with no programmatic writer, and that doctrine is
-        # the reason the answer carries an instruction rather than a command.
+        # the default shape; `ask first` names the VERB the orchestrator runs
+        # on that explicit answer (M78 Part E) and stops. Nothing HERE writes
+        # `consult.yaml`: `decide()` is read-only and no guard reaches
+        # `edit_hold` — the verb runs only as the recorded outcome of the
+        # human's answer, exactly as `accept-draft` does, and the list stays
+        # human-owned config a hand edit still wins over.
         # The counts, where a register exists, size the choice.
         counts = _ask_counts(folder)
         if counts is not None:
@@ -1170,12 +1233,16 @@ def decide(folder: str) -> dict:
                          "against the evidence in hand — the default shape"},
                 {"name": "ask first",
                  "cost": "free (the information-request render is python)",
-                 "human_action": "add `fill` to `hold:` in "
-                                 "%s/_client/consult.yaml, then confirm: the "
-                                 "fill wave stops at a gate while the curated "
-                                 "asks go out, and removing the hold is your "
-                                 "\"I have what I need — draft\""
-                                 % os.path.basename(os.path.abspath(folder)),
+                 "human_action": "on this explicit answer, run "
+                                 "`orchestrate.py hold --area %s fill`, then "
+                                 "confirm: the fill wave stops at a gate while "
+                                 "the curated asks go out. Your later \"I have "
+                                 "what I need — draft\" is "
+                                 "`orchestrate.py release-hold --area %s "
+                                 "fill`. The list stays human-owned config in "
+                                 "`_client/` and a hand edit still wins"
+                                 % (os.path.basename(os.path.abspath(folder)),
+                                    os.path.basename(os.path.abspath(folder))),
                  "note": "each round: render information-request -> client "
                          "material arrives -> route -> taxonomist curation "
                          "-> updated register -> re-render. The fill fan-out "
@@ -1361,7 +1428,7 @@ def decide(folder: str) -> dict:
                 gate=True,
                 unassigned=rel(unassigned),
             )
-        return result("done", "no manifest and no sources to scope")
+        return done("no manifest and no sources to scope")
 
     # 4 — fill: skeletons still stamped `unfilled` (precedes incremental taxonomy
     #     so a freshly-scaffolded area fills rather than re-scoping)
@@ -1552,7 +1619,7 @@ def decide(folder: str) -> dict:
 
     # ---- steady-state derived pipeline (needs real procedures) ----
     if not st.procedures:
-        return result("done", "no procedures in manifest")
+        return done("no procedures in manifest")
 
     # 5b — a manifest slug whose fragment file is absent (audit F4). Both
     #      unfilled_slugs() and proc_hashes() skip it, so guard 6 used to fire
@@ -1795,8 +1862,8 @@ def decide(folder: str) -> dict:
                       docx=ren.get("docx"))
 
     # 12 — nothing outstanding
-    return result("done", "all views current, reconciled, rendered and reviewed",
-                  docx=ren.get("docx"))
+    return done("all views current, reconciled, rendered and reviewed",
+                docx=ren.get("docx"))
 
 
 # --------------------------------------------------------------------------- #
@@ -1972,6 +2039,237 @@ def accept_draft(folder: str) -> dict:
                 {"draft_basis": draft_basis, "accepted": True})
     return {"accepted": True, "draft_basis": draft_basis,
             "next_action": decide(folder).get("action")}
+
+
+# --------------------------------------------------------------------------- #
+# M78 Part E — the gate answer writes the hold.
+#
+# The M17 zero-programmatic-writers rule NARROWS, it does not fall: no writer
+# outside an explicit human gate answer. `accept-draft` is the precedent — a
+# verb the orchestrator runs only as the recorded outcome of a human answer.
+# The file stays human-editable and a hand edit still wins; the verb is a
+# convenience over the same file, not a new owner.
+#
+# LINE SURGERY, not a YAML round-trip: client_config is `safe_load`-only, the
+# file is hand-authored and may carry comments, so the verb rewrites the
+# `hold:` block's LINES and leaves every other byte of the file identical.
+# After the edit it re-runs `client_config.holds()` and RESTORES the original
+# bytes if the result is not exactly the intended set — surgery that cannot
+# verify itself does not land.
+# --------------------------------------------------------------------------- #
+
+HOLD_KEY = "hold"
+
+#: The one comment written into a hold file this verb creates. It says who owns
+#: the file, because the next reader will be a human editing it by hand.
+HOLD_FILE_HEADER = ("# Human-owned: sticky holds (M17). Hand edits win; "
+                    "`orchestrate.py hold`/`release-hold` edit these lines.\n")
+
+#: Only a top-level `hold:` is the policy key — an indented one is some other
+#: mapping's field and must never be touched.
+_HOLD_KEY_RE = re.compile(r"^hold[ \t]*:(.*)$")
+_HOLD_ITEM_RE = re.compile(r"^[ \t]+-[ \t]*(.*)$")
+
+
+class HoldEditError(RuntimeError):
+    """A hold edit that must not land: bad action, wrong layer, no-op, or an
+    unsupported file shape. Nothing is written and the message names the fix."""
+
+
+def _hold_block(lines):
+    """Locate the `hold:` block. Returns (start, end, style, indent, comments,
+    trailer); raises HoldEditError for a shape this surgery does not support.
+
+    Two shapes are supported BY NAME: a block sequence (`hold:` + indented
+    `- item` lines, an empty value included) and a one-line flow list
+    (`hold: [a, b]`). Anything else — a bare scalar (`hold: fill`), a mapping,
+    a flow list spanning lines — refuses rather than guessing, because a guess
+    here rewrites a human's policy file."""
+    for i, line in enumerate(lines):
+        m = _HOLD_KEY_RE.match(line)
+        if not m:
+            continue
+        value = m.group(1).strip()
+        if value.startswith("["):
+            close = m.group(1).find("]")
+            if close < 0:
+                raise HoldEditError(
+                    "the `hold:` flow list spans more than one line — this "
+                    "verb edits a one-line flow list (`hold: [fill]`) or a "
+                    "block sequence (`hold:` + indented `- fill` lines). "
+                    "Reformat by hand, or edit the file by hand.")
+            trailer = m.group(1)[close + 1:] + line[len(line.rstrip("\n")):]
+            return i, i + 1, "flow", "  ", [], trailer
+        if value and not value.startswith("#"):
+            raise HoldEditError(
+                "`hold:` carries a bare scalar (%r) — this verb edits a block "
+                "sequence (`hold:` + indented `- fill` lines) or a one-line "
+                "flow list (`hold: [fill]`). Rewrite it as a list by hand "
+                "(one line: `hold: [%s]`) and re-run."
+                % (value, value))
+        trailer = m.group(1) + line[len(line.rstrip("\n")):]
+        comments, end = [], i + 1
+        while end < len(lines):
+            nxt = lines[end]
+            if not nxt.strip() or not nxt[:1].isspace():
+                break
+            if nxt.strip().startswith("#"):
+                comments.append(nxt)
+                end += 1
+                continue
+            if not _HOLD_ITEM_RE.match(nxt):
+                raise HoldEditError(
+                    "the lines under `hold:` are not a plain sequence "
+                    "(%r) — this verb edits `- item` lines only. Edit the "
+                    "file by hand." % nxt.strip())
+            end += 1
+        indent = "  "
+        for nxt in lines[i + 1:end]:
+            item = _HOLD_ITEM_RE.match(nxt)
+            if item:
+                indent = nxt[:len(nxt) - len(nxt.lstrip())]
+                break
+        return i, end, "block", indent, comments, trailer
+    raise HoldEditError("no top-level `hold:` key in the file")
+
+
+def _hold_lines(actions, style, indent, comments, trailer):
+    """The replacement lines for one `hold:` block, in the file's own style."""
+    if style == "flow":
+        body = ", ".join(actions)
+        return ["hold: [%s]%s" % (body, trailer)]
+    if not actions and not comments:
+        return ["hold: []%s" % trailer]
+    out = ["hold:%s" % trailer]
+    out.extend(comments)
+    out.extend("%s- %s\n" % (indent, a) for a in actions)
+    return out
+
+
+def _write_hold_block(path, lines, start, end, block):
+    """THE only programmatic writer of a `_client/` file (M78 Part E).
+
+    Replaces one line range and leaves every other byte alone. Returns the
+    bytes that were there before, so a failed self-verification can restore
+    them."""
+    before = "".join(lines)
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write("".join(lines[:start] + block + lines[end:]))
+    return before
+
+
+def _restore_hold_file(path, before, created):
+    """Undo a landed edit whose self-verification failed."""
+    if created:
+        try:
+            os.unlink(path)
+        except OSError:                          # pragma: no cover - defensive
+            pass
+        return
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write(before)
+
+
+def edit_hold(folder: str, action: str, release: bool = False) -> dict:
+    """Add or remove one action in the area's effective `hold:` list (M78 E).
+
+    Refuses loudly — nothing written, message names the fix — for an unknown
+    or already-a-gate action name, a no-op, a hold that lives in the
+    ENGAGEMENT layer (area shadows engagement WHOLE, so an area-level list
+    would silently release every engagement-wide hold), and any file shape the
+    surgery does not support."""
+    if client_config is None:                    # pragma: no cover - ships beside us
+        raise HoldEditError("client_config is not importable — holds cannot "
+                            "be read, so they will not be written")
+    name = (action or "").strip()
+    if name in GATE_ACTIONS:
+        raise HoldEditError(
+            "`%s` is already a stop (a human gate, or a terminal state that "
+            "spends nothing) — holding it would be a no-op, and a no-op line "
+            "in a policy file reads as policy in force (docs/M17-stage-gates"
+            ".md, Out of scope). Holdable: %s."
+            % (name, ", ".join(HOLDABLE_ACTIONS)))
+    if name not in HOLDABLE_ACTIONS:
+        raise HoldEditError(
+            "unknown action %r — a typo must never read as \"nothing held\" "
+            "(holdable: %s)" % (name, ", ".join(HOLDABLE_ACTIONS)))
+
+    cfg = client_config.load(folder)
+    layer = cfg.layers.get(HOLD_KEY)
+    current = list(_holds(folder).actions) if layer else []
+    verb = "release-hold" if release else "hold"
+
+    if layer == client_config.ENGAGEMENT:
+        raise HoldEditError(
+            "the `hold:` list in effect is the ENGAGEMENT's (%s) and an area "
+            "list shadows it WHOLE — writing one here would silently drop "
+            "every engagement-wide hold (%s). Holding and releasing at "
+            "engagement scope is an edit to that file: run `%s` against it by "
+            "hand, or give the area its own complete list."
+            % (cfg.key_files[HOLD_KEY], ", ".join(current) or "none", verb))
+
+    if release and name not in current:
+        raise HoldEditError(
+            "`%s` is not held (held: %s) — releasing it would write nothing "
+            "and a verb that reports success for a no-op is worse than a "
+            "refusal" % (name, ", ".join(current) or "none"))
+    if not release and name in current:
+        raise HoldEditError(
+            "`%s` is already held (held: %s) — nothing to write"
+            % (name, ", ".join(current)))
+
+    wanted = [a for a in current if a != name] if release \
+        else current + [name]
+
+    created = False
+    if layer is None:
+        # No layer supplies the key, so there is nothing to shadow and no
+        # duplicate-key wedge to walk into: `consult.yaml` is the convention.
+        client_dir = os.path.join(folder, client_config.CLIENT_DIR)
+        os.makedirs(client_dir, exist_ok=True)
+        path = os.path.join(client_dir, "consult.yaml")
+        if os.path.exists(path):                 # pragma: no cover - defensive
+            raise HoldEditError(
+                "%s exists but supplies no `hold:` key — edit it by hand "
+                "rather than have this verb guess where the key belongs" % path)
+        lines, start, end = [], 0, 0
+        block = [HOLD_FILE_HEADER] + _hold_lines(wanted, "block", "  ", [],
+                                                 "\n")
+        created = True
+    else:
+        path = str(cfg.key_files[HOLD_KEY])
+        with open(path, encoding="utf-8", newline="") as fh:
+            lines = fh.read().splitlines(keepends=True)
+        start, end, style, indent, comments, trailer = _hold_block(lines)
+        block = _hold_lines(wanted, style, indent, comments, trailer)
+
+    before = _write_hold_block(path, lines, start, end, block)
+
+    # Self-verification: the surgery must produce exactly the intended set,
+    # from the intended layer, with every other line of the file untouched.
+    try:
+        landed = client_config.holds(folder, HOLDABLE_ACTIONS, GATE_ACTIONS)
+        with open(path, encoding="utf-8", newline="") as fh:
+            after = fh.read().splitlines(keepends=True)
+        untouched = (after[:start] + after[start + len(block):]
+                     == lines[:start] + lines[end:])
+        ok = (landed.actions == wanted
+              and landed.layer == client_config.AREA
+              and untouched)
+        detail = "" if ok else " (got %s from %s)" % (
+            landed.actions, landed.layer)
+    except Exception as exc:                     # a wedged file is a failure
+        ok, detail = False, " (%s: %s)" % (type(exc).__name__, exc)
+    if not ok:
+        _restore_hold_file(path, before, created)
+        raise HoldEditError(
+            "the edit to %s did not verify%s — the original bytes are "
+            "restored and nothing is held that was not held before. Edit the "
+            "file by hand." % (path, detail))
+
+    return {"held": wanted, "action": name, "released": bool(release),
+            "file": path, "created": created,
+            "layer": client_config.LAYER_LABELS[client_config.AREA]}
 
 
 # Seeded into an area on first checkpoint if no .gitignore exists: keeps the
@@ -2162,7 +2460,34 @@ def main(argv=None):
              "(opens the draft-ready gate so the ladder can reach synthesize)")
     p_dra.add_argument("--area", required=True,
                        help="area folder path or bare area name under components/")
+    # M78 Part E: run ONLY as the recorded outcome of an explicit human gate
+    # answer (the confirm gate's "ask first", and the human's later "I have
+    # what I need — draft"). Never from a guard and never from an agent.
+    p_hold = sub.add_parser(
+        "hold",
+        help="record the human's ask-first answer: add one action to the "
+             "area's `hold:` list (M17 config; hand edits still win)")
+    p_hold.add_argument("--area", required=True,
+                        help="area folder path or bare area name under components/")
+    p_hold.add_argument("action", help="holdable action name (e.g. fill)")
+    p_rel = sub.add_parser(
+        "release-hold",
+        help="record the human's \"I have what I need\" answer: remove one "
+             "action from the area's `hold:` list")
+    p_rel.add_argument("--area", required=True,
+                       help="area folder path or bare area name under components/")
+    p_rel.add_argument("action", help="held action name (e.g. fill)")
     args = parser.parse_args(argv)
+
+    if args.cmd in ("hold", "release-hold"):
+        try:
+            outcome = edit_hold(resolve_area(args.area), args.action,
+                                release=args.cmd == "release-hold")
+        except HoldEditError as exc:
+            print("%s refused: %s" % (args.cmd, exc), file=sys.stderr)
+            return 2
+        print(json.dumps(outcome, indent=2, sort_keys=False))
+        return 0
 
     if args.cmd == "accept":
         print(json.dumps(accept_review(resolve_area(args.area)), indent=2))

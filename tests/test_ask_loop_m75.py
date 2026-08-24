@@ -16,8 +16,11 @@ Pins:
     is byte-identical to pre-M75;
   * confirm's consumption of the taxonomist's staged `.proposed/asks.yaml`
     BEFORE the step-6 rmtree, with the M65 stdout strings untouched;
-  * the confirm gate's two answers (fill now / ask first + the exact hold
-    edit), with NOTHING programmatic writing `_client/consult.yaml`;
+  * the confirm gate's two answers (fill now / ask first), with NOTHING
+    programmatic writing `_client/consult.yaml` — both re-pinned by M78 Part E,
+    which narrows the rule to "no writer outside an explicit human gate
+    answer": the ask-first answer names the hold VERB, and the writer wall now
+    allows exactly the verbs' named implementation;
   * the M74 join — a thin node with an answered, unsettled ask touching it
     re-enters the fill wave;
   * the reconcile invariant — every area gap id in the register exactly once,
@@ -634,15 +637,22 @@ class TestConfirmGate:
         names = [a["name"] for a in d["details"]["answers"]]
         assert names == ["fill now", "ask first"]
 
-    def test_ask_first_hands_over_the_exact_hold_edit(self, tmp_path):
+    def test_ask_first_names_the_hold_verb(self, tmp_path):
+        """M78 Part E re-pins this, as SPEC: the answer no longer hands over an
+        `hold:` edit to type — it names the VERB the orchestrator runs on this
+        explicit answer, and the release verb that ends the loop. The file is
+        still human-owned config (`_client/`) and a hand edit still wins."""
         root, area = ipo_copy(tmp_path)
         (area / "_reference" / ".proposed").mkdir(parents=True, exist_ok=True)
         (area / "_reference" / ".proposed" / "procedures.yaml").write_text(
             "procedures: []\n", encoding="utf-8")
         d = self._decide(area)
         ask_first = d["details"]["answers"][1]
-        assert "add `fill` to `hold:`" in ask_first["human_action"]
-        assert "_client/consult.yaml" in ask_first["human_action"]
+        assert "orchestrate.py hold --area" in ask_first["human_action"]
+        assert " fill`" in ask_first["human_action"]
+        assert "release-hold --area" in ask_first["human_action"]
+        assert "_client/" in ask_first["human_action"]
+        assert "hand edit still wins" in ask_first["human_action"]
 
     def test_the_gate_sizes_the_path_from_the_register(self, tmp_path):
         root, area = ipo_copy(tmp_path)
@@ -654,16 +664,43 @@ class TestConfirmGate:
         assert self._decide(area)["details"]["asks"] == {"open": 1,
                                                          "answered": 0}
 
+    #: M78 Part E amends this wall, as SPEC: the M17 rule narrows to "no writer
+    #: outside an explicit human gate answer". These are the hold verbs' named
+    #: implementation — the ONLY functions in `scripts/` allowed to write a
+    #: `_client/` file, and each runs solely as the recorded outcome of a human
+    #: answer (`orchestrate.py hold` / `release-hold`, the `accept-draft`
+    #: precedent). Anything else that writes there is still a bug.
+    HOLD_WRITERS = ("_write_hold_block", "_restore_hold_file")
+
     def test_nothing_programmatic_writes_client_yaml(self):
+        """No writer outside the hold verbs' named implementation.
+
+        Grep-shaped on purpose, and per FUNCTION rather than per LINE: a
+        writer whose call and whose `_client` path sit on different lines is
+        the exact evasion a line-scoped grep misses, so the unit of
+        attribution is the enclosing `def` block."""
         import re
+        writers = re.compile(r"write_text|safe_dump|json\.dump|\.write\(|"
+                             r"os\.replace|shutil\.copy")
         bad = []
-        for path in (REPO / "scripts").glob("*.py"):
+        for path in sorted((REPO / "scripts").glob("*.py")):
             text = path.read_text(encoding="utf-8")
-            for m in re.finditer(r"write_text|safe_dump|json\.dump", text):
-                line_start = text.rfind("\n", 0, m.start()) + 1
-                line = text[line_start:text.find("\n", m.start())]
-                if "consult.yaml" in line or "_client" in line:
-                    bad.append(f"{path.name}: {line.strip()}")
+            # split into `def` blocks, keeping each function's own name
+            # prose is not a writer: drop docstrings and comments first
+            text = re.sub(r'""".*?"""', '""', text, flags=re.S)
+            blocks = re.split(r"^(?=[ \t]*def[ \t])", text, flags=re.M)
+            for block in blocks:
+                name = re.match(r"[ \t]*def[ \t]+(\w+)", block)
+                body = "\n".join(ln.split("#", 1)[0]
+                                 for ln in block.splitlines())
+                if not writers.search(body):
+                    continue
+                if "consult.yaml" not in body and "_client" not in body \
+                        and "CLIENT_DIR" not in body:
+                    continue
+                if name and name.group(1) in self.HOLD_WRITERS:
+                    continue
+                bad.append(f"{path.name}: {name.group(1) if name else '<module>'}")
         assert bad == [], bad
 
 
@@ -841,9 +878,14 @@ class TestContracts:
         assert "who can answer it" not in low       # M44's ban stands
 
     def test_the_skill_relays_both_confirm_paths(self):
+        """Re-pinned by M78 Part E: the confirm row names the verb the
+        orchestrator runs on the human's explicit answer, not an edit for the
+        human to type."""
         text = ORCH_SKILL.read_text(encoding="utf-8")
         assert "ask first" in text.lower()
-        assert "add `fill` to `hold:`" in text
+        assert "orchestrate.py hold --area <area> fill" in text
+        assert "release-hold" in text
+        assert "hand edit" in text
 
     def test_the_skill_carries_the_settle_work_order(self):
         low = ORCH_SKILL.read_text(encoding="utf-8").lower()
