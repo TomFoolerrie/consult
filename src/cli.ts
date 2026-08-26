@@ -20,7 +20,7 @@
  *   check                                                      → check
  *   render <deliverable>    (self-contained: compile → build views in-memory → emit)
  *   answer "<question>" · needs · coverage · feeds <verb>      → answers, needs, coverage, analysis
- *   brief <template> …                                         → brief.compose
+ *   brief <skill> …                                            → brief.compose
  */
 export function main(argv: string[]): Promise<number> {
   // parse one verb, dispatch, return exit code (0 ok, 2 named refusal)

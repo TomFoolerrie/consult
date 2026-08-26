@@ -16,11 +16,11 @@ deliverables/information-request.yaml   the ask loop's front door — curated
 deliverables/findings-report.yaml       accepted findings by theme
 ```
 
-A fourth directory joins at build time: `templates/` — the SHIPPED work
+A fourth directory joins at build time: `skills/` — the SHIPPED work
 shapes (procedure-draft, source-read, assessment, data-analysis), each
 declaring mission, write boundary, context contract, return contract,
-rules, and a recommended worker class. Engagement-authored templates live
-in `<root>/_templates/` and shadow shipped ones by name — the librarian
+rules, and a recommended worker class. Engagement-authored skills live
+in `<root>/_skills/` and shadow shipped ones by name — the librarian
 authors them ad-hoc (always saved before use, logged, reusable).
 
 The definition language's rule set lives in `src/definitions.ts`.

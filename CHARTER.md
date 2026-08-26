@@ -166,3 +166,13 @@ Still open, with recommendations:
   run from a prompt), logged in the session record, reusable by later
   sittings. Engagement-authored templates shadow shipped ones by name, the
   same rule deliverable definitions use. brief.ts owns the store.
+
+
+## Amendment A6 — the naming ruling (2026-08-26): templates are SKILLS
+
+What A4/A5 called templates are renamed skills throughout — they are skills
+in the Claude Code sense, with agency: mission, write boundary, context
+contract, return contract, rules, recommended worker class. Shipped skills
+live in kernel/skills/; librarian-authored skills in <root>/_skills/
+(saved before use, logged, reusable; local shadows shipped). brief.ts is
+the skill store + composer (skill/skills/saveSkill/compose).

@@ -15,7 +15,7 @@
  * pathspec to forget a directory) and appends the session record.
  *
  * budget is the D9 mechanism, also governing the DIRECT-VS-DELEGATE
- * choice: the librarian may do any template's work directly, and
+ * choice: the librarian may do any skill's work directly, and
  * dispatches the worker when the task's cost — judged from the objective
  * and the deliverable shape — warrants it. Estimates respect TOKEN
  * ASYMMETRY (input cheap on strong models, output dear): review-with-edits
