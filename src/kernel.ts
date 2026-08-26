@@ -1,19 +1,29 @@
 /**
  * kernel — type declarations + fragment parsing.
  *
- * Owns: nothing. Loads the two type declarations (process-step,
- * taxonomy-node) from kernel/types/*.yaml and parses a fragment's markdown
- * into an Entity through its declaration. The declaration is the vocabulary
- * authority: parts, callout kinds with declared fields (CONTROL's four,
- * GAP's Grounds+Nature), channels. No aliases of any kind — v1's ghost.
- * A refused declaration is never half-registered.
+ * Owns: nothing. Two types (process-step, taxonomy-node), one parse.
+ *
+ * THE CALLOUT RULING (2026-08-26): the engine hard-codes exactly ONE
+ * callout kind — the QUESTION record (v1 called it GAP) — because the
+ * registers join on it: asks reference question ids, coverage's
+ * `conflicted` reads a question naming two sources, answers' "absent"
+ * standing stands on it. Every OTHER kind (CONTROL, PAIN POINT,
+ * IMPROVEMENT OPPORTUNITY, anything an objective wants) is DECLARED
+ * VOCABULARY: shipped as a default in the type YAML, engagement-amendable
+ * like a skill or a definition, never engine law. Skills BIND to declared
+ * kinds (a drafting skill carries the discipline for minting them well);
+ * they never define the schema. SCREENSHOT PLACEHOLDER does not exist.
+ *
+ * No aliases of any kind, ever.
  */
 import type { CalloutAddr } from "./types.ts";
+
+export const QUESTION_KIND = "question" as const; // the one engine-known kind
 
 export interface TypeDecl {
   name: "process-step" | "taxonomy-node";
   parts: readonly PartDecl[];
-  callouts: readonly CalloutDecl[];
+  callouts: readonly CalloutDecl[]; // must include the question kind; rest is vocabulary
   channels: readonly string[];
 }
 export interface PartDecl { slug: string; title: string; kind: "prose" | "list" | "table"; }
@@ -26,9 +36,9 @@ export interface Entity {
 }
 export interface Callout { addr: CalloutAddr; label: string; text: string; fields: ReadonlyMap<string, string>; }
 
-/** load + validate a declaration; cached; fail-loud with the defect named */
-export function loadType(name: TypeDecl["name"]): TypeDecl { throw new Error("mock-out"); }
+/** load + validate a declaration (engagement overlay may amend vocabulary); fail-loud */
+export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw new Error("mock-out"); }
 /** parse one fragment through its declaration; grammar defects are named errors */
 export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity { throw new Error("mock-out"); }
-/** every open validation gap on one entity, document order */
-export function openGaps(entity: Entity): Callout[] { throw new Error("mock-out"); }
+/** every open question on one entity, document order */
+export function openQuestions(entity: Entity): Callout[] { throw new Error("mock-out"); }

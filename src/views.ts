@@ -13,7 +13,7 @@
  * open-validations, findings-by-theme. A plan naming an unregistered kind
  * is refused BY NAME before any render.
  */
-export type ViewBuilder = (ctx: { root: string; area: string; binding: unknown }) => string;
+export type ViewBuilder = (ctx: { root: string; binding: unknown }) => string;
 export const BUILDERS: ReadonlyMap<string, ViewBuilder> = new Map();
 
 /** build every view a compiled plan names, in plan order; refuse unregistered kinds by name */

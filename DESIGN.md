@@ -58,7 +58,7 @@ answers-out are one motion.)
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
 | `src/kernel.ts` | nothing | type declarations + fragment→entity parsing |
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
-| `src/engagement.ts` | manifest, fragments (scaffold only) | folder truth: paths, manifest, entity load, scaffold |
+| `src/engagement.ts` | capture/ skeletons (newFragment) | folder truth, flat: locate, entities, taxonomy — no manifest, no areas, no confirm ceremony |
 | `src/ledger.ts` | `_sources/` | the source ledger: register, route, park, credit, answers |
 | `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle + matching |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
@@ -68,9 +68,9 @@ answers-out are one motion.)
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
 | `src/analysis.ts` | nothing (pure) | mechanical candidate feeds for the analyst license |
 | `src/views.ts` | nothing (pure) | the view-builder registry; views are computed at render time, never files (R1) |
-| `src/check.ts` | signal file | the QC gate: eight capture-quality checks (R3) |
+| `src/check.ts` | nothing | the QC gate: seven capture-quality checks, no signal files |
 | `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
-| `src/desk.ts` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
+| `src/desk.ts` | git + the session budget line | the librarian's desk: state/report, checkpoint, budget — holds are journal commitments, not machinery |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
 | `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
@@ -90,6 +90,8 @@ answers-out are one motion.)
 - A token spent on judgment lands in a file the machine reads.
 - Delegation is economic, not structural: the librarian may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
 - Ask economy is a guiding principle, not a rule: prefer few, simple, artifact-shaped asks — but if the objective needs something, it needs something.
+- The engine hard-codes ONE callout kind: the question record (registers join on it). All other capture vocabulary is a shipped, engagement-amendable default; skills bind to declared kinds, never define them.
+- No manifest, no areas, no .proposed/, no holds machinery, no signal files: the folder-as-document and human-as-trust-boundary fossils are out (ROT-1..7).
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
 - Agents pin model; skills carry the agency. Worker classes (haiku/sonnet/opus) pin only the model; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or librarian-authored (_skills/, saved before use, logged, reusable).
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.

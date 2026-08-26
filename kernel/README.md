@@ -5,11 +5,15 @@ removed (no aliases, no activity type):
 
 ```
 types/process-step.yaml          the capture substrate: scope / inputs /
-                                 transformation / outputs / controls / issues;
-                                 the five callout kinds with their declared
-                                 fields (CONTROL: Performer, Comparison,
-                                 Trigger, Evidence; GAP: Grounds, Nature)
-types/taxonomy-node.yaml         one part (scope), one callout kind (the
+                                 transformation / outputs / controls / issues.
+                                 Callouts: the engine-required QUESTION record,
+                                 plus shipped DEFAULT vocabulary (CONTROL with
+                                 Performer/Comparison/Trigger/Evidence, PAIN
+                                 POINT, IMPROVEMENT OPPORTUNITY) — amendable
+                                 per engagement; skills bind to declared kinds.
+                                 No SCREENSHOT PLACEHOLDER; no aliases.
+types/taxonomy-node.yaml         one part (scope), the question record only
+                                 (a question naming two sources IS the
                                  lens-conflict record)
 deliverables/information-request.yaml   the ask loop's front door — curated
                                  asks lead, mechanical feeds as appendix

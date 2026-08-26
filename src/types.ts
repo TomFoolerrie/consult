@@ -13,7 +13,7 @@ export type AskId = `ASK-${number}`;
 export type FindingId = `FIND-${number}`;
 export type FlagId = `FLAG-${number}`;
 export type TenureId = `TEN-${number}`;
-/** procedure-qualified callout address, the grounding currency */
+/** fragment-qualified callout address (slug#LOCAL-ID), the grounding currency */
 export type CalloutAddr = `${string}#${string}`;
 export type Ground = SrcId | CalloutAddr | { slug: string };
 
@@ -21,7 +21,7 @@ export type Ground = SrcId | CalloutAddr | { slug: string };
 export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled" | "retired";
 export interface Ask {
   id: AskId; status: AskStatus; text: string;
-  gaps: CalloutAddr[]; audience: string; artifact: string;
+  questions: CalloutAddr[]; audience: string; artifact: string;
   answeredBy?: SrcId; retiredReason?: string;
 }
 
@@ -32,7 +32,7 @@ export type Standing =
   | { kind: "contested"; readings: [Claim, Claim] }
   | { kind: "absent"; proposal: ProposedAsk | ProposedRead };
 export interface Claim { text: string; source: SrcId; }
-export interface ProposedAsk { text: string; gaps: CalloutAddr[]; }
+export interface ProposedAsk { text: string; questions: CalloutAddr[]; }
 export interface ProposedRead { question: string; sources: SrcId[]; }
 
 // coverage — what the brain knows it knows, per taxonomy node

@@ -176,3 +176,40 @@ contract, return contract, rules, recommended worker class. Shipped skills
 live in kernel/skills/; librarian-authored skills in <root>/_skills/
 (saved before use, logged, reusable; local shadows shipped). brief.ts is
 the skill store + composer (skill/skills/saveSkill/compose).
+
+
+## Amendment A7 — the exorcism (2026-08-26): pick the pieces, drop the fossils
+
+The rot hunt found seven fossils of two dead premises (the folder is the
+document; the human is the trust boundary). All removed:
+
+- **ROT-1:** no confirm ceremony, no .proposed/ — the librarian writes
+  live; the gates are spends and sends. engagement.scaffold shrinks to
+  newFragment.
+- **ROT-2:** no manifest.json — membership is the files on disk; ordering
+  comes from the taxonomy or the definition at render time. (The manifest
+  was cached derived state, and runs 1–2 bled at exactly that boundary.)
+- **ROT-3:** no area directory layer — one flat capture/ per engagement;
+  partitioning is the taxonomy's job (L1s). Area parameters leave every
+  signature.
+- **ROT-4:** no holds machinery — "ask first" is a journal commitment the
+  librarian records and obeys; consult.yaml, editHold, and the hold verbs
+  do not exist.
+- **ROT-5:** no signal files — checks return Defects; the session record
+  logs that they ran.
+- **ROT-6 + the callout ruling:** the engine hard-codes ONE callout kind,
+  the QUESTION record (the registers join on it). All other capture
+  vocabulary (CONTROL, PAIN POINT, IMPROVEMENT OPPORTUNITY, …) is a
+  shipped, engagement-amendable default declared on the type; skills bind
+  to declared kinds and carry the minting discipline; they never define
+  schema. SCREENSHOT PLACEHOLDER is gone.
+- **ROT-7:** display numbering and [[slug]] token resolution move to the
+  render seam; capture cross-references are plain slugs, checked as
+  mentions (warning).
+
+**The start (the picked pieces):** Phase 1 = types, kernel, engagement
+(flat), ledger, asks, journal, coverage, answers, minimal desk+cli —
+ending at synthetic engagement #1 (drop, route, capture, ask, respond,
+answer with standings). Phase 2 = definitions, views, check, render(+py),
+needs, analysis, findings, skills store — ending at the two shipped
+definitions rendering and synthetics #2–#3.

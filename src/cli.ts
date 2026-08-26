@@ -11,12 +11,12 @@
  * that repair it.
  *
  * Verb inventory (each dispatches to exactly one module function):
- *   state · checkpoint · hold/release-hold · budget            → desk
+ *   state · checkpoint · budget                                → desk
  *   register · route · park · credit                           → ledger
  *   ask propose|accept|send|answer|settle|retire|match|unask   → asks
  *   finding propose|accept|reject                              → findings
  *   flag … · tenure …                                          → journal
- *   scaffold                                                   → engagement
+ *   new <slug>                                                 → engagement.newFragment
  *   check                                                      → check
  *   render <deliverable>    (self-contained: compile → build views in-memory → emit)
  *   answer "<question>" · needs · coverage · feeds <verb>      → answers, needs, coverage, analysis
