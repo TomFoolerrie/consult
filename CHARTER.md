@@ -133,3 +133,22 @@ Still open, with recommendations:
   results.
 - Capture stays markdown; registers/ledger/journal stay YAML (assessed, not
   changed).
+
+
+## Amendment A4 — the agent-roster rulings (2026-08-26, artifact comments round 2)
+
+- **One delegate, many templates:** drafter/reader/analyst collapse into one
+  WORKER agent parameterized by a template (kernel/templates/: mission,
+  model tier, write boundary, context contract, return contract, rules).
+  The librarian assigns templates from the objective and deliverable shape;
+  starter set: procedure-draft, source-read, assessment, data-analysis.
+  Adding a work shape is adding a template file. The assessment license
+  survives intact as template content.
+- **Every contract answers the round of questions:** mission · what it
+  needs · context provided · what it returns — now the uniform shape of
+  librarian.md, worker.md, and every template.
+- **Token asymmetry is a design input:** input is cheap on strong models,
+  output is dear. Review-with-edits over regeneration where it wins; the
+  boundary is toed deliberately and recorded per spend.
+- **Ask economy is a guiding principle, not a rule:** if the objective
+  needs something, it needs something.

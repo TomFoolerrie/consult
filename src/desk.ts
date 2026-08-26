@@ -14,12 +14,15 @@
  * never done. checkpoint() commits the WHOLE engagement (no curated
  * pathspec to forget a directory) and appends the session record.
  *
- * budget is the D9 mechanism, now also governing the DIRECT-VS-DELEGATE
- * choice (ruled 2026-08-26, artifact comment): the librarian may touch
- * capture files directly, and dispatches a delegate when the task's cost —
- * judged from the objective and the deliverable shape — warrants it. Every
- * spend (own work or dispatch) is proposed with an estimate, auto-proceeds
- * under the sitting budget, waits above it or for anything client-facing.
+ * budget is the D9 mechanism, also governing the DIRECT-VS-DELEGATE
+ * choice: the librarian may do any template's work directly, and
+ * dispatches the worker when the task's cost — judged from the objective
+ * and the deliverable shape — warrants it. Estimates respect TOKEN
+ * ASYMMETRY (input cheap on strong models, output dear): review-with-edits
+ * is often the better spend than regeneration, and spend() records which
+ * shape was chosen so the estimates stay auditable. Every spend
+ * auto-proceeds under the sitting budget, waits above it or for anything
+ * client-facing.
  */
 import type { EngagementHealth } from "./types.ts";
 

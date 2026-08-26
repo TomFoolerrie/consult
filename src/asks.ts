@@ -5,13 +5,14 @@
  * The brain generates client engagement throughout the engagement; this
  * register holds every curated request from proposal to settlement.
  *
- * ASK ECONOMY (ruled 2026-08-26, artifact comment): asks are tailored to
- * the client relationship, and clients do not respond well to question
- * lists. Prefer FEW, SIMPLE, ARTIFACT-SHAPED requests — "send the org
- * chart, the policy doc, a data export" — where one artifact closes many
- * gaps. curation ranks artifact-yield first; a pointed single-gap question
- * is the exception and carries its justification. The audience/artifact
- * fields exist so every ask is phrased for the person who will read it.
+ * ASK ECONOMY — a GUIDING PRINCIPLE, not a rule (ruled 2026-08-26): asks
+ * are tailored to the client relationship, and clients answer artifacts,
+ * not question lists — prefer FEW, SIMPLE, ARTIFACT-SHAPED requests
+ * ("send the org chart, the policy doc, a data export") where one artifact
+ * closes many gaps. But if the objective needs something, it needs
+ * something: a pointed question the objective requires is asked, with its
+ * justification. The audience/artifact fields exist so every ask is
+ * phrased for the person who will read it.
  *
  * Invariants (checks, not memories): every gap id appears in the register
  * exactly once (asked or unasked) · answered-but-unsettled is a visible

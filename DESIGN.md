@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Sixteen TypeScript engine files (src/), one bounded Python worker (py/), four agent contracts, four kernel files. Roughly a third of
+Sixteen TypeScript engine files (src/), one bounded Python worker (py/), two agent contracts + a template library, four kernel files. Roughly a third of
 the oracle's surface. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -14,10 +14,12 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
                         │
         ┌───────────────┼──────────────────────┐
         │ delegates (by cost) │ verbs (toolbox) │ consults
-   agents/drafter  ─────┤                      ├── desk.state()      (where are we)
-   agents/analyst  ─────┤   src/cli.ts         ├── coverage.status() (what do we know)
-   agents/reader   ─────┤   one entry point    ├── needs.standing()  (what's missing)
-                        │                      └── answers.ground()  (what's the standing)
+   agents/worker × ─────┤                      ├── desk.state()      (where are we)
+   kernel/templates/    │   src/cli.ts         ├── coverage.status() (what do we know)
+   (procedure-draft ·   │   one entry point    ├── needs.standing()  (what's missing)
+    source-read ·       │                      └── answers.ground()  (what's the standing)
+    assessment ·        │
+    data-analysis)      │
         ────────────────┴──────────────────────
                      THE FOLDER (the only state)
    engagement/
@@ -69,7 +71,7 @@ answers-out are one motion.)
 | `src/check.ts` | signal file | the QC gate: eight capture-quality checks (R3) |
 | `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
 | `src/desk.ts` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
-| `src/brief.ts` | nothing | work orders for delegates only; the librarian's picture is desk.report (R2) |
+| `src/brief.ts` | nothing | the template composer: one worker, many templates; brief.compose(template, params) |
 | `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
 ## Laws (ported, all live-proven)
@@ -87,8 +89,10 @@ answers-out are one motion.)
 - Library first: every CLI verb wraps an exported function; the harness drives the library in-process (R5).
 - A token spent on judgment lands in a file the machine reads.
 - Delegation is economic, not structural: the librarian may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
-- Asks are few, simple, and artifact-shaped: one good artifact request closes many gaps; clients do not answer question lists.
+- Ask economy is a guiding principle, not a rule: prefer few, simple, artifact-shaped asks — but if the objective needs something, it needs something.
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
+- One delegate, many templates: the worker is parameterized by kernel/templates/; adding a work shape is adding a template file.
+- Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
 
 ## What is deliberately absent
 

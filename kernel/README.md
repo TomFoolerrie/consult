@@ -16,6 +16,11 @@ deliverables/information-request.yaml   the ask loop's front door — curated
 deliverables/findings-report.yaml       accepted findings by theme
 ```
 
-The definition language's rule set lives in `consult/definitions.py`.
+A fourth directory joins at build time: `templates/` — the worker's work
+shapes (procedure-draft, source-read, assessment, data-analysis), each
+declaring mission, model tier, write boundary, context contract, return
+contract, rules. Adding a work shape is adding a template file.
+
+The definition language's rule set lives in `src/definitions.ts`.
 Adding a deliverable = adding a YAML file here (plus at most one view
 builder) — the charter property this directory exists to demonstrate.
