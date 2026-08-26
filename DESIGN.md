@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Sixteen engine modules, four agent contracts, four kernel files. Roughly a third of
+Seventeen TypeScript engine modules (src/), one bounded Python worker (py/), four agent contracts, four kernel files. Roughly a third of
 the oracle's surface. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -10,66 +10,68 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
               questions ↑↓ answers · relayed client info · spend/send calls
                         │
                    THE LIBRARIAN  (agents/librarian.md — standing, strong model)
-        reads everything · writes only through verbs · delegates to cheap models
+        reads everything · writes only through verbs · works directly or delegates, by cost
                         │
         ┌───────────────┼──────────────────────┐
-        │ delegates     │ verbs (the toolbox)  │ consults
+        │ delegates (by cost) │ verbs (toolbox) │ consults
    agents/drafter  ─────┤                      ├── desk.state()      (where are we)
-   agents/analyst  ─────┤   consult/cli.py     ├── coverage.map()    (what do we know)
+   agents/analyst  ─────┤   src/cli.ts         ├── coverage.status() (what do we know)
    agents/reader   ─────┤   one entry point    ├── needs.standing()  (what's missing)
                         │                      └── answers.ground()  (what's the standing)
         ────────────────┴──────────────────────
                      THE FOLDER (the only state)
    engagement/
-     _sources/            ledger.py owns          sources.yaml, new/, processed/, parked/
-     _registers/          asks.py, findings.py    asks.yaml, findings.yaml
-     _journal/            journal.py              flags.yaml, tenure.yaml, sessions/
-     _client/             desk.py (hold verb)     understanding.md, consult.yaml, registers/
-     _exports/            render.py               rendered .docx
-     components/<area>/   engagement.py owns      manifest.json, fragments, _taxonomy/
+     _sources/            ledger.ts owns          sources.yaml, new/, processed/, parked/
+     _registers/          asks.ts, findings.ts    asks.yaml, findings.yaml
+     _journal/            journal.ts              flags.yaml, tenure.yaml, sessions/
+     _client/             desk.ts (hold verb)     understanding.md, consult.yaml, registers/
+     _exports/            render.ts               rendered .docx
+     components/<area>/   engagement.ts owns      manifest.json, fragments, _taxonomy/
 ```
 
-## Data flow: the four loops
+## Data flow: the two cycles
 
-1. **The knowledge loop** — a source arrives (dropped by the human, or a client
-   response put back in) → `ledger.register` → librarian routes it → a `reader`
-   or `drafter` dispatch folds it into fragments → `views.aggregate` refreshes
-   derived views → `check.run` gates quality. Coverage and answers are pure reads
-   over the result; nothing is cached.
-2. **The question loop** — the human asks → `answers.ground` assembles the
-   grounded answer (evidenced / claimed / contested / absent) from capture +
-   coverage + registers → an *absent* or *thin* answer proposes the ask or the
-   cheap read that would close it.
-3. **The engagement loop** — `needs.standing` says what the objective's shapes
-   still lack → librarian curates asks (`asks.propose`) → human accepts → the
-   information request renders on demand → answers come back as source drops →
-   `asks.match` credits them. Continuous, not a phase.
-4. **The analysis loop** — an analytical question → `analysis.feeds` computes
-   candidates mechanically → `analyst` judges them (propose-only license) →
-   `findings` register → human accepts/rejects in conversation → accepted
-   findings are citable and renderable.
+(Reduced from four loops per the human's reading: knowledge-in and
+answers-out are one motion.)
+
+1. **The brain cycle — input → update → output.** Anything arriving (a
+   fresh source, a client's response put back in, a relayed conversation)
+   is registered and routed, folded into capture, and reflected in the
+   derived views and checks. Anything leaving (an answer with standing, an
+   analysis, a rendered document) is a pure read or a demand-driven render
+   over the updated record. Analytical questions are the same motion with
+   a license attached: `analysis.feeds` computes candidates, whoever holds
+   the license judges them, proposals land in `findings`, the human rules.
+2. **The client cycle — the one loop that crosses the client boundary.**
+   `needs.standing` says what the pinned shapes lack → the librarian
+   curates asks (few, simple, artifact-shaped — see asks.ts's ask economy)
+   → human accepts → information request renders → `asks.markSent` →
+   responses come back through the same intake door → `asks.match` credits
+   them → settle. Continuous through the engagement, not a phase.
 
 ## Module inventory (each file carries its full contract)
 
 | Module | Owns / writes | One line |
 |---|---|---|
-| `consult/cli.py` | nothing | one entry point, every verb, one parser, floor check |
-| `consult/kernel.py` | nothing | type declarations + fragment→entity parsing |
-| `consult/definitions.py` | nothing | the deliverable definition language (load, validate, compile) |
-| `consult/engagement.py` | manifest, fragments (scaffold only) | folder truth: paths, manifest, entity load, scaffold |
-| `consult/ledger.py` | `_sources/` | the source ledger: register, route, park, credit, answers |
-| `consult/asks.py` | `_registers/asks.yaml` | the ask lifecycle + matching |
-| `consult/findings.py` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
-| `consult/journal.py` | `_journal/` | flags, tenure, session records — judgment's homes |
-| `consult/coverage.py` | nothing (pure) | node status + lens conflicts, recomputed every call |
-| `consult/needs.py` | nothing (pure) | what each pinned shape still lacks — standing state as a read |
-| `consult/answers.py` | nothing (pure) | the question interface: grounded answers with standing |
-| `consult/analysis.py` | nothing (pure) | mechanical candidate feeds for the analyst license |
-| `consult/views.py` | derived view files | aggregate: rebuild every python-owned view |
-| `consult/check.py` | signal file | the QC gate (the oracle's reconcile, distilled) |
-| `consult/render.py` | `_exports/` | any definition → .docx, refuse-on-placeholder |
-| `consult/desk.py` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
-| `consult/brief.py` | nothing | deterministic work orders for every dispatch |
+| `src/types.ts` | nothing | the shared vocabulary: lifecycles and standings as discriminated unions |
+| `src/cli.ts` | nothing | one entry point, every verb, one parser |
+| `src/kernel.ts` | nothing | type declarations + fragment→entity parsing |
+| `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
+| `src/engagement.ts` | manifest, fragments (scaffold only) | folder truth: paths, manifest, entity load, scaffold |
+| `src/ledger.ts` | `_sources/` | the source ledger: register, route, park, credit, answers |
+| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle + matching |
+| `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
+| `src/journal.ts` | `_journal/` | flags, tenure, session records — judgment's homes |
+| `src/coverage.ts` | nothing (pure) | node status + lens conflicts, recomputed every call |
+| `src/needs.ts` | nothing (pure) | what each pinned shape still lacks — standing state as a read |
+| `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
+| `src/analysis.ts` | nothing (pure) | mechanical candidate feeds for the analyst license |
+| `src/views.ts` | derived view files | aggregate: rebuild every engine-owned view |
+| `src/check.ts` | signal file | the QC gate (the oracle's reconcile, distilled) |
+| `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
+| `src/desk.ts` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
+| `src/brief.ts` | nothing | deterministic work orders for every unit of work, delegated or not |
+| `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
 ## Laws (ported, all live-proven)
 
@@ -83,6 +85,9 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
 - Cost gates cost, never scope (a thin node waits; it is never silently dropped).
 - Adding a deliverable is a YAML-sized act; if it needs an engine change, that is a bug.
 - A token spent on judgment lands in a file the machine reads.
+- Delegation is economic, not structural: the librarian may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
+- Asks are few, simple, and artifact-shaped: one good artifact request closes many gaps; clients do not answer question lists.
+- The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
 
 ## What is deliberately absent
 

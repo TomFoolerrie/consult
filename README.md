@@ -16,7 +16,8 @@ The brain captures what is known about a client's processes as typed, evidenced
 records, and always knows the standing of every statement: evidenced, claimed,
 contested, or absent. A standing agent — the librarian — stewards that record: routes
 sources, curates the taxonomy, generates client engagement (asks) throughout the
-engagement, and delegates bounded work to cheaper models. The human talks to the
+engagement, and does the work itself or delegates it to cheaper models — a cost
+decision, not a structural one. The human talks to the
 client, relays what they learned, asks the brain questions, and makes exactly two
 kinds of calls: what to spend and what to send.
 
@@ -25,7 +26,8 @@ kinds of calls: what to spend and what to send.
 ```
 CHARTER.md            the ruled charter (Amendment A1)
 DESIGN.md             module map, data flow, who-writes-what
-consult/              the engine — one package, one entry point (`consult <verb>`)
+src/                  the engine — TypeScript, one entry point (`consult <verb>`)
+py/                   the one Python seam: the bounded docx render worker
 agents/               the prompt contracts: librarian, drafter, analyst, reader
 kernel/               the declarative half: 2 types, 2 deliverable definitions
 synthetic/            the synthetic-engagement harness (the definition of done)

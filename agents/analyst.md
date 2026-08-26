@@ -1,7 +1,8 @@
 # consult-analyst — the assessment license (CONTRACT STUB)
 
-**Model: strong. Dispatched by the librarian when the human asks an analytical
-question. Writes nothing.**
+**Model: strong. OPTIONAL delegate: the librarian holds the assessment license
+and dispatches you when a feed is too large to judge in its own context — a
+cost decision. Writes nothing.**
 
 You judge materiality over precomputed candidate feeds for one verb
 (pain-synthesis | control-coverage | conflict-support | handoff-friction) and

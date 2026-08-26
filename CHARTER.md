@@ -90,3 +90,28 @@ Still open, with recommendations:
 - **D8:** RULED — done means several synthetic engagements, driven librarian-first, results analyzed across runs.
 - **D9:** RULED as recommended — the librarian proposes every dispatch with a cost estimate and proceeds without asking below a per-sitting token budget the human sets; above it, or for anything client-facing, it waits.
 - **Method:** RULED — mock the system out in modules first (stub contracts, no implementations) so the human understands and approves the shape before any implementation is written.
+
+
+## Amendment A2 — the language ruling and the artifact-comment rulings (2026-08-26)
+
+- **Language:** TypeScript. The engine is TS end to end; lifecycles and
+  standings are discriminated unions (illegal states unrepresentable). Python
+  remains in exactly one bounded seam: py/render_worker, a docx formatter fed
+  a compiled JSON job — it formats, it never thinks. Document output is a
+  declining priority; the hot path is YAML in, grounded answers out.
+- **Delegation is economic, not structural** (comment on the knowledge loop):
+  the librarian may touch capture files directly under the same minting bars;
+  a delegate is dispatched when the task's cost — judged from the objective
+  and the deliverable shape — warrants it. Briefs are issued for every unit
+  of work, delegated or not.
+- **The four loops are two cycles** (comment on the question loop): the brain
+  cycle (input → update → output) and the client cycle (the one loop crossing
+  the client boundary). Analysis is the brain cycle with a license attached.
+- **The assessment license attaches to the activity, not an agent** (comment
+  on the analysis loop): analysis.feeds stays a module; the librarian may
+  judge feeds itself; the analyst is an optional cost-based delegate. License
+  rules bind whoever judges.
+- **Ask economy** (comment on the engagement loop): asks are tailored to the
+  client relationship; FEW, SIMPLE, ARTIFACT-SHAPED requests (data, policies,
+  org chart) are prioritized — one good artifact closes many gaps; clients do
+  not answer question lists.
