@@ -6,7 +6,7 @@
  * ever answered by listing a folder. The intake door is ONE door (D4): a
  * fresh source and a client's response arrive the same way. credit()
  * retires a source only when every touch is credited — the balanced ledger
- * that made run 2 clean. touches ⊆ manifest slugs, validated at write.
+ * that made run 2 clean. touches ⊆ existing fragment slugs, validated at write (no manifest — ROT-2).
  */
 import type { SrcId, AskId } from "./types.ts";
 
