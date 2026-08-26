@@ -16,7 +16,8 @@
  * the session record, and thereby reusable: later sittings inherit it.
  *
  * compose() resolves one skilled unit of work — files and sources in
- * scope, register slices, standing tenure, open flags, the objective's
+ * scope, register slices, the librarian's standing precedent and open
+ * observations (from the state pad), the objective's
  * framing, the skill's rules verbatim — into one printable brief.
  * Issued when, and only when, delegation happens; the librarian's own
  * picture is desk.report. The brief decides nothing about content.

@@ -3,13 +3,14 @@
  *
  * Owns: NOTHING (ROT-5 — signal files were the dead guard table's stage
  * markers; the session record logs that a check ran). Runs over the whole
- * engagement (no area parameter — ROT-3). Seven checks:
+ * engagement (no area parameter — ROT-3). Six checks, all MECHANICAL —
+ * the hedges check is gone (A9): word-list policing of prose style is a
+ * skill rule that binds whoever drafts, not an engine invariant.
  *
  *   grammar        per-fragment parse through the declaration
  *   citations      every cited SRC resolves; drafted prose cites
  *   touches        ledger touches ⊆ existing fragment slugs
  *   mentions       a slug mentioned in prose exists (warning)
- *   hedges         uncertainty lives in question records, not body prose
  *   ask-coverage   every question id in the ask register exactly once
  *   registers      referenced register entries resolve; citable fields not blank
  *

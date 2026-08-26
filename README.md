@@ -41,12 +41,14 @@ list is the whole system.
 
 **Phase 1 — the brain minimum** (ends with synthetic engagement #1):
 `types` → `kernel` (parse) → `engagement` (flat capture) → `ledger` →
-`asks` → `journal` → `coverage` → `answers` → minimal `desk` + `cli`.
+`asks` → `journal` (session record) → `answers` → `desk` (the one
+derived picture, coverage + needs included) + `cli`.
 At the end of phase 1 you can: drop sources, route them, capture, ask,
 put responses back, and ask the brain questions with honest standings.
 
 **Phase 2 — shapes and analysis**: `definitions` → `views` → `check` →
-`render` (+ py worker) → `needs` → `analysis` → `findings` → skills store.
+`render` (+ py worker) → `findings` → skills store (analyses ship as
+skills — the engine has no analysis verbs, A9).
 At the end of phase 2 the two shipped definitions render on demand and the
 analysis license runs. Then synthetics #2 and #3, and the D8 analysis.
 

@@ -2,8 +2,7 @@
  * findings — where the brain may hold an opinion.
  *
  * Owns/writes: _registers/findings.yaml. The only store of judgment about
- * the client's processes, fed by the analysis license (see analysis.ts —
- * the license attaches to the ACTIVITY, whoever holds it). Grounds are
+ * the client's processes, fed by the analysis license (analyses are SKILLS after A9; candidates arrive via answers.ground). Grounds are
  * mandatory and must RESOLVE (SrcId | slug#LOCAL-ID | entity slug) —
  * refused by name otherwise. Rejection is terminal and KEPT: a rejected
  * finding is case law, not deleted. Only accepted findings render or

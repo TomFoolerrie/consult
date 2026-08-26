@@ -27,6 +27,12 @@ rules, and a recommended worker class. Engagement-authored skills live
 in `<root>/_skills/` and shadow shipped ones by name — the librarian
 authors them ad-hoc (always saved before use, logged, reusable).
 
+Analyses are skills, not engine verbs (A9): the four analysis lenses the
+old engine hard-coded (pain-synthesis, control-coverage, conflict-support,
+handoff-friction) live as lenses of the `assessment` skill; their feed
+selection is plain retrieval through `answers.ground`. A new kind of
+analysis is a new skill — never an engine change.
+
 The definition language's rule set lives in `src/definitions.ts`.
 Adding a deliverable = adding a YAML file here (plus at most one view
 builder) — the charter property this directory exists to demonstrate.

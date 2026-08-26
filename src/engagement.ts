@@ -7,7 +7,9 @@
  * render needs one, comes from the taxonomy or the definition) and NO
  * area directory layer (partitioning is the taxonomy's job — that is what
  * L1s are). There is no .proposed/ staging and no confirm ceremony: the
- * librarian writes live, and the gates are spends and sends.
+ * librarian writes live, and the gates are spends and sends. There is no scaffolding verb (A9):
+ * the fragment format lives in the type declaration, the librarian writes
+ * the file, and the grammar check catches malformation.
  *
  * The locate rule survives: an engagement root is the directory holding
  * _sources/. A tree that looks like an engagement but lacks the marker is
@@ -24,5 +26,3 @@ export function locate(path: string): Engagement { throw new Error("mock-out"); 
 export function entities(root: string): Entity[] { throw new Error("mock-out"); }
 /** every taxonomy node, name order */
 export function taxonomy(root: string): Entity[] { throw new Error("mock-out"); }
-/** mechanical helper: create one empty, well-formed fragment for a slug */
-export function newFragment(root: string, slug: string): string { throw new Error("mock-out"); }

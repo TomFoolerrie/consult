@@ -7,7 +7,7 @@
  * the definition's own shell — its title, its skin's
  * furniture, never another deliverable's. Demand-driven: nothing schedules
  * a render; a render of the information request is immediately followed by
- * asks.markSent. One honest mode with draft watermarking.
+ * asks.sent. One honest mode with draft watermarking.
  *
  * THE PYTHON SEAM (language ruling, 2026-08-26): docx emission is the one
  * place Python remains — a bounded subprocess (py/render_worker) owning

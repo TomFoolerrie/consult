@@ -10,17 +10,19 @@
  * verb while a contradiction from desk.state() stands, except the verbs
  * that repair it.
  *
- * Verb inventory (each dispatches to exactly one module function):
- *   state · checkpoint · budget                                → desk
- *   register · route · park · credit                           → ledger
- *   ask propose|accept|send|answer|settle|retire|match|unask   → asks
- *   finding propose|accept|reject                              → findings
- *   flag … · tenure …                                          → journal
- *   new <slug>                                                 → engagement.newFragment
- *   check                                                      → check
- *   render <deliverable>    (self-contained: compile → build views in-memory → emit)
- *   answer "<question>" · needs · coverage · feeds <verb>      → answers, needs, coverage, analysis
- *   brief <skill> …                                            → brief.compose
+ * Verb inventory after the A9 distillation (each dispatches to exactly
+ * one module function; every verb guards an invariant or expands context):
+ *   state · checkpoint · budget · coverage · needs      → desk (the one derived picture)
+ *   route · park · credit                               → ledger (one intake door)
+ *   ask propose|accept|sent|respond|close               → asks (respond = one atomic motion)
+ *   finding propose|accept|reject                       → findings
+ *   check                                               → check (six mechanical checks)
+ *   render <deliverable>   (self-contained: compile → build views in-memory → emit)
+ *   answer "<question>"                                 → answers.ground
+ *   brief <skill> …                                     → brief.compose
+ * Gone (A9): register (merged into route) · new (no scaffolding) ·
+ * flag/tenure (state-pad sections) · feeds (analysis is a skill; its
+ * retrieval is answers.ground).
  */
 export function main(argv: string[]): Promise<number> {
   // parse one verb, dispatch, return exit code (0 ok, 2 named refusal)

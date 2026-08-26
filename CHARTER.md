@@ -243,3 +243,42 @@ The division of memory, so the stores don't blur:
 This names the shape the system has been converging on: one central agent
 with a persistent workspace, using tools to expand context and to show it
 how we want the work done — and it manages the rest.
+
+## Amendment A9 — the deterministic-workflow distillation (2026-08-26)
+
+The concern: the scripts are prescriptive. The audit ran every
+deterministic function through one test — a verb earns its place only as
+(1) bookkeeping an agent shouldn't hand-roll, (2) honesty enforcement, or
+(3) context expansion. Anything that encodes HOW to work is a script in a
+tool's costume: that belongs to skills and the librarian's judgment. v1
+scripted because the script was the trust boundary; v2 trusts the
+librarian and the engine only guards invariants. The rulings:
+
+- **analysis.ts is DELETED.** The engine no longer pre-declares what kinds
+  of thinking exist: the four named analysis verbs (pain-synthesis,
+  control-coverage, conflict-support, handoff-friction) become lenses of
+  the shipped `assessment` skill; the deterministic residue — select
+  records to feed a judgment — is retrieval, which `answers.ground`
+  already is. The librarian authors new analyses as skills, never as code.
+- **One event, one verb.** A client response no longer takes four verbs
+  (route → match → credit → settle): `asks.respond(file, askIds)` does the
+  whole motion atomically. Intake's two doors (register/route) merge into
+  `route` per D4. `retire`/`unask` merge into `close(reason)`.
+- **One derived picture.** coverage.ts and needs.ts fold into desk.ts:
+  three modules computing slices of "where are we" was a v1 org chart.
+  `state()` carries coverage and needs as sections; the pure reads remain
+  exported from the desk.
+- **check drops hedges** — word-list policing of prose style is a skill
+  rule, not an invariant. Six mechanical checks remain.
+- **newFragment is gone** — the fragment format lives in the type
+  declaration and the grammar check catches malformed files; a scaffolding
+  verb for a trusted agent is ceremony.
+- **Flags and tenure FOLD INTO THE STATE PAD** (extends A8). The engine
+  never computed on them — they were agent memory in YAML. STATE.md holds
+  precedent and out-of-lane observations as sections, under pad
+  discipline (close an observation by noting what actioned it). Workers
+  return observations to the librarian, who logs them. journal.ts shrinks
+  to the machinery-written session record.
+
+Net: 18 modules → 13, the verb count roughly halved, zero workflows in
+the engine. Every surviving verb guards an invariant or expands context.

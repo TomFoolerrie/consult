@@ -11,18 +11,16 @@
 export type SrcId = `SRC-${number}`;
 export type AskId = `ASK-${number}`;
 export type FindingId = `FIND-${number}`;
-export type FlagId = `FLAG-${number}`;
-export type TenureId = `TEN-${number}`;
 /** fragment-qualified callout address (slug#LOCAL-ID), the grounding currency */
 export type CalloutAddr = `${string}#${string}`;
 export type Ground = SrcId | CalloutAddr | { slug: string };
 
-// the ask lifecycle (client cycle) — proposed → accepted → sent → answered → settled, or retired
-export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled" | "retired";
+// the ask lifecycle (client cycle) — proposed → accepted → sent → answered → settled, or closed
+export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled" | "closed";
 export interface Ask {
   id: AskId; status: AskStatus; text: string;
   questions: CalloutAddr[]; audience: string; artifact: string;
-  answeredBy?: SrcId; retiredReason?: string;
+  answeredBy?: SrcId; closedReason?: string;
 }
 
 // the honesty contract — every grounded statement carries its standing
@@ -44,10 +42,6 @@ export interface Finding {
   id: FindingId; status: FindingStatus; claim: string;
   grounds: Ground[]; theme: string; rejectedReason?: string;
 }
-
-// journal
-export type FlagState = "open" | "actioned" | "declined";
-export type TenureKind = "ruling" | "deferred" | "doubt";
 
 // the engagement snapshot never lies by omission: contradiction is a state
 export type EngagementHealth =

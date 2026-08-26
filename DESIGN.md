@@ -1,7 +1,7 @@
 # DESIGN — the module map
 
-Sixteen TypeScript engine files (src/), one bounded Python worker (py/), the librarian + three worker classes + a two-layer skill library, four kernel files. Roughly a third of
-the oracle's surface. Every rule here is a charter consequence, not a preference.
+Thirteen TypeScript engine files (src/), one bounded Python worker (py/), the librarian + three worker classes + a two-layer skill library, four kernel files. Under a third of
+the oracle's surface after the A9 distillation: every deterministic verb either does bookkeeping an agent shouldn't hand-roll, enforces honesty, or expands context — no workflow lives in the engine. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
 
@@ -14,10 +14,10 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
                         │
         ┌───────────────┼──────────────────────┐
         │ delegates (by cost) │ verbs (toolbox) │ consults
-   worker classes ──────┤                      ├── desk.state()      (where are we)
-   (haiku·sonnet·opus   │   src/cli.ts         ├── coverage.status() (what do we know)
-    — pin model only) × │   one entry point    ├── needs.standing()  (what's missing)
-   skills: shipped      │                      └── answers.ground()  (what's the standing)
+   worker classes ──────┤                      ├── desk.state()     (the one derived picture:
+   (haiku·sonnet·opus   │   src/cli.ts         │    where are we · coverage · needs)
+    — pin model only) × │   one entry point    └── answers.ground() (what's the standing)
+   skills: shipped      │
    kernel/skills/ +     │
    authored _skills/    │
         ────────────────┴──────────────────────
@@ -27,7 +27,7 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
      understanding.md     the librarian, via verbs the maintained client understanding + soft objective
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
      _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
-     _journal/            journal.ts               flags.yaml, tenure.yaml, sessions/
+     _journal/            journal.ts               sessions/ only — flags+tenure live in STATE.md (A9)
      _skills/             brief.ts (saveSkill)     librarian-authored skills (variants logged, reusable)
      _exports/            render.ts                rendered .docx
      capture/             engagement.ts owns       fragments + _taxonomy/ — flat, no manifest, no areas
@@ -43,14 +43,16 @@ answers-out are one motion.)
    is registered and routed, folded into capture, and checked. Anything leaving (an answer with standing, an
    analysis, a rendered document) is a pure read or a demand-driven render
    over the updated record. Analytical questions are the same motion with
-   a license attached: `analysis.feeds` computes candidates, whoever holds
-   the license judges them, proposals land in `findings`, the human rules.
+   a license attached: `answers.ground` retrieves candidates, whoever holds
+   the license judges them through an analysis SKILL (A9), proposals land
+   in `findings`, the human rules.
 2. **The client cycle — the one loop that crosses the client boundary.**
-   `needs.standing` says what the pinned shapes lack → the librarian
+   `desk.needs` says what the pinned shapes lack → the librarian
    curates asks (few, simple, artifact-shaped — see asks.ts's ask economy)
-   → human accepts → information request renders → `asks.markSent` →
-   responses come back through the same intake door → `asks.match` credits
-   them → settle. Continuous through the engagement, not a phase.
+   → human accepts → information request renders → `asks.sent` →
+   a response comes back through `asks.respond`, ONE atomic verb that
+   routes, credits, and settles (A9). Continuous through the engagement,
+   not a phase.
 
 ## Module inventory (each file carries its full contract)
 
@@ -60,19 +62,16 @@ answers-out are one motion.)
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
 | `src/kernel.ts` | nothing | type declarations + fragment→entity parsing |
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
-| `src/engagement.ts` | capture/ skeletons (newFragment) | folder truth, flat: locate, entities, taxonomy — no manifest, no areas, no confirm ceremony |
-| `src/ledger.ts` | `_sources/` | the source ledger: register, route, park, credit, answers |
-| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle + matching |
+| `src/engagement.ts` | nothing | folder truth, flat: locate, entities, taxonomy — no manifest, no areas, no scaffolding verb |
+| `src/ledger.ts` | `_sources/` | the source ledger, one intake door: route, park, credit, status |
+| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb response-back motion |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
-| `src/journal.ts` | `_journal/` | flags, tenure, session records — judgment's homes |
-| `src/coverage.ts` | nothing (pure) | node status + lens conflicts, recomputed every call |
-| `src/needs.ts` | nothing (pure) | what each pinned shape still lacks — standing state as a read |
+| `src/journal.ts` | `_journal/sessions/` | the machinery-written session record — the audit that outlives transcripts |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
-| `src/analysis.ts` | nothing (pure) | mechanical candidate feeds for the analyst license |
 | `src/views.ts` | nothing (pure) | the view-builder registry; views are computed at render time, never files (R1) |
-| `src/check.ts` | nothing | the QC gate: seven capture-quality checks, no signal files |
+| `src/check.ts` | nothing | the QC gate: six mechanical checks, no signal files |
 | `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
-| `src/desk.ts` | git + the session budget line | the librarian's desk: state/report, checkpoint, budget — holds are journal commitments, not machinery |
+| `src/desk.ts` | git + the session budget line | the ONE derived picture: state/report (with coverage + needs folded in, A9), checkpoint, budget |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
 | `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
@@ -80,7 +79,7 @@ answers-out are one motion.)
 
 - Folder state is the only state; every "where are we" is derived on demand.
 - One writer per file; every write is a verb; agents never touch state directly.
-- Pure reads stay pure: coverage, needs, answers, analysis write nothing, cache nothing.
+- Pure reads stay pure: the desk's derived picture and answers write nothing, cache nothing.
 - Fail loud: malformed input is a named refusal, never a default.
 - No "all quiet" claim reachable by damage: `desk.state` requires positive
   evidence of completeness, and a self-contradictory folder is its own state.
@@ -95,9 +94,10 @@ answers-out are one motion.)
 - The engine hard-codes ONE callout kind: the question record (registers join on it). All other capture vocabulary is a shipped, engagement-amendable default; skills bind to declared kinds, never define them.
 - No manifest, no areas, no .proposed/, no holds machinery, no signal files: the folder-as-document and human-as-trust-boundary fossils are out (ROT-1..7).
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
+- No workflow lives in the engine (A9): a verb survives only as bookkeeping, honesty enforcement, or context expansion — how-to-work lives in skills. One event, one verb: a client response settles atomically through `asks.respond`. Analyses are skills, never engine verbs.
 - Agents pin model; skills carry the agency. Worker classes (haiku/sonnet/opus) pin only the model; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or librarian-authored (_skills/, saved before use, logged, reusable).
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
-- The librarian has a workspace: `STATE.md`, its one direct-write file — free prose, never machine-parsed, read first at every sitting, checkpointed with everything else. Working memory persists; only settled judgments go to the journal stores (A8).
+- The librarian has a workspace: `STATE.md`, its one direct-write file — free prose, never machine-parsed, read first at every sitting, checkpointed with everything else. Working memory persists — and after A9 the pad IS judgment's home (precedent, doubts, observations); the machinery keeps only the session record.
 
 ## What is deliberately absent
 
