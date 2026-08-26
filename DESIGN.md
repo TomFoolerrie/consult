@@ -24,6 +24,7 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
                      THE FOLDER (the only state)
    engagement/
      STATE.md             the librarian, directly  the state pad: working memory, read first every sitting (A8)
+     understanding.md     the librarian, via verbs the maintained client understanding + soft objective
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
      _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
      _journal/            journal.ts               flags.yaml, tenure.yaml, sessions/
