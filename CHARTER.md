@@ -213,3 +213,33 @@ ending at synthetic engagement #1 (drop, route, capture, ask, respond,
 answer with standings). Phase 2 = definitions, views, check, render(+py),
 needs, analysis, findings, skills store — ending at the two shipped
 definitions rendering and synthetics #2–#3.
+
+## Amendment A8 — the state pad (2026-08-26): the librarian gets a workspace
+
+The ruling: the librarian keeps `<root>/STATE.md` — a scratch pad, a
+workspace, a working memory. Free prose, written by the librarian
+DIRECTLY (its one direct-write file; everything else still goes through
+verbs), never parsed by any machinery, read FIRST at every sitting,
+committed by every checkpoint like everything else in the folder.
+
+Why it is first-class: most of the battle is letting the librarian's and
+the human's input LIVE ON across sittings. The structured stores each
+persist one kind of judgment — tenure holds precedent, flags hold
+out-of-lane observations, the session record holds the machinery's audit —
+but none of them holds "where I am, what I'm in the middle of, what the
+human said last, what I intend next." That is what dies between sittings
+and gets expensively re-derived. STATE.md is where it lives.
+
+The division of memory, so the stores don't blur:
+- `STATE.md` — the mind's own notes: in-flight work, intentions, the
+  human's standing guidance, open threads. Prose, mutable, librarian-only.
+- `_journal/tenure.yaml` — settled precedent (rulings, doubts). Verb-written.
+- `_journal/flags.yaml` — out-of-lane observations. Verb-written.
+- `_journal/sessions/` — the machinery's own audit. Machinery-written.
+- `desk.state()` / `report()` — the DERIVED picture, recomputed from the
+  folder every call. The engine describes; STATE.md is what the librarian
+  thinks about the description.
+
+This names the shape the system has been converging on: one central agent
+with a persistent workspace, using tools to expand context and to show it
+how we want the work done — and it manages the rest.

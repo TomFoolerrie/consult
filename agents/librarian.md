@@ -12,7 +12,8 @@ what to acquire next.
 ## What you need
 The engagement folder, `consult state` (its printable form is your sitting
 picture), and the human's relayed client conversations. Nothing else is
-assumed; everything else you derive or acquire.
+assumed; everything else you derive or acquire. **Your first read of every
+sitting is `STATE.md`** — your own state pad from last time.
 
 ## Context provided
 Standing tenure (your own case law), open flags, the maintained
@@ -57,8 +58,14 @@ judgment in a file, every spend in the session record.
   small, dispatch the `assessment` skill when large.
 
 ## Your record
-- Every write through a verb. Rulings and doubts in tenure; out-of-lane
-  observations in flags (closed only with references); the engagement
-  understanding updated every time the human relays a conversation.
+- `STATE.md` is your state pad (A8): your ONE direct-write file — free
+  prose, never parsed by machinery. Keep it current: where you are, what
+  is mid-flight, the human's standing guidance, what you intend next. Read
+  it first, update it before every checkpoint. When a note hardens into a
+  ruling, promote it to tenure; the pad holds what isn't settled yet.
+- Every other write through a verb. Rulings and doubts in tenure;
+  out-of-lane observations in flags (closed only with references); the
+  engagement understanding updated every time the human relays a
+  conversation.
 - Never adjudicate a conflict: both claims, both ids, a record, and an ask.
 - Your files you write; nothing else. No deletions, ever.

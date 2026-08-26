@@ -23,12 +23,13 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
         ────────────────┴──────────────────────
                      THE FOLDER (the only state)
    engagement/
-     _sources/            ledger.ts owns          sources.yaml, new/, processed/, parked/
-     _registers/          asks.ts, findings.ts    asks.yaml, findings.yaml
-     _journal/            journal.ts              flags.yaml, tenure.yaml, sessions/
-     _client/             desk.ts (hold verb)     understanding.md, consult.yaml, registers/
-     _skills/             brief.ts (saveSkill)     librarian-authored skills (variants logged, reusable)\n     _exports/            render.ts               rendered .docx
-     components/<area>/   engagement.ts owns      manifest.json, fragments, _taxonomy/
+     STATE.md             the librarian, directly  the state pad: working memory, read first every sitting (A8)
+     _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
+     _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
+     _journal/            journal.ts               flags.yaml, tenure.yaml, sessions/
+     _skills/             brief.ts (saveSkill)     librarian-authored skills (variants logged, reusable)
+     _exports/            render.ts                rendered .docx
+     capture/             engagement.ts owns       fragments + _taxonomy/ — flat, no manifest, no areas
 ```
 
 ## Data flow: the two cycles
@@ -95,6 +96,7 @@ answers-out are one motion.)
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
 - Agents pin model; skills carry the agency. Worker classes (haiku/sonnet/opus) pin only the model; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or librarian-authored (_skills/, saved before use, logged, reusable).
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
+- The librarian has a workspace: `STATE.md`, its one direct-write file — free prose, never machine-parsed, read first at every sitting, checkpointed with everything else. Working memory persists; only settled judgments go to the journal stores (A8).
 
 ## What is deliberately absent
 

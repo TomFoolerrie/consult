@@ -16,8 +16,9 @@ The brain captures what is known about a client's processes as typed, evidenced
 records, and always knows the standing of every statement: evidenced, claimed,
 contested, or absent. A standing agent — the librarian — stewards that record: routes
 sources, curates the taxonomy, generates client engagement (asks) throughout the
-engagement, and does the work itself or delegates it to cheaper models — a cost
-decision, not a structural one. The human talks to the
+engagement, keeps its own working memory in a state pad (`STATE.md`) so nothing
+mid-flight dies between sittings, and does the work itself or delegates it to
+cheaper models — a cost decision, not a structural one. The human talks to the
 client, relays what they learned, asks the brain questions, and makes exactly two
 kinds of calls: what to spend and what to send.
 

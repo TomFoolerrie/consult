@@ -8,7 +8,10 @@
  * surgery, no hold verbs.
  *
  * state() DESCRIBES, never commands — one snapshot the librarian
- * consults; report() is its printable form. Two rules survive as
+ * consults; report() is its printable form. Both are the MACHINE's
+ * derived picture; the librarian's own working memory is <root>/STATE.md
+ * (A8) — free prose the librarian writes directly, never parsed here,
+ * committed by checkpoint like everything else. Two rules survive as
  * structure: a self-contradictory folder is its own state and blocks
  * state-changing verbs; "all quiet" requires positive evidence —
  * quiet-by-damage is a contradiction, never done. checkpoint() commits

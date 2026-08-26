@@ -5,7 +5,7 @@
  * run in-memory at render time, feeding the compiled plan directly. The
  * aggregate stage, derived markers, and pending stubs do not exist in v2 —
  * a placeholder cannot ship because a view is never persisted, only
- * computed. Capture areas hold only captured knowledge, nothing generated.
+ * computed. Capture holds only captured knowledge, nothing generated.
  *
  * BUILDERS is the one registry a new deliverable's view builder joins
  * (what keeps "YAML-sized act" honest). Ships with exactly the four the
