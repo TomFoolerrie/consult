@@ -33,26 +33,26 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
      capture/             engagement.ts owns       fragments + _taxonomy/ — flat, no manifest, no areas
 ```
 
-## Data flow: the two cycles
+## Data flow: the one cycle
 
-(Reduced from four loops per the human's reading: knowledge-in and
-answers-out are one motion.)
+(Four loops became two at the first reading; two became ONE at the A10
+ruling — the "client cycle" was the brain cycle wearing a costume.)
 
-1. **The brain cycle — input → update → output.** Anything arriving (a
-   fresh source, a client's response put back in, a relayed conversation)
-   is registered and routed, folded into capture, and checked. Anything leaving (an answer with standing, an
-   analysis, a rendered document) is a pure read or a demand-driven render
-   over the updated record. Analytical questions are the same motion with
-   a license attached: `answers.ground` retrieves candidates, whoever holds
-   the license judges them through an analysis SKILL (A9), proposals land
-   in `findings`, the human rules.
-2. **The client cycle — the one loop that crosses the client boundary.**
-   `desk.needs` says what the pinned shapes lack → the librarian
-   curates asks (few, simple, artifact-shaped — see asks.ts's ask economy)
-   → human accepts → information request renders → `asks.sent` →
-   a response comes back through `asks.respond`, ONE atomic verb that
-   routes, credits, and settles (A9). Continuous through the engagement,
-   not a phase.
+**input → update → output.** Anything arriving — a fresh source, a
+client's response, a relayed conversation — comes through the ONE intake
+door (`route`, or `asks.respond` when it answers asks), is folded into
+capture, and checked. Anything leaving — an answer with standing, an
+analysis, a rendered document, a curated ask — is a pure read or a
+demand-driven render over the updated record. The client is one of the
+places inputs come from and outputs go to, not a separate loop:
+`desk.needs` says what the pinned shapes lack, the librarian curates asks
+(few, simple, artifact-shaped), the information request renders, the
+response comes back through the same door. Analytical questions are the
+same motion with a license attached (analyses are skills, A9).
+
+What made the client path feel separate is not a cycle but a GATE:
+anything client-facing crosses the human, as does any spend over the
+sitting budget. Gates sit ON the cycle; they are not cycles.
 
 ## Module inventory (each file carries its full contract)
 

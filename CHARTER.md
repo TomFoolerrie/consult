@@ -282,3 +282,20 @@ librarian and the engine only guards invariants. The rulings:
 
 Net: 18 modules → 13, the verb count roughly halved, zero workflows in
 the engine. Every surviving verb guards an invariant or expands context.
+
+## Amendment A10 — one cycle (2026-08-26)
+
+The ruling: the two documented cycles are the same cycle. The "client
+cycle" was the brain cycle wearing a costume — an ask is just an OUTPUT
+whose audience is the client (a demand-driven render like any other), and
+a response is just an INPUT arriving through the same one intake door as
+any source. Needs is a read; respond() is routing. Four loops became two
+at the first reading; two become ONE at this one:
+
+    input → update → output
+
+Everything the system does is a turn of that motion. What made the client
+path feel separate is not a cycle — it is a GATE: anything client-facing
+crosses the human. Gates sit ON the cycle; they are not cycles. The
+documentation now shows one cycle with two gates (spends, sends) and the
+client as one of the places inputs come from and outputs go to.

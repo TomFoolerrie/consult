@@ -15,7 +15,7 @@ export type FindingId = `FIND-${number}`;
 export type CalloutAddr = `${string}#${string}`;
 export type Ground = SrcId | CalloutAddr | { slug: string };
 
-// the ask lifecycle (client cycle) — proposed → accepted → sent → answered → settled, or closed
+// the ask lifecycle — proposed → accepted → sent → answered → settled, or closed
 export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled" | "closed";
 export interface Ask {
   id: AskId; status: AskStatus; text: string;
