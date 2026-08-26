@@ -1,16 +1,15 @@
 /**
- * brief — deterministic work orders for every piece of work.
+ * brief — work orders for delegates, and only delegates.
  *
- * Owns: nothing. Resolves the procedural half of a contract once, from the
- * same loaders the enforcement points use, and prints a reading list +
- * finish checklist. Decides nothing about content: the facts arrive
- * resolved, the judgment stays with the worker — which, per the
- * direct-touch ruling, may be the librarian itself. A brief is issued for
- * EVERY unit of work, delegated or not: it is the auditable statement of
- * what the work stood on, and it carries standing tenure + open flags so
- * no sitting re-derives paid-for judgment.
+ * Owns: nothing. A brief exists to resolve facts once for a
+ * context-limited delegate; the librarian working directly already holds
+ * the picture (R2 — the sitting brief merged into desk.state, which has a
+ * printable form). A brief is issued when, and only when, delegation
+ * happens; the audit trail for direct work is the session record, written
+ * by the machinery. Every brief carries standing tenure + open flags so a
+ * delegate never re-derives paid-for judgment. The brief decides nothing
+ * about content: facts arrive resolved, judgment stays with the worker.
  */
-export function librarian(root: string): string { /** the sitting brief: the whole engagement picture */ throw new Error("mock-out"); }
 export function drafter(root: string, area: string, slug: string, mode: "first-draft" | "update"): string { throw new Error("mock-out"); }
 /** the bounded "go find out" work order: one question, named sources */
 export function reader(root: string, question: string, srcIds: string[]): string { throw new Error("mock-out"); }

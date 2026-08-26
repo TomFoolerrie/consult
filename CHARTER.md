@@ -115,3 +115,21 @@ Still open, with recommendations:
   client relationship; FEW, SIMPLE, ARTIFACT-SHAPED requests (data, policies,
   org chart) are prioritized — one good artifact closes many gaps; clients do
   not answer question lists.
+
+
+## Amendment A3 — the reassessment (applied 2026-08-26)
+
+- **R1:** derived views are never files. Builders run in-memory at render
+  time; the aggregate stage, derived markers, and pending stubs do not
+  exist. The run-3 placeholder bug is structurally impossible, and capture
+  areas hold only captured knowledge.
+- **R2:** the librarian's sitting brief is desk.report — the printable form
+  of desk.state. brief.* issues work orders for delegates only.
+- **R3:** check.ts is eight capture-quality checks (markers and
+  placeholders died with R1; substance folded into grammar).
+- **R4:** the CLI loses aggregate; render is one self-contained verb.
+- **R5:** library first — every verb wraps an exported function; tests and
+  the synthetic harness drive the library in-process, asserting on typed
+  results.
+- Capture stays markdown; registers/ledger/journal stay YAML (assessed, not
+  changed).

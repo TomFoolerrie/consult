@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Seventeen TypeScript engine modules (src/), one bounded Python worker (py/), four agent contracts, four kernel files. Roughly a third of
+Sixteen TypeScript engine files (src/), one bounded Python worker (py/), four agent contracts, four kernel files. Roughly a third of
 the oracle's surface. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -36,8 +36,7 @@ answers-out are one motion.)
 
 1. **The brain cycle — input → update → output.** Anything arriving (a
    fresh source, a client's response put back in, a relayed conversation)
-   is registered and routed, folded into capture, and reflected in the
-   derived views and checks. Anything leaving (an answer with standing, an
+   is registered and routed, folded into capture, and checked. Anything leaving (an answer with standing, an
    analysis, a rendered document) is a pure read or a demand-driven render
    over the updated record. Analytical questions are the same motion with
    a license attached: `analysis.feeds` computes candidates, whoever holds
@@ -66,11 +65,11 @@ answers-out are one motion.)
 | `src/needs.ts` | nothing (pure) | what each pinned shape still lacks — standing state as a read |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
 | `src/analysis.ts` | nothing (pure) | mechanical candidate feeds for the analyst license |
-| `src/views.ts` | derived view files | aggregate: rebuild every engine-owned view |
-| `src/check.ts` | signal file | the QC gate (the oracle's reconcile, distilled) |
+| `src/views.ts` | nothing (pure) | the view-builder registry; views are computed at render time, never files (R1) |
+| `src/check.ts` | signal file | the QC gate: eight capture-quality checks (R3) |
 | `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
 | `src/desk.ts` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
-| `src/brief.ts` | nothing | deterministic work orders for every unit of work, delegated or not |
+| `src/brief.ts` | nothing | work orders for delegates only; the librarian's picture is desk.report (R2) |
 | `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
 ## Laws (ported, all live-proven)
@@ -84,6 +83,8 @@ answers-out are one motion.)
 - Humans never type YAML; every gate answer is a verb.
 - Cost gates cost, never scope (a thin node waits; it is never silently dropped).
 - Adding a deliverable is a YAML-sized act; if it needs an engine change, that is a bug.
+- Derived views are never files: computed at render time, in-memory (R1) — a placeholder cannot ship because it cannot be stored.
+- Library first: every CLI verb wraps an exported function; the harness drives the library in-process (R5).
 - A token spent on judgment lands in a file the machine reads.
 - Delegation is economic, not structural: the librarian may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
 - Asks are few, simple, and artifact-shaped: one good artifact request closes many gaps; clients do not answer question lists.

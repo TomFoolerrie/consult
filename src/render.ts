@@ -1,9 +1,10 @@
 /**
  * render — any pinned definition to a client-ready document.
  *
- * Owns/writes: _exports/. ONE verb: materialize the plan's views,
- * aggregate, compile, REFUSE ON PLACEHOLDER by view name, then emit the
- * document wearing the definition's own shell — its title, its skin's
+ * Owns/writes: _exports/. ONE self-contained verb (R1/R4): compile the
+ * plan, run the pure view builders in-memory (views.build — an unbuildable
+ * view is a named refusal, never a stub), then emit the document wearing
+ * the definition's own shell — its title, its skin's
  * furniture, never another deliverable's. Demand-driven: nothing schedules
  * a render; a render of the information request is immediately followed by
  * asks.markSent. One honest mode with draft watermarking.
@@ -20,5 +21,5 @@
  */
 export interface RenderResult { path: string; sections: number; warnings: string[]; }
 
-/** render one pinned definition end to end; refuses placeholders by view name */
+/** render one pinned definition end to end; an unbuildable view is a named refusal */
 export function deliverable(root: string, name: string, opts?: { out?: string; draft?: boolean }): Promise<RenderResult> { throw new Error("mock-out"); }

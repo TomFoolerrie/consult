@@ -34,8 +34,9 @@ export interface Snapshot {
 }
 export interface Budget { limit: number; spent: number; remaining: number; }
 
-/** the engagement snapshot — describes, never commands */
+/** the engagement snapshot — describes, never commands; report() is its printable form (the librarian's sitting brief, R2) */
 export function state(root: string): Snapshot { throw new Error("mock-out"); }
+export function report(root: string): string { throw new Error("mock-out"); }
 /** commit the whole engagement as consult: <label>; append the session record */
 export function checkpoint(root: string, label: string, dryRun?: boolean): { committed: string[] } { throw new Error("mock-out"); }
 /** the gate-answer verb: edit the hold block, self-verify, restore on mismatch */

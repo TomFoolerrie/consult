@@ -1,8 +1,12 @@
 /**
  * cli — `consult <verb>`, the one entry point.
  *
- * Owns: nothing on disk. One command tree; every verb in the system is a
- * subcommand here; no module has its own entry. Refuses any state-changing
+ * Owns: nothing on disk. LIBRARY FIRST (R5): every verb is a thin wrapper
+ * over an exported module function — tests and the synthetic-engagement
+ * harness drive the library in-process and assert on typed results
+ * (Standing, Defect, Snapshot), never on parsed stdout. One command tree;
+ * every verb in the system is a subcommand here; no module has its own
+ * entry. Refuses any state-changing
  * verb while a contradiction from desk.state() stands, except the verbs
  * that repair it.
  *
@@ -13,8 +17,8 @@
  *   finding propose|accept|reject                              → findings
  *   flag … · tenure …                                          → journal
  *   scaffold                                                   → engagement
- *   aggregate · check                                          → views, check
- *   render <deliverable>                                       → render
+ *   check                                                      → check
+ *   render <deliverable>    (self-contained: compile → build views in-memory → emit)
  *   answer "<question>" · needs · coverage · feeds <verb>      → answers, needs, coverage, analysis
  *   brief <role> …                                             → brief
  */
