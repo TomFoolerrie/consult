@@ -1,6 +1,8 @@
-# The v3 Charter — the engagement brain and its librarian
+# The v2 Charter — the engagement brain and its librarian
 
-**Status: DRAFT v2 — reframed around the human's vision statement of 2026-08-26; rulings D1–D9 pending**
+**Status: RULED — Amendment A1 recorded 2026-08-26; the build proceeds on the orphan branch `v2`**
+
+**Naming (ruled):** the fresh build is **v2** — the human's call: what we shipped as 2.0–2.5.1 never stopped being v1's body and is retroactively the v1 line's final form, frozen as the oracle. Earlier drafts of this document said "v3"; read every remaining "v3" below as the rebuild. The oracle keeps its version numbers; the rebuild's stream starts at `2.0.0-alpha` on the `v2` branch — the streams never mix.
 **Origin:** the human's call after run 3 ("distill what we want and build fresh — code is cheap"), plus the vision statement: *"the user doesn't want to babysit this... the human should talk to the client and then come back and ask questions about the client, and the AI just needs to know the answer or how to get it."* Evidence base: run-derived tickets M65–M78, CHANGELOG 2.4.0–2.5.1, docs/retrospective-v0.md, three live Nordhaven runs.
 
 ---
@@ -73,4 +75,18 @@ Still open, with recommendations:
 
 ---
 
-*Amendment A1 (rulings) — pending.*
+## Amendment A1 — the rulings (2026-08-26)
+
+- **Naming:** the rebuild is v2; the 2.0–2.5.1 line is retroactively v1's final form, frozen as the oracle.
+- **Seat of control:** RULED — the librarian owns the engagement; gates shrink to spends and client-facing sends.
+- **Objective:** RULED — soft prose, librarian-maintained, no required fields.
+- **D1:** RULED yes — central mode only.
+- **D2:** RULED yes — one capture substrate (`process-step` + `taxonomy-node`); shapes rendered over it are the librarian's choice per objective.
+- **D3:** RULED as restated — general engine as a charter property ("a new deliverable is a YAML-sized act"); two shipped definitions as the validation set; shapes evolve with the relationship.
+- **D4:** RULED — the markup review loop is dead. Client responses are put back in as ordinary source drops.
+- **D5:** RULED kill — the synthesis agents die; any future dependencies/RACI view is a python render over IPO edges.
+- **D6:** RULED — the analyst is core, reframed as the analysis service behind the question interface.
+- **D7:** RULED (overriding the draft's recommendation) — **a fresh orphan branch `v2` in this repository**, not a new repo. Clean tree, same history host; the oracle lives on the existing branches.
+- **D8:** RULED — done means several synthetic engagements, driven librarian-first, results analyzed across runs.
+- **D9:** RULED as recommended — the librarian proposes every dispatch with a cost estimate and proceeds without asking below a per-sitting token budget the human sets; above it, or for anything client-facing, it waits.
+- **Method:** RULED — mock the system out in modules first (stub contracts, no implementations) so the human understands and approves the shape before any implementation is written.
