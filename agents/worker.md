@@ -1,42 +1,50 @@
-# consult-worker — one agent, many templates (CONTRACT STUB)
+# the worker classes — model shells that load a template (CONTRACT STUB)
 
-**The only delegate.** The drafter/reader/analyst trio collapsed into one
-worker (ruled 2026-08-26): the differences between them were never three
-agents, they were three WORK SHAPES — and a work shape is a TEMPLATE. The
-librarian assigns a template based on the objective and the deliverable
-shape; the template supplies everything role-specific.
+**The distinction, ruled 2026-08-26: AGENTS pin model (and skills);
+TEMPLATES are skills with agency.** A worker class is a thin shell that
+pins exactly one thing — its model — and loads the template it is handed.
+All behavior, boundary, and license come from the template. Three classes:
 
-## Mission
+| class | model | for |
+|---|---|---|
+| `worker-haiku`  | cheap    | bounded reads, mechanical edits, small drafts |
+| `worker-sonnet` | mid      | first drafts, structured analysis of modest feeds |
+| `worker-opus`   | strong   | assessment under license, hard synthesis, review-with-edits passes |
+
+The librarian picks CLASS and TEMPLATE independently per dispatch — two
+dials, not one: the same `procedure-draft` template may run on haiku for a
+mechanical update and on opus for a hard first draft; the same class may
+run any template. Cost estimates price the pair.
+
+## Mission (all classes)
 Execute exactly one templated unit of work against the material the brief
 resolves, and return exactly what the template's return contract names.
 Nothing outside the template's write boundary, ever.
 
-## What you need (the dispatch)
-One template id + the template's parameters, composed into a brief by
-`brief.compose`. Your FIRST action is reading that brief.
+## What you need
+One template + parameters, composed into a brief by `brief.compose`.
+Reading the brief is always the first action.
 
 ## Context provided (by the brief, never hunted for)
-The resolved facts for this unit: the files/sources in scope, the relevant
-registry and register slices, standing tenure and open flags, the
-objective's framing, the template's rules verbatim.
+The resolved facts for this unit: files/sources in scope, register slices,
+standing tenure, open flags, the objective's framing, the template's rules
+verbatim.
 
 ## What you return
 The template's return contract — a file written (if the template grants
-one), or structured material (grounded findings, quoted source material),
-plus flags for anything out-of-lane. A worker never returns judgment the
-template didn't license.
+one) or structured grounded material — plus flags for anything out-of-lane.
+Never judgment the template didn't license.
 
-## The starter template library (kernel/templates/ — each declares:
-mission · model tier · write boundary · context contract · return contract · rules)
+## Templates — skills with agency
+A template declares: mission · write boundary · context contract · return
+contract · rules · a RECOMMENDED class (advisory; the librarian may
+override with reason, recorded). Two layers, same shadowing rule as
+deliverable definitions:
 
-| template | mission | writes | tier |
-|---|---|---|---|
-| `procedure-draft` | fill or EDIT one capture fragment from tagged sources, under the minting bars | its one fragment | cheap-capable; edit passes may run review-with-edits on a strong model (input is cheap, output is dear) |
-| `source-read` | answer one question from named sources; return grounded material, quoted, cited | nothing | cheap |
-| `assessment` | judge one candidate feed under the license: propose-only, grounds resolve, candidates_received == candidates_assessed, never "likely" | nothing (proposals returned) | strong |
-| `data-analysis` | work one structured dataset (an export the client sent): profile it, answer the named questions, return grounded material with row/sheet citations | nothing | strong |
-
-Adding a template is adding a file — the same "YAML-sized act" property the
-deliverable definitions have. The librarian may also execute any template's
-work DIRECTLY (delegation is economic, not structural); the template's
-rules bind whoever does the work.
+- **shipped** — `kernel/templates/`: procedure-draft, source-read,
+  assessment, data-analysis.
+- **engagement-authored** — `<root>/_templates/`: the librarian may CREATE
+  a template ad-hoc, from scratch or as a variant of an existing one.
+  Every ad-hoc template is SAVED (never used from a prompt), logged in the
+  session record, and reusable — later sittings inherit it like tenure.
+  A local name shadows a shipped one.

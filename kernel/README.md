@@ -16,10 +16,12 @@ deliverables/information-request.yaml   the ask loop's front door — curated
 deliverables/findings-report.yaml       accepted findings by theme
 ```
 
-A fourth directory joins at build time: `templates/` — the worker's work
+A fourth directory joins at build time: `templates/` — the SHIPPED work
 shapes (procedure-draft, source-read, assessment, data-analysis), each
-declaring mission, model tier, write boundary, context contract, return
-contract, rules. Adding a work shape is adding a template file.
+declaring mission, write boundary, context contract, return contract,
+rules, and a recommended worker class. Engagement-authored templates live
+in `<root>/_templates/` and shadow shipped ones by name — the librarian
+authors them ad-hoc (always saved before use, logged, reusable).
 
 The definition language's rule set lives in `src/definitions.ts`.
 Adding a deliverable = adding a YAML file here (plus at most one view

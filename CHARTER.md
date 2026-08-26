@@ -152,3 +152,17 @@ Still open, with recommendations:
   boundary is toed deliberately and recorded per spend.
 - **Ask economy is a guiding principle, not a rule:** if the objective
   needs something, it needs something.
+
+
+## Amendment A5 — agents vs templates (2026-08-26, artifact comments round 3)
+
+- **Agents pin model; templates are skills with agency.** The worker
+  becomes three CLASSES — worker-haiku, worker-sonnet, worker-opus — thin
+  shells pinning only their model. All behavior, boundary, and license come
+  from the loaded template. Class and template are chosen independently per
+  dispatch; a template carries a recommended class, advisory only.
+- **The librarian authors templates.** Ad-hoc, from scratch or as a variant
+  of an existing one — always SAVED to <root>/_templates/ before use (never
+  run from a prompt), logged in the session record, reusable by later
+  sittings. Engagement-authored templates shadow shipped ones by name, the
+  same rule deliverable definitions use. brief.ts owns the store.

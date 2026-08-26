@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Sixteen TypeScript engine files (src/), one bounded Python worker (py/), two agent contracts + a template library, four kernel files. Roughly a third of
+Sixteen TypeScript engine files (src/), one bounded Python worker (py/), the librarian + three worker classes + a two-layer template library, four kernel files. Roughly a third of
 the oracle's surface. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -14,12 +14,12 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
                         │
         ┌───────────────┼──────────────────────┐
         │ delegates (by cost) │ verbs (toolbox) │ consults
-   agents/worker × ─────┤                      ├── desk.state()      (where are we)
-   kernel/templates/    │   src/cli.ts         ├── coverage.status() (what do we know)
-   (procedure-draft ·   │   one entry point    ├── needs.standing()  (what's missing)
-    source-read ·       │                      └── answers.ground()  (what's the standing)
-    assessment ·        │
-    data-analysis)      │
+   worker classes ──────┤                      ├── desk.state()      (where are we)
+   (haiku·sonnet·opus   │   src/cli.ts         ├── coverage.status() (what do we know)
+    — pin model only) × │   one entry point    ├── needs.standing()  (what's missing)
+   templates: shipped   │                      └── answers.ground()  (what's the standing)
+   kernel/templates/ +  │
+   authored _templates/ │
         ────────────────┴──────────────────────
                      THE FOLDER (the only state)
    engagement/
@@ -27,7 +27,7 @@ the oracle's surface. Every rule here is a charter consequence, not a preference
      _registers/          asks.ts, findings.ts    asks.yaml, findings.yaml
      _journal/            journal.ts              flags.yaml, tenure.yaml, sessions/
      _client/             desk.ts (hold verb)     understanding.md, consult.yaml, registers/
-     _exports/            render.ts               rendered .docx
+     _templates/          brief.ts (saveTemplate)  librarian-authored templates (variants logged, reusable)\n     _exports/            render.ts               rendered .docx
      components/<area>/   engagement.ts owns      manifest.json, fragments, _taxonomy/
 ```
 
@@ -71,7 +71,7 @@ answers-out are one motion.)
 | `src/check.ts` | signal file | the QC gate: eight capture-quality checks (R3) |
 | `src/render.ts` | `_exports/` | any definition → .docx, refuse-on-placeholder |
 | `src/desk.ts` | `consult.yaml` hold block, git | the librarian's desk: state, checkpoint, hold, budget |
-| `src/brief.ts` | nothing | the template composer: one worker, many templates; brief.compose(template, params) |
+| `src/brief.ts` | `_templates/` | the template store + composer: resolve (local shadows shipped), saveTemplate, compose(name, class, params) |
 | `py/render_worker` | `_exports/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
 ## Laws (ported, all live-proven)
@@ -91,7 +91,7 @@ answers-out are one motion.)
 - Delegation is economic, not structural: the librarian may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
 - Ask economy is a guiding principle, not a rule: prefer few, simple, artifact-shaped asks — but if the objective needs something, it needs something.
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
-- One delegate, many templates: the worker is parameterized by kernel/templates/; adding a work shape is adding a template file.
+- Agents pin model; templates are skills with agency. Worker classes (haiku/sonnet/opus) pin only the model; class and template are independent dials. Adding a work shape is adding a template file — shipped or librarian-authored (_templates/, saved before use, logged, reusable).
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
 
 ## What is deliberately absent
