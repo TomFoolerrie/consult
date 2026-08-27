@@ -84,7 +84,7 @@ at read time from the record's physical shape.
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
 | `src/engagement.ts` | nothing | folder truth, flat: locate, entities, taxonomy — no manifest, no areas, no scaffolding verb |
 | `src/ledger.ts` | `_sources/` | the source ledger, one intake door: route, park, credit, status |
-| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb response-back motion |
+| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb ARRIVAL motion; settle() closes after fold-in (A13) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
 | `src/journal.ts` | `_journal/sessions/` | the machinery-written session record — the audit that outlives transcripts |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
@@ -114,7 +114,7 @@ at read time from the record's physical shape.
 - The engine hard-codes ONE callout kind: the question record (registers join on it). All other capture vocabulary is a shipped, engagement-amendable default; skills bind to declared kinds, never define them.
 - No manifest, no areas, no .proposed/, no holds machinery, no signal files: the folder-as-document and human-as-trust-boundary fossils are out (ROT-1..7).
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
-- No workflow lives in the engine (A9): a verb survives only as bookkeeping, honesty enforcement, or context expansion — how-to-work lives in skills. One event, one verb: a client response settles atomically through `asks.respond`. Analyses are skills, never engine verbs.
+- No workflow lives in the engine (A9): a verb survives only as bookkeeping, honesty enforcement, or context expansion — how-to-work lives in skills. One event, one verb — the event is ARRIVAL (A13): `asks.respond` routes and stamps; settle() closes only after fold-in. Analyses are skills, never engine verbs.
 - Agents pin model; skills carry the agency. Worker classes (haiku/sonnet/opus) pin only the model; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or consultant-authored (_skills/, saved before use, logged, reusable).
 - Synthesis is citable, never standing-upgrading (A12): a synthesis source declares the grounds it was built from, and statements citing it inherit those grounds' standing — self-derived knowledge is first-class, laundering is structurally impossible.
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.

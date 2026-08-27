@@ -5,11 +5,13 @@
  * The brain generates client engagement throughout the engagement; this
  * register holds every curated request from proposal to settlement.
  *
- * ONE EVENT, ONE VERB (A9): a client response arriving is a single
- * motion — respond() registers the file through the ledger's one door,
- * records which asks it answers, credits consumption, and settles, all
- * atomically. The four-verb ceremony (route → match → credit → settle)
- * does not exist. retire/unask merged into close(reason).
+ * ONE EVENT, ONE VERB — the event is ARRIVAL (A9, corrected A13): a
+ * client response arriving is one motion — respond() routes the file
+ * through the ledger's one door and stamps the asks it answers. It does
+ * NOT settle: settle means "folded into capture", which is work that
+ * happens after arrival; settle() is the post-fold-in verb, and the
+ * answered-but-unsettled debt stays visible in between. retire/unask
+ * merged into close(reason).
  *
  * ASK ECONOMY — a GUIDING PRINCIPLE, not a rule (ruled 2026-08-26): asks
  * are tailored to the client relationship, and clients answer artifacts,
@@ -27,14 +29,16 @@
  */
 import type { Ask, AskId, AskStatus, SrcId, CalloutAddr } from "./types.ts";
 
-/** mint a client-voiced ask referencing the question records it would close */
-export function propose(root: string, text: string, questions: CalloutAddr[], audience: string, artifact: string): AskId { throw new Error("mock-out"); }
+/** mint a client-voiced ask referencing the question records it would close; audience/artifact optional (A13 — the ask economy is guidance, not schema) */
+export function propose(root: string, text: string, questions: CalloutAddr[], audience?: string, artifact?: string): AskId { throw new Error("mock-out"); }
 /** the human gate's yes, recorded */
 export function accept(root: string, id: AskId): void { throw new Error("mock-out"); }
-/** record every accepted ask as sent (the render verb's sibling) */
-export function sent(root: string): number { throw new Error("mock-out"); }
-/** THE response-back verb: route the file, stamp answered asks, credit, settle — one atomic motion */
-export function respond(root: string, file: string, ids: AskId[], filled: string[]): { src: SrcId; settled: Ask[] } { throw new Error("mock-out"); }
+/** record accepted asks as sent — all of them by default, or just ids (A13) */
+export function sent(root: string, ids?: AskId[]): number { throw new Error("mock-out"); }
+/** the arrival verb: route the file through the one door + stamp answered asks (A13: arrival, not completion — settle comes after fold-in) */
+export function respond(root: string, file: string, ids: AskId[]): { src: SrcId; answered: Ask[] } { throw new Error("mock-out"); }
+/** the answer is folded into capture; the loop for this ask closes */
+export function settle(root: string, id: AskId): void { throw new Error("mock-out"); }
 /** withdraw an ask, or mark a question deliberately not the client's to answer — one close, durable reason */
 export function close(root: string, target: AskId | CalloutAddr, reason: string): void { throw new Error("mock-out"); }
 export function entriesOf(root: string, status?: AskStatus): Ask[] { throw new Error("mock-out"); }

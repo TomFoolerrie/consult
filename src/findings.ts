@@ -11,7 +11,7 @@
 import type { Finding, FindingId, Ground } from "./types.ts";
 
 /** mint FIND-nnn; every ground must resolve or the mint refuses by name */
-export function propose(root: string, claim: string, grounds: Ground[], theme: string): FindingId { throw new Error("mock-out"); }
+export function propose(root: string, claim: string, grounds: Ground[], theme?: string): FindingId { throw new Error("mock-out"); }
 /** the human's ruling, in conversation, recorded */
 export function accept(root: string, id: FindingId): void { throw new Error("mock-out"); }
 export function reject(root: string, id: FindingId, reason: string): void { throw new Error("mock-out"); }

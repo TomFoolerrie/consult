@@ -369,3 +369,30 @@ economy are unchanged — the name now matches the job: one standing agent
 that stewards the engagement and serves the human's client relationship.
 Historical amendment text above stands as written; all living documents,
 contracts, and code speak of the consultant.
+
+## Amendment A13 — the pre-build pass (2026-08-27): edge prescriptions out
+
+A final bloat/prescription hunt before the build. The core held; five
+edge findings, all applied:
+
+- **P-1: respond() was over-atomic — and dishonest.** Settle means "the
+  answer is folded into capture", and folding is work that happens after
+  arrival. The one-verb event is ARRIVAL: respond(file, askIds) routes
+  and stamps answered (no `filled` param — arrival cannot know what got
+  filled); settle(id) returns as the post-fold-in verb; the
+  answered-but-unsettled debt does its job in between.
+- **P-2: "thin" leaves CoverageStatus.** Thinness is a threshold judgment
+  against the objective — the consultant's call, never a constant in
+  coverage code. The engine reports what is computable: evidenced,
+  claimed, conflicted, outstanding.
+- **P-3: audience/artifact are optional on propose().** The ask economy
+  is a guiding principle; required schema made it a rule. A pointed
+  question the objective demands has no artifact.
+- **P-4: theme is optional on findings.propose().** Organization belongs
+  to the deliverable definition, not the register.
+- **P-5: sent(ids?) can be selective.** The all-accepted sweep assumed
+  one big information request — a v1 render-then-mark-all fossil. Sweep
+  by default; piecemeal when the relationship's cadence calls for it.
+- **P-6 (recorded intention, post-Phase-1):** module docstrings become
+  the living truth once code lands; DESIGN shrinks to picture + laws;
+  the blueprint artifact is regenerated from the tree, never hand-synced.
