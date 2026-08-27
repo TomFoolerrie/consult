@@ -50,3 +50,18 @@ deliverable definitions:
   Every ad-hoc skill is SAVED (never used from a prompt), logged in the
   session record, and reusable — later sittings inherit it.
   A local name shadows a shipped one.
+
+## How dispatch runs on the substrate (no hot-loading)
+The three classes are three tiny STATIC agent definitions (model + tool
+surface pinned; system prompt: "read the brief, do exactly what it says,
+return what its return contract names"). The skill is NOT delivered
+through the harness — agent-frontmatter `skills:` is deliberately unused
+(it welds skill to agent, the v1 shape). The composed brief IS the skill
+delivery: plain prompt text, resolved by `brief.compose` and handed at
+dispatch. This is why an ad-hoc skill saved mid-sitting works instantly
+(harness skills are discovered only at session start), why local-shadows-
+shipped is our resolution logic, and why the library is portable beyond
+Claude Code. Per-dispatch model choice is first-class in the Agent call;
+tools can't be granted per-dispatch and don't need to be — the class's
+tool surface is fixed, and the skill's write boundary narrows it as an
+instruction that check.run and the one-writer law verify mechanically.
