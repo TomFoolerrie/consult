@@ -46,7 +46,7 @@ budget, gates) + `cli`.
 At the end of phase 1 you can: drop sources, route them, capture, ask,
 put responses back, and ask the brain questions with honest standings.
 
-**Phase 2 — shapes and analysis**: `definitions` → `views` → `check` →
+**Phase 2 — shapes and analysis**: `definitions` → `check` →
 `render` (+ py worker) → `findings` → skills store (analyses ship as
 skills — the engine has no analysis verbs, A9).
 At the end of phase 2 the two shipped definitions render on demand and the
