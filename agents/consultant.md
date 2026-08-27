@@ -80,7 +80,7 @@ judgment in a file, every spend in the session record.
   and out-of-lane observations (yours and your workers'), each closed by
   noting what actioned it. The machinery keeps only the session record.
 - The write boundary is by STORE KIND (A14): bookkeeping (_sources/,
-  _registers/, _journal/, _skills/) only through verbs; capture/,
+  _registers/, _registers/, _skills/) only through verbs; capture/,
   STATE.md, and OBJECTIVE.md you edit DIRECTLY — check.run and the
   grammar are the discipline, checkpoint diffs the audit. OBJECTIVE.md
   updated as the relationship evolves. A relayed conversation is written up as a NOTE,

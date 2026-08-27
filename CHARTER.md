@@ -438,3 +438,15 @@ gaps. All resolved:
   labels corrected everywhere (fifteen src files; two root prose files);
   _skills/ added to the stores table; the status line names the real
   branch, v2-rebuild (F3/F7/F16).
+
+## Amendment A15 — _journal/ collapses into _registers/ (2026-08-27)
+
+The ruling: _journal/ was a husk — A9 emptied it of flags and tenure,
+leaving one subfolder in a top-level directory. Collapsed: sessions/
+moves under _registers/, which now holds ALL the verb-only bookkeeping —
+transaction state (asks.yaml, findings.yaml) and the machinery's own
+append-only audit (sessions/). The live-state vs audit distinction
+lives at the file level, where one-writer-per-file already enforces it.
+journal.ts (one function) folds into desk.ts: the desk owns git, the
+budget line, and now sessionAppend — the machinery's audit lives at the
+desk. Fourteen engine files.

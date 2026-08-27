@@ -1,8 +1,8 @@
 /**
  * desk — the consultant's desk: the ONE derived picture. (A9 merge.)
  *
- * Owns/writes: git (checkpoint) and the budget line of the session
- * record. Everything else is a read. coverage.ts and needs.ts folded in
+ * Owns/writes: git (checkpoint) and _registers/sessions/ — the session
+ * record, budget line included (A15). Everything else is a read. coverage.ts and needs.ts folded in
  * here (A9): three modules computing slices of "where are we" was a v1
  * org chart — state() carries coverage and needs as sections, and the
  * pure reads are exported from the desk.
@@ -20,6 +20,12 @@
  * state and blocks state-changing verbs; "all quiet" requires positive
  * evidence — quiet-by-damage is a contradiction, never done. checkpoint()
  * commits the WHOLE engagement and appends the session record.
+ *
+ * The desk also owns the machinery's audit (A15 — journal.ts folded in):
+ * _registers/sessions/, the append-only session record every verb and
+ * dispatch appends itself to, closing the oracle's named evidence gap of
+ * audits living only in transcripts. Flags and tenure remain state-pad
+ * sections (A9).
  *
  * budget is the D9 mechanism, also governing direct-vs-delegate: every
  * spend is proposed with an estimate (priced with token asymmetry in
@@ -59,3 +65,6 @@ export function budgetSet(root: string, tokens: number): void { throw new Error(
 export function budget(root: string): Budget { throw new Error("mock-out"); }
 /** record one spend's estimate and actual in the session record */
 export function spend(root: string, estimate: number, actual: number, what: string): void { throw new Error("mock-out"); }
+/** every verb and dispatch appends itself to the sitting's session record (A15, from journal.ts) */
+export function sessionAppend(root: string, event: SessionEvent): void { throw new Error("mock-out"); }
+export interface SessionEvent { at: string; verb: string; detail: string; costEstimate?: number; costActual?: number; }

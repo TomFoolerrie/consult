@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Fifteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
+Fourteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
 the oracle's surface after the A9 distillation: every deterministic verb either does bookkeeping an agent shouldn't hand-roll, enforces honesty, or expands context — no workflow lives in the engine. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -27,8 +27,7 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
      STATE.md             the consultant, directly  the state pad: working memory, read first every sitting (A8)
      OBJECTIVE.md         the consultant, directly  the soft objective: relationship framing, no client facts (A11/A14)
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
-     _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
-     _journal/            journal.ts               sessions/ only — flags+tenure live in STATE.md (A9)
+     _registers/          asks.ts · findings.ts · desk.ts   asks.yaml, findings.yaml, sessions/ (A15)
      _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable)
      _synthesis/          render.ts + workers      work products; registrable as sources (A12)
      capture/             consultant+workers, directly  fragments + _taxonomy/ — flat, no manifest, no areas (A14)
@@ -63,7 +62,7 @@ sitting budget. Gates sit ON the cycle; they are not cycles.
 | `OBJECTIVE.md` | why are we here? | consultant, directly (A14) | never (quoted into briefs) |
 | `capture/` | what do we know? | consultant/workers, directly (A14) | yes — the substrate |
 | `_registers/` | where does each transaction stand? | asks.ts / findings.ts | yes — debts computed |
-| `_journal/sessions/` | what did the machinery spend? | the machinery itself | append-only audit |
+| `_registers/sessions/` | what did the machinery spend? | the machinery (desk.ts) | append-only audit |
 | `_sources/` | what came in, and is it accounted for? | ledger.ts | yes — the balance |
 | `_synthesis/` | what have we made? | render.ts / workers | registrable as synthesis sources (A12) |
 | `_skills/` | what work shapes have we authored? | brief.ts (saveSkill) | yes — resolved into briefs |
@@ -88,19 +87,18 @@ at read time from the record's physical shape.
 | `src/ledger.ts` | `_sources/` | the source ledger, one intake door: route, park, credit, status |
 | `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb ARRIVAL motion; settle() closes after fold-in (A13) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
-| `src/journal.ts` | `_journal/sessions/` | the machinery-written session record — the audit that outlives transcripts |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
 | `src/views.ts` | nothing (pure) | the view-builder registry; views are computed at render time, never files (R1) |
 | `src/check.ts` | nothing | the QC gate: six mechanical checks, no signal files |
 | `src/render.ts` | `_synthesis/` | any definition → .docx, refuse-on-placeholder |
-| `src/desk.ts` | git + the session budget line | the ONE derived picture: state/report (with coverage + needs folded in, A9), checkpoint, budget |
+| `src/desk.ts` | git + `_registers/sessions/` | the ONE derived picture: state/report, checkpoint, budget, sessionAppend (A15) |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
 | `py/render_worker` | `_synthesis/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
 ## Laws (ported, all live-proven)
 
 - Folder state is the only state; every "where are we" is derived on demand.
-- One writer per file. The write boundary is drawn by STORE KIND (A14): machine-parsed bookkeeping (_sources/, _registers/, _journal/, _skills/) is verb-only; capture/, STATE.md, and OBJECTIVE.md are DIRECT writes — the consultant anywhere, workers within their skill's write boundary — disciplined by check.run, the grammar, and checkpoint diffs.
+- One writer per file. The write boundary is drawn by STORE KIND (A14): machine-parsed bookkeeping (_sources/, _registers/, _skills/) is verb-only; capture/, STATE.md, and OBJECTIVE.md are DIRECT writes — the consultant anywhere, workers within their skill's write boundary — disciplined by check.run, the grammar, and checkpoint diffs.
 - Pure reads stay pure: the desk's derived picture and answers write nothing, cache nothing.
 - Fail loud: malformed input is a named refusal, never a default.
 - No "all quiet" claim reachable by damage: `desk.state` requires positive

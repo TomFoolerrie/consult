@@ -41,8 +41,8 @@ list is the whole system.
 
 **Phase 1 — the brain minimum** (ends with synthetic engagement #1):
 `types` → `kernel` (parse) → `engagement` (flat capture) → `ledger` →
-`asks` → `journal` (session record) → `answers` → `desk` (the one
-derived picture, coverage + needs included) + `cli`.
+`asks` → `answers` → `desk` (the one derived picture — coverage, needs,
+and the session record, A15) + `cli`.
 At the end of phase 1 you can: drop sources, route them, capture, ask,
 put responses back, and ask the brain questions with honest standings.
 
