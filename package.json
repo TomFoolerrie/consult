@@ -3,7 +3,7 @@
   "version": "2.0.0-alpha",
   "private": true,
   "type": "module",
-  "description": "The engagement brain and its librarian. MOCK-OUT: contracts only, nothing runs yet.",
+  "description": "The engagement brain and its consultant. MOCK-OUT: contracts only, nothing runs yet.",
   "bin": { "consult": "./src/cli.ts" },
   "engines": { "node": ">=20" }
 }

@@ -1,4 +1,4 @@
-# CONSULT v2 — the engagement brain and its librarian
+# CONSULT v2 — the engagement brain and its consultant
 
 **Status: MOCK-OUT.** Every module exists as a contract — a docstring that says what it
 owns, what it writes, and what it refuses — with signatures and no implementations.
@@ -14,7 +14,7 @@ question comes up, its behavior is the spec until the human rules otherwise.
 
 The brain captures what is known about a client's processes as typed, evidenced
 records, and always knows the standing of every statement: evidenced, claimed,
-contested, or absent. A standing agent — the librarian — stewards that record: routes
+contested, or absent. A standing agent — the consultant — stewards that record: routes
 sources, curates the taxonomy, generates client engagement (asks) throughout the
 engagement, keeps its own working memory in a state pad (`STATE.md`) so nothing
 mid-flight dies between sittings, and does the work itself or delegates it to
@@ -29,7 +29,7 @@ CHARTER.md            the ruled charter (Amendment A1)
 DESIGN.md             module map, data flow, who-writes-what
 src/                  the engine — TypeScript, one entry point (`consult <verb>`)
 py/                   the one Python seam: the bounded docx render worker
-agents/               two contracts: librarian + worker classes (skills in kernel/skills/)
+agents/               two contracts: consultant + worker classes (skills in kernel/skills/)
 kernel/               the declarative half: 2 types, 2 deliverable definitions
 synthetic/            the synthetic-engagement harness (the definition of done)
 tests/                (arrives with implementation — tests-first, per module)

@@ -38,5 +38,5 @@ export function respond(root: string, file: string, ids: AskId[], filled: string
 /** withdraw an ask, or mark a question deliberately not the client's to answer — one close, durable reason */
 export function close(root: string, target: AskId | CalloutAddr, reason: string): void { throw new Error("mock-out"); }
 export function entriesOf(root: string, status?: AskStatus): Ask[] { throw new Error("mock-out"); }
-/** answered-but-unsettled — the librarian's follow-up debt */
+/** answered-but-unsettled — the consultant's follow-up debt */
 export function unsettled(root: string): Ask[] { throw new Error("mock-out"); }

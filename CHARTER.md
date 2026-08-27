@@ -344,3 +344,28 @@ The state-inventory discussion, written down so none of it drifts:
   discipline: when the librarian judges its own record directly,
   consequential conclusions get a fresh-context verification dispatch
   before landing as proposed findings.
+
+## Amendment A12 — synthesis sources and the consultant (2026-08-27)
+
+Two rulings:
+
+**1. The steward may register its own work as a source.** What was
+_exports/ is renamed **_synthesis/** — the word says what the directory
+is: work products the brain has synthesized (rendered deliverables
+included), which are now registrable through the same one intake door
+and citable like any other source. The guard that keeps this honest:
+provenance gains a third class, `synthesis`, and a synthesis source MUST
+declare the grounds it was built from — and it NEVER upgrades standing.
+A statement citing a synthesis source inherits the standing of the
+synthesis's own grounds, resolved through the chain; check verifies
+every synthesis source declares resolvable grounds. Self-derived
+knowledge becomes first-class; laundering claimed into evidenced by
+citing your own summary is structurally impossible. Client-facing
+sends still gate exactly as before — synthesis is where work products
+live, not a bypass.
+
+**2. The librarian is renamed THE CONSULTANT.** The seat, contract, and
+economy are unchanged — the name now matches the job: one standing agent
+that stewards the engagement and serves the human's client relationship.
+Historical amendment text above stands as written; all living documents,
+contracts, and code speak of the consultant.

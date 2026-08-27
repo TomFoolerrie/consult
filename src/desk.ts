@@ -1,5 +1,5 @@
 /**
- * desk — the librarian's desk: the ONE derived picture. (A9 merge.)
+ * desk — the consultant's desk: the ONE derived picture. (A9 merge.)
  *
  * Owns/writes: git (checkpoint) and the budget line of the session
  * record. Everything else is a read. coverage.ts and needs.ts folded in
@@ -8,12 +8,12 @@
  * pure reads are exported from the desk.
  *
  * Holds do not exist as machinery (ROT-4): "ask first — don't fill until
- * I say" is a commitment the librarian records in its state pad and obeys.
+ * I say" is a commitment the consultant records in its state pad and obeys.
  *
- * state() DESCRIBES, never commands — one snapshot the librarian
+ * state() DESCRIBES, never commands — one snapshot the consultant
  * consults; report() is its printable form. Both are the MACHINE's
- * derived picture; the librarian's own working memory is <root>/STATE.md
- * (A8) — free prose the librarian writes directly, never parsed here,
+ * derived picture; the consultant's own working memory is <root>/STATE.md
+ * (A8) — free prose the consultant writes directly, never parsed here,
  * committed by checkpoint like everything else.
  *
  * Two rules survive as structure: a self-contradictory folder is its own
@@ -46,7 +46,7 @@ export interface Need { shape: string; part: string; standing: Standing; }
 
 /** the engagement snapshot — describes, never commands */
 export function state(root: string): Snapshot { throw new Error("mock-out"); }
-/** the printable form — the librarian's sitting picture */
+/** the printable form — the consultant's sitting picture */
 export function report(root: string): string { throw new Error("mock-out"); }
 /** pure read: per-node coverage status + lens conflicts, recomputed every call */
 export function coverage(root: string): NodeCoverage[] { throw new Error("mock-out"); }

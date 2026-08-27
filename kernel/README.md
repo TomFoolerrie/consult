@@ -24,7 +24,7 @@ A fourth directory joins at build time: `skills/` — the SHIPPED work
 shapes (procedure-draft, source-read, assessment, data-analysis), each
 declaring mission, write boundary, context contract, return contract,
 rules, and a recommended worker class. Engagement-authored skills live
-in `<root>/_skills/` and shadow shipped ones by name — the librarian
+in `<root>/_skills/` and shadow shipped ones by name — the consultant
 authors them ad-hoc (always saved before use, logged, reusable).
 
 Analyses are skills, not engine verbs (A9): the four analysis lenses the

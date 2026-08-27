@@ -1,7 +1,11 @@
 /**
  * render — any pinned definition to a client-ready document.
  *
- * Owns/writes: _exports/. ONE self-contained verb (R1/R4): compile the
+ *  A12: renders land in _synthesis/ — the consultant may register one as a
+ * synthesis source (declared grounds, standing never upgraded) and work
+ * from it.
+ *
+ * Owns/writes: _synthesis/. ONE self-contained verb (R1/R4): compile the
  * plan, run the pure view builders in-memory (views.build — an unbuildable
  * view is a named refusal, never a stub), then emit the document wearing
  * the definition's own shell — its title, its skin's

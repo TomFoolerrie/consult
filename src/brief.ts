@@ -2,7 +2,7 @@
  * brief — the skill store and composer.
  *
  * Owns/writes: <root>/_skills/ — the engagement-authored skill store
- * (the librarian's one authoring surface here, written only through
+ * (the consultant's one authoring surface here, written only through
  * saveSkill). The distinction, ruled 2026-08-26: worker CLASSES pin the
  * model (haiku | sonnet | opus); SKILLS are skills with agency —
  * mission, write boundary, context contract, return contract, rules, and
@@ -11,15 +11,15 @@
  *
  * Resolution: an engagement-authored skill shadows a shipped one of the
  * same name (kernel/skills/), the same rule definitions use. The
- * librarian may author a skill ad-hoc — from scratch or as a variant —
+ * consultant may author a skill ad-hoc — from scratch or as a variant —
  * but it is always SAVED before use (never run from a prompt), logged in
  * the session record, and thereby reusable: later sittings inherit it.
  *
  * compose() resolves one skilled unit of work — files and sources in
- * scope, register slices, the librarian's standing precedent and open
+ * scope, register slices, the consultant's standing precedent and open
  * observations (from the state pad), the objective's
  * framing, the skill's rules verbatim — into one printable brief.
- * Issued when, and only when, delegation happens; the librarian's own
+ * Issued when, and only when, delegation happens; the consultant's own
  * picture is desk.report. The brief decides nothing about content.
  */
 export type WorkerClass = "haiku" | "sonnet" | "opus";

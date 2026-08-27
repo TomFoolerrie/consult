@@ -9,12 +9,15 @@
  * out" is a first-class result).
  *
  * Division of labor, stated plainly: this module does NOT phrase the
- * answer — the librarian does, in conversation. ground() returns material;
+ * answer — the consultant does, in conversation. ground() returns material;
  * determinism stays in the engine, judgment stays in the tenancy. That
  * split is what makes "the AI just needs to know the answer or how to get
- * it" auditable: every sentence the librarian says can point at the
+ * it" auditable: every sentence the consultant says can point at the
  * material it stood on.
  */
+// A12: a statement citing a synthesis source takes the standing of that
+// source's declared grounds, resolved through the chain — synthesis is
+// citable, never standing-upgrading.
 import type { Standing, Ground, SrcId, CalloutAddr } from "./types.ts";
 
 export interface GroundedItem { text: string; standing: Standing; where: string; }

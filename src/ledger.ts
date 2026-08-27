@@ -11,6 +11,12 @@
  *
  * Ask-answer bookkeeping moved behind asks.respond (A9): one event, one
  * verb — the ledger exposes no recordAnswers.
+ *
+ * SYNTHESIS SOURCES (A12): the consultant may register its own work
+ * products from _synthesis/ through the same one door, with
+ * provenance "synthesis" and declared grounds. Citable like any source;
+ * never upgrades standing — laundering claimed into evidenced by citing
+ * your own summary is structurally impossible.
  */
 import type { SrcId, AskId } from "./types.ts";
 
@@ -18,7 +24,12 @@ export interface LedgerEntry {
   id: SrcId; file: string; hash: string;
   touches: readonly string[];              // fragment slugs this source informs
   answers: readonly AskId[]; consumed: ReadonlyMap<string, readonly string[]>;
-  provenance?: "client" | "public";
+  provenance?: "client" | "public" | "synthesis";
+  /** synthesis sources ONLY (A12): the grounds this work product was built
+   * from — required, must resolve. A synthesis source NEVER upgrades
+   * standing: a statement citing it inherits the standing of these
+   * grounds, resolved through the chain. */
+  grounds?: readonly string[];
 }
 
 /** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars */

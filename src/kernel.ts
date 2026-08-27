@@ -44,7 +44,7 @@ export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw
  * addressable units — slugs and local ids, (2) statements carrying
  * machine-readable citations, (3) the question record. Everything above
  * the grammar — parts, vocabulary, atoms, the taxonomy's meaning — is the
- * librarian's choice via the engagement-amendable type declarations,
+ * consultant's choice via the engagement-amendable type declarations,
  * shaped from the objective. YAML is the shipped default surface, not a
  * law: the parse lives here alone, and an alternative surface satisfying
  * the grammar is a kernel amendment, not a redesign.

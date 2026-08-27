@@ -7,8 +7,8 @@
  * render needs one, comes from the taxonomy or the definition) and NO
  * area directory layer (partitioning is the taxonomy's job — that is what
  * L1s are). There is no .proposed/ staging and no confirm ceremony: the
- * librarian writes live, and the gates are spends and sends. There is no scaffolding verb (A9):
- * the fragment format lives in the type declaration, the librarian writes
+ * consultant writes live, and the gates are spends and sends. There is no scaffolding verb (A9):
+ * the fragment format lives in the type declaration, the consultant writes
  * the file, and the grammar check catches malformation.
  *
  * The locate rule survives: an engagement root is the directory holding

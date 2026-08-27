@@ -1,7 +1,7 @@
 # synthetic — the definition of done (MOCK-OUT)
 
 Charter D8: v2.0 is done when several SYNTHETIC ENGAGEMENTS run
-librarian-first and the results hold up under analysis. This directory is
+consultant-first and the results hold up under analysis. This directory is
 that harness.
 
 A synthetic engagement is cheap to fabricate and fully scripted on the
