@@ -479,3 +479,22 @@ desk. Fourteen engine files.
   dispatch doctrine, the deliberately-absent list, the gates card's
   negative confirmation cut). Full detail stays in the tree: system.md,
   worker.md, DESIGN.md.
+
+## Amendment A17 — intake scan + who-runs-the-verbs (2026-08-27)
+
+- **The intake scanner (the human's proposal, artifact comment):** every
+  routed source can carry SCAN METADATA — a summary and key items —
+  produced by a cheap model at intake, so the consultant's inventory
+  reads scan lines instead of re-opening sources. Mechanism: a shipped
+  `intake-scan` skill (recommended class: haiku), dispatched at route
+  time as the consultant's standing playbook — NOT engine automation (no
+  workflow in the engine). The scan lands on the ledger entry
+  (LedgerEntry.scan). The consultant configures it the way it configures
+  everything: author a local variant in _skills/ (e.g. a metadata
+  template fitted to the objective) and it shadows the shipped skill.
+  Deliberately minimal now; grows by skill authorship, never by engine
+  change.
+- **Who runs the verbs, stated loudly:** the CONSULTANT runs every verb.
+  The human never touches the CLI; the human's part is the yes at the
+  two gates and the conversation. Park, respond, route, credit — all the
+  consultant's hands.

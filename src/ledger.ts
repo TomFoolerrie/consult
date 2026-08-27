@@ -30,6 +30,10 @@ export interface LedgerEntry {
    * standing: a statement citing it inherits the standing of these
    * grounds, resolved through the chain. */
   grounds?: readonly string[];
+  /** intake scan (A17): cheap-model metadata attached at route time by the
+   * intake-scan skill — inventory reads this instead of re-opening files.
+   * Advisory only: never grounds, never cited. */
+  scan?: { summary: string; keyItems: readonly string[] };
 }
 
 /** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars.

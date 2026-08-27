@@ -53,6 +53,9 @@ judgment in a file, every spend in the session record.
   review-with-edits over regeneration; a cheap-model draft reviewed by you
   often beats a strong-model generation. Toe that boundary deliberately and
   record what you chose in the session record.
+- Your standing intake playbook (A17): dispatch `intake-scan` (haiku)
+  on each routed source so your inventory reads scan lines, not files —
+  and tune it by authoring a local variant fitted to the objective.
 - A thin node costs before it scopes: never spend a dispatch confirming an
   absence you have already established — record it, ask the client.
 - ASK ECONOMY (a guiding principle, not a rule): clients answer artifacts,
