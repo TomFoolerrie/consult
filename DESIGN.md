@@ -95,30 +95,27 @@ at read time from the record's physical shape.
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
 | `py/render_worker` | `_synthesis/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 
-## Laws (ported, all live-proven)
+## The seven core laws (A16)
 
-- Folder state is the only state; every "where are we" is derived on demand.
-- One writer per file. The write boundary is drawn by STORE KIND (A14): machine-parsed bookkeeping (_sources/, _registers/, _skills/) is verb-only; capture/, STATE.md, and OBJECTIVE.md are DIRECT writes — the consultant anywhere, workers within their skill's write boundary — disciplined by check.run, the grammar, and checkpoint diffs.
-- Pure reads stay pure: the desk's derived picture and answers write nothing, cache nothing.
-- Fail loud: malformed input is a named refusal, never a default.
-- No "all quiet" claim reachable by damage: `desk.state` requires positive
-  evidence of completeness, and a self-contradictory folder is its own state.
-- Humans never type YAML; every gate answer is a verb.
-- Cost gates cost, never scope (a thin node waits; it is never silently dropped).
-- Adding a deliverable is a YAML-sized act; if it needs an engine change, that is a bug.
-- Derived views are never files: computed at render time, in-memory (R1) — a placeholder cannot ship because it cannot be stored.
-- Library first: every CLI verb wraps an exported function; the harness drives the library in-process (R5).
-- A token spent on judgment lands in a file the machine reads.
-- Delegation is economic, not structural: the consultant may do the work itself; a delegate is dispatched when the task's cost warrants it (judged from the objective and the deliverable shape).
-- Ask economy is a guiding principle, not a rule: prefer few, simple, artifact-shaped asks — but if the objective needs something, it needs something.
-- The engine hard-codes ONE callout kind: the question record (registers join on it). All other capture vocabulary is a shipped, engagement-amendable default; skills bind to declared kinds, never define them.
-- No manifest, no areas, no .proposed/, no holds machinery, no signal files: the folder-as-document and human-as-trust-boundary fossils are out (ROT-1..7).
-- The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
-- No workflow lives in the engine (A9): a verb survives only as bookkeeping, honesty enforcement, or context expansion — how-to-work lives in skills. One event, one verb — the event is ARRIVAL (A13): `asks.respond` routes and stamps; settle() closes only after fold-in. Analyses are skills, never engine verbs.
-- Agents pin model (+ a fixed tool surface); skills carry the agency. Worker classes (haiku/sonnet/opus) pin nothing else; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or consultant-authored (_skills/, saved before use, logged, reusable).
-- Synthesis is citable, never standing-upgrading (A12): a synthesis source declares the grounds it was built from, and statements citing it inherit those grounds' standing — self-derived knowledge is first-class, laundering is structurally impossible.
-- Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
-- The consultant has a workspace: `STATE.md`, its one direct-write file — free prose, never machine-parsed, read first at every sitting, checkpointed with everything else. Working memory persists — and after A9 the pad IS judgment's home (precedent, doubts, observations); the machinery keeps only the session record.
+1. **The folder is the only state** — everything derived is recomputed, never stored.
+2. **Honesty is structural** — standings computed from the record's shape; the audit trail terminates in _sources/; synthesis never upgrades standing.
+3. **One writer per file** — bookkeeping through verbs; capture and the prose files directly.
+4. **No workflow lives in the engine** — a verb exists only for bookkeeping, honesty, or context expansion; how-to-work lives in skills.
+5. **Agents pin model; skills carry the agency** — delegation is economic, not structural.
+6. **Two gates only** — spends over the sitting budget, and client-facing sends.
+7. **Fail loud** — named refusals; a contradiction is a state; conflicts are recorded, never adjudicated.
+
+Corollaries (all live-proven, none deleted — ranked beneath): derived
+views are never files (R1) · library first, every CLI verb wraps an
+exported function (R5) · humans never type YAML · cost gates cost,
+never scope · adding a deliverable is a YAML-sized act · a token spent
+on judgment lands in a file the machine reads · ask economy is a
+guiding principle, not a rule · one engine callout kind, the question
+record; all other vocabulary is amendable · token asymmetry is a design
+input: review-with-edits over regeneration · one event, one verb — the
+event is arrival · the state pad persists working memory (A8); the pad
+is judgment's home (A9) · no "all quiet" reachable by damage · no
+manifest, areas, .proposed/, holds, or signal files (ROT-1..7).
 
 ## What is deliberately absent
 

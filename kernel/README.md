@@ -21,7 +21,8 @@ deliverables/findings-report.yaml       accepted findings by theme
 ```
 
 A fourth directory joins at build time: `skills/` — the SHIPPED work
-shapes (procedure-draft, source-read, assessment, data-analysis), each
+shapes (procedure-draft, source-read, assessment, data-analysis,
+data-clean), each
 declaring mission, write boundary, context contract, return contract,
 rules, and a recommended worker class. Engagement-authored skills live
 in `<root>/_skills/` and shadow shipped ones by name — the consultant

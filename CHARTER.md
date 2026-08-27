@@ -450,3 +450,32 @@ lives at the file level, where one-writer-per-file already enforces it.
 journal.ts (one function) folds into desk.ts: the desk owns git, the
 budget line, and now sessionAppend — the machinery's audit lives at the
 desk. Fourteen engine files.
+
+## Amendment A16 — the artifact comment round (2026-08-27)
+
+- **Core laws distilled.** ~20 laws were constraining to read and diluted
+  what is actually load-bearing. SEVEN CORE LAWS now lead; everything
+  else demotes to corollaries beneath them (nothing deleted — re-ranked):
+  1. The folder is the only state; everything derived is recomputed,
+     never stored.
+  2. Honesty is structural: standings computed from the record's shape;
+     the audit trail terminates in _sources/; synthesis never upgrades
+     standing.
+  3. One writer per file: bookkeeping through verbs; capture and the
+     prose files directly.
+  4. No workflow lives in the engine — a verb exists only for
+     bookkeeping, honesty, or context; how-to-work lives in skills.
+  5. Agents pin model; skills carry the agency; delegation is economic.
+  6. Two gates only: spends over budget, client-facing sends.
+  7. Fail loud: named refusals, contradiction is a state, conflicts are
+     recorded — never adjudicated.
+- **The shipped skill library grows on the human's direction** ("a good
+  library here is going to go a long way — data cleaning, data analysis,
+  capture templates"): `data-clean` joins the roster (normalize one
+  messy artifact into a clean referenced working file in _synthesis/).
+  Capture templates need no new machinery — a capture shape IS a skill
+  (procedure-draft variants), authored per engagement.
+- Artifact prose simplified per comments (the one-picture notes, the
+  dispatch doctrine, the deliberately-absent list, the gates card's
+  negative confirmation cut). Full detail stays in the tree: system.md,
+  worker.md, DESIGN.md.

@@ -44,7 +44,10 @@ override with reason, recorded). Two layers, same shadowing rule as
 deliverable definitions:
 
 - **shipped** — `kernel/skills/`: procedure-draft, source-read,
-  assessment, data-analysis.
+  assessment, data-analysis, data-clean (normalize one messy artifact
+  into a clean, referenced working file in _synthesis/). A capture
+  template is not new machinery — a capture shape IS a skill
+  (procedure-draft variant), authored per engagement.
 - **engagement-authored** — `<root>/_skills/`: the consultant may CREATE
   a skill ad-hoc, from scratch or as a variant of an existing one.
   Every ad-hoc skill is SAVED (never used from a prompt), logged in the
