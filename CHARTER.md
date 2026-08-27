@@ -299,3 +299,48 @@ path feel separate is not a cycle — it is a GATE: anything client-facing
 crosses the human. Gates sit ON the cycle; they are not cycles. The
 documentation now shows one cycle with two gates (spends, sends) and the
 client as one of the places inputs come from and outputs go to.
+
+## Amendment A11 — the codifications (2026-08-27)
+
+The state-inventory discussion, written down so none of it drifts:
+
+- **The evidenced/claimed line, codified:** EVIDENCED means a skeptical
+  reader can follow the citation to an artifact ON FILE in _sources/.
+  CLAIMED means asserted with no citable provenance. The line is
+  auditability, not truth — a claimed statement is often correct.
+  Corollary: a relayed conversation is written up as a note, ROUTED as a
+  source (provenance: client), and cited — evidenced by the note, with the
+  trail saying exactly that. Claimed is the residue for what has no
+  artifact at all.
+- **Standings are computed, never stored.** No field says "evidenced".
+  Standing is derived at read time from the record's physical shape:
+  cited statement → evidenced; uncited → claimed; question naming two
+  sources → contested; question with no answering statement → absent.
+  The honesty contract is structural, not disciplinary.
+- **The three-primitive capture grammar.** The engine prescribes exactly
+  three things, each because honesty must be computable: addressable
+  units (slugs, local ids), statements that carry machine-readable
+  citations, and the question record. EVERYTHING above the grammar — the
+  parts, the vocabulary, the atoms, the taxonomy's meaning — is the
+  librarian's choice via the engagement-amendable type declarations,
+  shaped from the objective. YAML is the shipped default surface, not a
+  law: the parse lives in kernel.ts alone, and an alternative surface
+  satisfying the grammar is a kernel amendment, not a redesign.
+- **understanding.md is renamed OBJECTIVE.md.** The old name sounded
+  like a knowledge store and collided with capture. It is the soft
+  objective's home: who the client is, what the relationship is
+  producing, the framing asks and deliverables are judged against.
+  Durable where STATE.md is volatile; about the relationship where
+  STATE.md is about the work. It holds NO client facts — those go to
+  capture, evidenced.
+- **Registers hold no knowledge** (confirmed): v1's fact-register idea
+  is dead; a register is lifecycle bookkeeping only (asks, findings).
+  The moment a register holds synthesized prose it is a second capture.
+- **The analyst split: considered and DECLINED.** A standing analyst's
+  benefits — separation of duties, fresh context, skeptical tuning — are
+  already delivered per-dispatch by the assessment skill on a worker
+  class (fresh context is structural: a worker sees only what the brief
+  resolves). Its costs are the org-chart disease. Kept instead as a
+  discipline: when the librarian judges its own record directly,
+  consequential conclusions get a fresh-context verification dispatch
+  before landing as proposed findings.

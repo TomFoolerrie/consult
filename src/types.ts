@@ -23,7 +23,15 @@ export interface Ask {
   answeredBy?: SrcId; closedReason?: string;
 }
 
-// the honesty contract — every grounded statement carries its standing
+// the honesty contract — every grounded statement carries its standing.
+// CODIFIED (A11): standings are COMPUTED at read time from the record's
+// physical shape, never stored. evidenced = the citation resolves to an
+// artifact on file in _sources/ (the line is AUDITABILITY, not truth);
+// claimed = no citable provenance (a relayed conversation is routed as a
+// note-source and cited, so it is evidenced BY THE NOTE — claimed is the
+// residue for what has no artifact at all); contested = a question record
+// naming two sources, both readings held; absent = a question record no
+// statement answers, carrying the proposal that would close it.
 export type Standing =
   | { kind: "evidenced"; sources: SrcId[] }
   | { kind: "claimed" }

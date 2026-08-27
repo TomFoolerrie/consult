@@ -38,7 +38,17 @@ export interface Callout { addr: CalloutAddr; label: string; text: string; field
 
 /** load + validate a declaration (engagement overlay may amend vocabulary); fail-loud */
 export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw new Error("mock-out"); }
-/** parse one fragment through its declaration; grammar defects are named errors */
+/**
+ * parse one fragment through its declaration; grammar defects are named errors.
+ * THE THREE-PRIMITIVE GRAMMAR (A11): the engine prescribes only (1)
+ * addressable units — slugs and local ids, (2) statements carrying
+ * machine-readable citations, (3) the question record. Everything above
+ * the grammar — parts, vocabulary, atoms, the taxonomy's meaning — is the
+ * librarian's choice via the engagement-amendable type declarations,
+ * shaped from the objective. YAML is the shipped default surface, not a
+ * law: the parse lives here alone, and an alternative surface satisfying
+ * the grammar is a kernel amendment, not a redesign.
+ */
 export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity { throw new Error("mock-out"); }
 /** every open question on one entity, document order */
 export function openQuestions(entity: Entity): Callout[] { throw new Error("mock-out"); }

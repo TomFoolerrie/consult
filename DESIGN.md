@@ -24,7 +24,7 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
                      THE FOLDER (the only state)
    engagement/
      STATE.md             the librarian, directly  the state pad: working memory, read first every sitting (A8)
-     understanding.md     the librarian, via verbs the maintained client understanding + soft objective
+     OBJECTIVE.md         the librarian, via verbs the soft objective: relationship framing, no client facts (A11)
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
      _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
      _journal/            journal.ts               sessions/ only — flags+tenure live in STATE.md (A9)
@@ -53,6 +53,25 @@ same motion with a license attached (analyses are skills, A9).
 What made the client path feel separate is not a cycle but a GATE:
 anything client-facing crosses the human, as does any spend over the
 sitting budget. Gates sit ON the cycle; they are not cycles.
+
+## The stores — each answers one question, once (A11)
+
+| Store | Question it answers | Writer | Machine-parsed? |
+|---|---|---|---|
+| `STATE.md` | what am I doing? | librarian, directly | never |
+| `OBJECTIVE.md` | why are we here? | librarian, via verbs | never (quoted into briefs) |
+| `capture/` | what do we know? | librarian/workers, via verbs | yes — the substrate |
+| `_registers/` | where does each transaction stand? | asks.ts / findings.ts | yes — debts computed |
+| `_journal/sessions/` | what did the machinery spend? | the machinery itself | append-only audit |
+| `_sources/` | what came in, and is it accounted for? | ledger.ts | yes — the balance |
+
+No store answers another's question. Registers hold NO knowledge —
+lifecycle bookkeeping only; a register holding synthesized prose is a
+second capture, which is a bug. Standings are COMPUTED, never stored:
+evidenced (cited to an artifact on file), claimed (no citable
+provenance — the line is auditability, not truth), contested (a question
+naming two sources), absent (a question no statement answers) — derived
+at read time from the record's physical shape.
 
 ## Module inventory (each file carries its full contract)
 
