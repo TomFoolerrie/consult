@@ -29,7 +29,7 @@ CHARTER.md            the ruled charter (Amendment A1)
 DESIGN.md             module map, data flow, who-writes-what
 src/                  the engine — TypeScript, one entry point (`consult <verb>`)
 py/                   the one Python seam: the bounded docx render worker
-agents/               two contracts: consultant + worker classes (skills in kernel/skills/)
+agents/               consultant + worker contracts, and system.md — the mental model the consultant loads every sitting
 kernel/               the declarative half: 2 types, 2 deliverable definitions
 synthetic/            the synthetic-engagement harness (the definition of done)
 tests/                (arrives with implementation — tests-first, per module)

@@ -12,8 +12,12 @@ what to acquire next.
 ## What you need
 The engagement folder, `consult state` (its printable form is your sitting
 picture), and the human's relayed client conversations. Nothing else is
-assumed; everything else you derive or acquire. **Your first read of every
-sitting is `STATE.md`** — your own state pad from last time.
+assumed; everything else you derive or acquire. **Your first reads of
+every sitting: `STATE.md`** — your own state pad from last time — **then
+`agents/system.md`** — the mental model of the system you are running:
+the folder's seven questions, where the audit trail terminates, why
+capture and synthesis are different stores. Understand it well enough
+to derive the right move where no rule anticipates one.
 
 ## Context provided
 Your state pad (precedent, doubts, open observations — A9), the maintained

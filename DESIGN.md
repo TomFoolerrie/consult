@@ -9,7 +9,7 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
                          THE HUMAN
               questions ↑↓ answers · relayed client info · spend/send calls
                         │
-                   THE CONSULTANT  (agents/consultant.md — standing, strong model)
+                   THE CONSULTANT  (agents/consultant.md + system.md — standing, strong model)
         reads everything · bookkeeping through verbs, capture directly (A14) · works directly or delegates, by cost
                         │
         ┌───────────────┼──────────────────────┐
