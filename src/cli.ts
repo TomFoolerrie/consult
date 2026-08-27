@@ -12,17 +12,18 @@
  *
  * Verb inventory after the A9 distillation (each dispatches to exactly
  * one module function; every verb guards an invariant or expands context):
- *   state · checkpoint · budget · coverage · needs      → desk (the one derived picture)
- *   route · park · credit                               → ledger (one intake door)
- *   ask propose|accept|sent|respond|settle|close        → asks (respond = arrival; settle after fold-in)
+ *   state · coverage · needs                            → desk (PURE — the one derived picture)
+ *   checkpoint · budget · spend · gate                  → record (the machinery's hand)
+ *   route · park                                        → ledger (one intake door; consumption COMPUTED)
+ *   ask propose|accept|sent|respond|close               → asks (answered/settled DERIVED)
  *   finding propose|accept|reject                       → findings
  *   check                                               → check (six mechanical checks)
  *   render <deliverable>   (self-contained: compile → build views in-memory → emit)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
- * Gone (A9): register (merged into route) · new (no scaffolding) ·
- * flag/tenure (state-pad sections) · feeds (analysis is a skill; its
- * retrieval is answers.ground).
+ * Gone: register (A9) · new (A9) · flag/tenure (A9) · feeds (A9) ·
+ * credit and ask settle (A18 — consumption and settlement are computed
+ * from capture citations, never declared).
  */
 export function main(argv: string[]): Promise<number> {
   // parse one verb, dispatch, return exit code (0 ok, 2 named refusal)

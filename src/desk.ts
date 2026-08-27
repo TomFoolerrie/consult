@@ -1,38 +1,26 @@
 /**
- * desk — the consultant's desk: the ONE derived picture. (A9 merge.)
+ * desk — the ONE derived picture, now PURE (A18 split, M3).
  *
- * Owns/writes: git (checkpoint) and _registers/sessions/ — the session
- * record, budget line included (A15). Everything else is a read. coverage.ts and needs.ts folded in
- * here (A9): three modules computing slices of "where are we" was a v1
- * org chart — state() carries coverage and needs as sections, and the
- * pure reads are exported from the desk.
- *
- * Holds do not exist as machinery (ROT-4): "ask first — don't fill until
- * I say" is a commitment the consultant records in its state pad and obeys.
+ * Owns: NOTHING. The A9/A15 merges welded the system's purest reads to
+ * its only machine-writes; A18 split them back along the store line —
+ * the machinery's hand (git, sessions, budget, gates) lives in
+ * record.ts. This module writes nothing, caches nothing, ever: the
+ * module now matches its own doctrine.
  *
  * state() DESCRIBES, never commands — one snapshot the consultant
- * consults; report() is its printable form. Both are the MACHINE's
- * derived picture; the consultant's own working memory is <root>/STATE.md
- * (A8) — free prose the consultant writes directly, never parsed here,
- * committed by checkpoint like everything else.
+ * consults; report() is its printable form. locate/health is snapshot
+ * material (A18, absorbing engagement.locate): the root is the
+ * directory holding _sources/; an engagement-shaped tree without the
+ * marker is a named CONTRADICTION whose `repair` field names the one
+ * verb allowed to run. "All quiet" requires positive evidence —
+ * quiet-by-damage is a contradiction, never done.
  *
- * Two rules survive as structure: a self-contradictory folder is its own
- * state and blocks state-changing verbs; "all quiet" requires positive
- * evidence — quiet-by-damage is a contradiction, never done. checkpoint()
- * commits the WHOLE engagement and appends the session record.
+ * After a fold-in the consultant edits capture, checks, checkpoints —
+ * and state() already shows which sources retired and which asks
+ * settled, because the capture diff IS the credit (A18).
  *
- * The desk also owns the machinery's audit (A15 — journal.ts folded in):
- * _registers/sessions/, the append-only session record every verb and
- * dispatch appends itself to, closing the oracle's named evidence gap of
- * audits living only in transcripts. Flags and tenure remain state-pad
- * sections (A9).
- *
- * budget is the D9 mechanism, also governing direct-vs-delegate: every
- * spend is proposed with an estimate (priced with token asymmetry in
- * mind — review-with-edits over regeneration where it wins),
- * auto-proceeds under the sitting budget, waits above it or for anything
- * client-facing. spend() records estimate and actual so pricing stays
- * auditable.
+ * Holds do not exist as machinery (ROT-4): "ask first" is a state-pad
+ * commitment the consultant obeys.
  */
 import type { CoverageStatus, EngagementHealth, Standing } from "./types.ts";
 
@@ -44,12 +32,13 @@ export interface Snapshot {
   askDebts: { unsettled: number };
   pinnedShapes: { name: string; serviceable: boolean }[];
   git: { clean: boolean; note?: string };
-  budget: Budget;
+  budget: { limit: number; spent: number; remaining: number };
 }
-export interface Budget { limit: number; spent: number; remaining: number; }
 export interface NodeCoverage { slug: string; status: CoverageStatus; conflicts: string[]; }
 export interface Need { shape: string; part: string; standing: Standing; }
 
+/** walk up to the _sources/ marker; absence and contradiction are named results (A18, from engagement.ts) */
+export function locate(path: string): { root: string; health: EngagementHealth } { throw new Error("mock-out"); }
 /** the engagement snapshot — describes, never commands */
 export function state(root: string): Snapshot { throw new Error("mock-out"); }
 /** the printable form — the consultant's sitting picture */
@@ -58,13 +47,3 @@ export function report(root: string): string { throw new Error("mock-out"); }
 export function coverage(root: string): NodeCoverage[] { throw new Error("mock-out"); }
 /** pure read: what a pinned shape (or all) still lacks — standing state as a read */
 export function needs(root: string, deliverable?: string): Need[] { throw new Error("mock-out"); }
-/** commit the whole engagement as consult: <label>; append the session record */
-export function checkpoint(root: string, label: string, dryRun?: boolean): { committed: string[] } { throw new Error("mock-out"); }
-/** appends the budget line to the session record — the budget's one home (A14); remaining is derived */
-export function budgetSet(root: string, tokens: number): void { throw new Error("mock-out"); }
-export function budget(root: string): Budget { throw new Error("mock-out"); }
-/** record one spend's estimate and actual in the session record */
-export function spend(root: string, estimate: number, actual: number, what: string): void { throw new Error("mock-out"); }
-/** every verb and dispatch appends itself to the sitting's session record (A15, from journal.ts) */
-export function sessionAppend(root: string, event: SessionEvent): void { throw new Error("mock-out"); }
-export interface SessionEvent { at: string; verb: string; detail: string; costEstimate?: number; costActual?: number; }

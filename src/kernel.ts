@@ -16,6 +16,10 @@
  *
  * No aliases of any kind, ever.
  */
+// A18 (M5): kernel absorbs the folder enumeration — capture's joints are
+// the GRAMMAR (this module) and the STANDING (answers.ts), not v1's three
+// read modules. Fragments live flat in <root>/capture/, taxonomy nodes in
+// capture/_taxonomy/; no manifest, no areas; capture is a direct write.
 import type { CalloutAddr } from "./types.ts";
 
 export const QUESTION_KIND = "question" as const; // the one engine-known kind
@@ -52,3 +56,8 @@ export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw
 export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity { throw new Error("mock-out"); }
 /** every open question on one entity, document order */
 export function openQuestions(entity: Entity): Callout[] { throw new Error("mock-out"); }
+
+/** every capture fragment, slug order, parsed through the declaration (A18, from engagement.ts) */
+export function entities(root: string): Entity[] { throw new Error("mock-out"); }
+/** every taxonomy node, name order (A18, from engagement.ts) */
+export function taxonomy(root: string): Entity[] { throw new Error("mock-out"); }

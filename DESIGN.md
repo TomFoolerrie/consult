@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Fourteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
+Thirteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
 the oracle's surface after the A9 distillation: every deterministic verb either does bookkeeping an agent shouldn't hand-roll, enforces honesty, or expands context — no workflow lives in the engine. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -27,7 +27,7 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
      STATE.md             the consultant, directly  the state pad: working memory, read first every sitting (A8)
      OBJECTIVE.md         the consultant, directly  the soft objective: relationship framing, no client facts (A11/A14)
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
-     _registers/          asks.ts · findings.ts · desk.ts   asks.yaml, findings.yaml, sessions/ (A15)
+     _registers/          asks.ts · findings.ts · record.ts  asks.yaml, findings.yaml, sessions/ (A15/A18)
      _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable)
      _synthesis/          render.ts + workers      work products; registrable as sources (A12)
      capture/             consultant+workers, directly  fragments + _taxonomy/ — flat, no manifest, no areas (A14)
@@ -62,7 +62,7 @@ sitting budget. Gates sit ON the cycle; they are not cycles.
 | `OBJECTIVE.md` | why are we here? | consultant, directly (A14) | never (quoted into briefs) |
 | `capture/` | what do we know? | consultant/workers, directly (A14) | yes — the substrate |
 | `_registers/` | where does each transaction stand? | asks.ts / findings.ts | yes — debts computed |
-| `_registers/sessions/` | what did the machinery spend? | the machinery (desk.ts) | append-only audit |
+| `_registers/sessions/` | what did the machinery spend, and who said yes at a gate? | the machinery (record.ts) | append-only audit |
 | `_sources/` | what came in, and is it accounted for? | ledger.ts | yes — the balance |
 | `_synthesis/` | what have we made? | render.ts / workers | registrable as synthesis sources (A12) |
 | `_skills/` | what work shapes have we authored? | brief.ts (saveSkill) | yes — resolved into briefs |
@@ -81,17 +81,16 @@ at read time from the record's physical shape.
 |---|---|---|
 | `src/types.ts` | nothing | the shared vocabulary: lifecycles and standings as discriminated unions |
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
-| `src/kernel.ts` | nothing | type declarations + fragment→entity parsing |
+| `src/kernel.ts` | nothing | the grammar: type declarations, parsing, entity/taxonomy enumeration (absorbed engagement.ts, A18) |
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
-| `src/engagement.ts` | nothing | folder truth, flat: locate, entities, taxonomy — capture itself is a direct write (A14) |
-| `src/ledger.ts` | `_sources/` | the source ledger, one intake door: route, park, credit, status |
-| `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb ARRIVAL motion; settle() closes after fold-in (A13) |
+| `src/ledger.ts` | `_sources/` | one intake door: route, park, status — consumption COMPUTED from capture citations (A18) |
+| `src/asks.ts` | `_registers/asks.yaml` | four stored states (proposed/accepted/sent/closed); answered + settled DERIVED from the record's shape (A18) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
-| `src/views.ts` | nothing (pure) | the view-builder registry; views are computed at render time, never files (R1) |
 | `src/check.ts` | nothing | the QC gate: six mechanical checks, no signal files |
-| `src/render.ts` | `_synthesis/` | any definition → .docx, refuse-on-placeholder |
-| `src/desk.ts` | git + `_registers/sessions/` | the ONE derived picture: state/report, checkpoint, budget, sessionAppend (A15) |
+| `src/render.ts` | `_synthesis/` | any definition → .docx + the BUILDERS registry (absorbed views.ts, A18); views never files (R1) |
+| `src/desk.ts` | nothing (pure) | the ONE derived picture: state/report, coverage, needs, locate — writes nothing, ever (A18) |
+| `src/record.ts` | git + `_registers/sessions/` | the machinery's hand: checkpoint, sessionAppend, budget, spend, gate — BOTH gates auditable (A18) |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
 | `py/render_worker` | `_synthesis/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
 

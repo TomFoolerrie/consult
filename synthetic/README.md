@@ -23,7 +23,7 @@ client side:
 
 Each run must exercise, at minimum: the question interface with grounded
 answers · one full generated round of client engagement (asks curated →
-accepted → rendered → responses put back in → matched → settled) · one
+accepted → rendered → responses put back in → settlement DERIVED) · one
 demand-driven render. Nordhaven ports in as the first synthetic; at least
 two others differ in domain and in failure texture (a contradiction-heavy
 seed; a sparse seed where most answers are honest absences).

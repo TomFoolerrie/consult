@@ -15,8 +15,10 @@ export type FindingId = `FIND-${number}`;
 export type CalloutAddr = `${string}#${string}`;
 export type Ground = SrcId | CalloutAddr | { slug: string };
 
-// the ask lifecycle — proposed → accepted → sent → answered → settled, or closed
-export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled" | "closed";
+// the ask lifecycle — ONLY the events the folder cannot show (A18):
+// answered/settled are COMPUTED (answeredBy non-empty; answering sources
+// cited where the ask's questions live), never stored.
+export type AskStatus = "proposed" | "accepted" | "sent" | "closed";
 export interface Ask {
   id: AskId; status: AskStatus; text: string;
   questions: CalloutAddr[]; audience?: string; artifact?: string;
@@ -37,10 +39,8 @@ export type Standing =
   | { kind: "evidenced"; sources: SrcId[] }
   | { kind: "claimed" }
   | { kind: "contested"; readings: [Claim, Claim] }
-  | { kind: "absent"; proposal: ProposedAsk | ProposedRead };
+  | { kind: "absent"; question: CalloutAddr };   // A18: the open question's ADDRESS — phrasing the ask is the consultant's judgment, never the engine's
 export interface Claim { text: string; source: SrcId; }
-export interface ProposedAsk { text: string; questions: CalloutAddr[]; }
-export interface ProposedRead { question: string; sources: SrcId[]; }
 
 // coverage — what the brain knows it knows, per taxonomy node.
 // A13: no "thin" — thinness is a threshold judgment against the

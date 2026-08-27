@@ -17,4 +17,3 @@ export function accept(root: string, id: FindingId): void { throw new Error("moc
 export function reject(root: string, id: FindingId, reason: string): void { throw new Error("mock-out"); }
 /** accepted only — what a deliverable may bind and an answer may cite */
 export function renderable(root: string): Finding[] { throw new Error("mock-out"); }
-export function byTheme(root: string): Map<string, Finding[]> { throw new Error("mock-out"); }

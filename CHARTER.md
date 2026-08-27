@@ -498,3 +498,51 @@ desk. Fourteen engine files.
   The human never touches the CLI; the human's part is the yes at the
   two gates and the conversation. Park, respond, route, credit — all the
   consultant's hands.
+
+## Amendment A18 — the alignment (2026-08-27): the shape carries the audit, everywhere
+
+An adversarial review judged the surface against the concept and found
+the concept ahead of three verbs. Its verdict, accepted in full: three
+of our own rulings (A14's shape-not-write-path, A16's one question per
+store, law 6's two gates) were stated but not yet applied to the verbs
+standing nearest to them.
+
+- **credit() is DELETED (M1).** Consumption is computed, never declared:
+  a source is consumed at slug S exactly when a statement in S cites its
+  SRC id — corroboration included (adding the SRC to a citation list IS
+  corroboration). ledger.status() derives consumed/outstanding from
+  capture citations; a fully-cited source auto-retires at checkpoint.
+  `touches` is renamed INTENT — the debt declared at route time,
+  balanced by derivation, retired by the record's own shape.
+- **settle() is DELETED; the ask lifecycle stores four states (M2):**
+  proposed | accepted | sent | closed — the events the folder cannot
+  show. `answered` and `settled` are computed properties (answeredBy
+  non-empty; answering sources cited where the ask's questions live).
+  Settlement becomes un-fakeable: you cannot stamp what the capture
+  does not show. A13 was right that arrival ≠ fold-in, wrong that
+  fold-in needed a verb — it needed a derivation.
+- **The desk splits along the store line (M3):** desk.ts is now PURE
+  (state, report, coverage, needs; locate/health lives in the snapshot)
+  — the module matches its own doctrine. A new record.ts is the
+  machinery's hand: checkpoint, sessionAppend, budget, spend.
+- **The sends gate gets its mechanism (M4):** record.gate({kind:
+  "send"|"spend", what, ruling}) — the human's yes and the crossing,
+  in the session record. asks.accept/sent become its ask-shaped
+  callers; a render leaving the building is gated the same way. Law 6
+  is now auditable, not behavioral.
+- **engagement.ts and views.ts dissolve (M5):** capture's joints are
+  the grammar and the standing, not v1's three read modules — kernel.ts
+  absorbs entities/taxonomy; render.ts absorbs the BUILDERS registry
+  (the export stays public so "YAML-sized act" stays honest).
+- **Judgment leaks sealed (M6):** absent standings carry the open
+  QUESTION's address, not phrased ask text — phrasing is the
+  consultant's; findings.byTheme deleted (organization belongs to the
+  definition's view builder); no stored status duplicates a field.
+- check's touches check widens to the CONSUMPTION check: intent slugs
+  exist, synthesis grounds resolve, a retired source is actually fully
+  cited — citations are now load-bearing for three modules, and this
+  is the check that polices them.
+
+Thirteen engine files. After a fold-in the consultant edits capture,
+checks, checkpoints — and state() already shows which sources retired
+and which asks settled, because the capture diff IS the credit.

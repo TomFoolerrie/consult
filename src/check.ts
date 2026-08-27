@@ -9,7 +9,9 @@
  *
  *   grammar        per-fragment parse through the declaration
  *   citations      every cited SRC resolves; drafted prose cites
- *   touches        ledger touches ⊆ existing fragment slugs
+ *   consumption    intent slugs exist · synthesis grounds resolve ·
+ *                  a retired source is actually fully cited (A18 —
+ *                  citations are load-bearing for ledger, asks, answers)
  *   mentions       a slug mentioned in prose exists (warning)
  *   ask-coverage   every question id in the ask register exactly once
  *   registers      referenced register entries resolve; citable fields not blank;
