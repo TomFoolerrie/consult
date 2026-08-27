@@ -1,6 +1,6 @@
 # The v2 Charter — the engagement brain and its librarian
 
-**Status: RULED — Amendment A1 recorded 2026-08-26; the build proceeds on the orphan branch `v2`**
+**Status: RULED — Amendment A1 recorded 2026-08-26; the build proceeds on the orphan branch `v2-rebuild`**
 
 **Naming (ruled):** the fresh build is **v2** — the human's call: what we shipped as 2.0–2.5.1 never stopped being v1's body and is retroactively the v1 line's final form, frozen as the oracle. Earlier drafts of this document said "v3"; read every remaining "v3" below as the rebuild. The oracle keeps its version numbers; the rebuild's stream starts at `2.0.0-alpha` on the `v2` branch — the streams never mix.
 **Origin:** the human's call after run 3 ("distill what we want and build fresh — code is cheap"), plus the vision statement: *"the user doesn't want to babysit this... the human should talk to the client and then come back and ask questions about the client, and the AI just needs to know the answer or how to get it."* Evidence base: run-derived tickets M65–M78, CHANGELOG 2.4.0–2.5.1, docs/retrospective-v0.md, three live Nordhaven runs.
@@ -396,3 +396,45 @@ edge findings, all applied:
 - **P-6 (recorded intention, post-Phase-1):** module docstrings become
   the living truth once code lands; DESIGN shrinks to picture + laws;
   the blueprint artifact is regenerated from the tree, never hand-synced.
+
+## Amendment A14 — the cold-read corrections (2026-08-27)
+
+A fresh-context agent reconstructed the system from the docs alone. It
+got the system, actors, stores, walkthroughs, and laws right at high
+confidence — and surfaced one real contradiction plus a batch of spec
+gaps. All resolved:
+
+- **THE CAPTURE-WRITE RULING (F1, the human, verbatim intent): the
+  consultant directly edits capture. Period. Full stop.** Forcing every
+  capture edit through a verb means another pass must re-read the source
+  and reconstruct the thought process — what is gained in auditability
+  is lost in cost and coherence. The one-writer law is REDRAWN by store
+  kind: machine-parsed bookkeeping (_sources/, _registers/, _journal/,
+  _skills/ via saveSkill) is verb-only; capture/, STATE.md, and
+  OBJECTIVE.md are DIRECT writes — the consultant anywhere, workers
+  within their skill's write boundary — disciplined by check.run, the
+  three-primitive grammar, and checkpoint diffs. Auditability moves from
+  the write path to the record's shape, where A11 already put it.
+- OBJECTIVE.md is a direct write (same ruling; its gate is the human
+  relationship, not machinery).
+- route() gains opts {provenance?, grounds?}; grounds required when
+  provenance is "synthesis" (F6).
+- settle joins the CLI inventory (F5).
+- credit()'s semantics defined: filled = slugs whose open content this
+  source filled; updated = slugs it corroborated or revised. credit
+  (per-source) and settle (per-ask) are INDEPENDENT debts — both
+  visible, no ordering imposed (F12).
+- Ask.answeredBy becomes a list — one ask may be answered across
+  responses (F17).
+- CoverageStatus "conflicted" renamed "contested" — one concept, one
+  name (F11).
+- open-validations deleted from views — a v1 ghost; three shipped
+  builders remain (F9).
+- The budget's home named: budgetSet appends the budget line to the
+  session record; remaining is derived (F13).
+- Contradiction repair: EngagementHealth.repair NAMES the repairing
+  verb; the CLI refuses all other state-changing verbs while it stands (F14).
+- Worker classes pin model + a fixed tool surface (F15); counts and
+  labels corrected everywhere (fifteen src files; two root prose files);
+  _skills/ added to the stores table; the status line names the real
+  branch, v2-rebuild (F3/F7/F16).

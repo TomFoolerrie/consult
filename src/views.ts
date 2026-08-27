@@ -8,9 +8,9 @@
  * computed. Capture holds only captured knowledge, nothing generated.
  *
  * BUILDERS is the one registry a new deliverable's view builder joins
- * (what keeps "YAML-sized act" honest). Ships with exactly the four the
+ * (what keeps "YAML-sized act" honest). Ships with exactly the THREE the
  * two shipped definitions need: client-asks, information-requests,
- * open-validations, findings-by-theme. A plan naming an unregistered kind
+ * findings-by-theme (open-validations was a v1 ghost — deleted, A14). A plan naming an unregistered kind
  * is refused BY NAME before any render.
  */
 export type ViewBuilder = (ctx: { root: string; binding: unknown }) => string;

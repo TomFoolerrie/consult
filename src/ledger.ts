@@ -32,11 +32,15 @@ export interface LedgerEntry {
   grounds?: readonly string[];
 }
 
-/** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars */
-export function route(root: string, file: string, touches: string[]): SrcId { throw new Error("mock-out"); }
+/** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars.
+ * opts (A14): provenance (client | public | synthesis); grounds REQUIRED when synthesis — refused by name otherwise */
+export function route(root: string, file: string, touches: string[], opts?: { provenance?: "client" | "public" | "synthesis"; grounds?: string[] }): SrcId { throw new Error("mock-out"); }
 /** decline a staged file with a durable reason */
 export function park(root: string, file: string, reason: string): void { throw new Error("mock-out"); }
-/** record consumption; retire fully-read sources; returns how many moved */
+/** record consumption; retire fully-read sources; returns how many moved.
+ * A14: filled = slugs whose open content this source filled; updated = slugs it
+ * corroborated or revised. credit (per-source) and asks.settle (per-ask) are
+ * INDEPENDENT debts — both visible, no ordering imposed. */
 export function credit(root: string, filled: string[], updated?: string[]): number { throw new Error("mock-out"); }
 /** the whole ledger picture: unrouted new/ diff, entries in order, the debt list per source */
 export function status(root: string): { unrouted: string[]; entries: LedgerEntry[]; outstanding: Map<SrcId, string[]> } { throw new Error("mock-out"); }

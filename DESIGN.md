@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Thirteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
+Fifteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
 the oracle's surface after the A9 distillation: every deterministic verb either does bookkeeping an agent shouldn't hand-roll, enforces honesty, or expands context — no workflow lives in the engine. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -10,13 +10,14 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
               questions ↑↓ answers · relayed client info · spend/send calls
                         │
                    THE CONSULTANT  (agents/consultant.md — standing, strong model)
-        reads everything · writes only through verbs · works directly or delegates, by cost
+        reads everything · bookkeeping through verbs, capture directly (A14) · works directly or delegates, by cost
                         │
         ┌───────────────┼──────────────────────┐
         │ delegates (by cost) │ verbs (toolbox) │ consults
    worker classes ──────┤                      ├── desk.state()     (the one derived picture:
    (haiku·sonnet·opus   │   src/cli.ts         │    where are we · coverage · needs)
-    — pin model only) × │   one entry point    └── answers.ground() (what's the standing)
+    — pin model + a   × │   one entry point    └── answers.ground() (what's the standing)
+     fixed tool surface)│
    skills: shipped      │
    kernel/skills/ +     │
    authored _skills/    │
@@ -24,13 +25,13 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
                      THE FOLDER (the only state)
    engagement/
      STATE.md             the consultant, directly  the state pad: working memory, read first every sitting (A8)
-     OBJECTIVE.md         the consultant, via verbs the soft objective: relationship framing, no client facts (A11)
+     OBJECTIVE.md         the consultant, directly  the soft objective: relationship framing, no client facts (A11/A14)
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/
      _registers/          asks.ts, findings.ts     asks.yaml, findings.yaml
      _journal/            journal.ts               sessions/ only — flags+tenure live in STATE.md (A9)
      _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable)
      _synthesis/          render.ts + workers      work products; registrable as sources (A12)
-     capture/             engagement.ts owns       fragments + _taxonomy/ — flat, no manifest, no areas
+     capture/             consultant+workers, directly  fragments + _taxonomy/ — flat, no manifest, no areas (A14)
 ```
 
 ## Data flow: the one cycle
@@ -59,12 +60,13 @@ sitting budget. Gates sit ON the cycle; they are not cycles.
 | Store | Question it answers | Writer | Machine-parsed? |
 |---|---|---|---|
 | `STATE.md` | what am I doing? | consultant, directly | never |
-| `OBJECTIVE.md` | why are we here? | consultant, via verbs | never (quoted into briefs) |
-| `capture/` | what do we know? | consultant/workers, via verbs | yes — the substrate |
+| `OBJECTIVE.md` | why are we here? | consultant, directly (A14) | never (quoted into briefs) |
+| `capture/` | what do we know? | consultant/workers, directly (A14) | yes — the substrate |
 | `_registers/` | where does each transaction stand? | asks.ts / findings.ts | yes — debts computed |
 | `_journal/sessions/` | what did the machinery spend? | the machinery itself | append-only audit |
 | `_sources/` | what came in, and is it accounted for? | ledger.ts | yes — the balance |
 | `_synthesis/` | what have we made? | render.ts / workers | registrable as synthesis sources (A12) |
+| `_skills/` | what work shapes have we authored? | brief.ts (saveSkill) | yes — resolved into briefs |
 
 No store answers another's question. Registers hold NO knowledge —
 lifecycle bookkeeping only; a register holding synthesized prose is a
@@ -82,7 +84,7 @@ at read time from the record's physical shape.
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
 | `src/kernel.ts` | nothing | type declarations + fragment→entity parsing |
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
-| `src/engagement.ts` | nothing | folder truth, flat: locate, entities, taxonomy — no manifest, no areas, no scaffolding verb |
+| `src/engagement.ts` | nothing | folder truth, flat: locate, entities, taxonomy — capture itself is a direct write (A14) |
 | `src/ledger.ts` | `_sources/` | the source ledger, one intake door: route, park, credit, status |
 | `src/asks.ts` | `_registers/asks.yaml` | the ask lifecycle; respond() is the one-verb ARRIVAL motion; settle() closes after fold-in (A13) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
@@ -98,7 +100,7 @@ at read time from the record's physical shape.
 ## Laws (ported, all live-proven)
 
 - Folder state is the only state; every "where are we" is derived on demand.
-- One writer per file; every write is a verb; agents never touch state directly.
+- One writer per file. The write boundary is drawn by STORE KIND (A14): machine-parsed bookkeeping (_sources/, _registers/, _journal/, _skills/) is verb-only; capture/, STATE.md, and OBJECTIVE.md are DIRECT writes — the consultant anywhere, workers within their skill's write boundary — disciplined by check.run, the grammar, and checkpoint diffs.
 - Pure reads stay pure: the desk's derived picture and answers write nothing, cache nothing.
 - Fail loud: malformed input is a named refusal, never a default.
 - No "all quiet" claim reachable by damage: `desk.state` requires positive
@@ -115,7 +117,7 @@ at read time from the record's physical shape.
 - No manifest, no areas, no .proposed/, no holds machinery, no signal files: the folder-as-document and human-as-trust-boundary fossils are out (ROT-1..7).
 - The assessment license attaches to the activity, not an agent: candidates in, proposals out, whoever judges.
 - No workflow lives in the engine (A9): a verb survives only as bookkeeping, honesty enforcement, or context expansion — how-to-work lives in skills. One event, one verb — the event is ARRIVAL (A13): `asks.respond` routes and stamps; settle() closes only after fold-in. Analyses are skills, never engine verbs.
-- Agents pin model; skills carry the agency. Worker classes (haiku/sonnet/opus) pin only the model; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or consultant-authored (_skills/, saved before use, logged, reusable).
+- Agents pin model (+ a fixed tool surface); skills carry the agency. Worker classes (haiku/sonnet/opus) pin nothing else; class and skill are independent dials. Adding a work shape is adding a skill file — shipped (kernel/skills/) or consultant-authored (_skills/, saved before use, logged, reusable).
 - Synthesis is citable, never standing-upgrading (A12): a synthesis source declares the grounds it was built from, and statements citing it inherit those grounds' standing — self-derived knowledge is first-class, laundering is structurally impossible.
 - Token asymmetry is a design input: input is cheap on strong models, output is dear — review-with-edits over regeneration where it wins.
 - The consultant has a workspace: `STATE.md`, its one direct-write file — free prose, never machine-parsed, read first at every sitting, checkpointed with everything else. Working memory persists — and after A9 the pad IS judgment's home (precedent, doubts, observations); the machinery keeps only the session record.

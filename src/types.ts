@@ -20,7 +20,8 @@ export type AskStatus = "proposed" | "accepted" | "sent" | "answered" | "settled
 export interface Ask {
   id: AskId; status: AskStatus; text: string;
   questions: CalloutAddr[]; audience?: string; artifact?: string;
-  answeredBy?: SrcId; closedReason?: string;
+  answeredBy: readonly SrcId[];   // A14: one ask may be answered across responses
+  closedReason?: string;
 }
 
 // the honesty contract — every grounded statement carries its standing.
@@ -44,7 +45,8 @@ export interface ProposedRead { question: string; sources: SrcId[]; }
 // coverage — what the brain knows it knows, per taxonomy node.
 // A13: no "thin" — thinness is a threshold judgment against the
 // objective, the consultant's call; the engine reports the computable.
-export type CoverageStatus = "evidenced" | "claimed" | "conflicted" | "outstanding";
+// A14: "contested", matching the statement standing — one concept, one name.
+export type CoverageStatus = "evidenced" | "claimed" | "contested" | "outstanding";
 
 // findings — proposed → accepted | rejected (rejection terminal and kept)
 export type FindingStatus = "proposed" | "accepted" | "rejected";

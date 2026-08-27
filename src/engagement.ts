@@ -7,9 +7,13 @@
  * render needs one, comes from the taxonomy or the definition) and NO
  * area directory layer (partitioning is the taxonomy's job — that is what
  * L1s are). There is no .proposed/ staging and no confirm ceremony: the
- * consultant writes live, and the gates are spends and sends. There is no scaffolding verb (A9):
- * the fragment format lives in the type declaration, the consultant writes
- * the file, and the grammar check catches malformation.
+ * consultant writes live, and the gates are spends and sends. CAPTURE IS A DIRECT WRITE (A14, ruled
+ * verbatim: the consultant directly edits capture, period, full stop) —
+ * the consultant anywhere, workers within their skill's write boundary.
+ * No scaffolding verb (A9): the fragment format lives in the type
+ * declaration; discipline is check.run, the three-primitive grammar, and
+ * checkpoint diffs — auditability lives in the record's shape, not the
+ * write path.
  *
  * The locate rule survives: an engagement root is the directory holding
  * _sources/. A tree that looks like an engagement but lacks the marker is

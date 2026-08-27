@@ -7,14 +7,14 @@
  * (Standing, Defect, Snapshot), never on parsed stdout. One command tree;
  * every verb in the system is a subcommand here; no module has its own
  * entry. Refuses any state-changing
- * verb while a contradiction from desk.state() stands, except the verbs
- * that repair it.
+ * verb while a contradiction from desk.state() stands — the contradiction's
+ * own `repair` field NAMES the verb that may run (A14).
  *
  * Verb inventory after the A9 distillation (each dispatches to exactly
  * one module function; every verb guards an invariant or expands context):
  *   state · checkpoint · budget · coverage · needs      → desk (the one derived picture)
  *   route · park · credit                               → ledger (one intake door)
- *   ask propose|accept|sent|respond|close               → asks (respond = one atomic motion)
+ *   ask propose|accept|sent|respond|settle|close        → asks (respond = arrival; settle after fold-in)
  *   finding propose|accept|reject                       → findings
  *   check                                               → check (six mechanical checks)
  *   render <deliverable>   (self-contained: compile → build views in-memory → emit)

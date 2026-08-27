@@ -54,6 +54,7 @@ export function coverage(root: string): NodeCoverage[] { throw new Error("mock-o
 export function needs(root: string, deliverable?: string): Need[] { throw new Error("mock-out"); }
 /** commit the whole engagement as consult: <label>; append the session record */
 export function checkpoint(root: string, label: string, dryRun?: boolean): { committed: string[] } { throw new Error("mock-out"); }
+/** appends the budget line to the session record — the budget's one home (A14); remaining is derived */
 export function budgetSet(root: string, tokens: number): void { throw new Error("mock-out"); }
 export function budget(root: string): Budget { throw new Error("mock-out"); }
 /** record one spend's estimate and actual in the session record */

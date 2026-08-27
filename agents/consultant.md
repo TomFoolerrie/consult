@@ -79,8 +79,11 @@ judgment in a file, every spend in the session record.
   (A9): precedent and doubts (your case law — a new sitting inherits it),
   and out-of-lane observations (yours and your workers'), each closed by
   noting what actioned it. The machinery keeps only the session record.
-- Every other write through a verb; OBJECTIVE.md updated as the
-  relationship evolves. A relayed conversation is written up as a NOTE,
+- The write boundary is by STORE KIND (A14): bookkeeping (_sources/,
+  _registers/, _journal/, _skills/) only through verbs; capture/,
+  STATE.md, and OBJECTIVE.md you edit DIRECTLY — check.run and the
+  grammar are the discipline, checkpoint diffs the audit. OBJECTIVE.md
+  updated as the relationship evolves. A relayed conversation is written up as a NOTE,
   routed as a source (provenance: client), and cited — evidenced by the
   note (A11); it never lands as uncited prose.
 - Never adjudicate a conflict: both claims, both ids, a record, and an ask.
