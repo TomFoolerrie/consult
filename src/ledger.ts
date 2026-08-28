@@ -30,7 +30,34 @@
  * the existing id and the duplicate file is REMOVED — no copies. The
  * ledger itself is _sources/sources.yaml.
  */
+import { parse, stringify } from "yaml";
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import { join, basename } from "node:path";
+import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
+
+const LEDGER = (root: string) => join(root, "_sources", "sources.yaml");
+
+interface Book { entries: MutableEntry[]; parked: { file: string; reason: string }[]; }
+interface MutableEntry {
+  id: SrcId; file: string; hash: string; intent: string[]; answers: AskId[];
+  provenance?: "client" | "public" | "synthesis"; grounds?: string[];
+  scan?: { summary: string; keyItems: string[] };
+}
+export function readBook(root: string): Book {
+  if (!existsSync(LEDGER(root))) return { entries: [], parked: [] };
+  const b = parse(readFileSync(LEDGER(root), "utf8")) as Book | null;
+  return { entries: b?.entries ?? [], parked: b?.parked ?? [] };
+}
+export function writeBook(root: string, b: Book): void { writeFileSync(LEDGER(root), stringify(b)); }
+export function stampAnswer(root: string, src: SrcId, ask: AskId): void {
+  const b = readBook(root);
+  const e = b.entries.find(e => e.id === src);
+  if (!e) throw new Error(`stampAnswer: ${src} not in the ledger`);
+  if (!e.answers.includes(ask)) e.answers.push(ask);
+  writeBook(root, b);
+}
 
 export interface LedgerEntry {
   id: SrcId; file: string; hash: string;
@@ -46,8 +73,42 @@ export interface LedgerEntry {
 
 /** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars.
  * opts (A14): provenance; grounds REQUIRED when synthesis — refused by name otherwise */
-export function route(root: string, file: string, intent: string[], opts?: { provenance?: "client" | "public" | "synthesis"; grounds?: string[] }): SrcId { throw new Error("mock-out"); }
+export function route(root: string, file: string, intent: string[], opts?: { provenance?: "client" | "public" | "synthesis"; grounds?: string[] }): SrcId {
+  if (!existsSync(file)) throw new Error(`route: no such staged file ${file}`);
+  if (opts?.provenance === "synthesis" && !(opts.grounds && opts.grounds.length))
+    throw new Error(`route: synthesis provenance requires non-empty grounds (${basename(file)})`);
+  const hash = createHash("sha256").update(readFileSync(file)).digest("hex");
+  const b = readBook(root);
+  const dup = b.entries.find(e => e.hash === hash);
+  if (dup) { rmSync(file); return dup.id; }  // same content = same source; no copies
+  const id = `SRC-${String(b.entries.length + 1).padStart(3, "0")}` as SrcId;
+  const entry: MutableEntry = { id, file: join("_sources/new", basename(file)), hash, intent: [...intent], answers: [] };
+  if (opts?.provenance) entry.provenance = opts.provenance;
+  if (opts?.grounds) entry.grounds = [...opts.grounds];
+  b.entries.push(entry);
+  writeBook(root, b);
+  return id;
+}
 /** decline a staged file with a durable reason */
-export function park(root: string, file: string, reason: string): void { throw new Error("mock-out"); }
+export function park(root: string, file: string, reason: string): void {
+  const b = readBook(root);
+  const dest = join(root, "_sources/parked", basename(file));
+  writeFileSync(dest, readFileSync(file)); rmSync(file);
+  b.parked.push({ file: join("_sources/parked", basename(file)), reason });
+  writeBook(root, b);
+}
 /** the whole ledger picture — consumed/outstanding COMPUTED from capture citations (A18), never stored */
-export function status(root: string): { unrouted: string[]; entries: LedgerEntry[]; consumed: Map<SrcId, string[]>; outstanding: Map<SrcId, string[]> } { throw new Error("mock-out"); }
+export function status(root: string): { unrouted: string[]; entries: LedgerEntry[]; consumed: Map<SrcId, string[]>; outstanding: Map<SrcId, string[]> } {
+  const b = readBook(root);
+  const routedNames = new Set(b.entries.map(e => basename(e.file)));
+  const newDir = join(root, "_sources/new");
+  const unrouted = (existsSync(newDir) ? readdirSync(newDir) : []).filter(f => !routedNames.has(f));
+  const consumed = new Map<SrcId, string[]>(), outstanding = new Map<SrcId, string[]>();
+  const ents = kernel.entities(root);
+  for (const e of b.entries) {
+    const got = ents.filter(en => en.statements.some(st => st.cites.includes(e.id))).map(en => en.slug);
+    consumed.set(e.id, got);
+    outstanding.set(e.id, e.intent.filter(sl => !got.includes(sl)));
+  }
+  return { unrouted, entries: b.entries as unknown as LedgerEntry[], consumed, outstanding };
+}
