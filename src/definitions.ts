@@ -22,7 +22,7 @@ export interface Definition {
 export type Block =
   | { kind: "static"; id: string; title: string; text: string }
   | { kind: "view"; id: string; title: string; binding: string }
-  | { kind: "entity-part"; id: string; repeat: { over: string; order: "manifest" } };
+  | { kind: "entity-part"; id: string; repeat: { over: string; order: "slug" } };  // slug order — the manifest died in ROT-2
 export type Binding = Record<string, unknown>; // shaped per verb, validated at stage 2
 export interface Skin { format: "docx"; requires: readonly string[]; }
 

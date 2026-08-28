@@ -8,24 +8,34 @@
  * proposed (the mint) | accepted (the gate's yes, via record.gate) |
  * sent (the boundary crossing) | closed (deliberate withdrawal).
  * `answered` and `settled` are COMPUTED: answered = answeredBy
- * non-empty (stamped by respond); settled = the answering sources are
- * cited in the capture where the ask's questions live. Settlement is
- * un-fakeable — you cannot stamp what the capture does not show — and
+ * non-empty (stamped by respond); settled = THE PREDICATE, pinned:
+ * for EVERY question address the ask names, either a statement in that
+ * question's fragment cites one of the answeredBy sources, or the
+ * question record has been removed from the fragment (removal = the
+ * consultant judged it answered; the register keeps the id, so
+ * ask-coverage stays clean — the register, not the fragment, is where
+ * "exactly once" lives). Settlement is un-fakeable — you cannot stamp what the capture does not show — and
  * the answered-but-unsettled debt stays visible through unsettled(),
  * now a pure read.
  *
  * ONE EVENT, ONE VERB — the event is ARRIVAL (A13): respond() routes
- * the file through the ledger's one door and stamps the asks it
- * answers. Fold-in is the consultant's direct capture work; its
+ * the file through the ledger's one door — with intent = the DISTINCT
+ * SLUGS of the answered asks' question addresses — and stamps the asks
+ * it answers (answeredBy ACCUMULATES across responses: one ask may be
+ * answered by several). Fold-in is the consultant's direct capture work; its
  * completion is DERIVED, not declared (A18 — settle() does not exist).
  *
  * ASK ECONOMY — a GUIDING PRINCIPLE, not a rule: prefer few, simple,
  * artifact-shaped requests tailored to the relationship — but if the
  * objective needs something, it needs something.
  *
- * Invariants (checks, not memories): every question id appears in the
- * register exactly once (asked or closed) · only `accepted` is bindable
- * by a deliverable · sent() sweeps accepted only.
+ * Invariants — enforced at BOTH layers, deliberately: propose() refuses
+ * a question id already in the register (fast feedback), AND check's
+ * ask-coverage polices the register after any direct hand-edit (the
+ * A14 world's law). Only `accepted` is bindable by a deliverable ·
+ * sent() sweeps accepted only · accept() and sent() are record.gate's
+ * ask-shaped callers — each appends a kind:"send" gate line naming the
+ * ask to the session record (A18/M4).
  */
 import type { Ask, AskId, AskStatus, SrcId, CalloutAddr } from "./types.ts";
 

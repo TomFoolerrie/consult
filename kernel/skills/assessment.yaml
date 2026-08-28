@@ -1,0 +1,12 @@
+name: assessment
+mission: "Judge the provided candidates under the license — propose-only, every ground resolving, never 'likely'. Lenses"
+writes: " pain-synthesis, control-coverage, conflict-support, handoff-friction."
+contextContract:
+  - "the brief resolves every file, source, and register slice in scope"
+returnContract:
+  - "exactly what the mission names — nothing outside the write boundary"
+rules:
+  - "read the brief first; do exactly what it says"
+  - "never judgment the skill does not license"
+recommendedClass: nothing:opus
+origin: shipped

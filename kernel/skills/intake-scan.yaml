@@ -1,0 +1,12 @@
+name: intake-scan
+mission: "Summarize one source + extract key items onto its ledger entry. Advisory metadata only — never grounds, never cited."
+writes: "the ledger entry's scan field"
+contextContract:
+  - "the brief resolves every file, source, and register slice in scope"
+returnContract:
+  - "exactly what the mission names — nothing outside the write boundary"
+rules:
+  - "read the brief first; do exactly what it says"
+  - "never judgment the skill does not license"
+recommendedClass: haiku
+origin: shipped

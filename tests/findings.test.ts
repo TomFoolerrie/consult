@@ -20,5 +20,9 @@ test("accepted findings render; rejection is terminal and KEPT as case law", () 
   findings.accept(root, a);
   findings.reject(root, b, "cadence is client preference, not a defect");
   assert.deepEqual(findings.renderable(root).map(f => f.id), [a]);
-  assert.equal(findings.entriesOf?.(root)?.length ?? 2, 2, "the rejection is kept");
+  const all = findings.entriesOf(root);
+  assert.equal(all.length, 2, "the rejection is kept");
+  const rej = all.find(f => f.id === b)!;
+  assert.equal(rej.status, "rejected");
+  assert.equal(rej.rejectedReason, "cadence is client preference, not a defect");
 });

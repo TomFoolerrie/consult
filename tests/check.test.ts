@@ -35,3 +35,20 @@ test("mentions is a WARNING, not an error", () => {
   const d = check.run(root).find(d => d.check === "mentions")!;
   assert.equal(d.severity, "warning");
 });
+
+test("an UNCITED capture statement is NOT a citations error — claimed is a legitimate standing", () => {
+  const root = bareEngagement();
+  fragment(root, "ap", { statements: [{ text: "team prefers quarterly reviews" }] });
+  assert.ok(!check.run(root).some(d => d.check === "citations" && d.severity === "error"));
+});
+
+test("check polices the direct-write world: a hand-edited register is caught by ask-coverage and registers", () => {
+  const root = bareEngagement();
+  writeFileSync(join(root, "_registers/asks.yaml"),
+    ["- { id: ASK-001, status: proposed, text: q, questions: [ap#Q-1], answeredBy: [] }",
+     "- { id: ASK-002, status: proposed, text: q2, questions: [ap#Q-1], answeredBy: [] }"].join("\n"));
+  fragment(root, "ap", { questions: [{ id: "Q-1", text: "who?" }] });
+  const d = check.run(root).find(d => d.check === "ask-coverage")!;
+  assert.equal(d.severity, "error");
+  assert.ok(d.message.includes("Q-1"), "names the duplicated question");
+});

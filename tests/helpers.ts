@@ -57,6 +57,14 @@ export function fragment(root: string, slug: string, body: {
 /** a taxonomy node file. */
 export function node(root: string, name: string, scope: string): string {
   const p = join(root, "capture/_taxonomy", `${name}.yaml`);
-  writeFileSync(p, `slug: ${name}\ntype: taxonomy-node\nscope: ${JSON.stringify(scope)}\nstatements:\nquestions:\n`);
+  writeFileSync(p, `slug: ${name}\ntype: taxonomy-node\nscope: ${JSON.stringify(scope)}\nstatements: []\nquestions: []\n`);
   return p;
+}
+
+/** pin one shipped deliverable shape into the engagement (shipped are NOT auto-pinned). */
+export function pinShape(root: string, name: string): void {
+  const dir = join(root, "_definitions");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.yaml`), `pin: ${name}
+`);
 }

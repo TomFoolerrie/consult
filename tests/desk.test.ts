@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
 import { join } from "node:path";
-import { bareEngagement, stage, fragment, node } from "./helpers.ts";
+import { bareEngagement, stage, fragment, node, pinShape } from "./helpers.ts";
 import * as ledger from "../src/ledger.ts";
 import * as desk from "../src/desk.ts";
 
@@ -37,8 +37,10 @@ test("coverage per node: evidenced / claimed / contested / outstanding — compu
   assert.equal(cov.conflicts.length, 1);
 });
 
-test("no 'all quiet' reachable by damage: an empty-but-marked engagement is not 'done'", () => {
+test("no 'all quiet' reachable by damage: a pinned shape over an empty engagement is NOT serviceable", () => {
   const root = bareEngagement();
+  pinShape(root, "information-request");
   const s = desk.state(root);
-  assert.ok(s.pinnedShapes.every(p => !p.serviceable), "nothing serviceable without positive evidence");
+  assert.equal(s.pinnedShapes.length, 1, "shipped definitions are not auto-pinned; this one is");
+  assert.equal(s.pinnedShapes[0]!.serviceable, false, "no positive evidence, no serviceable");
 });

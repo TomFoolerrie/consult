@@ -1,0 +1,12 @@
+# the process-step type declaration — the grammar's concrete default.
+# Engagement overlays may AMEND the vocabulary (callouts beyond question);
+# the question kind is the one the engine itself knows (registers join on it).
+name: process-step
+parts:
+  - { slug: body, title: "What happens", kind: prose }
+callouts:
+  - { kind: question, label: "QUESTION", prefix: Q, home: questions }
+  - { kind: control,  label: "CONTROL",  prefix: C, home: callouts }
+  - { kind: pain,     label: "PAIN POINT", prefix: P, home: callouts }
+  - { kind: io,       label: "INPUT/OUTPUT", prefix: IO, home: callouts, fields: [direction, artifact] }
+channels: [statements, questions]

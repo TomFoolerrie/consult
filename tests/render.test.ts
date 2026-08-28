@@ -10,7 +10,7 @@ test("a plan naming an unregistered view kind is refused BY NAME before any rend
     (e: Error) => e.message.includes("no-such-builder"));
 });
 
-test("the shipped registry holds exactly the three the two definitions need", () => {
-  assert.deepEqual([...render.BUILDERS.keys()].sort(),
-    ["client-asks", "findings-by-theme", "information-requests"]);
+test("the shipped registry serves the two shipped definitions (growable — at LEAST these three)", () => {
+  for (const k of ["client-asks", "findings-by-theme", "information-requests"])
+    assert.ok(render.BUILDERS.has(k), k);
 });

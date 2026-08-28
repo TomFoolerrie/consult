@@ -1,0 +1,12 @@
+name: procedure-draft
+mission: "Fill or edit ONE capture fragment from the tagged sources, under the minting bars."
+writes: "its one fragment"
+contextContract:
+  - "the brief resolves every file, source, and register slice in scope"
+returnContract:
+  - "exactly what the mission names — nothing outside the write boundary"
+rules:
+  - "read the brief first; do exactly what it says"
+  - "never judgment the skill does not license"
+recommendedClass: sonnet
+origin: shipped

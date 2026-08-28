@@ -18,6 +18,10 @@
 // A12: a statement citing a synthesis source takes the standing of that
 // source's declared grounds, resolved through the chain — synthesis is
 // citable, never standing-upgrading.
+// Contract pins (post test-review): topic is a fragment slug or free
+// text matched against slugs and statement text; items return in
+// DOCUMENT ORDER, statements before callouts; each item carries `where`
+// (the fragment slug). Assert by predicate, not position, all the same.
 import type { Standing, Ground, SrcId, CalloutAddr } from "./types.ts";
 
 export interface GroundedItem { text: string; standing: Standing; where: string; }

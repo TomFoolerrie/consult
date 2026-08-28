@@ -19,6 +19,12 @@
  * and state() already shows which sources retired and which asks
  * settled, because the capture diff IS the credit (A18).
  *
+ * BARE-ENGAGEMENT DEFAULTS, pinned: budget before budgetSet is
+ * {limit: 0, spent: 0, remaining: 0} (nothing auto-proceeds until a
+ * budget is set); a root that is not a git repo reports git.clean:
+ * false with a note naming it; pinnedShapes lists ONLY definitions the
+ * engagement has pinned — shipped definitions are NOT auto-pinned.
+ *
  * Holds do not exist as machinery (ROT-4): "ask first" is a state-pad
  * commitment the consultant obeys.
  */

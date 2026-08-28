@@ -1,0 +1,12 @@
+name: source-read
+mission: "Answer one question from the named sources; return grounded material, quoted and cited."
+writes: "nothing"
+contextContract:
+  - "the brief resolves every file, source, and register slice in scope"
+returnContract:
+  - "exactly what the mission names — nothing outside the write boundary"
+rules:
+  - "read the brief first; do exactly what it says"
+  - "never judgment the skill does not license"
+recommendedClass: haiku
+origin: shipped

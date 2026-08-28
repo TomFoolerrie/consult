@@ -16,8 +16,19 @@
  * (né touches) is the debt declared at route time, balanced by
  * derivation, retired by the record's own shape.
  *
- * SYNTHESIS SOURCES (A12): provenance "synthesis" requires declared
- * grounds; citable like any source, never upgrades standing.
+ * SYNTHESIS SOURCES (A12): provenance "synthesis" requires NON-EMPTY,
+ * resolvable grounds — SRC ids or capture addresses (slug#LOCAL-ID or a
+ * bare slug). Citable like any source; a statement citing a synthesis
+ * inherits the WEAKEST standing among the synthesis's grounds, resolved
+ * through the chain — grounded in evidenced material it reads evidenced,
+ * grounded in a claimed statement it reads claimed; it never upgrades.
+ *
+ * FILE LIFECYCLE, pinned: a routed file STAYS in _sources/new/ until
+ * retirement moves it to processed/ (at checkpoint, once fully cited);
+ * LedgerEntry.file is root-relative and is rewritten on retire, so
+ * status() survives the move. A staged duplicate (same hash) returns
+ * the existing id and the duplicate file is REMOVED — no copies. The
+ * ledger itself is _sources/sources.yaml.
  */
 import type { SrcId, AskId } from "./types.ts";
 

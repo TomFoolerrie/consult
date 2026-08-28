@@ -1,0 +1,8 @@
+# the taxonomy-node type — one part (scope), the question record only.
+# A question naming two sources IS the lens-conflict record.
+name: taxonomy-node
+parts:
+  - { slug: scope, title: "Scope", kind: prose }
+callouts:
+  - { kind: question, label: "QUESTION", prefix: Q, home: questions }
+channels: [statements, questions]

@@ -39,3 +39,13 @@ test("the engine hard-codes ONE callout kind (question); other vocabulary is ame
   // shipped default vocabulary present but engagement-amendable — declared, not hard-coded
   assert.ok(t.callouts.length >= 1);
 });
+
+test("a two-source question parses as the question callout with an address — the lens-conflict record", () => {
+  const root = bareEngagement();
+  fragment(root, "ap", { questions: [{ id: "Q-1", text: "CFO or COO?", sources: ["SRC-001", "SRC-002"] }] });
+  const [e] = kernel.entities(root);
+  const q = e!.callouts.find(c => c.id === "Q-1")!;
+  assert.equal(q.kind, "question");
+  assert.equal(q.addr, "ap#Q-1");
+  assert.equal(q.fields.get("sources"), "SRC-001, SRC-002", "sources land as a comma-joined field");
+});

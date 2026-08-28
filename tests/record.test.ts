@@ -24,7 +24,11 @@ test("checkpoint retires fully-cited sources — consumption's one side effect (
   fragment(root, "ap", { statements: [{ text: "3-way match", cites: [src] }] });
   const { retired } = record.checkpoint(root, "consume policy");
   assert.deepEqual(retired, [src]);
-  assert.ok(readdirSync(join(root, "_sources/processed")).length === 1);
+  assert.equal(readdirSync(join(root, "_sources/processed")).length, 1);
+  assert.equal(readdirSync(join(root, "_sources/new")).length, 0, "the file MOVED — no copies");
+  const after = ledger.status(root);
+  assert.ok(after.entries.some(e => e.id === src), "the entry survives the move (file rewritten root-relative)");
+  assert.deepEqual(after.consumed.get(src), ["ap"], "consumption unchanged by retirement");
 });
 
 test("gate records the yes and the crossing for BOTH kinds — law 6, auditable", () => {
@@ -43,4 +47,14 @@ test("budget lives in the session record; remaining is derived; spend records es
   const b = record.budget(root);
   assert.equal(b.limit, 100_000);
   assert.equal(b.remaining, 100_000 - 34_000, "actuals, not estimates, draw the budget");
+});
+
+test("D9: a spend above remaining is a named refusal until a gate ruling records the yes", () => {
+  const root = bareEngagement(); gitInit(root);
+  record.budgetSet(root, 10_000);
+  assert.throws(() => record.spend(root, 50_000, 0, "big assessment"),
+    (e: Error) => e.message.includes("budget"));
+  record.gate(root, { kind: "spend", what: "big assessment (~50k)", ruling: "approved over budget" });
+  record.spend(root, 50_000, 48_000, "big assessment");
+  assert.equal(record.budget(root).remaining, 10_000 - 48_000, "over-budget spends draw once ruled");
 });

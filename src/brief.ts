@@ -29,7 +29,7 @@ export interface Skill {
   mission: string;
   writes: string | null;            // the write boundary, or null for read-only work
   contextContract: readonly string[];
-  returnContract: string;
+  returnContract: readonly string[];
   rules: readonly string[];
   recommendedClass: WorkerClass;    // advisory; overrides are recorded with reason
   origin: "shipped" | "engagement"; // engagement skills shadow shipped ones by name

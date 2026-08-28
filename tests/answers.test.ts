@@ -28,14 +28,28 @@ test("the four standings derive from the record's physical shape", () => {
     "absent carries the question's ADDRESS — phrasing the ask is the consultant's job");
 });
 
-test("a synthesis source never upgrades standing: the chain resolves to its grounds", () => {
+test("synthesis inherits the WEAKEST ground's standing — a chain through claimed material stays claimed", () => {
   const root = bareEngagement();
+  // a claimed statement (no cite) that the synthesis is built from
+  fragment(root, "org-notes", { statements: [{ text: "Team says Dana leads AP" }] });
   const model = ledger.route(root, stage(root, "model.md", "org model"), ["org-structure"],
-    { provenance: "synthesis", grounds: [] }); // grounds empty = built from nothing citable
+    { provenance: "synthesis", grounds: ["org-notes"] });
   fragment(root, "org-structure", { statements: [{ text: "Consolidated: Dana leads AP", cites: [model] }] });
-  const g = answers.ground(root, "org-structure");
-  assert.equal(g[0]!.standing.kind, "claimed",
-    "citing your own ungrounded summary cannot make a statement evidenced");
+  const item = answers.ground(root, "org-structure").find(i => i.text.startsWith("Consolidated"))!;
+  assert.equal(item.standing.kind, "claimed",
+    "the chain resolves to a claimed ground — no upgrade through your own summary");
+});
+
+test("and the chain resolves UP when grounds are evidenced — building on your own work is first-class (A12)", () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "chart.pdf", "org chart"), ["org-structure"]);
+  fragment(root, "org-structure", { statements: [{ text: "Dana leads AP", cites: [src] }] });
+  const model = ledger.route(root, stage(root, "model.md", "org model"), ["org-structure"],
+    { provenance: "synthesis", grounds: [src] });
+  fragment(root, "org-view", { statements: [{ text: "Summary: AP centralizes under Dana", cites: [model] }] });
+  const item = answers.ground(root, "org-view").find(i => i.text.startsWith("Summary"))!;
+  assert.equal(item.standing.kind, "evidenced", "grounded synthesis carries evidence through");
+  assert.deepEqual((item.standing as any).sources, [src], "the chain resolves to the primary artifact");
 });
 
 test("cite resolves grounds or refuses BY NAME", () => {
