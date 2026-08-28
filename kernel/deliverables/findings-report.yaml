@@ -5,5 +5,5 @@ blocks:
   - { kind: static, id: intro, title: "Basis", text: "Findings grounded in the engagement record." }
   - { kind: view, id: findings, title: "Findings", binding: findings }
 bindings:
-  findings: { findings: accepted-by-theme }
+  findings: { findings: accepted-by-theme, builder: findings-by-theme }
 skin: { format: docx, requires: [title-page] }

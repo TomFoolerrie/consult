@@ -38,7 +38,7 @@
  * ask to the session record (A18/M4).
  */
 import { parse, stringify } from "yaml";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import * as ledger from "./ledger.ts";
 import * as record from "./record.ts";
@@ -54,7 +54,7 @@ function readReg(root: string): Reg {
   if (Array.isArray(r)) return { asks: r as MutableAsk[], closedQuestions: [] }; // tolerate a hand-written bare list
   return { asks: r?.asks ?? [], closedQuestions: r?.closedQuestions ?? [] };
 }
-function writeReg(root: string, r: Reg): void { writeFileSync(REG(root), stringify(r)); }
+function writeReg(root: string, r: Reg): void { mkdirSync(join(root, "_registers"), { recursive: true }); writeFileSync(REG(root), stringify(r)); }
 function must(r: Reg, id: AskId): MutableAsk {
   const a = r.asks.find(a => a.id === id);
   if (!a) throw new Error(`ask: no such ask ${id}`);

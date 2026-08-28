@@ -22,7 +22,7 @@ import * as findingsMod from "./findings.ts";
 import * as kernel from "./kernel.ts";
 
 const SHIPPED = join(dirname(fileURLToPath(import.meta.url)), "..", "kernel", "deliverables");
-const VERBS = ["coverage", "asks", "findings", "count"];
+const VERBS = ["coverage", "asks", "findings", "count", "builder"]; // builder: which registered view builder renders this binding (defaults to the binding name)
 
 export interface Definition {
   name: string; title: string;
@@ -80,7 +80,11 @@ export function serviceability(defn: Definition, root: string): ServiceabilityGa
 export interface ServiceabilityGap { binding: string; missing: string; where: string; }
 /** the ordered render plan: views to build, blocks to emit */
 export function compilePlan(defn: Definition, root: string): Plan {
-  const views = defn.blocks.filter(b => b.kind === "view").map(b => ({ id: b.id, builder: (b as { binding: string }).binding }));
+  const views = defn.blocks.filter(b => b.kind === "view").map(b => {
+    const name = (b as { binding: string }).binding;
+    const spec = defn.bindings.get(name) as Record<string, string> | undefined;
+    return { id: b.id, builder: spec?.builder ?? name };
+  });
   return { views, blocks: defn.blocks };
 }
 export interface Plan { views: readonly { id: string; builder: string }[]; blocks: readonly Block[]; }

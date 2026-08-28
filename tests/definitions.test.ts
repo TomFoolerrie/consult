@@ -33,3 +33,11 @@ test("pinned() lists only what the engagement pinned — shipped shapes are not 
   pinShape(root, "information-request");
   assert.deepEqual(definitions.pinned(root).map(d => d.name), ["information-request"]);
 });
+
+test("compilePlan joins bindings to REGISTERED builders — the synthetic-1 bug, pinned", async () => {
+  const { BUILDERS } = await import("../src/render.ts");
+  for (const name of ["information-request", "findings-report"]) {
+    const plan = definitions.compilePlan(definitions.load(name), bareEngagement());
+    for (const v of plan.views) assert.ok(BUILDERS.has(v.builder), `${name}: ${v.builder} is registered`);
+  }
+});

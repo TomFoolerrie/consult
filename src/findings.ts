@@ -9,7 +9,7 @@
  * ground an answer.
  */
 import { parse, stringify } from "yaml";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import * as answers from "./answers.ts";
 import type { Finding, FindingId, FindingStatus, Ground } from "./types.ts";
@@ -20,7 +20,7 @@ function readReg(root: string): MutableFinding[] {
   if (!existsSync(REG(root))) return [];
   return (parse(readFileSync(REG(root), "utf8")) as MutableFinding[] | null) ?? [];
 }
-function writeReg(root: string, r: MutableFinding[]): void { writeFileSync(REG(root), stringify(r)); }
+function writeReg(root: string, r: MutableFinding[]): void { mkdirSync(join(root, "_registers"), { recursive: true }); writeFileSync(REG(root), stringify(r)); }
 function must(r: MutableFinding[], id: FindingId): MutableFinding {
   const f = r.find(f => f.id === id);
   if (!f) throw new Error(`finding: no such finding ${id}`);

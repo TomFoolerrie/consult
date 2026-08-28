@@ -1,0 +1,10 @@
+# the client simulator: what comes back when an ask crosses the boundary
+responses:
+  - topic: reporting-line          # who does Dana report to, post-reorg?
+    file: responses/reorg-confirmation.md
+    behavior: answer
+  - topic: expedite-policy         # is "expedite - DO approval" a sanctioned path?
+    file: responses/expedite-nonanswer.md
+    behavior: non-answer           # the client dodges — exercises honest absence surviving a response
+  - topic: vendor-duplicates       # the Kessler duplicates
+    behavior: silence              # no response at all this round

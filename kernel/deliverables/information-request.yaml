@@ -6,6 +6,6 @@ blocks:
   - { kind: view, id: asks, title: "Requests", binding: asks }
   - { kind: view, id: open, title: "Open questions for reference", binding: open-questions }
 bindings:
-  asks: { asks: accepted }
-  open-questions: { coverage: open-questions }
+  asks: { asks: accepted, builder: information-requests }
+  open-questions: { coverage: open-questions, builder: open-questions }
 skin: { format: docx, requires: [title-page] }

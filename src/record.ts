@@ -23,7 +23,7 @@
  * and actual so pricing stays auditable.
  */
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync, mkdirSync } from "node:fs";
 import { join, basename } from "node:path";
 import * as ledger from "./ledger.ts";
 
@@ -51,6 +51,7 @@ export function checkpoint(root: string, label: string, dryRun?: boolean): { com
     const inNew = e.file.startsWith("_sources/new/");
     if (inNew && e.intent.length > 0 && out.length === 0) {
       const from = join(root, e.file), to = join(root, "_sources/processed", basename(e.file));
+      mkdirSync(join(root, "_sources/processed"), { recursive: true });
       renameSync(from, to);
       e.file = join("_sources/processed", basename(e.file));
       retired.push(e.id);
@@ -67,6 +68,7 @@ export function checkpoint(root: string, label: string, dryRun?: boolean): { com
 }
 /** every verb and dispatch appends itself to the sitting's session record */
 export function sessionAppend(root: string, event: SessionEvent): void {
+  mkdirSync(SESSIONS(root), { recursive: true });
   const line = JSON.stringify(event);
   appendFileSync(sessionFile(root), line + "\n");
 }

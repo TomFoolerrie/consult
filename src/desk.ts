@@ -43,7 +43,7 @@ export interface Snapshot {
   unrouted: string[];
   coverage: NodeCoverage[];        // per taxonomy node, recomputed
   needs: Need[];                   // what each pinned shape still lacks
-  askDebts: { unsettled: number };
+  askDebts: { unsettled: number; awaitingResponse: number };  // awaitingResponse: sent, client silent (synthetic-1 finding)
   pinnedShapes: { name: string; serviceable: boolean }[];
   git: { clean: boolean; note?: string };
   budget: { limit: number; spent: number; remaining: number };
@@ -81,7 +81,10 @@ export function state(root: string): Snapshot {
     health, unrouted: st.unrouted,
     coverage: health.kind === "ok" ? coverage(root) : [],
     needs: health.kind === "ok" ? needs(root) : [],
-    askDebts: { unsettled: health.kind === "ok" ? asksMod.unsettled(root).length : 0 },
+    askDebts: {
+      unsettled: health.kind === "ok" ? asksMod.unsettled(root).length : 0,
+      awaitingResponse: health.kind === "ok" ? asksMod.entriesOf(root, "sent").filter(a => a.answeredBy.length === 0).length : 0,
+    },
     pinnedShapes, git,
     budget: health.kind === "ok" ? record.budget(root) : { limit: 0, spent: 0, remaining: 0 },
   };
@@ -93,7 +96,7 @@ export function report(root: string): string {
     `health: ${s.health.kind}${s.health.kind === "contradiction" ? ` — ${s.health.what} (repair: ${s.health.repair})` : ""}`,
     `unrouted: ${s.unrouted.length}`,
     `coverage: ${s.coverage.map(c => `${c.slug}:${c.status}`).join(" ") || "(no taxonomy yet)"}`,
-    `needs: ${s.needs.length}`, `unsettled asks: ${s.askDebts.unsettled}`,
+    `needs: ${s.needs.length}`, `unsettled asks: ${s.askDebts.unsettled}`, `awaiting response: ${s.askDebts.awaitingResponse}`,
     `pinned: ${s.pinnedShapes.map(p => `${p.name}${p.serviceable ? "" : " (not serviceable)"}`).join(", ") || "none"}`,
     `git: ${s.git.clean ? "clean" : s.git.note}`,
     `budget: ${s.budget.remaining}/${s.budget.limit} remaining`,

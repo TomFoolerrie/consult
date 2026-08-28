@@ -23,7 +23,7 @@
  * picture is desk.report. The brief decides nothing about content.
  */
 import { parse, stringify } from "yaml";
-import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as record from "./record.ts";
@@ -64,6 +64,7 @@ export function skills(root: string): Skill[] {
 }
 /** save an ad-hoc skill (from scratch or a variant) into _skills/ — always saved before use, logged in the session record */
 export function saveSkill(root: string, tpl: Skill): void {
+  mkdirSync(join(root, "_skills"), { recursive: true });
   writeFileSync(join(root, "_skills", `${tpl.name}.yaml`), stringify(tpl));
   try { record.sessionAppend(root, { at: new Date().toISOString(), verb: "saveSkill",
     detail: `${tpl.name}${tpl.variantOf ? ` (variant of ${tpl.variantOf})` : ""}` }); } catch { /* pre-record engagements */ }

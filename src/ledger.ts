@@ -32,8 +32,8 @@
  */
 import { parse, stringify } from "yaml";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
-import { join, basename } from "node:path";
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync } from "node:fs";
+import { join, basename, relative, isAbsolute } from "node:path";
 import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
 
@@ -50,7 +50,7 @@ export function readBook(root: string): Book {
   const b = parse(readFileSync(LEDGER(root), "utf8")) as Book | null;
   return { entries: b?.entries ?? [], parked: b?.parked ?? [] };
 }
-export function writeBook(root: string, b: Book): void { writeFileSync(LEDGER(root), stringify(b)); }
+export function writeBook(root: string, b: Book): void { mkdirSync(join(root, "_sources"), { recursive: true }); writeFileSync(LEDGER(root), stringify(b)); }
 export function stampAnswer(root: string, src: SrcId, ask: AskId): void {
   const b = readBook(root);
   const e = b.entries.find(e => e.id === src);
@@ -82,7 +82,11 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
   const dup = b.entries.find(e => e.hash === hash);
   if (dup) { rmSync(file); return dup.id; }  // same content = same source; no copies
   const id = `SRC-${String(b.entries.length + 1).padStart(3, "0")}` as SrcId;
-  const entry: MutableEntry = { id, file: join("_sources/new", basename(file)), hash, intent: [...intent], answers: [] };
+  // the ledger records the file WHERE IT LIVES, root-relative: staged files in
+  // _sources/new/, synthesis in _synthesis/ (it is the store — never moved)
+  const rel = relative(root, file);
+  if (rel.startsWith("..") || isAbsolute(rel)) throw new Error(`route: ${file} is outside the engagement`);
+  const entry: MutableEntry = { id, file: rel, hash, intent: [...intent], answers: [] };
   if (opts?.provenance) entry.provenance = opts.provenance;
   if (opts?.grounds) entry.grounds = [...opts.grounds];
   b.entries.push(entry);
@@ -92,6 +96,7 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
 /** decline a staged file with a durable reason */
 export function park(root: string, file: string, reason: string): void {
   const b = readBook(root);
+  mkdirSync(join(root, "_sources/parked"), { recursive: true });
   const dest = join(root, "_sources/parked", basename(file));
   writeFileSync(dest, readFileSync(file)); rmSync(file);
   b.parked.push({ file: join("_sources/parked", basename(file)), reason });
