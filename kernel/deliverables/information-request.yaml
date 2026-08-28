@@ -1,0 +1,11 @@
+# the ask loop's front door — curated asks lead, mechanical feeds as appendix
+name: information-request
+title: "Information Request"
+blocks:
+  - { kind: static, id: intro, title: "Purpose", text: "Items requested to progress the engagement." }
+  - { kind: view, id: asks, title: "Requests", binding: asks }
+  - { kind: view, id: open, title: "Open questions for reference", binding: open-questions }
+bindings:
+  asks: { asks: accepted }
+  open-questions: { coverage: open-questions }
+skin: { format: docx, requires: [title-page] }

@@ -21,8 +21,15 @@
 // read modules. Fragments live flat in <root>/capture/, taxonomy nodes in
 // capture/_taxonomy/; no manifest, no areas; capture is a direct write.
 import type { CalloutAddr } from "./types.ts";
+import { parse } from "yaml";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SHIPPED = join(dirname(fileURLToPath(import.meta.url)), "..", "kernel");
 
 export const QUESTION_KIND = "question" as const; // the one engine-known kind
+
 
 export interface TypeDecl {
   name: "process-step" | "taxonomy-node";
@@ -45,7 +52,19 @@ export type SrcRef = `SRC-${number}`;
 export interface Callout { id: string; addr: CalloutAddr; kind: string; label: string; text: string; fields: ReadonlyMap<string, string>; }
 
 /** load + validate a declaration (engagement overlay may amend vocabulary); fail-loud */
-export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw new Error("mock-out"); }
+export function loadType(root: string, name: TypeDecl["name"]): TypeDecl {
+  const local = join(root, "_types", `${name}.yaml`);
+  const path = existsSync(local) ? local : join(SHIPPED, "types", `${name}.yaml`);
+  let raw: unknown;
+  try { raw = parse(readFileSync(path, "utf8")); }
+  catch (e) { throw new Error(`type declaration ${name}: ${(e as Error).message}`); }
+  const t = raw as TypeDecl;
+  if (!t || t.name !== name || !Array.isArray(t.callouts))
+    throw new Error(`type declaration ${name}: malformed at ${path}`);
+  if (!t.callouts.some(c => c.kind === QUESTION_KIND))
+    throw new Error(`type declaration ${name}: the question kind is engine law and must be declared`);
+  return t;
+}
 /**
  * parse one fragment through its declaration; grammar defects are named errors.
  * THE THREE-PRIMITIVE GRAMMAR (A11): the engine prescribes only (1)
@@ -57,11 +76,53 @@ export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw
  * law: the parse lives here alone, and an alternative surface satisfying
  * the grammar is a kernel amendment, not a redesign.
  */
-export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity { throw new Error("mock-out"); }
+export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity {
+  let raw: any;
+  try { raw = parse(text); }
+  catch (e) { throw new Error(`fragment ${slug}: ${(e as Error).message}`); }
+  if (!raw || typeof raw !== "object" || raw.slug !== slug)
+    throw new Error(`fragment ${slug}: slug field must match the file name`);
+  const statements: Statement[] = [];
+  for (const st of raw.statements ?? []) {
+    if (typeof st?.text !== "string") throw new Error(`fragment ${slug}: statement without text`);
+    const cites = (st.cites ?? []).map((c: unknown) => {
+      if (typeof c !== "string" || !/^SRC-\d+$/.test(c))
+        throw new Error(`fragment ${slug}: malformed citation ${String(c)}`);
+      return c as SrcRef;
+    });
+    statements.push({ text: st.text, cites });
+  }
+  const qdecl = tdecl.callouts.find(c => c.kind === QUESTION_KIND)!;
+  const callouts: Callout[] = [];
+  for (const q of raw.questions ?? []) {
+    if (typeof q?.id !== "string" || typeof q?.text !== "string")
+      throw new Error(`fragment ${slug}: question record needs id and text`);
+    const fields = new Map<string, string>();
+    if (Array.isArray(q.sources)) fields.set("sources", q.sources.join(", "));
+    callouts.push({ id: q.id, addr: `${slug}#${q.id}`, kind: QUESTION_KIND, label: qdecl.label, text: q.text, fields });
+  }
+  const parts = new Map<string, string>();
+  for (const p of tdecl.parts) if (typeof raw[p.slug] === "string") parts.set(p.slug, raw[p.slug]);
+  return { slug, parts, statements, callouts, bindings: new Map() };
+}
 /** every open question on one entity, document order */
-export function openQuestions(entity: Entity): Callout[] { throw new Error("mock-out"); }
+export function openQuestions(entity: Entity): Callout[] {
+  return entity.callouts.filter(c => c.kind === QUESTION_KIND);
+}
 
 /** every capture fragment, slug order, parsed through the declaration (A18, from engagement.ts) */
-export function entities(root: string): Entity[] { throw new Error("mock-out"); }
+export function entities(root: string): Entity[] {
+  const dir = join(root, "capture");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "process-step");
+  return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()
+    .map(f => parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")));
+}
 /** every taxonomy node, name order (A18, from engagement.ts) */
-export function taxonomy(root: string): Entity[] { throw new Error("mock-out"); }
+export function taxonomy(root: string): Entity[] {
+  const dir = join(root, "capture", "_taxonomy");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "taxonomy-node");
+  return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()
+    .map(f => parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")));
+}
