@@ -1,9 +1,10 @@
 # CONSULT v2 — the engagement brain and its consultant
 
-**Status: MOCK-OUT.** Every module exists as a contract — a docstring that says what it
-owns, what it writes, and what it refuses — with signatures and no implementations.
-Nothing here runs yet. The point of this stage is that a human can read this tree in
-one sitting and know how the code works before any of it is written.
+**Status: BUILT — the executable spec is green (51/51).** Every module carries its
+contract as a docstring and its behavior in tests/ (written first, per the method).
+The one remaining seam is Phase 2's docx emitter (py/render_worker) — `render`
+compiles, validates, and builds views today, and refuses by name at the emit step.
+Next: synthetic engagement #1.
 
 The ruled charter is `CHARTER.md`. The module map and data flow are `DESIGN.md`.
 The old engine (shipped as 2.0–2.5.1, retroactively the v1 line's final form) lives on

@@ -1,9 +1,9 @@
 {
   "name": "consult",
-  "version": "2.0.0-alpha",
+  "version": "2.0.0-alpha.1",
   "private": true,
   "type": "module",
-  "description": "The engagement brain and its consultant. MOCK-OUT: contracts only, nothing runs yet.",
+  "description": "The engagement brain and its consultant. Engine built tests-first; docx seam pending.",
   "bin": {
     "consult": "./src/cli.ts"
   },
