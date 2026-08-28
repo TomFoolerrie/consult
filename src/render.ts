@@ -31,12 +31,47 @@
 // an unregistered kind is refused BY NAME before any render. Ships with
 // the three the two shipped definitions need: client-asks,
 // information-requests, findings-by-theme.
+import * as asksMod from "./asks.ts";
+import * as findingsMod from "./findings.ts";
+import * as kernel from "./kernel.ts";
+
 export type ViewBuilder = (ctx: { root: string; binding: unknown }) => string;
-export const BUILDERS: ReadonlyMap<string, ViewBuilder> = new Map();
+const registry = new Map<string, ViewBuilder>();
+registry.set("client-asks", ({ root }) =>
+  asksMod.entriesOf(root, "accepted").concat(asksMod.entriesOf(root, "sent")).map(a => `- ${a.id}: ${a.text}`).join("\n"));
+registry.set("information-requests", ({ root }) =>
+  asksMod.entriesOf(root, "accepted").map(a => `- ${a.text}${a.artifact ? ` (please send: ${a.artifact})` : ""}`).join("\n"));
+registry.set("findings-by-theme", ({ root }) => {
+  const byTheme = new Map<string, string[]>();
+  for (const f of findingsMod.renderable(root)) {
+    const t = f.theme ?? "general";
+    byTheme.set(t, [...(byTheme.get(t) ?? []), `- ${f.claim} [${f.grounds.join(", ")}]`]);
+  }
+  return [...byTheme.entries()].map(([t, ls]) => `### ${t}\n${ls.join("\n")}`).join("\n\n");
+});
+registry.set("open-questions", ({ root }) =>
+  kernel.entities(root).flatMap(e => kernel.openQuestions(e).map(q => `- ${q.addr}: ${q.text}`)).join("\n"));
+export const BUILDERS: ReadonlyMap<string, ViewBuilder> = registry;
 /** build every view a compiled plan names, in plan order; refuse unregistered kinds by name */
-export function build(root: string, plan: { views: readonly { id: string; builder: string }[] }): Map<string, string> { throw new Error("mock-out"); }
+export function build(root: string, plan: { views: readonly { id: string; builder: string }[] }): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const v of plan.views) {
+    const b = BUILDERS.get(v.builder);
+    if (!b) throw new Error(`render: view ${v.id} names unregistered builder ${v.builder}`);
+    out.set(v.id, b({ root, binding: v.builder }));
+  }
+  return out;
+}
 
 export interface RenderResult { path: string; sections: number; warnings: string[]; }
 
 /** render one pinned definition end to end; an unbuildable view is a named refusal */
-export function deliverable(root: string, name: string, opts?: { out?: string; draft?: boolean }): Promise<RenderResult> { throw new Error("mock-out"); }
+export async function deliverable(root: string, name: string, opts?: { out?: string; draft?: boolean }): Promise<RenderResult> {
+  const { load, compilePlan, serviceability } = await import("./definitions.ts");
+  const defn = load(name, root);
+  const gaps = serviceability(defn, root);
+  if (gaps.length) throw new Error(`render ${name}: not serviceable — ${gaps.map(g => `${g.binding}: ${g.missing}`).join("; ")}`);
+  const plan = compilePlan(defn, root);
+  build(root, plan); // an unbuildable view refuses by name here
+  throw new Error(`render ${name}: the docx seam (py/render_worker) is not yet built — Phase 2`);
+}

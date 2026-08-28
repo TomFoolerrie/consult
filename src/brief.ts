@@ -22,6 +22,14 @@
  * Issued when, and only when, delegation happens; the consultant's own
  * picture is desk.report. The brief decides nothing about content.
  */
+import { parse, stringify } from "yaml";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import * as record from "./record.ts";
+
+const SHIPPED = join(dirname(fileURLToPath(import.meta.url)), "..", "kernel", "skills");
+
 export type WorkerClass = "haiku" | "sonnet" | "opus";
 
 export interface Skill {
@@ -37,10 +45,41 @@ export interface Skill {
 }
 
 /** resolve a skill by name: engagement store shadows shipped; unknown is a named refusal */
-export function skill(root: string, name: string): Skill { throw new Error("mock-out"); }
+export function skill(root: string, name: string): Skill {
+  const local = join(root, "_skills", `${name}.yaml`);
+  const shipped = join(SHIPPED, `${name}.yaml`);
+  const path = existsSync(local) ? local : shipped;
+  if (!existsSync(path)) throw new Error(`skill: no skill named ${name} (shipped or engagement-authored)`);
+  const raw = parse(readFileSync(path, "utf8")) as Skill;
+  if (!raw?.name || !raw.mission) throw new Error(`skill ${name}: malformed — mission required`);
+  return raw;
+}
 /** every skill visible to this engagement (shipped + authored), shadowing applied */
-export function skills(root: string): Skill[] { throw new Error("mock-out"); }
+export function skills(root: string): Skill[] {
+  const names = new Set<string>();
+  const local = join(root, "_skills");
+  if (existsSync(local)) for (const f of readdirSync(local)) if (f.endsWith(".yaml")) names.add(f.replace(/\.yaml$/, ""));
+  if (existsSync(SHIPPED)) for (const f of readdirSync(SHIPPED)) if (f.endsWith(".yaml")) names.add(f.replace(/\.yaml$/, ""));
+  return [...names].sort().map(n => skill(root, n));
+}
 /** save an ad-hoc skill (from scratch or a variant) into _skills/ — always saved before use, logged in the session record */
-export function saveSkill(root: string, tpl: Skill): void { throw new Error("mock-out"); }
+export function saveSkill(root: string, tpl: Skill): void {
+  writeFileSync(join(root, "_skills", `${tpl.name}.yaml`), stringify(tpl));
+  try { record.sessionAppend(root, { at: new Date().toISOString(), verb: "saveSkill",
+    detail: `${tpl.name}${tpl.variantOf ? ` (variant of ${tpl.variantOf})` : ""}` }); } catch { /* pre-record engagements */ }
+}
 /** resolve one skilled unit of work into a printable brief for one worker class */
-export function compose(root: string, name: string, cls: WorkerClass, params: Record<string, unknown>): string { throw new Error("mock-out"); }
+export function compose(root: string, name: string, cls: WorkerClass, params: Record<string, unknown>): string {
+  const sk = skill(root, name);
+  const lines = [
+    `# BRIEF — ${sk.name} on worker-${cls}`,
+    `## Mission`, sk.mission,
+    `## Write boundary`, sk.writes ?? "nothing — read-only work",
+    `## Context`, ...sk.contextContract,
+    `## Parameters`,
+    ...Object.entries(params).map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`),
+    `## Rules (verbatim — these bind whoever works)`, ...sk.rules.map(r => `- ${r}`),
+    `## Return contract`, ...sk.returnContract,
+  ];
+  return lines.join("\n");
+}
