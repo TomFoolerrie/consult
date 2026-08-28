@@ -32,7 +32,7 @@ py/                   the one Python seam: the bounded docx render worker
 agents/               consultant + worker contracts, and system.md — the mental model the consultant loads every sitting
 kernel/               the declarative half: 2 types, 2 deliverable definitions
 synthetic/            the synthetic-engagement harness (the definition of done)
-tests/                (arrives with implementation — tests-first, per module)
+tests/                the executable spec — written BEFORE the build (red until each module lands); the fixtures pin the on-disk grammar
 
 ## The start (picked pieces, build order)
 

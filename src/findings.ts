@@ -16,4 +16,6 @@ export function propose(root: string, claim: string, grounds: Ground[], theme?: 
 export function accept(root: string, id: FindingId): void { throw new Error("mock-out"); }
 export function reject(root: string, id: FindingId, reason: string): void { throw new Error("mock-out"); }
 /** accepted only — what a deliverable may bind and an answer may cite */
+/** the whole register, rejections included — case law is kept */
+export function entriesOf(root: string): Finding[] { throw new Error("mock-out"); }
 export function renderable(root: string): Finding[] { throw new Error("mock-out"); }

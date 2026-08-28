@@ -4,6 +4,18 @@
   "private": true,
   "type": "module",
   "description": "The engagement brain and its consultant. MOCK-OUT: contracts only, nothing runs yet.",
-  "bin": { "consult": "./src/cli.ts" },
-  "engines": { "node": ">=20" }
+  "bin": {
+    "consult": "./src/cli.ts"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types tests/",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "typescript": "^7.0.2"
+  }
 }

@@ -31,14 +31,18 @@ export interface TypeDecl {
   channels: readonly string[];
 }
 export interface PartDecl { slug: string; title: string; kind: "prose" | "list" | "table"; }
-export interface CalloutDecl { label: string; prefix: string; home: string; fields?: readonly string[]; }
+export interface CalloutDecl { kind: string; label: string; prefix: string; home: string; fields?: readonly string[]; }
 export interface Entity {
   slug: string;
   parts: ReadonlyMap<string, string>;
+  /** the second primitive: statements carrying machine-readable citations */
+  statements: readonly Statement[];
   callouts: readonly Callout[];
   bindings: ReadonlyMap<string, readonly string[]>;
 }
-export interface Callout { addr: CalloutAddr; label: string; text: string; fields: ReadonlyMap<string, string>; }
+export interface Statement { text: string; cites: readonly SrcRef[]; }
+export type SrcRef = `SRC-${number}`;
+export interface Callout { id: string; addr: CalloutAddr; kind: string; label: string; text: string; fields: ReadonlyMap<string, string>; }
 
 /** load + validate a declaration (engagement overlay may amend vocabulary); fail-loud */
 export function loadType(root: string, name: TypeDecl["name"]): TypeDecl { throw new Error("mock-out"); }
