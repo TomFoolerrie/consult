@@ -546,3 +546,41 @@ standing nearest to them.
 Thirteen engine files. After a fold-in the consultant edits capture,
 checks, checkpoints — and state() already shows which sources retired
 and which asks settled, because the capture diff IS the credit.
+
+## Amendment A19 — the pulse (2026-08-28): RECORDED, NOT YET BUILT
+
+The human's idea, written down before implementation: a HEARTBEAT — the
+soft descendant of v1's orchestrate script. The hard version (a script
+commanding the workflow) is the exorcised ghost; the need underneath is
+real and unserved: DRIFT. Long sittings rot context, checkpoints get
+forgotten, sent asks quietly age, budget burns unnoticed, and a
+consultant deep in a fold-in slowly stops resembling its own contract.
+
+The shape, ruled in principle:
+
+- **One verb, `consult pulse`. It DESCRIBES, never commands** — the
+  desk's law, now with a clock. It runs check, computes the staleness
+  signals the derived picture currently lacks (time since last
+  checkpoint · age of each awaiting-response ask · unrouted files aging
+  in new/ · budget burn rate · unsettled debts), auto-checkpoints a
+  dirty tree (pure bookkeeping — autosave with an audit trail, labeled
+  `pulse` to stay distinguishable from a judged checkpoint), appends
+  itself to the session record, and prints one compact block: state +
+  time-debts + defects + THE MIRROR.
+- **The mirror, not a coach:** the pulse re-surfaces what is already
+  ruled — the state pad's "human's standing guidance" section, the
+  seven laws' header, the objective's first line. Re-reading your own
+  contract is how a long-context agent stays itself; the engine just
+  puts the mirror in the loop. It never instructs.
+- **Timing stays OUT of the engine:** the consultant's contract says
+  when to pulse (open every sitting; after any long work stretch); an
+  external scheduler may call the same verb for unattended maintenance.
+  The engine neither knows nor cares who squeezes it.
+- **THE TRIPWIRE, written down now so it cannot creep:** the pulse must
+  never rank tasks, propose next actions, or gate anything. The moment
+  its output says "you should now…", it is the thirteen-guard advisor
+  being reborn. Describes, never commands.
+
+Status: idea recorded by ruling; implementation deferred until the
+prompt-layer work (operational consultant prompt, fleshed skills,
+synthetic #4 wiring) lands. Tests first when it builds.
