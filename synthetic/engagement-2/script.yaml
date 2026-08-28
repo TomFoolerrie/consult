@@ -1,0 +1,6 @@
+responses:
+  - topic: system-of-record
+    file: responses/it-memo.md
+    behavior: answer-that-contradicts   # settles LogiCore-vs-AS400 for finance, but contradicts Oslo's re-keying claim
+  - topic: cutoff-times
+    behavior: silence

@@ -1,0 +1,6 @@
+responses:
+  - topic: conflict-check
+    file: responses/elena-partial.md
+    behavior: partial-answer     # answers conflict-check, ignores everything else asked
+  - topic: kyc-owner
+    behavior: silence

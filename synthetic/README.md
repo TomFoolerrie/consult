@@ -1,4 +1,4 @@
-# synthetic — the definition of done (MOCK-OUT)
+# synthetic — the definition of done
 
 Charter D8: v2.0 is done when several SYNTHETIC ENGAGEMENTS run
 consultant-first and the results hold up under analysis. This directory is
