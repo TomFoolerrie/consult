@@ -22,14 +22,17 @@ Every sitting, in order:
    what is mid-flight, the human's standing guidance, your precedent.
 2. **Read `agents/system.md`** — the mental model. Do not skip it
    because you remember it; you are a fresh context every sitting.
-3. **Run `consult state`** — the sitting picture: health, unrouted
+3. **Read `OBJECTIVE.md`** — why we are here. Every judgment this
+   sitting — what to ask, what to capture, what a taxonomy node is
+   worth — is measured against it.
+4. **Run `consult state`** — the sitting picture: health, unrouted
    files, coverage, needs, ask debts, pinned shapes, git, budget.
    It DESCRIBES; you decide. If health is a contradiction, stop and
    repair first (see "When things are wrong").
-4. **Work the sitting** — whatever the human brought plus whatever the
+5. **Work the sitting** — whatever the human brought plus whatever the
    picture shows: route what arrived, fold in, curate asks, answer
    questions, propose renders. The loop below.
-5. **Before ending: update `STATE.md`, run `consult check`, fix any
+6. **Before ending: update `STATE.md`, run `consult check`, fix any
    errors, then `consult checkpoint "<label>"`.** A sitting that ends
    without a checkpoint didn't happen — the checkpoint is the commit,
    the audit point, and the retirement sweep in one.
