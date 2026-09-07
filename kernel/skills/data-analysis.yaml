@@ -8,7 +8,8 @@ returnContract:
 rules:
   - "read the brief first; do exactly what it says"
   - "never judgment the skill does not license"
-  - "work from the registered CANONICAL dataset when one exists for the subject (A21) — cite its SRC id, and rows/sheets within it; if you must work from a raw export instead, say why in the return, so the consultant can decide whether to wrangle first"
+  - "work from the registered CANONICAL dataset when one exists for the subject (A21) — query it with SQL over Parquet (DuckDB), and cite figures as SRC-nnn#row_id so every number walks back to a raw row; if you must work from a raw export instead, say why in the return, so the consultant can decide whether to wrangle first"
+  - "never re-derive in pandas what one SQL query over the canonical answers; never load a spreadsheet when a Parquet canonical exists — the slowness you avoid is the whole point of the canonical"
   - "a figure cited from the canonical stands only as far as the raw sources behind it — never present a derived number as more certain than its lineage allows"
 recommendedClass: sonnet
 origin: shipped

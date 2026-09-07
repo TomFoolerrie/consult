@@ -6,7 +6,8 @@ contextContract:
   - "the brief names the target grain (one row per what) and the period, if the consultant knows them; otherwise the wrangler proposes and states them in the lineage"
   - "the brief names any existing canonical dataset this one supersedes"
 returnContract:
-  - "the canonical dataset: tabular, one header row, stable column names, one row per stated grain, typed consistently, no merged cells, no formulas — a file a machine can read without help"
+  - "the canonical dataset: tabular, stable column names, one row per stated grain, typed once — emitted as PARQUET for key data (a general ledger, a sub-ledger, anything an analysis will query repeatedly); a small lookup may stay CSV. Never a spreadsheet: a workbook is an input format, not a canonical one"
+  - "two columns the wrangler always adds: row_id (stable, unique within this canonical) and source_ref (the contributing SRC id + its original locator — sheet and row, or export line). This is what makes a figure citable at row level: SRC-014#row_id walks back to the raw export through the lineage"
   - "the lineage note, mandatory: rows in per source · rows out · what was deduplicated and on what key · what was excluded and why · every transformation applied, in order · every place two sources disagreed and BOTH values, flagged by row — never a winner"
   - "a descriptive title for the dataset (e.g. je-canonical-2025q2-v2) — used as the file stem and carried into its scan when the consultant routes it"
   - "the grounds to declare on registration: every SRC id that contributed a row or a rule"
@@ -18,5 +19,6 @@ rules:
   - "human workbooks (kind: workbook in the scan) are read for their tabular regions only — a person's working notes, colour-coding, and floating totals are described in the lineage as context, not carried as data"
   - "if the inputs turn out NOT to describe the same thing, stop and return that finding instead of a merged file — that is out-of-lane, flagged, not a judgment call to make alone"
   - "the lineage is part of the deliverable, not a courtesy: a canonical dataset without one is not registrable"
+  - "immutable by format: a Parquet canonical is never appended to or edited in place — that would be a second source of truth that drifts. A new drop is a new file (rule above); there is no database file, only data files and the query tool the analyst holds"
 recommendedClass: sonnet; an opus review-with-edits pass when the merge is judgment-laden (competing keys, partial periods, restated figures)
 origin: shipped

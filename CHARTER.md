@@ -663,6 +663,17 @@ the engagement analyzes from.
   out of the engine. Recommended class sonnet; opus review-with-edits
   when the merge is judgment-laden.
 
+- **Format ruling (the human's field finding — analysis over
+  spreadsheet-shaped data was slow):** key data (a general ledger, a
+  sub-ledger, anything queried repeatedly) is emitted as PARQUET, never
+  a spreadsheet; every canonical carries `row_id` + `source_ref`, so a
+  figure is cited as `SRC-nnn#row_id`; analysis is SQL over Parquet via
+  DuckDB, held by the worker as a tool. No database FILE — an immutable
+  Parquet per canonical keeps one source of truth from becoming two;
+  the worker tool surface gains Python + DuckDB + pyarrow (harness,
+  with synthetic #4). If git weight from per-drop canonicals bites, git
+  LFS on `_synthesis/*.parquet` — still folder-only state.
+
 Pending under the same amendment: the kind-shaped scan template
 (system-export → schema-centered; workbook → sheets-centered;
 narrative; correspondence), to be drafted from the human's side-run

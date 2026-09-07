@@ -60,6 +60,13 @@ deliverable definitions:
   session record, and reusable — later sittings inherit it.
   A local name shadows a shipped one.
 
+## The worker's tool surface for data (A21)
+Every class carries Python with DuckDB and pyarrow. Canonical datasets
+are Parquet; analysis is SQL over Parquet; a spreadsheet is something a
+worker READS at wrangle time and never something it queries. This is
+harness wiring, not engine — the same wiring the docx render worker
+needs, so it lands with synthetic #4.
+
 ## How dispatch runs on the substrate (no hot-loading)
 The three classes are three tiny STATIC agent definitions (model + tool
 surface pinned; system prompt: "read the brief, do exactly what it says,
