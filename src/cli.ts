@@ -14,7 +14,7 @@
  * one module function; every verb guards an invariant or expands context):
  *   state · coverage · needs                            → desk (PURE — the one derived picture)
  *   checkpoint · budget · spend · gate                  → record (the machinery's hand)
- *   route · park                                        → ledger (one intake door; consumption COMPUTED)
+ *   route · park · scan                                 → ledger (one intake door; consumption COMPUTED; the durable scan, A20)
  *   ask propose|accept|sent|respond|close               → asks (answered/settled DERIVED)
  *   finding propose|accept|reject                       → findings
  *   check                                               → check (six mechanical checks)
@@ -68,6 +68,7 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "park": ledger.park(located, rest[0]!, opt(rest, "reason") ?? ""); return 0;
+      case "scan": console.log(ledger.scan(located, rest[0] as import("./types.ts").SrcId, rest[1]!)); return 0;
       case "ask": {
         const sub = rest[0];
         if (sub === "propose") {

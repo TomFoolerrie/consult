@@ -23,6 +23,15 @@
  * through the chain — grounded in evidenced material it reads evidenced,
  * grounded in a claimed statement it reads claimed; it never upgrades.
  *
+ * THE SCAN (A17 → A20): a source may carry ONE durable scout report,
+ * _sources/scans/SRC-nnn.yaml, written only through scan(); the ledger
+ * entry keeps a root-relative POINTER, never the content. The report
+ * describes the DOCUMENT (summary + keyItems required — the default
+ * template); a local intake-scan variant may add fields, which ride
+ * along. A scan is NOT a source: route() refuses anything under
+ * _sources/scans/, so a précis can never become grounding material.
+ * Advisory only — never grounds, never cited; a re-scan overwrites.
+ *
  * FILE LIFECYCLE, pinned: a routed file STAYS in _sources/new/ until
  * retirement moves it to processed/ (at checkpoint, once fully cited);
  * LedgerEntry.file is root-relative and is rewritten on retire, so
@@ -43,7 +52,7 @@ interface Book { entries: MutableEntry[]; parked: { file: string; reason: string
 interface MutableEntry {
   id: SrcId; file: string; hash: string; intent: string[]; answers: AskId[];
   provenance?: "client" | "public" | "synthesis"; grounds?: string[];
-  scan?: { summary: string; keyItems: string[] };
+  scan?: string;
 }
 export function readBook(root: string): Book {
   if (!existsSync(LEDGER(root))) return { entries: [], parked: [] };
@@ -67,8 +76,8 @@ export interface LedgerEntry {
   provenance?: "client" | "public" | "synthesis";
   /** synthesis sources ONLY (A12): grounds this work product was built from — required, must resolve; never upgrades standing */
   grounds?: readonly string[];
-  /** intake scan (A17): cheap-model metadata attached at route time by the intake-scan skill. Advisory only: never grounds, never cited. */
-  scan?: { summary: string; keyItems: readonly string[] };
+  /** the durable scout report (A20): root-relative path of _sources/scans/SRC-nnn.yaml. Advisory only: never grounds, never cited. */
+  scan?: string;
 }
 
 /** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars.
@@ -86,12 +95,31 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
   // _sources/new/, synthesis in _synthesis/ (it is the store — never moved)
   const rel = relative(root, file);
   if (rel.startsWith("..") || isAbsolute(rel)) throw new Error(`route: ${file} is outside the engagement`);
+  if (rel.startsWith(join("_sources", "scans"))) throw new Error(`route: ${rel} is a scan — a scout report is never a source (A20)`);
   const entry: MutableEntry = { id, file: rel, hash, intent: [...intent], answers: [] };
   if (opts?.provenance) entry.provenance = opts.provenance;
   if (opts?.grounds) entry.grounds = [...opts.grounds];
   b.entries.push(entry);
   writeBook(root, b);
   return id;
+}
+/** the one scan writer (A20): validate the report against the default template, land it as
+ * _sources/scans/SRC-nnn.yaml (overwriting any earlier scan), point the ledger entry at it */
+export function scan(root: string, src: SrcId, reportFile: string): string {
+  const b = readBook(root);
+  const e = b.entries.find(e => e.id === src);
+  if (!e) throw new Error(`scan: ${src} not in the ledger`);
+  if (!existsSync(reportFile)) throw new Error(`scan: no such report ${reportFile}`);
+  const report = parse(readFileSync(reportFile, "utf8"));
+  for (const k of ["summary", "keyItems"] as const)
+    if (report == null || typeof report !== "object" || !(k in report))
+      throw new Error(`scan: report for ${src} lacks the default template's field "${k}"`);
+  const rel = join("_sources", "scans", `${src}.yaml`);
+  mkdirSync(join(root, "_sources", "scans"), { recursive: true });
+  writeFileSync(join(root, rel), stringify(report));
+  e.scan = rel;
+  writeBook(root, b);
+  return rel;
 }
 /** decline a staged file with a durable reason */
 export function park(root: string, file: string, reason: string): void {

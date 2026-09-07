@@ -99,6 +99,9 @@ function registers(root: string): Defect[] {
   const st = ledger.status(root);
   const ids = new Set(st.entries.map(e => e.id as string));
   for (const e of st.entries) {
+    if (e.scan && !existsSync(join(root, e.scan)))
+      out.push({ check: "registers", severity: "error", file: "_sources/sources.yaml",
+        message: `${e.id} scan pointer ${e.scan} does not resolve to a file` });
     if (e.provenance === "synthesis") {
       if (!e.grounds?.length) out.push({ check: "registers", severity: "error", file: "_sources/sources.yaml",
         message: `${e.id} is synthesis with no declared grounds` });

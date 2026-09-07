@@ -46,9 +46,10 @@ deliverable definitions:
 - **shipped** — `kernel/skills/`: procedure-draft, source-read,
   assessment, data-analysis, data-clean (normalize one messy artifact
   into a clean, referenced working file in _synthesis/), intake-scan
-  (haiku: summarize + key-item a source at route time onto its ledger
-  entry — advisory metadata, never grounds; the consultant configures
-  it by authoring a local variant, A17). A capture
+  (haiku: scout one source at route time into a durable report the
+  consultant lands as _sources/scans/SRC-nnn.yaml — describes the
+  document, never the engagement, by default; advisory, never grounds;
+  the consultant extends it by authoring a local variant, A17/A20). A capture
   template is not new machinery — a capture shape IS a skill
   (procedure-draft variant), authored per engagement.
 - **engagement-authored** — `<root>/_skills/`: the consultant may CREATE

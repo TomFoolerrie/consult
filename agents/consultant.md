@@ -59,8 +59,17 @@ consult park _sources/new/<file> --reason "<why not>"
   --asks ASK-001,ASK-002` — same door, plus the answeredBy stamps.
 - Routing is hash-idempotent: a duplicate returns the existing id and
   the copy is removed. Trust it.
-- Standing playbook (A17): dispatch `intake-scan` (haiku class) on each
-  routed source so your inventory reads scan lines, not files.
+- Standing playbook (A17/A20): dispatch `intake-scan` (haiku class) on
+  each routed source and land its report with
+  `consult scan SRC-nnn <report-file>` — it becomes
+  `_sources/scans/SRC-nnn.yaml`, durable, re-readable, and your
+  inventory reads scan files instead of sources. By default the scout
+  describes the DOCUMENT, never the engagement: which asks a response
+  answers, what a source means for the objective — that is yours. You
+  MAY author a local `_skills/intake-scan` variant that extends the
+  template with engagement-shaped fields; weigh it — every extra field
+  is paid on every routed source. A scan is never a source: route
+  refuses it, and you never cite one.
 
 **UPDATE — your own hands.** You edit `capture/`, `STATE.md`, and
 `OBJECTIVE.md` DIRECTLY. No verb, no ceremony — the discipline is the

@@ -584,3 +584,46 @@ The shape, ruled in principle:
 Status: idea recorded by ruling; implementation deferred until the
 prompt-layer work (operational consultant prompt, fleshed skills,
 synthetic #4 wiring) lands. Tests first when it builds.
+
+## Amendment A20 — the durable scan (2026-09-07)
+
+Supersedes A17's storage decision; keeps its doctrine.
+
+- **One durable scout report per source:** the intake scan lands as
+  `_sources/scans/SRC-nnn.yaml`, written only through the new
+  `consult scan <SRC> <report>` verb (bookkeeping — _sources/ stays
+  verb-only). The ledger entry keeps a root-relative POINTER, never the
+  content. A re-scan overwrites. The report is re-readable as a document
+  down the line — that is the point of making it a file.
+- **Why _sources/ and not _synthesis/ (ruled on the artifact thread):**
+  a scan answers "what came in?" — it is an index card about a source,
+  keyed by its id, dead without it. And everything in _synthesis/ is
+  registrable, therefore citable; a cheap-model précis one route away
+  from grounding material is exactly the laundering the audit trail
+  exists to prevent. So: `route` refuses any path under
+  `_sources/scans/`, even as synthesis. Structural, not advisory.
+- **The "no sidecars" line is amended in meaning:** the ledger's rule
+  guards against duplicate SOURCES. A scan is not a source.
+- **Default behavior, stated explicitly (the human's ruling):** the
+  shipped template DESCRIBES THE DOCUMENT, NEVER THE ENGAGEMENT —
+  summary, key items, parties, dates, structure, oddities. No ask ids,
+  no question addresses, no "this answers…", no recommendations. Which
+  asks a response answers and what a source means for the objective is
+  the consultant's judgment; the engagement lives with the consultant,
+  and the scout is not stuffed with its role.
+- **Customization is the consultant's, and it is a cost decision:** by
+  authoring a local `_skills/intake-scan` variant the consultant may
+  EXTEND the template with engagement-shaped fields (thresholds and
+  amounts mentioned, mentions of the approval chain, …) so the scout
+  looks for what this engagement cares about. Extra fields ride along in
+  the file; the engine validates only the default template's required
+  fields (summary, keyItems). The consultant balances the scope creep of
+  a richer template against cost and efficiency — every extra field is
+  paid on every routed source.
+- **Doctrine unchanged:** advisory only — never grounds, never cited,
+  never a statement. `check` polices the pointer (registers: a scan
+  path that does not resolve is an error).
+
+Built tests-first: five acceptance tests (durable file + pointer ·
+re-scan overwrite + extra fields ride along · named refusals · route
+refuses scans · check polices the pointer). Suite 57/57.

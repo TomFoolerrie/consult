@@ -1,12 +1,22 @@
 name: intake-scan
-mission: "Summarize one source + extract key items onto its ledger entry. Advisory metadata only — never grounds, never cited."
-writes: "the ledger entry's scan field"
+mission: "Scout ONE routed source and return a scout report the consultant lands with `consult scan`. Advisory metadata only — never grounds, never cited, never a statement."
+writes: "nothing — the report is returned; the consultant lands it as _sources/scans/SRC-nnn.yaml through the scan verb"
 contextContract:
-  - "the brief resolves every file, source, and register slice in scope"
+  - "the brief resolves the one source file in scope and its SRC id"
+  - "the brief carries this template verbatim; a local variant may extend it"
 returnContract:
-  - "exactly what the mission names — nothing outside the write boundary"
+  - "one YAML document following the template below — every default field present, keyItems may be empty"
+  - "summary: two or three sentences saying what the document IS (its kind, its subject, its apparent author and date)"
+  - "keyItems: the specific things a reader would want to know are in here — figures, thresholds, names, rules, decisions — each a short quoted or near-quoted line"
+  - "parties: people, roles, teams, and vendors named"
+  - "dates: dates and periods the document refers to, with what each attaches to"
+  - "structure: the document's shape — sections, tables, appendices, page count — so the consultant knows where to look"
+  - "oddities: anything visibly wrong or internally inconsistent in the document itself (a total that does not add, a revision date after the send date, a blank field)"
 rules:
   - "read the brief first; do exactly what it says"
-  - "never judgment the skill does not license"
+  - "DEFAULT BEHAVIOR (A20): describe the DOCUMENT, never the engagement. No ask ids, no question addresses, no capture slugs, no 'this answers…', no recommendations. What a source means for the engagement is the consultant's judgment, not the scout's."
+  - "a local variant may EXTEND the template with engagement-shaped fields (e.g. 'thresholds and amounts mentioned', 'mentions of the approval chain') — the consultant authors that variant deliberately, weighing what each extra field costs on every routed source against what it saves at inventory. Scope creep here is paid on every intake."
+  - "quote, do not paraphrase, wherever a figure or a rule is involved"
+  - "never judgment the skill does not license: no standing, no truth, no importance ranking"
 recommendedClass: haiku
 origin: shipped

@@ -1,7 +1,7 @@
 /** check — six mechanical checks; every defect names file and line. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { bareEngagement, stage, fragment } from "./helpers.ts";
 import * as ledger from "../src/ledger.ts";
@@ -51,4 +51,18 @@ test("check polices the direct-write world: a hand-edited register is caught by 
   const d = check.run(root).find(d => d.check === "ask-coverage")!;
   assert.equal(d.severity, "error");
   assert.ok(d.message.includes("Q-1"), "names the duplicated question");
+});
+
+// ── A20 ────────────────────────────────────────────────────────────────
+test("registers: a ledger scan pointer that does not resolve to a file is an error", () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "policy.md", "AP policy"), ["ap-approval"]);
+  fragment(root, "ap-approval", { statements: [{ text: "Dana approves over $10k", cites: [src] }] });
+  mkdirSync(join(root, "_synthesis"), { recursive: true });
+  const rep = join(root, "_synthesis/s.yaml"); writeFileSync(rep, "summary: s\nkeyItems: []\n");
+  const path = ledger.scan(root, src, rep);
+  assert.equal(check.run(root).filter(d => d.severity === "error").length, 0, "clean with the file present");
+  rmSync(join(root, path));
+  const errs = check.run(root).filter(d => d.check === "registers");
+  assert.equal(errs.length, 1); assert.match(errs[0]!.message, /scan/);
 });
