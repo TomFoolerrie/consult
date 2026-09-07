@@ -8,5 +8,7 @@ returnContract:
 rules:
   - "read the brief first; do exactly what it says"
   - "never judgment the skill does not license"
+  - "work from the registered CANONICAL dataset when one exists for the subject (A21) — cite its SRC id, and rows/sheets within it; if you must work from a raw export instead, say why in the return, so the consultant can decide whether to wrangle first"
+  - "a figure cited from the canonical stands only as far as the raw sources behind it — never present a derived number as more certain than its lineage allows"
 recommendedClass: sonnet
 origin: shipped
