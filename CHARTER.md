@@ -627,3 +627,43 @@ Supersedes A17's storage decision; keeps its doctrine.
 Built tests-first: five acceptance tests (durable file + pointer ·
 re-scan overwrite + extra fields ride along · named refusals · route
 refuses scans · check polices the pointer). Suite 57/57.
+
+## Amendment A21 — data-wrangle: one source of truth for data (2026-09-07)
+
+From the human's side run of the system ("kinda just built the
+consultant as I went"): what fell out was a descriptive title and a
+schema YAML for every dataset, and the need for ONE canonical dataset
+the engagement analyzes from.
+
+- **`data-wrangle` replaces `data-clean`** (the human's ruling: combine
+  them — too many specialized roles eat tokens; here the saving is real
+  because it is one dispatch per drop instead of a cleaner handing off
+  to a wrangler). One or many sources describing the same thing → ONE
+  canonical dataset in _synthesis/ + a mandatory lineage note. Cleaning
+  one file is the one-input case of the same job.
+- **The canonical dataset IS a synthesis source (A12):** routed with
+  provenance synthesis, grounds = every contributing SRC. Analyses cite
+  it; a figure's standing chains back to the weakest raw export behind
+  it. "One source of truth" is therefore structural, not a convention.
+- **Lineage is part of the deliverable:** rows in per source, rows out,
+  dedup keys, exclusions, every transformation, every disagreement with
+  BOTH values flagged by row. Without it the dataset is not registrable.
+- **The wrangler never adjudicates** (the capture law, applied to data):
+  a source disagreement is carried, flagged, and becomes the
+  consultant's question record and ask. Picking the newer export
+  silently is laundering.
+- **A new drop is a new canonical, never an edit:** new file, new
+  title, routed as a new SRC; the old one stays in the ledger; the state
+  pad records which canonical is current.
+- **Not merged:** data-analysis stays separate — its write boundary is
+  nothing and its output is findings material; a worker that both
+  reshapes data and judges it is the adjudication risk again.
+- **Discipline, not engine:** "analyses cite the canonical, not the raw"
+  is a data-analysis skill rule and a pad precedent — workflow stays
+  out of the engine. Recommended class sonnet; opus review-with-edits
+  when the merge is judgment-laden.
+
+Pending under the same amendment: the kind-shaped scan template
+(system-export → schema-centered; workbook → sheets-centered;
+narrative; correspondence), to be drafted from the human's side-run
+scans.

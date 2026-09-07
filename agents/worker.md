@@ -44,8 +44,10 @@ override with reason, recorded). Two layers, same shadowing rule as
 deliverable definitions:
 
 - **shipped** — `kernel/skills/`: procedure-draft, source-read,
-  assessment, data-analysis, data-clean (normalize one messy artifact
-  into a clean, referenced working file in _synthesis/), intake-scan
+  assessment, data-analysis, data-wrangle (one or many data sources →
+  ONE canonical dataset in _synthesis/ with its lineage — the
+  engagement's single source of truth for data; cleaning one file is
+  the one-input case, A21), intake-scan
   (haiku: scout one source at route time into a durable report the
   consultant lands as _sources/scans/SRC-nnn.yaml — describes the
   document, never the engagement, by default; advisory, never grounds;
