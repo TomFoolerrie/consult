@@ -19,7 +19,7 @@
  *   ask propose|accept|sent|respond|close               → asks (answered/settled DERIVED)
  *   finding propose|accept|reject                       → findings
  *   check                                               → check (seven mechanical checks)
- *   render <deliverable>   (self-contained: compile → build views in-memory → emit)
+ *   render <deliverable> [--draft] [--out path]        → render (self-contained: compile → build views in-memory → emit via the py seam)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
  * Gone: register (A9) · new (A9) · flag/tenure (A9) · feeds (A9) ·
@@ -105,7 +105,11 @@ export async function main(argv: string[]): Promise<number> {
       }
       case "spend": record.spend(located, Number(opt(rest, "estimate")), Number(opt(rest, "actual")), rest[0] ?? ""); return 0;
       case "gate": record.gate(located, { kind: opt(rest, "kind") as "send" | "spend", what: opt(rest, "what") ?? "", ruling: opt(rest, "ruling") ?? "" }); return 0;
-      case "render": { const { deliverable } = await import("./render.ts"); await deliverable(located, rest[0]!); return 0; }
+      case "render": {
+        const { deliverable } = await import("./render.ts");
+        const out = opt(rest, "out");
+        console.log(JSON.stringify(await deliverable(located, rest[0]!, { draft: rest.includes("--draft"), ...(out ? { out } : {}) }))); return 0;
+      }
       case "brief": {
         const params: Record<string, unknown> = {};
         const cards = opt(rest, "cards"); if (cards) params.cards = cards.split(",").filter(Boolean);
