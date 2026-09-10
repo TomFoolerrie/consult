@@ -7,7 +7,8 @@
  *                               the consultant (agents/consultant.md + agents/system.md + the
  *                               substrate notes below)
  *   <root>/.claude/agents/      the three worker classes (model pinned, tool surface fixed)
- *   <root>/.claude/settings.json  permission allow-list for the engine
+ *   <root>/.claude/settings.json  permission allow-list for the engine (written only if absent — a
+                               customised file is never clobbered; CLAUDE.md, the seat, always is)
  *   the folder skeleton, STATE.md, OBJECTIVE.md, a git repo with a first commit
  * Usage: node --experimental-strip-types harness/install.ts <root> [--objective <file>]
  */
@@ -82,7 +83,8 @@ export function install(root: string, opts: { objective?: string } = {}): string
   mkdirSync(join(root, "agents"), { recursive: true });
   copyFileSync(join(REPO, "agents", "system.md"), join(root, "agents", "system.md")); made.push("agents/system.md");
   for (const f of readdirSync(join(REPO, "harness", "agents"))) { copyFileSync(join(REPO, "harness", "agents", f), join(root, ".claude/agents", f)); made.push(join(".claude/agents", f)); }
-  put(".claude/settings.json", JSON.stringify({ permissions: { allow: ["Bash(consult:*)", "Bash(git:*)", "Bash(python3:*)", "Read", "Write", "Edit", "Grep", "Glob"] } }, null, 2) + "\n", true);
+  // CLAUDE.md is the seat — the repo owns it, always regenerated. settings.json is the human's — written only if absent (review C11).
+  put(".claude/settings.json", JSON.stringify({ permissions: { allow: ["Bash(consult:*)", "Bash(git:*)", "Bash(python3:*)", "Read", "Write", "Edit", "Grep", "Glob"] } }, null, 2) + "\n");
   put(".gitignore", ".harness/\n");
   if (!existsSync(join(root, ".git"))) {
     execSync("git init -q && git add -A && git commit -qm 'consult: engagement opened'", { cwd: root });

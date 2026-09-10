@@ -2,9 +2,11 @@
  * record — the machinery's hand. (A18 split, M3/M4.)
  *
  * Owns/writes: git (checkpoint) and _registers/sessions/ — the
- * append-only session record every verb and dispatch appends itself to
- * (closing the oracle's named evidence gap of audits living only in
- * transcripts), the budget line included (A14/A15).
+ * append-only session record (closing the oracle's named evidence gap of
+ * audits living only in transcripts). What actually appends, and all of
+ * it (review C9): checkpoint · gate (asks.accept and asks.sent are its
+ * ask-shaped callers) · budgetSet, which writes a gate line and the
+ * budget line · spend · brief.saveSkill. Reads append nothing.
  *
  * gate() is law 6 made auditable (A18, M4): the human's yes and the
  * crossing, recorded — for BOTH gates. asks.accept/sent are its
@@ -46,7 +48,8 @@ export interface Budget { limit: number; spent: number; remaining: number; }
 
 /** commit the whole engagement as consult: <label>; append the session record; retire fully-cited sources */
 export function checkpoint(root: string, label: string, dryRun?: boolean): { committed: string[]; retired: string[] } {
-  // retirement first: fully-cited sources move to processed/ (consumption's one side effect, A18)
+  // dryRun DESCRIBES: it retires nothing, appends nothing, commits nothing (review C9)
+  // retirement: fully-cited sources move to processed/ (consumption's one side effect, A18)
   // git first (review): a root that is not its own repository is refused by name before any mutation
   let top = "";
   try { top = execSync("git rev-parse --show-toplevel", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { /* not a repo */ }
@@ -68,7 +71,7 @@ export function checkpoint(root: string, label: string, dryRun?: boolean): { com
   if (committed.length) execSync(`git commit -qm ${JSON.stringify("consult: " + label)}`, { cwd: root });
   return { committed, retired };
 }
-/** every verb and dispatch appends itself to the sitting's session record */
+/** the one append: every writer named in this module's contract lands its line here */
 export function sessionAppend(root: string, event: SessionEvent): void {
   mkdirSync(SESSIONS(root), { recursive: true });
   const line = JSON.stringify(event);

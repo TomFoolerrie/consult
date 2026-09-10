@@ -15,10 +15,13 @@
  * but it is always SAVED before use (never run from a prompt), logged in
  * the session record, and thereby reusable: later sittings inherit it.
  *
- * compose() resolves one skilled unit of work — files and sources in
- * scope, register slices, the consultant's standing precedent and open
- * observations (from the state pad), the objective's
- * framing, the skill's rules verbatim — into one printable brief.
+ * compose() resolves one skilled unit of work into one printable brief:
+ * the OBJECTIVE (the first 20 lines of OBJECTIVE.md), the human's
+ * STANDING GUIDANCE (the text under the pad's "## human's standing
+ * guidance" heading), the scoped INDEX (every store but _skills, each
+ * line naming its content path), the full CARDS named in params.cards,
+ * the parameters, and the skill's rules and return contract verbatim.
+ * Registers are NOT inlined — the index covers them (review C10).
  * Issued when, and only when, delegation happens; the consultant's own
  * picture is desk.report. The brief decides nothing about content.
  */
@@ -53,6 +56,9 @@ export function skill(root: string, name: string): Skill {
   if (!existsSync(path)) throw new Error(`skill: no skill named ${name} (shipped or engagement-authored)`);
   const raw = parse(readFileSync(path, "utf8")) as Skill;
   if (!raw?.name || !raw.mission) throw new Error(`skill ${name}: malformed — mission required`);
+  // the three list fields, validated where the skill is READ too (review C10): a string composes into "not iterable"
+  for (const k of ["contextContract", "returnContract", "rules"] as const)
+    if (!Array.isArray(raw[k])) throw new Error(`skill ${name}: ${k} must be a list, not ${typeof raw[k]}`);
   // the class is a dial with three positions; a skill may hedge in prose elsewhere, never here
   const cls = String(raw.recommendedClass ?? "").split(/[;\s]/)[0] as WorkerClass;
   if (!["haiku", "sonnet", "opus"].includes(cls)) throw new Error(`skill ${name}: recommendedClass "${String(raw.recommendedClass)}" is not haiku | sonnet | opus`);
@@ -77,6 +83,25 @@ export function saveSkill(root: string, tpl: Skill): void {
   try { record.sessionAppend(root, { at: new Date().toISOString(), verb: "saveSkill",
     detail: `${tpl.name}${tpl.variantOf ? ` (variant of ${tpl.variantOf})` : ""}` }); } catch { /* pre-record engagements */ }
 }
+/** the engagement's WHY, quoted into the brief: the first 20 lines of OBJECTIVE.md (review C10) */
+function objective(root: string): string {
+  const p = join(root, "OBJECTIVE.md");
+  if (!existsSync(p)) return "(none)";
+  const text = readFileSync(p, "utf8").split("\n").slice(0, 20).join("\n").trim();
+  return text || "(none)";
+}
+/** the human's standing guidance, quoted from the pad's own heading — never the whole pad (review C10) */
+function standingGuidance(root: string): string {
+  const p = join(root, "STATE.md");
+  if (!existsSync(p)) return "(none)";
+  const lines = readFileSync(p, "utf8").split("\n");
+  const i = lines.findIndex(l => /^#+\s*human's standing guidance\s*$/i.test(l.trim()));
+  if (i < 0) return "(none)";
+  const body: string[] = [];
+  for (const l of lines.slice(i + 1)) { if (/^#+\s/.test(l)) break; body.push(l); }
+  const text = body.join("\n").trim();
+  return text || "(none)";
+}
 /** resolve one skilled unit of work into a printable brief for one worker class */
 export function compose(root: string, name: string, cls: WorkerClass, params: Record<string, unknown>): string {
   const sk = skill(root, name);
@@ -93,9 +118,11 @@ export function compose(root: string, name: string, cls: WorkerClass, params: Re
   });
   const stores = new Set(wanted.map(ref => all.find(l => l.ref === ref)?.store).filter(Boolean));
   const scoped = stores.size ? all.filter(l => stores.has(l.store)) : all;
-  const indexText = scoped.map(l => `${l.store}  ${l.ref}  ·  ${l.title}  ·  ${l.kind}  —  ${l.summary}${l.src ? `  (${l.src})` : ""}`).join("\n");
+  const indexText = scoped.map(l => `${l.store}  ${l.ref}  ·  ${l.title}  ·  ${l.kind}  —  ${l.summary}${l.src ? `  (${l.src})` : ""}${l.content ? `  ·  content: ${l.content}` : ""}`).join("\n");
   const lines = [
     `# BRIEF — ${sk.name} on worker-${cls}`,
+    `## Objective`, objective(root),
+    `## Standing guidance`, standingGuidance(root),
     `## Mission`, sk.mission,
     `## Write boundary`, sk.writes ?? "nothing — read-only work",
     `## Context`, ...sk.contextContract,
