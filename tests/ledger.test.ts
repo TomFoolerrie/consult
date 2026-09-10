@@ -50,14 +50,20 @@ test("park declines with a durable reason; unrouted stays loud until empty", () 
 });
 
 // ── A20: the durable scan ──────────────────────────────────────────────
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parse } from "yaml";
 
-/** a scout report file, as the intake-scan worker returns it */
-function scoutReport(root: string, name: string, body: Record<string, unknown>): string {
-  mkdirSync(join(root, "_synthesis"), { recursive: true });
-  const p = join(root, "_synthesis", name);
+/**
+ * a scout report file, as the intake-scan worker returns it — written OUTSIDE
+ * the engagement root, which is where a real one lives before `consult scan`
+ * lands it (A20). Staging it in _synthesis/ would pollute a store these very
+ * tests read back, and would model a laundering path the charter outlaws.
+ * `root` is unused and kept only so callers read the same either way.
+ */
+function scoutReport(_root: string, name: string, body: Record<string, unknown>): string {
+  const p = join(mkdtempSync(join(tmpdir(), "scout-")), name);
   writeFileSync(p, Object.entries(body).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n") + "\n");
   return p;
 }

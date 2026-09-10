@@ -26,3 +26,18 @@ test("accepted findings render; rejection is terminal and KEPT as case law", () 
   assert.equal(rej.status, "rejected");
   assert.equal(rej.rejectedReason, "cadence is client preference, not a defect");
 });
+
+test("rejection is TERMINAL: accepting a rejected finding is refused BY NAME, and the rejection stands",
+  { todo: "RED until review-b lands: findings.accept currently overwrites status unconditionally, so a rejected finding can be silently resurrected." },
+  () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "p.pdf", "policy"), ["ap"]);
+  fragment(root, "ap", { statements: [{ text: "Dana is sole approver", cites: [src] }] });
+  const b = findings.propose(root, "reviews are too frequent", [src]);
+  findings.reject(root, b, "cadence is client preference, not a defect");
+  assert.throws(() => findings.accept(root, b), (e: Error) => e.message.includes(b),
+    "the refusal names the finding — a rejection is case law, not a draft state");
+  const rej = findings.entriesOf(root).find(f => f.id === b)!;
+  assert.equal(rej.status, "rejected", "the ruling is unchanged by the attempt");
+  assert.deepEqual(findings.renderable(root).map(f => f.id), [], "and nothing became renderable");
+});
