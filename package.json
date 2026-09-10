@@ -3,9 +3,9 @@
   "version": "2.0.0-alpha.1",
   "private": true,
   "type": "module",
-  "description": "The engagement brain and its consultant. Engine built tests-first; docx seam pending.",
+  "description": "The engagement brain and its consultant. Engine built tests-first; docx seam built; harness for the live consultant.",
   "bin": {
-    "consult": "./src/cli.ts"
+    "consult": "./bin/consult"
   },
   "engines": {
     "node": ">=22.6"

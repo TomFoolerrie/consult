@@ -755,3 +755,52 @@ hand (A18). CLI: `render <deliverable> [--draft] [--out path]`.
 
 Six acceptance tests, written first; suite 80/80. Synthetic #1's
 sitting 2 re-run: the render leg now lands a real file.
+
+## Amendment A24 — the harness, and two skills (2026-09-10)
+
+**The harness — the layer between the engine and the models.** Not
+engine; `harness/` in the repo, tested (tests/harness.test.ts). On the
+Claude Code substrate the abstractions land as:
+
+- the consultant seat = `<root>/CLAUDE.md` — whoever opens the folder
+  with `claude` IS the consultant; `install.ts` composes it from
+  agents/consultant.md + agents/system.md + substrate notes (how
+  dispatch, spend accounting, the gates, and the client's absence from
+  the chat actually work here);
+- the three worker classes = `<root>/.claude/agents/worker-{haiku,
+  sonnet,opus}.md`, ~20 lines each: model pinned, tool surface fixed,
+  "the brief IS your instructions". Agent-frontmatter `skills:` stays
+  deliberately unused (A16 dispatch doctrine): the composed brief is the
+  skill delivery;
+- dispatch = the Agent tool with `subagent_type: worker-<class>` and the
+  output of `consult brief … [--cards]` as the prompt;
+- spend accounting = the Agent result's reported usage, recorded with
+  `consult spend` immediately after — the budget gate is exercised for
+  real;
+- the client = files in `_sources/new/` relayed by the human; for
+  synthetics, `harness/client.ts` plays the client from script.yaml
+  (delivers scripted responses for SENT asks only; honors non-answer and
+  silence; idempotent; never runs a verb — relaying is the human's part).
+- `bin/consult` puts the engine on PATH.
+
+**Synthetic #4 (Brightline Logistics, expense reimbursement)** is
+packaged for the live run: seed (a policy, a Q2 system export as CSV, a
+forwarded email thread — three scan kinds), objective, script.yaml,
+questions.md (6 expected standings), rubric.md (the live-run checklist,
+folder-verifiable), RUNBOOK.md (how a human runs it). It is NOT yet run:
+running it needs a human in the chat to answer the two gates.
+
+**Two skills recorded as gaps and shipped:** `interview-guide` (open
+question records → an agenda for the human's next client conversation,
+by audience, by leverage, addresses in brackets, never suggests an
+answer) and `narrative-draft` (a synthesis document from CITED capture,
+every sentence carrying its citation, contested and absent shown as
+such, a closing Grounds section = what the consultant declares at
+registration; write from capture never from sources). Eight shipped
+skills; the rest of the fleshing is parked by the human's ruling.
+
+Environment note: the worker classes assume Python 3.11 with python-docx,
+duckdb, and pyarrow; this build environment lacks duckdb/pyarrow, so the
+Parquet leg of synthetic #4 needs `pip install duckdb pyarrow` first.
+
+Three harness tests; suite 84/84.

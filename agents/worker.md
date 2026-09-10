@@ -77,6 +77,9 @@ harness wiring, not engine — the same wiring the docx render worker
 needs, so it lands with synthetic #4.
 
 ## How dispatch runs on the substrate (no hot-loading)
+Built as `harness/` (A24): `install.ts` puts the seat and the three
+class definitions into an engagement folder; see harness/README.md.
+
 The three classes are three tiny STATIC agent definitions (model + tool
 surface pinned; system prompt: "read the brief, do exactly what it says,
 return what its return contract names"). The skill is NOT delivered

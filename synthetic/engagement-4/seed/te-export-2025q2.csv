@@ -1,0 +1,25 @@
+report_id,employee,department,submit_date,expense_date,category,amount,receipt_attached,manager_approved,vp_approved,paid_date
+R-1041,J. Alvarez,Sales,2025-04-03,2025-03-28,Meals,48.20,Y,Y,,2025-04-11
+R-1042,J. Alvarez,Sales,2025-04-03,2025-03-28,Meals,48.20,Y,Y,,2025-04-18
+R-1043,M. Chen,Operations,2025-04-07,2025-02-14,Lodging,612.00,Y,Y,,2025-04-11
+R-1044,S. Okoro,Sales,2025-04-08,2025-04-02,Meals,74.90,Y,Y,,2025-04-11
+R-1045,S. Okoro,Sales,2025-04-08,2025-04-02,Entertainment,210.00,N,Y,,2025-04-11
+R-1046,L. Brandt,Finance,2025-04-10,2025-04-09,Mileage,58.30,N,Y,,2025-04-18
+R-1047,M. Chen,Operations,2025-04-15,2025-04-12,Airfare,1240.00,Y,Y,,2025-04-25
+R-1048,D. Park,Operations,2025-04-16,2025-04-15,Meals,31.00,N,Y,,2025-04-25
+R-1049,J. Alvarez,Sales,2025-04-22,2025-04-19,Lodging,1875.50,Y,Y,Y,2025-05-02
+R-1050,T. Nguyen,Sales,2025-05-01,2025-03-15,Meals,55.00,Y,Y,,2025-05-09
+R-1051,T. Nguyen,Sales,2025-05-01,2025-03-15,Meals,55.00,Y,Y,,2025-05-16
+R-1052,S. Okoro,Sales,2025-05-06,2025-05-05,Meals,62.75,Y,Y,,2025-05-16
+R-1053,L. Brandt,Finance,2025-05-12,2025-05-09,Office,19.99,N,Y,,2025-05-16
+R-1054,M. Chen,Operations,2025-05-13,2025-05-08,Lodging,1420.00,Y,Y,,2025-05-23
+R-1055,D. Park,Operations,2025-05-19,2025-05-16,Mileage,112.40,N,Y,,2025-05-30
+R-1056,R. Iyer,Executive,2025-05-20,2025-05-18,Entertainment,980.00,N,Y,,2025-05-23
+R-1057,J. Alvarez,Sales,2025-06-02,2025-05-30,Meals,45.10,Y,Y,,2025-06-06
+R-1058,T. Nguyen,Sales,2025-06-04,2025-06-03,Airfare,860.00,Y,Y,,2025-06-13
+R-1059,S. Okoro,Sales,2025-06-10,2025-06-09,Meals,58.00,Y,,,
+R-1060,M. Chen,Operations,2025-06-11,2025-06-10,Lodging,2210.00,Y,Y,,2025-06-20
+R-1061,D. Park,Operations,2025-06-17,2025-06-14,Meals,27.50,N,Y,,2025-06-27
+R-1062,L. Brandt,Finance,2025-06-24,2025-06-23,Mileage,64.00,N,Y,,2025-07-03
+R-1063,R. Iyer,Executive,2025-06-25,2025-06-20,Airfare,1310.00,Y,Y,,2025-06-27
+R-1064,T. Nguyen,Sales,2025-06-30,2025-06-27,Meals,49.00,Y,Y,,

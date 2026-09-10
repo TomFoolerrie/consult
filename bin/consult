@@ -1,0 +1,4 @@
+#!/usr/bin/env -S node --experimental-strip-types
+// consult — the one entry point, on PATH. Library first: this file only dispatches.
+import { main } from "../src/cli.ts";
+process.exit(await main(process.argv.slice(2)));

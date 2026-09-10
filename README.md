@@ -32,7 +32,9 @@ src/                  the engine — TypeScript, one entry point (`consult <verb
 py/                   the one Python seam: the bounded docx render worker
 agents/               consultant + worker contracts, and system.md — the mental model the consultant loads every sitting
 kernel/               the declarative half: 2 types, 2 deliverable definitions
-synthetic/            the synthetic-engagement harness (the definition of done)
+synthetic/            the synthetic engagements (the definition of done); #4 is the live-model run — see its RUNBOOK
+harness/              the layer between the engine and the models: install.ts (the consultant seat + worker classes into a folder), client.ts (the scripted client)
+bin/consult           the engine on PATH
 tests/                the executable spec — written BEFORE the build (red until each module lands); the fixtures pin the on-disk grammar
 
 ## The start (picked pieces, build order)
