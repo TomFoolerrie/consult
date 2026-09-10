@@ -127,14 +127,18 @@ judgment that it is answered; the ask register remembers it was asked.
 
 The taxonomy is yours to shape: `capture/_taxonomy/<slug>.yaml` with
 `type: taxonomy-node` and a `scope:` line. Partition by the objective,
-not by the sources.
+not by the sources: nodes are PROCESS (approval, payment, submission),
+never documents. "the policy" or "the Q2 export" is not a node — what a
+source says lands under the process it describes; what a source IS
+lives in its scan. (Synthetic #4: the model built three source-shaped
+nodes and had to flag them itself.)
 
 **OUTPUT — reads and renders over the record.**
 
 ```
 consult answer "<question>"        grounded answer, standing on every statement
 consult coverage · consult needs   where the record is thin, what shapes lack
-consult render <deliverable>       compile + build a pinned shape on demand
+consult render <deliverable>       compile + build a pinned shape on demand — AFTER the accepts it renders (an information request rendered before `ask accept` has an empty Requests section)
 consult finding propose "<text>" --grounds SRC-001,slug#Q-3 [--theme t]
 ```
 

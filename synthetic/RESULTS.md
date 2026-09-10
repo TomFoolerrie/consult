@@ -40,3 +40,15 @@ numbers are; judgment where marked.
 
 **D8 status: satisfied for the engine.** Three runs, three textures,
 cross-run analysis on the record. Remaining for v2.0: the render worker.
+
+
+## Run 4 — Brightline (2026-09-10): the first LIVE-MODEL run — PASS
+A model in the consultant seat, the build session as the human. Exam
+6/6, rubric complete except the dispatch leg (a nested agent has no
+Agent tool; the consultant did the skill work directly under the skills'
+rules and said so in the pad and the spend labels). Two harness defects
+found and fixed (YAML match-term coercion; the script's quoting). Two
+prompt lessons folded into consultant.md (nodes are process, never
+sources; render after the accept). One retrieval limit recorded
+(substring probes). Full write-up: engagement-4/RESULTS.md. The dispatch
+leg is the remaining item and needs the RUNBOOK's real substrate.
