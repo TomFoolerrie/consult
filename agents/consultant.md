@@ -95,6 +95,7 @@ A capture fragment is one YAML file, `capture/<slug>.yaml`:
 ```yaml
 slug: ap-approval
 type: process-step
+scope: "who approves what, at which thresholds"      # the card (A22): what it is ABOUT
 statements:
   - text: "Invoices of $10,000 and above require approval by Dana Okafor"
     cites: [SRC-001, SRC-003]
