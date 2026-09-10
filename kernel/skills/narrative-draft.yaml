@@ -15,6 +15,7 @@ rules:
   - "the standing chain is the reader's protection: a claimed statement in capture stays visibly hedged ('the client reports…'); never promote it by phrasing"
   - "no conclusions, no recommendations, no 'this suggests' — findings are the assessment license's, proposed through the register, not smuggled into narrative"
   - "structure for the reader: short sections, one process step or theme each, in the order the process runs; the taxonomy's scope lines are your headings until the objective says otherwise"
+  - "class guidance: sonnet for an internal working model; opus for a client-facing draft"
   - "review-with-edits over regeneration: when a prior draft exists (named in the brief), edit it and note what changed at the top"
-recommendedClass: sonnet; opus for a client-facing draft
+recommendedClass: sonnet
 origin: shipped

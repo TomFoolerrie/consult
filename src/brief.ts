@@ -53,7 +53,10 @@ export function skill(root: string, name: string): Skill {
   if (!existsSync(path)) throw new Error(`skill: no skill named ${name} (shipped or engagement-authored)`);
   const raw = parse(readFileSync(path, "utf8")) as Skill;
   if (!raw?.name || !raw.mission) throw new Error(`skill ${name}: malformed — mission required`);
-  return raw;
+  // the class is a dial with three positions; a skill may hedge in prose elsewhere, never here
+  const cls = String(raw.recommendedClass ?? "").split(/[;\s]/)[0] as WorkerClass;
+  if (!["haiku", "sonnet", "opus"].includes(cls)) throw new Error(`skill ${name}: recommendedClass "${String(raw.recommendedClass)}" is not haiku | sonnet | opus`);
+  return { ...raw, recommendedClass: cls };
 }
 /** every skill visible to this engagement (shipped + authored), shadowing applied */
 export function skills(root: string): Skill[] {

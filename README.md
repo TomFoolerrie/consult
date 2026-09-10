@@ -1,10 +1,10 @@
 # CONSULT v2 — the engagement brain and its consultant
 
-**Status: BUILT — the executable spec is green (74/74).** Every module carries its
+**Status: BUILT — the executable spec is green (84/84).** Every module carries its
 contract as a docstring and its behavior in tests/ (written first, per the method).
 The docx seam is built (A23): `render` compiles, validates, builds views, assembles
 a versioned job, and hands it to py/render_worker.py — the one Python file — which
-formats the .docx and nothing else; the card lands beside it. Suite 80/80.
+formats the .docx and nothing else; the card lands beside it. Suite 84/84.
 
 The ruled charter is `CHARTER.md`. The module map and data flow are `DESIGN.md`.
 The old engine (shipped as 2.0–2.5.1, retroactively the v1 line's final form) lives on
@@ -31,7 +31,7 @@ DESIGN.md             module map, data flow, who-writes-what
 src/                  the engine — TypeScript, one entry point (`consult <verb>`)
 py/                   the one Python seam: the bounded docx render worker
 agents/               consultant + worker contracts, and system.md — the mental model the consultant loads every sitting
-kernel/               the declarative half: 2 types, 2 deliverable definitions
+kernel/               the declarative half: 2 types, 2 deliverable definitions, 8 shipped skills
 synthetic/            the synthetic engagements (the definition of done); #4 is the live-model run — see its RUNBOOK
 harness/              the layer between the engine and the models: install.ts (the consultant seat + worker classes into a folder), client.ts (the scripted client)
 bin/consult           the engine on PATH

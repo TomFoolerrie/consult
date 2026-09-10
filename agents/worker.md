@@ -51,7 +51,11 @@ deliverable definitions:
   (haiku: scout one source at route time into a durable report the
   consultant lands as _sources/scans/SRC-nnn.yaml — describes the
   document, never the engagement, by default; advisory, never grounds;
-  the consultant extends it by authoring a local variant, A17/A20). A capture
+  the consultant extends it by authoring a local variant, A17/A20),
+  interview-guide (open question records → an agenda for the human's
+  next client conversation, A24), narrative-draft (a synthesis document
+  from cited capture, every sentence carrying its citation, A24). Eight
+  shipped. A capture
   template is not new machinery — a capture shape IS a skill
   (procedure-draft variant), authored per engagement.
 - **engagement-authored** — `<root>/_skills/`: the consultant may CREATE

@@ -804,3 +804,13 @@ duckdb, and pyarrow; this build environment lacks duckdb/pyarrow, so the
 Parquet leg of synthetic #4 needs `pip install duckdb pyarrow` first.
 
 Three harness tests; suite 84/84.
+
+## Note on A22 (2026-09-10)
+Built on branch `v2-cards`, reviewed, and fast-forwarded into
+`v2-rebuild` the same day; `v2-render` (A23) likewise. `v2-rebuild` is
+the line. The A17 storage decision (scan on the ledger entry) is
+superseded by A20's pointer, as `ledger.ts` implements. A fresh
+synthesis review of the repo found the shipped `assessment` skill
+malformed since its authoring (mission split, lenses in the write
+boundary, class "nothing:opus"); rewritten, and `brief.skill` now
+refuses an invalid class by name.

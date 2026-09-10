@@ -138,7 +138,7 @@ nodes and had to flag them itself.)
 ```
 consult answer "<question>"        grounded answer, standing on every statement
 consult coverage · consult needs   where the record is thin, what shapes lack
-consult render <deliverable>       compile + build a pinned shape on demand — AFTER the accepts it renders (an information request rendered before `ask accept` has an empty Requests section)
+consult render <deliverable>       compile + build a pinned shape on demand — render AFTER accepting the asks it carries (rendered before `ask accept`, an information request has an empty Requests section)
 consult finding propose "<text>" --grounds SRC-001,slug#Q-3 [--theme t]
 ```
 

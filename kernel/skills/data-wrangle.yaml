@@ -19,7 +19,8 @@ rules:
   - "a new drop is a new canonical, never an edit of the old one: produce a new file with a new title; the consultant routes it as a new source and records which canonical is current in the state pad"
   - "human workbooks (kind: workbook in the scan) are read for their tabular regions only — a person's working notes, colour-coding, and floating totals are described in the lineage as context, not carried as data"
   - "if the inputs turn out NOT to describe the same thing, stop and return that finding instead of a merged file — that is out-of-lane, flagged, not a judgment call to make alone"
+  - "class guidance: sonnet by default; give the result an opus review-with-edits pass when the merge is judgment-laden (competing keys, partial periods, restated figures)"
   - "the lineage is part of the deliverable, not a courtesy: a canonical dataset without one is not registrable"
   - "immutable by format: a Parquet canonical is never appended to or edited in place — that would be a second source of truth that drifts. A new drop is a new file (rule above); there is no database file, only data files and the query tool the analyst holds"
-recommendedClass: sonnet; an opus review-with-edits pass when the merge is judgment-laden (competing keys, partial periods, restated figures)
+recommendedClass: sonnet
 origin: shipped

@@ -26,7 +26,7 @@ test("compose resolves skill + class + params into one printable brief carrying 
 });
 
 // ── A22: the brief carries the index and the named cards, never content ─
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { stage, synthesisFile, sidecarCard } from "./helpers.ts";
 import * as ledger from "../src/ledger.ts";
@@ -66,4 +66,13 @@ test("the brief's index is SCOPED: never _skills; only the stores of the named c
   assert.ok(!/_skills {2}/.test(scoped), "a worker already holds its skill — never index the skill store into a brief");
   const full = brief.compose(root, "data-analysis", "sonnet", {});
   assert.ok(full.includes("SRC-001") && full.includes("je-canonical") && !/_skills {2}/.test(full), "no cards named: every store but _skills");
+});
+
+test("a skill with an invalid recommendedClass is refused BY NAME — the class is a dial, not a free string (found by the synthesis review)", () => {
+  const root = bareEngagement();
+  mkdirSync(join(root, "_skills"), { recursive: true });
+  writeFileSync(join(root, "_skills/broken.yaml"), "name: broken\nmission: m\nwrites: nothing\ncontextContract: []\nreturnContract: []\nrules: []\nrecommendedClass: nothing:opus\norigin: engagement\n");
+  assert.throws(() => brief.skill(root, "broken"), (e: Error) => e.message.includes("broken") && e.message.includes("nothing:opus"));
+  rmSync(join(root, "_skills/broken.yaml"));
+  for (const s of brief.skills(root).filter(s => s.origin === "shipped")) assert.ok(["haiku", "sonnet", "opus"].includes(s.recommendedClass), `${s.name}: ${s.recommendedClass}`);
 });

@@ -19,6 +19,8 @@
  *   ask-coverage   every question id in the ask register exactly once
  *   registers      referenced register entries resolve; citable fields not blank;
  *                  synthesis sources declare resolvable grounds (A12)
+ *   cards          every synthesis ARTIFACT carries a card (sidecar or head) —
+ *                  WARNING only; accuracy is the consultant's (A22)
  *
  * Errors exit nonzero; warnings print; every message names file and line.
  */
