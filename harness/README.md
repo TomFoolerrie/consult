@@ -17,16 +17,27 @@ is how the abstractions land on the Claude Code substrate:
 prose files. Tests: tests/harness.test.ts. Run a live engagement:
 synthetic/engagement-4/RUNBOOK.md.
 
-Environment the worker classes assume: Python 3.11 with python-docx (render)
-and duckdb + pyarrow (data-wrangle / data-analysis over Parquet).
+The ENVIRONMENT must provide Python 3.11 with python-docx (render) and
+duckdb + pyarrow (data-wrangle / data-analysis over Parquet); the worker
+classes ASSUME it is there and nothing checks at dispatch time. Install
+it before the first live run — a missing library surfaces as a worker
+failing mid-dispatch, not as a named refusal.
 
 ## The pulse (A19, resolved into existing verbs)
 There is no `consult pulse`. Unattended maintenance is two existing verbs
 on a timer, from outside the engine — e.g. hourly:
 
 ```
-0 * * * *  cd /path/to/engagement && export PATH=/path/to/consult/bin:$PATH && consult check && consult checkpoint pulse
+0 * * * *  cd /path/to/engagement && export PATH=/path/to/consult/bin:$PATH && consult check; consult checkpoint pulse
 ```
+
+The separator is `;`, NOT `&&`, deliberately: `consult check` exits 2
+whenever the record carries an error, and an unattended autosave must
+not be blocked by a defect the consultant has not fixed yet. The check
+still runs, and its output still lands in the cron log — it just does
+not gate the save. Note that a declared INTENT for a fragment not yet
+written is a WARNING, not an error, so an in-flight fold-in does not
+make the cron line noisy.
 
 `checkpoint` on a clean tree is a no-op commit attempt; on a dirty tree it
 is autosave with an audit trail, labelled `pulse` so it never reads as a

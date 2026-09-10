@@ -1,4 +1,4 @@
-# the worker classes — model shells that load a skill (CONTRACT STUB)
+# the worker classes — model shells that load a skill
 
 **The distinction, ruled 2026-08-26: AGENTS pin model (and skills);
 what we called templates ARE SKILLS — skills with agency.** A worker class is a thin shell that
@@ -74,7 +74,10 @@ the one you need. Anything you produce carries its own card: a
 as the scan. No card, no deliverable.
 
 ## The worker's tool surface for data (A21)
-Every class carries Python with DuckDB and pyarrow. Canonical datasets
+The ENVIRONMENT must provide Python 3.11 with python-docx (render) and
+duckdb + pyarrow (data-wrangle / data-analysis over Parquet); the
+classes ASSUME it is there. Nothing checks at dispatch time — a missing
+library surfaces as the worker failing, not as a refusal. Canonical datasets
 are Parquet; analysis is SQL over Parquet; a spreadsheet is something a
 worker READS at wrangle time and never something it queries. This is
 harness wiring, not engine — the same wiring the docx render worker
@@ -96,4 +99,10 @@ shipped is our resolution logic, and why the library is portable beyond
 Claude Code. Per-dispatch model choice is first-class in the Agent call;
 tools can't be granted per-dispatch and don't need to be — the class's
 tool surface is fixed, and the skill's write boundary narrows it as an
-instruction that check.run and the one-writer law verify mechanically.
+INSTRUCTION the composed brief carries. Nothing verifies that boundary
+mechanically: `check.run` checks the record's grammar, citations,
+consumption, mentions, ask coverage, registers, and cards — it does not
+know which agent wrote which file. What audits the boundary is the
+CHECKPOINT DIFF: the consultant reads what actually changed before it
+commits, and a file outside the skill's `writes:` shows up there. The
+discipline is the brief plus that read, not a mechanism.
