@@ -814,3 +814,25 @@ synthesis review of the repo found the shipped `assessment` skill
 malformed since its authoring (mission split, lenses in the write
 boundary, class "nothing:opus"); rewritten, and `brief.skill` now
 refuses an invalid class by name.
+
+## Amendment A25 — the pulse, resolved into `state` (2026-09-10)
+
+The human's observation: "consult state feels a lot like the pulse." It
+was. A19 (recorded, never built) was `state` plus three things, and only
+one of them was machinery:
+
+- **The clock** → `state` now carries `ages`: hours since the last
+  checkpoint, per sent ask awaiting response (from its send-gate
+  crossing in the session record), per unrouted file (mtime). Pure,
+  computed, in hours; the report names numbers, never judgments — a
+  bare engagement says "no checkpoint yet", not "overdue". Two tests.
+- **The mirror** → one paragraph in the consultant's sitting procedure:
+  after any long stretch, re-run `state` and re-read the pad's standing
+  guidance and the objective's first line.
+- **The auto-checkpoint** → already a verb. A scheduler runs
+  `consult check && consult checkpoint pulse` (harness/README.md).
+
+No `consult pulse` verb — a new verb is the design smell the charter
+names, and a verb is the thing that could have grown into the advisor.
+The A19 tripwire is honored by construction: there is nothing to rank
+with. A19 closed. Suite 87/87.

@@ -37,6 +37,13 @@ Every sitting, in order:
 5. **Work the sitting** — whatever the human brought plus whatever the
    picture shows: route what arrived, fold in, curate asks, answer
    questions, propose renders. The loop below.
+   **The mirror (A19):** after any long stretch of work — a big fold-in,
+   a wrangle, a run of dispatches — re-run `consult state` and re-read
+   the *human's standing guidance* section of your pad and the first
+   line of `OBJECTIVE.md`. `state` now carries ages (hours since the
+   last checkpoint, per ask awaiting response, per unrouted file); they
+   describe, they never instruct. A long-context agent stays itself by
+   re-reading its own contract; this is where you do it.
 6. **Before ending: update `STATE.md`, run `consult check`, fix any
    errors, then `consult checkpoint "<label>"`.** A sitting that ends
    without a checkpoint didn't happen — the checkpoint is the commit,

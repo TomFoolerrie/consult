@@ -31,6 +31,10 @@ const SESSIONS = (root: string) => join(root, "_registers", "sessions");
 function sessionFile(root: string): string {
   return join(SESSIONS(root), `${new Date().toISOString().slice(0, 10)}.log`);
 }
+/** every parsed session line, oldest first — the clock's source (A19 resolved into state) */
+export function sessionLines(root: string): SessionEvent[] {
+  return readSessions(root).split("\n").filter(Boolean).map(l => { try { return JSON.parse(l) as SessionEvent; } catch { return null; } }).filter((x): x is SessionEvent => !!x);
+}
 function readSessions(root: string): string {
   const dir = SESSIONS(root);
   if (!existsSync(dir)) return "";

@@ -28,7 +28,7 @@
  * Holds do not exist as machinery (ROT-4): "ask first" is a state-pad
  * commitment the consultant obeys.
  */
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { execSync } from "node:child_process";
 import * as kernel from "./kernel.ts";
@@ -47,7 +47,10 @@ export interface Snapshot {
   pinnedShapes: { name: string; serviceable: boolean }[];
   git: { clean: boolean; note?: string };
   budget: { limit: number; spent: number; remaining: number };
+  /** the clock (A19 resolved into state): staleness as HOURS, computed from the session record and file mtimes — describes, never nags */
+  ages: Ages;
 }
+export interface Ages { sinceCheckpointHours?: number; awaiting: { id: string; hours: number }[]; unrouted: { file: string; hours: number }[]; }
 export interface NodeCoverage { slug: string; status: CoverageStatus; conflicts: string[]; }
 export interface Need { shape: string; part: string; standing: Standing; }
 
@@ -64,6 +67,20 @@ export function locate(path: string): { root: string; health: EngagementHealth }
   return { root: resolve(path), health: { kind: "contradiction",
     what: looksLike ? "engagement-shaped tree without the _sources/ marker" : "no engagement here: no _sources/ marker on this path or above",
     repair: "route" } };
+}
+const hoursSince = (iso: string | number) => Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000);
+/** the clock: pure read over the session record (checkpoints, send-gate crossings) and _sources/new/ mtimes */
+export function ages(root: string): Ages {
+  const out: Ages = { awaiting: [], unrouted: [] };
+  const lines = record.sessionLines(root);
+  const lastCp = [...lines].reverse().find(l => l.verb === "checkpoint");
+  if (lastCp) out.sinceCheckpointHours = hoursSince(lastCp.at);
+  const crossed = new Map<string, string>();
+  for (const l of lines) { const m = l.verb === "gate" ? /ask (ASK-\d+) crossed to the client/.exec(l.detail ?? "") : null; if (m) crossed.set(m[1]!, l.at); }
+  for (const a of asksMod.entriesOf(root, "sent")) if (a.answeredBy.length === 0 && crossed.has(a.id)) out.awaiting.push({ id: a.id, hours: hoursSince(crossed.get(a.id)!) });
+  const newDir = join(root, "_sources/new");
+  if (existsSync(newDir)) for (const f of ledger.status(root).unrouted) out.unrouted.push({ file: f, hours: hoursSince(statSync(join(newDir, f)).mtimeMs) });
+  return out;
 }
 /** the engagement snapshot — describes, never commands */
 export function state(root: string): Snapshot {
@@ -87,6 +104,7 @@ export function state(root: string): Snapshot {
     },
     pinnedShapes, git,
     budget: health.kind === "ok" ? record.budget(root) : { limit: 0, spent: 0, remaining: 0 },
+    ages: health.kind === "ok" ? ages(root) : { awaiting: [], unrouted: [] },
   };
 }
 /** the printable form — the consultant's sitting picture */
@@ -100,6 +118,11 @@ export function report(root: string): string {
     `pinned: ${s.pinnedShapes.map(p => `${p.name}${p.serviceable ? "" : " (not serviceable)"}`).join(", ") || "none"}`,
     `git: ${s.git.clean ? "clean" : s.git.note}`,
     `budget: ${s.budget.remaining}/${s.budget.limit} remaining`,
+    `ages: ${[
+      s.ages.sinceCheckpointHours === undefined ? "no checkpoint yet" : `checkpoint ${s.ages.sinceCheckpointHours}h`,
+      ...s.ages.awaiting.map(a => `awaiting ${a.id} ${a.hours}h`),
+      ...s.ages.unrouted.map(u => `unrouted ${u.file} ${u.hours}h`),
+    ].join(" · ")}`,
   ];
   return lines.join("\n");
 }

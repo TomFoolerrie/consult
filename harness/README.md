@@ -19,3 +19,17 @@ synthetic/engagement-4/RUNBOOK.md.
 
 Environment the worker classes assume: Python 3.11 with python-docx (render)
 and duckdb + pyarrow (data-wrangle / data-analysis over Parquet).
+
+## The pulse (A19, resolved into existing verbs)
+There is no `consult pulse`. Unattended maintenance is two existing verbs
+on a timer, from outside the engine — e.g. hourly:
+
+```
+0 * * * *  cd /path/to/engagement && export PATH=/path/to/consult/bin:$PATH && consult check && consult checkpoint pulse
+```
+
+`checkpoint` on a clean tree is a no-op commit attempt; on a dirty tree it
+is autosave with an audit trail, labelled `pulse` so it never reads as a
+judged checkpoint. `consult state` carries the clock (ages); the
+consultant's prompt carries the mirror. Nothing here ranks, proposes, or
+gates.
