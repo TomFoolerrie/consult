@@ -40,14 +40,21 @@ function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledge
       if (inner.kind !== "evidenced") return { kind: "claimed" };
       sources.push(...inner.sources);
     } else {
-      // a capture address (slug or slug#id): weakest = the cited statement's own standing
-      const slug = g.split("#")[0]!;
+      // a capture address — the WEAKEST of what it names (review B1, law 2):
+      //   slug#Q-n  → a question record is not evidence → claimed
+      //   slug      → the MINIMUM over the fragment's statements: one uncited statement makes the whole ground claimed
+      const [slug, local] = g.split("#") as [string, string | undefined];
       const ent = kernel.entities(root).find(x => x.slug === slug);
-      const anyEvidenced = ent?.statements.some(st => st.cites.length > 0);
-      if (!anyEvidenced) return { kind: "claimed" };
-      for (const st of ent!.statements) for (const c of st.cites) {
-        const inner = citeStanding(root, c as SrcId, entries, depth + 1);
-        if (inner.kind === "evidenced") sources.push(...inner.sources);
+      if (!ent) return { kind: "claimed" };
+      if (local !== undefined) return { kind: "claimed" };
+      if (ent.statements.length === 0) return { kind: "claimed" };
+      for (const st of ent.statements) {
+        if (st.cites.length === 0) return { kind: "claimed" };
+        for (const c of st.cites) {
+          const inner = citeStanding(root, c as SrcId, entries, depth + 1);
+          if (inner.kind !== "evidenced") return { kind: "claimed" };
+          sources.push(...inner.sources);
+        }
       }
     }
   }

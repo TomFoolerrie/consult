@@ -55,6 +55,7 @@ test("state carries AGES — hours since the last checkpoint, per sent ask await
   recordMod.budgetSet(root, 1000);
   const h = 3600_000, now = Date.now();
   recordMod.sessionAppend(root, { at: new Date(now - 30 * h).toISOString(), verb: "checkpoint", detail: "old" });
+  fragment(root, "ap-approval", { questions: [{ id: "Q-1", text: "who approves over $1,000?" }] });
   const a = asksMod.propose(root, "Who approves over $1,000?", ["ap-approval#Q-1"]);
   asksMod.accept(root, a); asksMod.sent(root, [a]);
   // backdate the crossing: rewrite the gate line's timestamp

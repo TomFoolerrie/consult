@@ -35,16 +35,19 @@ export interface Defect { check: string; severity: "error" | "warning"; file: st
 export type Check = (root: string) => Defect[];
 function grammar(root: string): Defect[] {
   const out: Defect[] = [];
-  const dir = join(root, "capture");
-  if (!existsSync(dir)) return out;
-  const tdecl = kernel.loadType(root, "process-step");
-  for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml"))) {
-    try { kernel.parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")); }
-    catch (e) { out.push({ check: "grammar", severity: "error", file: join("capture", f), message: (e as Error).message }); }
+  for (const [sub, type] of [["capture", "process-step"], ["capture/_taxonomy", "taxonomy-node"]] as const) {
+    const dir = join(root, sub);
+    if (!existsSync(dir)) continue;
+    const tdecl = kernel.loadType(root, type);
+    for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml"))) {
+      try { kernel.parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")); }
+      catch (e) { out.push({ check: "grammar", severity: "error", file: join(sub, f), message: (e as Error).message }); }
+    }
   }
   return out;
 }
-function safeEntities(root: string) { try { return kernel.entities(root); } catch { return []; } }
+/** the parseable subset — a malformed file is the grammar check's defect, never a crash of the other checks (review B5) */
+function safeEntities(root: string) { return kernel.entitiesLenient(root); }
 function citations(root: string): Defect[] {
   const out: Defect[] = [];
   const ids = new Set(ledger.status(root).entries.map(e => e.id as string));
@@ -89,7 +92,10 @@ function askCoverage(root: string): Defect[] {
   const raw = parse(readFileSync(p, "utf8"));
   const asksList: { id?: string; questions?: string[] }[] = Array.isArray(raw) ? raw : raw?.asks ?? [];
   const seen = new Map<string, string>();
+  const addrs = new Set(safeEntities(root).flatMap(e => e.callouts.map(c => c.addr as string)));
   for (const a of asksList) for (const q of a.questions ?? []) {
+    if (!addrs.has(q)) out.push({ check: "registers", severity: "error", file: "_registers/asks.yaml",
+      message: `${a.id} names ${q}, which resolves to no question record in capture` });
     if (seen.has(q)) out.push({ check: "ask-coverage", severity: "error", file: "_registers/asks.yaml",
       message: `question ${q.split("#")[1] ?? q} (${q}) appears in both ${seen.get(q)} and ${a.id} — exactly once, asked or closed` });
     else seen.set(q, a.id ?? "?");

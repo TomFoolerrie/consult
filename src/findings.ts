@@ -12,6 +12,7 @@ import { parse, stringify } from "yaml";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import * as answers from "./answers.ts";
+import * as ledger from "./ledger.ts";
 import type { Finding, FindingId, FindingStatus, Ground } from "./types.ts";
 
 const REG = (root: string) => join(root, "_registers", "findings.yaml");
@@ -31,7 +32,8 @@ function must(r: MutableFinding[], id: FindingId): MutableFinding {
 export function propose(root: string, claim: string, grounds: Ground[], theme?: string): FindingId {
   answers.cite(root, grounds); // refuses by name if any ground fails to resolve
   const r = readReg(root);
-  const id = `FIND-${String(r.length + 1).padStart(3, "0")}` as FindingId;
+  if (!grounds.length) throw new Error("finding propose: a finding stands on at least one ground");
+  const id = ledger.nextId(r.map(f => f.id), "FIND") as FindingId;
   const f: MutableFinding = { id, status: "proposed", claim, grounds: grounds.map(g => typeof g === "string" ? g : g.slug) };
   if (theme !== undefined) f.theme = theme;
   r.push(f); writeReg(root, r);

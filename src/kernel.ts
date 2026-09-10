@@ -99,7 +99,9 @@ export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity
   for (const q of raw.questions ?? []) {
     if (typeof q?.id !== "string" || typeof q?.text !== "string")
       throw new Error(`fragment ${slug}: question record needs id and text`);
+    if (callouts.some(c => c.id === q.id)) throw new Error(`fragment ${slug}: duplicate question id ${q.id}`);
     const fields = new Map<string, string>();
+    if (q.sources !== undefined && !Array.isArray(q.sources)) throw new Error(`fragment ${slug}: question ${q.id} sources must be a list`);
     if (Array.isArray(q.sources)) fields.set("sources", q.sources.join(", "));
     callouts.push({ id: q.id, addr: `${slug}#${q.id}`, kind: QUESTION_KIND, label: qdecl.label, text: q.text, fields });
   }
@@ -121,6 +123,27 @@ export function entities(root: string): Entity[] {
   const tdecl = loadType(root, "process-step");
   return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()
     .map(f => parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")));
+}
+/** the parseable fragments only — for reads that must survive one malformed file (review B5); check names the bad ones */
+export function entitiesLenient(root: string): Entity[] {
+  const dir = join(root, "capture");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "process-step");
+  const out: Entity[] = [];
+  for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()) {
+    try { out.push(parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, ""))); } catch { /* grammar defect — check reports it */ }
+  }
+  return out;
+}
+export function taxonomyLenient(root: string): Entity[] {
+  const dir = join(root, "capture", "_taxonomy");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "taxonomy-node");
+  const out: Entity[] = [];
+  for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()) {
+    try { out.push(parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, ""))); } catch { /* grammar defect — check reports it */ }
+  }
+  return out;
 }
 /** every taxonomy node, name order (A18, from engagement.ts) */
 export function taxonomy(root: string): Entity[] {

@@ -40,7 +40,7 @@ function opt(args: string[], name: string): string | undefined {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 }
-const READS = new Set(["state", "coverage", "needs", "answer", "check", "budget", "index", "card"]);
+const READS = new Set(["state", "coverage", "needs", "answer", "check", "index", "card", "brief"]);  // `budget` (read) vs `budget set` (write) is decided below
 
 export async function main(argv: string[]): Promise<number> {
   try {
@@ -51,7 +51,7 @@ export async function main(argv: string[]): Promise<number> {
     if (health.kind === "contradiction") {
       const noEngagement = health.what.startsWith("no engagement here");
       if (noEngagement) { console.error(`refused: ${health.what}`); return 2; }
-      const stateChanging = !READS.has(verb);
+      const stateChanging = !READS.has(verb) && !(verb === "budget" && rest[0] !== "set");
       if (stateChanging && verb !== health.repair) {
         console.error(`refused: ${health.what} — repair verb: ${health.repair}`);
         return 2;
@@ -99,20 +99,32 @@ export async function main(argv: string[]): Promise<number> {
       }
       case "answer": console.log(JSON.stringify(answers.ground(located, rest[0] ?? ""))); return 0;
       case "checkpoint": console.log(JSON.stringify(record.checkpoint(located, rest[0] ?? "checkpoint"))); return 0;
+      case "spend": record.spend(located, Number(opt(rest, "estimate")), Number(opt(rest, "actual")), rest[0] ?? ""); return 0;
+      case "gate": record.gate(located, { kind: opt(rest, "kind") as "send" | "spend", what: opt(rest, "what") ?? "", ruling: opt(rest, "ruling") ?? "" }); return 0;
       case "budget": {
         if (rest[0] === "set") { record.budgetSet(located, Number(rest[1])); return 0; }
         console.log(JSON.stringify(record.budget(located))); return 0;
       }
-      case "spend": record.spend(located, Number(opt(rest, "estimate")), Number(opt(rest, "actual")), rest[0] ?? ""); return 0;
-      case "gate": record.gate(located, { kind: opt(rest, "kind") as "send" | "spend", what: opt(rest, "what") ?? "", ruling: opt(rest, "ruling") ?? "" }); return 0;
       case "render": {
         const { deliverable } = await import("./render.ts");
         const out = opt(rest, "out");
         console.log(JSON.stringify(await deliverable(located, rest[0]!, { draft: rest.includes("--draft"), ...(out ? { out } : {}) }))); return 0;
       }
+      case "pin": {
+        const { pin } = await import("./definitions.ts");
+        console.log(pin(located, rest[0]!)); return 0;
+      }
+      case "skill": {
+        if (rest[0] !== "save") { console.error(`refused: unknown skill verb ${rest[0]}`); return 2; }
+        const { parse } = await import("yaml"); const { readFileSync } = await import("node:fs");
+        const raw = parse(readFileSync(rest[1]!, "utf8"));
+        brief.saveSkill(located, raw); console.log(raw?.name); return 0;
+      }
       case "brief": {
         const params: Record<string, unknown> = {};
         const cards = opt(rest, "cards"); if (cards) params.cards = cards.split(",").filter(Boolean);
+        // --param k=v, repeatable (review B9): the skill's parameters, from the CLI
+        rest.forEach((a, i) => { if (a === "--param" && rest[i + 1]) { const [k, ...v] = rest[i + 1]!.split("="); if (k) params[k] = v.join("="); } });
         console.log(brief.compose(located, rest[0]!, (opt(rest, "class") ?? brief.skill(located, rest[0]!).recommendedClass) as never, params)); return 0;
       }
       default: console.error(`refused: unknown verb ${verb}`); return 2;

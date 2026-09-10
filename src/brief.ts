@@ -68,6 +68,10 @@ export function skills(root: string): Skill[] {
 }
 /** save an ad-hoc skill (from scratch or a variant) into _skills/ — always saved before use, logged in the session record */
 export function saveSkill(root: string, tpl: Skill): void {
+  if (!tpl?.name || !tpl.mission) throw new Error("skill save: name and mission are required");
+  for (const k of ["contextContract", "returnContract", "rules"] as const)
+    if (!Array.isArray(tpl[k])) throw new Error(`skill save: ${tpl.name} — ${k} must be a list`);
+  if (!["haiku", "sonnet", "opus"].includes(String(tpl.recommendedClass))) throw new Error(`skill save: ${tpl.name} — recommendedClass "${String(tpl.recommendedClass)}" is not haiku | sonnet | opus`);
   mkdirSync(join(root, "_skills"), { recursive: true });
   writeFileSync(join(root, "_skills", `${tpl.name}.yaml`), stringify(tpl));
   try { record.sessionAppend(root, { at: new Date().toISOString(), verb: "saveSkill",

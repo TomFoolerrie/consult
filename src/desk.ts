@@ -128,8 +128,8 @@ export function report(root: string): string {
 }
 /** pure read: per-node coverage status + lens conflicts, recomputed every call */
 export function coverage(root: string): NodeCoverage[] {
-  const ents = kernel.entities(root);
-  return kernel.taxonomy(root).map(n => {
+  const ents = kernel.entitiesLenient(root);
+  return kernel.taxonomyLenient(root).map(n => {
     const matching = ents.filter(e => e.slug === n.slug || e.slug.startsWith(n.slug + "-"));
     const conflicts: string[] = [];
     let status: CoverageStatus = "outstanding";

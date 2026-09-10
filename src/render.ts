@@ -65,8 +65,11 @@ registry.set("findings-by-theme", ({ root }) => {
   }
   return [...byTheme.entries()].map(([t, ls]) => `### ${t}\n${ls.join("\n")}`).join("\n\n");
 });
-registry.set("open-questions", ({ root }) =>
-  kernel.entities(root).flatMap(e => kernel.openQuestions(e).map(q => `- ${q.addr}: ${q.text}`)).join("\n"));
+registry.set("open-questions", ({ root }) => {
+  // client-facing (review B8): never a question closed as not-the-client's, never a withdrawn ask's question
+  const closed = asksMod.closedAddresses(root);
+  return kernel.entities(root).flatMap(e => kernel.openQuestions(e).filter(q => !closed.has(q.addr)).map(q => `- ${q.addr}: ${q.text}`)).join("\n");
+});
 export const BUILDERS: ReadonlyMap<string, ViewBuilder> = registry;
 /** build every view a compiled plan names, in plan order; refuse unregistered kinds by name */
 export function build(root: string, plan: { views: readonly { id: string; builder: string }[] }): Map<string, string> {
@@ -107,6 +110,8 @@ export async function deliverable(root: string, name: string, opts?: { out?: str
   const views = build(root, plan); // an unbuildable view refuses by name here
   const rel = opts?.out ?? join("_synthesis", `${name}.docx`);
   const out = isAbsolute(rel) ? rel : join(root, rel);
+  const relOut = relative(root, out).split("\\").join("/");
+  if (relOut.startsWith("..") || !relOut.startsWith("_synthesis/")) throw new Error(`render ${name}: --out ${rel} is outside _synthesis/ — a render lands only in the work-product store`);
   const job: RenderJob = { ...assembleJob(defn, plan, views, { draft: opts?.draft }), out };
 
   const worker = opts?.worker ?? process.env.CONSULT_RENDER_WORKER ?? WORKER;

@@ -75,12 +75,19 @@ function settledIn(root: string, a: MutableAsk, ents: ReturnType<typeof kernel.e
 
 /** mint a client-voiced ask referencing the question records it would close; audience/artifact optional (A13) */
 export function propose(root: string, text: string, questions: CalloutAddr[], audience?: string, artifact?: string): AskId {
+  if (!questions.length) throw new Error("ask propose: an ask names at least one question record");
+  const ents = kernel.entities(root);
+  for (const q of questions) {
+    const [slug, qid] = q.split("#") as [string, string | undefined];
+    const e = ents.find(e => e.slug === slug);
+    if (!qid || !e || !e.callouts.some(c => c.id === qid)) throw new Error(`ask propose: question ${q} does not resolve to a question record in capture — settlement must be un-fakeable`);
+  }
   const r = readReg(root);
   for (const q of questions) {
     if (r.asks.some(a => a.questions.includes(q)) || r.closedQuestions.some(c => c.question === q))
       throw new Error(`ask propose: question ${q.split("#")[1]} (${q}) is already in the register — exactly once, asked or closed`);
   }
-  const id = `ASK-${String(r.asks.length + 1).padStart(3, "0")}` as AskId;
+  const id = ledger.nextId(r.asks.map(a => a.id), "ASK") as AskId;
   const a: MutableAsk = { id, status: "proposed", text, questions: [...questions], answeredBy: [] };
   if (audience !== undefined) a.audience = audience;
   if (artifact !== undefined) a.artifact = artifact;
@@ -98,6 +105,7 @@ export function accept(root: string, id: AskId): void {
 /** record accepted asks as sent — all by default, or just ids; a send-gate crossing (A18) */
 export function sent(root: string, ids?: AskId[]): number {
   const r = readReg(root);
+  if (ids) for (const id of ids) { const a = must(r, id); if (a.status !== "accepted") throw new Error(`ask sent: ${id} is ${a.status}, not accepted`); }
   const targets = r.asks.filter(a => a.status === "accepted" && (!ids || ids.includes(a.id)));
   for (const a of targets) {
     a.status = "sent";
@@ -125,6 +133,13 @@ export function close(root: string, target: AskId | CalloutAddr, reason: string)
   else throw new Error(`ask close: no such ask or question ${target}`);
   writeReg(root, r);
 }
+/** every question address that is closed — deliberately not the client's, or belonging to a withdrawn ask */
+export function closedAddresses(root: string): Set<string> {
+  const r = readReg(root);
+  const out = new Set<string>(r.closedQuestions.map(c => c.question));
+  for (const a of r.asks) if (a.status === "closed") for (const q of a.questions) out.add(q);
+  return out;
+}
 export function entriesOf(root: string, status?: AskStatus): Ask[] {
   const r = readReg(root);
   return r.asks.filter(a => !status || a.status === status) as unknown as Ask[];
@@ -132,6 +147,6 @@ export function entriesOf(root: string, status?: AskStatus): Ask[] {
 /** PURE (A18): answered (answeredBy stamped) but not yet settled (answering sources not yet cited where the questions live) */
 export function unsettled(root: string): Ask[] {
   const r = readReg(root);
-  const ents = kernel.entities(root);
+  const ents = kernel.entitiesLenient(root);
   return r.asks.filter(a => a.answeredBy.length > 0 && a.status !== "closed" && !settledIn(root, a, ents)) as unknown as Ask[];
 }

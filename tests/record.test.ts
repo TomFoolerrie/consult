@@ -54,7 +54,7 @@ test("D9: a spend above remaining is a named refusal until a gate ruling records
   record.budgetSet(root, 10_000);
   assert.throws(() => record.spend(root, 50_000, 0, "big assessment"),
     (e: Error) => e.message.includes("budget"));
-  record.gate(root, { kind: "spend", what: "big assessment (~50k)", ruling: "approved over budget" });
+  record.gate(root, { kind: "spend", what: "big assessment", ruling: "approved over budget" });
   record.spend(root, 50_000, 48_000, "big assessment");
   assert.equal(record.budget(root).remaining, 10_000 - 48_000, "over-budget spends draw once ruled");
 });
