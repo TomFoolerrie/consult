@@ -95,22 +95,22 @@ export function propose(root: string, text: string, questions: CalloutAddr[], au
   writeReg(root, r);
   return id;
 }
-/** the human gate's yes — recorded through record.gate (A18) */
-export function accept(root: string, id: AskId): void {
+/** the human gate's yes — recorded through record.gate (A18); `ruling` carries the human's own words */
+export function accept(root: string, id: AskId, ruling?: string): void {
   const r = readReg(root); const a = must(r, id);
   if (a.status !== "proposed") throw new Error(`ask accept: ${id} is ${a.status}, not proposed`);
+  // audit line FIRST, register write LAST (review C1): a failed gate leaves no accepted-but-unrecorded ask
+  record.gate(root, { kind: "send", what: `ask ${id}: ${a.text}`, ruling: (ruling ?? "").trim() || "accepted" });
   a.status = "accepted"; writeReg(root, r);
-  record.gate(root, { kind: "send", what: `ask ${id}: ${a.text}`, ruling: "accepted" });
 }
 /** record accepted asks as sent — all by default, or just ids; a send-gate crossing (A18) */
 export function sent(root: string, ids?: AskId[]): number {
   const r = readReg(root);
   if (ids) for (const id of ids) { const a = must(r, id); if (a.status !== "accepted") throw new Error(`ask sent: ${id} is ${a.status}, not accepted`); }
   const targets = r.asks.filter(a => a.status === "accepted" && (!ids || ids.includes(a.id)));
-  for (const a of targets) {
-    a.status = "sent";
-    record.gate(root, { kind: "send", what: `ask ${a.id} crossed to the client`, ruling: "sent" });
-  }
+  // audit lines FIRST, the register LAST (review C1)
+  for (const a of targets) record.gate(root, { kind: "send", what: `ask ${a.id} crossed to the client`, ruling: "sent" });
+  for (const a of targets) a.status = "sent";
   writeReg(root, r);
   return targets.length;
 }
@@ -118,9 +118,14 @@ export function sent(root: string, ids?: AskId[]): number {
 export function respond(root: string, file: string, ids: AskId[]): { src: SrcId; answered: Ask[] } {
   const r = readReg(root);
   const answeredAsks = ids.map(id => must(r, id));
+  // a response answers an ask that CROSSED: proposed, accepted and closed asks are named refusals (review C1)
+  for (const a of answeredAsks)
+    if (a.status !== "sent") throw new Error(`ask respond: ${a.id} is ${a.status}, not sent — a response answers an ask that crossed to the client`);
   const intent = [...new Set(answeredAsks.flatMap(a => a.questions.map(q => q.split("#")[0]!)))];
+  // route FIRST (idempotent by hash, and it refuses a re-route by name), then stamp, then the register (review C1)
   const src = ledger.route(root, file, intent, { provenance: "client" });
-  for (const a of answeredAsks) { if (!a.answeredBy.includes(src)) a.answeredBy.push(src); ledger.stampAnswer(root, src, a.id); }
+  for (const a of answeredAsks) ledger.stampAnswer(root, src, a.id);
+  for (const a of answeredAsks) if (!a.answeredBy.includes(src)) a.answeredBy.push(src);
   writeReg(root, r);
   return { src, answered: answeredAsks.map(a => ({ ...a, questions: [...a.questions], answeredBy: [...a.answeredBy] })) as unknown as Ask[] };
 }

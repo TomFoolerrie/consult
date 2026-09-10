@@ -14,7 +14,9 @@
  * by asks.sent — and any render leaving the building crosses the send
  * gate by the CONSULTANT's hand (A18), never here. One honest mode with
  * draft watermarking. Every render lands its CARD beside the file (A22):
- * `<stem>.card.yaml`, path from ledger.sidecarPath.
+ * `<stem>.card.yaml`, path from ledger.sidecarPath — and a stem another
+ * artifact in _synthesis/ already owns is a named refusal (review C8):
+ * one card, one artifact; a render never overwrites another's card.
  *
  * THE PYTHON SEAM (language ruling, 2026-08-26; built A23): docx
  * emission is the one place Python remains — a bounded subprocess
@@ -37,8 +39,8 @@
 // keeps "adding a deliverable is a YAML-sized act" honest. Views are
 // never files (R1): builders run in-memory at render time; a plan naming
 // an unregistered kind is refused BY NAME before any render. Ships with
-// the three the two shipped definitions need: client-asks,
-// information-requests, findings-by-theme.
+// four: client-asks, information-requests, findings-by-theme,
+// open-questions (the two shipped definitions need three of them).
 import * as asksMod from "./asks.ts";
 import * as findingsMod from "./findings.ts";
 import * as kernel from "./kernel.ts";
@@ -114,18 +116,27 @@ export async function deliverable(root: string, name: string, opts?: { out?: str
   if (relOut.startsWith("..") || !relOut.startsWith("_synthesis/")) throw new Error(`render ${name}: --out ${rel} is outside _synthesis/ — a render lands only in the work-product store`);
   const job: RenderJob = { ...assembleJob(defn, plan, views, { draft: opts?.draft }), out };
 
+  // A22: one card per artifact — refuse a sidecar stem another artifact owns, BEFORE anything is written (review C8)
+  const { synthesisArtifacts } = await import("./index.ts");
+  const sidecar = ledger.sidecarPath(out);
+  const owner = synthesisArtifacts(root).find(f => join(root, f) !== out && ledger.sidecarPath(join(root, f)) === sidecar);
+  if (owner) throw new Error(`render ${name}: ${relative(root, sidecar).split("\\").join("/")} is already ${owner}'s card — a sidecar stem belongs to one artifact`);
+
   const worker = opts?.worker ?? process.env.CONSULT_RENDER_WORKER ?? WORKER;
   if (!existsSync(worker)) throw new Error(`render ${name}: render_worker missing at ${worker} — the docx seam needs it`);
   mkdirSync(dirname(out), { recursive: true });
   const run = spawnSync("python3", [worker], { input: JSON.stringify(job), encoding: "utf8" });
   if (run.error && (run.error as NodeJS.ErrnoException).code === "ENOENT")
     throw new Error(`render ${name}: python3 not available — the docx seam needs it`);
-  const firstErr = (run.stderr ?? "").split("\n").find(l => l.trim()) ?? (run.error?.message ?? "no output");
+  // the worker's own refusal (exit 2) rides on stdout as {error} — surface it by name, never "no output" (review C4)
+  let refusal: string | undefined;
+  if (run.status === 2 && run.stdout) { try { const j = JSON.parse(run.stdout) as { error?: unknown }; if (typeof j?.error === "string") refusal = j.error; } catch { /* not the refusal shape */ } }
+  const firstErr = refusal ?? (run.stderr ?? "").split("\n").find(l => l.trim()) ?? (run.error?.message ?? "no output");
   let result: { path: string; sections: number; warnings?: string[] } | undefined;
   if (run.status === 0) { try { result = JSON.parse(run.stdout); } catch { /* unparseable — refused below */ } }
   if (!result || typeof result.path !== "string") throw new Error(`render ${name}: render_worker failed — ${firstErr}`);
 
   const card = { title: defn.title, kind: "deliverable", summary: `Rendered deliverable ${defn.name} (${job.sections.length} sections)`, keyItems: job.sections.map(s => s.title) };
-  writeFileSync(ledger.sidecarPath(out), Object.entries(card).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n") + "\n");
+  writeFileSync(sidecar, Object.entries(card).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n") + "\n");
   return { path: relative(root, out).split("\\").join("/"), sections: result.sections, warnings: result.warnings ?? [] };
 }

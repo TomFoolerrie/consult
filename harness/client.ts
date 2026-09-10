@@ -45,8 +45,11 @@ export function plan(asks: { id: string; status: string; text: string }[], scrip
 }
 function alreadyDelivered(root: string, name: string): boolean {
   if (existsSync(join(root, "_sources/new", name)) || existsSync(join(root, "_sources/processed", name))) return true;
+  // EXACT basename match against the ledger's entries (review C11): a routed ap-policy.md is not policy.md
   const ledger = join(root, "_sources/sources.yaml");
-  return existsSync(ledger) && readFileSync(ledger, "utf8").includes(name);
+  if (!existsSync(ledger)) return false;
+  const book = parse(readFileSync(ledger, "utf8")) as { entries?: { file?: string }[] } | null;
+  return (book?.entries ?? []).some(e => typeof e?.file === "string" && basename(e.file) === name);
 }
 /** deliver: copy the scripted files into _sources/new/; log to .harness/inbox.log; return what was delivered */
 export function deliver(root: string, scriptPath: string): Delivery[] {
