@@ -67,7 +67,7 @@ function settledIn(root: string, a: MutableAsk, ents: ReturnType<typeof kernel.e
     const [slug, qid] = q.split("#") as [string, string];
     const e = ents.find(e => e.slug === slug);
     if (!e) return false;
-    const questionGone = !e.callouts.some(c => c.id === qid);
+    const questionGone = !kernel.openQuestions(e).some(c => c.id === qid);
     const cited = e.statements.some(st => st.cites.some(c => a.answeredBy.includes(c as SrcId)));
     return cited || questionGone;
   });
@@ -80,7 +80,7 @@ export function propose(root: string, text: string, questions: CalloutAddr[], au
   for (const q of questions) {
     const [slug, qid] = q.split("#") as [string, string | undefined];
     const e = ents.find(e => e.slug === slug);
-    if (!qid || !e || !e.callouts.some(c => c.id === qid)) throw new Error(`ask propose: question ${q} does not resolve to a question record in capture — settlement must be un-fakeable`);
+    if (!qid || !e || !kernel.openQuestions(e).some(c => c.id === qid)) throw new Error(`ask propose: question ${q} does not resolve to a question record in capture — settlement must be un-fakeable`);
   }
   const r = readReg(root);
   for (const q of questions) {

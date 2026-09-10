@@ -188,7 +188,8 @@ export function status(root: string): { unrouted: string[]; entries: LedgerEntry
   for (const e of b.entries) {
     const got = ents.filter(en => en.statements.some(st => st.cites.includes(e.id))).map(en => en.slug);
     consumed.set(e.id, got);
-    outstanding.set(e.id, e.intent.filter(sl => !got.includes(sl)));
+    const intent = Array.isArray(e.intent) ? e.intent : [];  // a hand-broken entry is check's defect, never a crash of the read
+    outstanding.set(e.id, intent.filter(sl => !got.includes(sl)));
   }
   return { unrouted, entries: b.entries as unknown as LedgerEntry[], consumed, outstanding };
 }

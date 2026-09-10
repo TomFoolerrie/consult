@@ -167,3 +167,21 @@ test("B10 the sitting procedure is executable on an installed root: `consult pin
   assert.ok(existsSync(join(live, "agents/system.md")), "the seat's second read exists where the prompt says");
   assert.ok(readFileSync(join(live, "CLAUDE.md"), "utf8").includes("consult budget set"), "the prompt names the budget verb");
 });
+
+// follow-ups from review A
+test("an ask names QUESTION records only: a control callout with the same id cannot be asked about or settle by removal", () => {
+  const root = bareEngagement();
+  writeFileSync(join(root, "capture/ap.yaml"), `slug: ap\ntype: process-step\nstatements: []\nquestions:\n  - id: Q-1\n    text: "who?"\ncallouts:\n  - kind: control\n    id: C-1\n    text: "a control"\n`);
+  assert.throws(() => asks.propose(root, "x", ["ap#C-1"]), (e: Error) => e.message.includes("ap#C-1"));
+  assert.equal(asks.propose(root, "y", ["ap#Q-1"]), "ASK-001");
+});
+
+test("ledger.status survives a hand-broken entry (intent not a list): the read describes, check names the defect", () => {
+  const root = bareEngagement();
+  ledger.route(root, stage(root, "p.md", "policy"), ["ap"]);
+  const book = join(root, "_sources/sources.yaml");
+  writeFileSync(book, readFileSync(book, "utf8").replace(/intent:\n\s+- ap/, "intent: ap"));
+  assert.doesNotThrow(() => ledger.status(root));
+  assert.doesNotThrow(() => desk.state(root));
+  assert.ok(check.run(root).some(d => d.check === "registers" && d.message.includes("SRC-001") && d.message.includes("intent")));
+});
