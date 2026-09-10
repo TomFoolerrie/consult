@@ -1,6 +1,6 @@
 # DESIGN — the module map
 
-Thirteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
+Fourteen TypeScript engine files (src/), one bounded Python worker (py/), the consultant + three worker classes + a two-layer skill library, four kernel files. Under a third of
 the oracle's surface after the A9 distillation: every deterministic verb either does bookkeeping an agent shouldn't hand-roll, enforces honesty, or expands context — no workflow lives in the engine. Every rule here is a charter consequence, not a preference.
 
 ## The one picture
@@ -88,7 +88,7 @@ at read time from the record's physical shape.
 | `src/asks.ts` | `_registers/asks.yaml` | four stored states (proposed/accepted/sent/closed); answered + settled DERIVED from the record's shape (A18) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
-| `src/check.ts` | nothing | the QC gate: six mechanical checks, no signal files |
+| `src/check.ts` | nothing | the QC gate: seven mechanical checks, no signal files |
 | `src/render.ts` | `_synthesis/` | any definition → .docx + the BUILDERS registry (absorbed views.ts, A18); views never files (R1) |
 | `src/desk.ts` | nothing (pure) | the ONE derived picture: state/report, coverage, needs, locate — writes nothing, ever (A18) |
 | `src/record.ts` | git + `_registers/sessions/` | the machinery's hand: checkpoint, sessionAppend, budget, spend, gate — BOTH gates auditable (A18) |

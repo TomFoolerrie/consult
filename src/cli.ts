@@ -18,7 +18,7 @@
  *   route · park · scan                                 → ledger (one intake door; consumption COMPUTED; the durable scan, A20)
  *   ask propose|accept|sent|respond|close               → asks (answered/settled DERIVED)
  *   finding propose|accept|reject                       → findings
- *   check                                               → check (six mechanical checks)
+ *   check                                               → check (seven mechanical checks)
  *   render <deliverable>   (self-contained: compile → build views in-memory → emit)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
@@ -106,7 +106,11 @@ export async function main(argv: string[]): Promise<number> {
       case "spend": record.spend(located, Number(opt(rest, "estimate")), Number(opt(rest, "actual")), rest[0] ?? ""); return 0;
       case "gate": record.gate(located, { kind: opt(rest, "kind") as "send" | "spend", what: opt(rest, "what") ?? "", ruling: opt(rest, "ruling") ?? "" }); return 0;
       case "render": { const { deliverable } = await import("./render.ts"); await deliverable(located, rest[0]!); return 0; }
-      case "brief": console.log(brief.compose(located, rest[0]!, (opt(rest, "class") ?? brief.skill(located, rest[0]!).recommendedClass) as never, {})); return 0;
+      case "brief": {
+        const params: Record<string, unknown> = {};
+        const cards = opt(rest, "cards"); if (cards) params.cards = cards.split(",").filter(Boolean);
+        console.log(brief.compose(located, rest[0]!, (opt(rest, "class") ?? brief.skill(located, rest[0]!).recommendedClass) as never, params)); return 0;
+      }
       default: console.error(`refused: unknown verb ${verb}`); return 2;
     }
   } catch (e) {

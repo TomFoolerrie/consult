@@ -44,3 +44,26 @@ test("compose includes the index for the stores in scope and the full cards name
   assert.ok(b.includes("_sources/new/policy.md"), "content is referenced by path");
   assert.ok(!b.includes("SECRET BODY TEXT") && !b.includes("SECRET BYTES"), "content is never inlined");
 });
+
+test("cli: `consult brief <skill> --cards a,b` carries the named cards — the feature is reachable from the CLI", async () => {
+  const root = bareEngagement();
+  const pq = synthesisFile(root, "je.parquet", "PAR1");
+  sidecarCard(root, pq, { title: "je-canonical", kind: "system-export", summary: "canonical JEs", keyItems: ["UNIQUE-KEY-ITEM"] });
+  const { main } = await import("../src/cli.ts");
+  const out: string[] = []; const log = console.log; console.log = (s: string) => { out.push(String(s)); };
+  try { assert.equal(await main(["brief", "data-analysis", "--cards", "_synthesis/je.parquet", "--root", root]), 0); }
+  finally { console.log = log; }
+  assert.ok(out.join("\n").includes("UNIQUE-KEY-ITEM"));
+});
+
+test("the brief's index is SCOPED: never _skills; only the stores of the named cards when cards are named", () => {
+  const root = bareEngagement();
+  const pq = synthesisFile(root, "je.parquet", "PAR1");
+  sidecarCard(root, pq, { title: "je-canonical", kind: "system-export", summary: "canonical JEs", keyItems: [] });
+  ledger.route(root, stage(root, "policy.md", "policy"), ["ap"]);
+  const scoped = brief.compose(root, "data-analysis", "sonnet", { cards: ["_synthesis/je.parquet"] });
+  assert.ok(scoped.includes("je-canonical") && !scoped.includes("SRC-001"), "only _synthesis is indexed when only a synthesis card is named");
+  assert.ok(!/_skills {2}/.test(scoped), "a worker already holds its skill — never index the skill store into a brief");
+  const full = brief.compose(root, "data-analysis", "sonnet", {});
+  assert.ok(full.includes("SRC-001") && full.includes("je-canonical") && !/_skills {2}/.test(full), "no cards named: every store but _skills");
+});

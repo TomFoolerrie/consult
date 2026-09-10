@@ -3,7 +3,7 @@
  *
  * Owns: NOTHING (ROT-5 — signal files were the dead guard table's stage
  * markers; the session record logs that a check ran). Runs over the whole
- * engagement (no area parameter — ROT-3). Six checks, all MECHANICAL —
+ * engagement (no area parameter — ROT-3). Seven checks, all MECHANICAL —
  * the hedges check is gone (A9): word-list policing of prose style is a
  * skill rule that binds whoever drafts, not an engine invariant.
  *

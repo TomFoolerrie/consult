@@ -75,20 +75,25 @@ export function compose(root: string, name: string, cls: WorkerClass, params: Re
   const sk = skill(root, name);
   // A22 — progressive disclosure at dispatch: the brief carries the INDEX (what exists) and the
   // full CARDS named in params.cards (what those are); CONTENT is named by path, never inlined.
+  // The index is SCOPED (review finding): never _skills (the worker already holds its skill); when cards are
+  // named, only their stores; otherwise every other store. `consult index` itself stays the full walk.
   const wanted = Array.isArray(params.cards) ? params.cards as string[] : [];
-  const all = index.cards(root);
+  const all = index.cards(root).filter(l => l.store !== "_skills");
   const cardBlock = wanted.flatMap(ref => {
     const c = index.card(root, ref);
     const content = all.find(l => l.ref === ref)?.content;
     return [`### ${ref}`, stringify(c).trimEnd(), ...(content ? [`content: ${content}`] : [])];
   });
+  const stores = new Set(wanted.map(ref => all.find(l => l.ref === ref)?.store).filter(Boolean));
+  const scoped = stores.size ? all.filter(l => stores.has(l.store)) : all;
+  const indexText = scoped.map(l => `${l.store}  ${l.ref}  ·  ${l.title}  ·  ${l.kind}  —  ${l.summary}${l.src ? `  (${l.src})` : ""}`).join("\n");
   const lines = [
     `# BRIEF — ${sk.name} on worker-${cls}`,
     `## Mission`, sk.mission,
     `## Write boundary`, sk.writes ?? "nothing — read-only work",
     `## Context`, ...sk.contextContract,
-    `## Index (every item in the engagement — open content only when its card says yes)`,
-    index.render(root) || "(empty engagement)",
+    `## Index (${stores.size ? [...stores].join(", ") : "every store"} — open content only when its card says yes)`,
+    indexText || "(nothing indexed)",
     ...(cardBlock.length ? [`## Cards (in scope for this unit)`, ...cardBlock] : []),
     `## Parameters`,
     ...Object.entries(params).filter(([k]) => k !== "cards").map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`),

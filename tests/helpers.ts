@@ -9,7 +9,7 @@
  */
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, basename, dirname } from "node:path";
 
 /** a bare engagement: the _sources/ marker + empty capture. */
 export function bareEngagement(): string {
@@ -78,7 +78,8 @@ export function synthesisFile(root: string, name: string, content: string | Buff
 }
 /** the sidecar card beside a file we did not author as text: <stem>.card.yaml, same schema as a scan */
 export function sidecarCard(root: string, forFile: string, body: Record<string, unknown>): string {
-  const p = forFile.replace(/\.[^.]+$/, "") + ".card.yaml";
+  const b = basename(forFile); const stem = b.includes(".") ? b.slice(0, b.lastIndexOf(".")) : b;
+  const p = join(dirname(forFile), `${stem}.card.yaml`);
   writeFileSync(p, Object.entries(body).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n") + "\n");
   return p;
 }

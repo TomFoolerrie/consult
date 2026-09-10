@@ -720,4 +720,16 @@ consultant use it. Ruled and built on branch `v2-cards`:
   can catch it — hence scope-not-summary on fragments. A fourteenth
   module, `index.ts`, pure.
 
-Nine acceptance tests, written first; suite 66/66.
+Adversarial review (sub-agent, 14 findings) folded in: a card is never
+a source (`route` refuses `*.card.yaml`); a yaml artifact's card is its
+top-level `card:` key, never its body (so a brief can never inline
+content by accident); the sidecar path rule is defined once, on the
+basename; `consult brief --cards a,b` makes the feature reachable from
+the CLI; the brief's index is SCOPED (never _skills; the named cards'
+stores when cards are named); orphan sidecars and lineage notes are
+listed by kind, dotfiles are not artifacts; a registered synthesis
+artifact shows one card on both its lines, cross-referenced by SRC id;
+`card()` refuses ambiguous refs and paths outside the store; the
+no-report scan path is synthesis-only; unknown store names are refused.
+
+Seventeen acceptance tests, written first; suite 74/74.

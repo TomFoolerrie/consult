@@ -42,11 +42,17 @@
 import { parse, stringify } from "yaml";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync } from "node:fs";
-import { join, basename, relative, isAbsolute } from "node:path";
+import { join, basename, dirname, relative, isAbsolute } from "node:path";
 import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
 
 const LEDGER = (root: string) => join(root, "_sources", "sources.yaml");
+/** the ONE sidecar-path rule (A22): <dir>/<stem>.card.yaml, stem taken from the basename — a dot in the root path never matters */
+export function sidecarPath(file: string): string {
+  const b = basename(file);
+  const stem = b.includes(".") ? b.slice(0, b.lastIndexOf(".")) : b;
+  return join(dirname(file), `${stem}.card.yaml`);
+}
 
 interface Book { entries: MutableEntry[]; parked: { file: string; reason: string }[]; }
 interface MutableEntry {
@@ -96,6 +102,7 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
   const rel = relative(root, file);
   if (rel.startsWith("..") || isAbsolute(rel)) throw new Error(`route: ${file} is outside the engagement`);
   if (rel.startsWith(join("_sources", "scans"))) throw new Error(`route: ${rel} is a scan — a scout report is never a source (A20)`);
+  if (rel.endsWith(".card.yaml")) throw new Error(`route: ${rel} is a card — a card is never a source (A22)`);
   const entry: MutableEntry = { id, file: rel, hash, intent: [...intent], answers: [] };
   if (opts?.provenance) entry.provenance = opts.provenance;
   if (opts?.grounds) entry.grounds = [...opts.grounds];
@@ -110,8 +117,9 @@ export function scan(root: string, src: SrcId, reportFile?: string): string {
   const e = b.entries.find(e => e.id === src);
   if (!e) throw new Error(`scan: ${src} not in the ledger`);
   if (reportFile === undefined) {
-    // A22: no report given — land the PRODUCER'S sidecar card beside the source (a registered synthesis artifact)
-    const side = join(root, e.file).replace(/\.[^.]+$/, "") + ".card.yaml";
+    // A22: no report given — land the PRODUCER'S sidecar card beside a registered SYNTHESIS artifact; never for a client source
+    if (e.provenance !== "synthesis") throw new Error(`scan: ${src} is not a synthesis artifact — a client source needs a scout report (intake-scan), not a sidecar`);
+    const side = sidecarPath(join(root, e.file));
     if (!existsSync(side)) throw new Error(`scan: ${src} has no sidecar card beside ${e.file} and no report was given`);
     reportFile = side;
   }

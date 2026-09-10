@@ -120,5 +120,17 @@ test("scan with no report lands the sidecar card beside the source — one card,
 test("scan with no report and no sidecar is a named refusal", () => {
   const root = bareEngagement();
   const src = ledger.route(root, stage(root, "raw.csv", "a,b"), ["ap-payment"]);
-  assert.throws(() => ledger.scan(root, src), (e: Error) => e.message.includes("card") && e.message.includes(src));
+  assert.throws(() => ledger.scan(root, src), (e: Error) => e.message.includes("scout report") && e.message.includes(src),
+    "a client source needs a scout report; the no-report path is for synthesis artifacts only");
+});
+
+test("a card is never a source either: route refuses any *.card.yaml by name; the no-report scan path is for synthesis artifacts only", () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "raw.csv", "a,b"), ["ap-payment"]);
+  const pq = synthesisFile(root, "je.parquet", "PAR1");
+  const side = sidecarCard(root, pq, { title: "je", kind: "system-export", summary: "s", keyItems: [] });
+  assert.throws(() => ledger.route(root, side, ["ap-payment"], { provenance: "synthesis", grounds: [src] }), (e: Error) => e.message.includes("card"));
+  // a stray card lying beside a CLIENT source must not be landed by the no-report path
+  writeFileSync(join(root, "_sources/new/raw.card.yaml"), "summary: stray\nkeyItems: []\n");
+  assert.throws(() => ledger.scan(root, src), (e: Error) => e.message.includes("synthesis"));
 });

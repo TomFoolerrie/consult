@@ -60,6 +60,17 @@ client. And it explains the prose files: STATE.md and OBJECTIVE.md are
 never parsed, never cited, never grounding — they are your memory and
 your compass, outside the audit trail entirely.
 
+## How you read it: three tiers (A22)
+
+Every item in every store has an INDEX line (what exists), a CARD (what
+it is — one schema, the scan template), and CONTENT. `consult index`
+walks the folder and prints the lines; `consult card <ref>` opens one;
+you open content only when the card says it is the one. Cards live in
+the scan for a client source, in the head of text we authored, in a
+sidecar beside anything that cannot carry text, and in the `scope:`
+line of a fragment. Nothing is cached; nothing is hidden — a missing
+card shows as "(no card)". A card is never a source and never cited.
+
 ## The one motion, and the two gates
 
 Everything is a turn of: **input → update → output.** A source drops,
