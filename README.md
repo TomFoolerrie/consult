@@ -1,10 +1,13 @@
 # CONSULT v2 — the engagement brain and its consultant
 
-**Status: BUILT — the executable spec is green (84/84).** Every module carries its
-contract as a docstring and its behavior in tests/ (written first, per the method).
+**Status: BUILT — the executable spec is green; see `npm test` for the count.**
+Every module carries its contract as a docstring and its behavior in tests/
+(written first, per the method). The suite count moves with every amendment, so
+it is not repeated here — CHARTER.md records the count at each amendment, and
+`npm test` is the live answer.
 The docx seam is built (A23): `render` compiles, validates, builds views, assembles
 a versioned job, and hands it to py/render_worker.py — the one Python file — which
-formats the .docx and nothing else; the card lands beside it. Suite 84/84.
+formats the .docx and nothing else; the card lands beside it.
 
 The ruled charter is `CHARTER.md`. The module map and data flow are `DESIGN.md`.
 The old engine (shipped as 2.0–2.5.1, retroactively the v1 line's final form) lives on
@@ -36,6 +39,21 @@ synthetic/            the synthetic engagements (the definition of done); #4 is 
 harness/              the layer between the engine and the models: install.ts (the consultant seat + worker classes into a folder), client.ts (the scripted client)
 bin/consult           the engine on PATH
 tests/                the executable spec — written BEFORE the build (red until each module lands); the fixtures pin the on-disk grammar
+```
+
+An ENGAGEMENT folder — what `harness/install.ts` creates and the engine
+reads — is a different tree:
+
+```
+STATE.md        OBJECTIVE.md        the two prose files, written directly
+_sources/       route · park · scan · retirement at checkpoint   (new/ processed/ parked/ scans/)
+_registers/     ask · finding · the machinery (asks.yaml, findings.yaml, sessions/)
+capture/        the consultant and skill-licensed workers, directly (+ _taxonomy/)
+_synthesis/     render and workers — work products and their cards
+_skills/        consult skill save
+_definitions/   consult pin
+_types/         the consultant, directly — vocabulary amendments
+```
 
 ## The start (picked pieces, build order)
 
@@ -54,5 +72,3 @@ put responses back, and ask the brain questions with honest standings.
 skills — the engine has no analysis verbs, A9).
 At the end of phase 2 the two shipped definitions render on demand and the
 analysis license runs. Then synthetics #2 and #3, and the D8 analysis.
-
-```

@@ -2,9 +2,11 @@
  * record — the machinery's hand. (A18 split, M3/M4.)
  *
  * Owns/writes: git (checkpoint) and _registers/sessions/ — the
- * append-only session record every verb and dispatch appends itself to
- * (closing the oracle's named evidence gap of audits living only in
- * transcripts), the budget line included (A14/A15).
+ * append-only session record (closing the oracle's named evidence gap of
+ * audits living only in transcripts). What actually appends, and all of
+ * it (review C9): checkpoint · gate (asks.accept and asks.sent are its
+ * ask-shaped callers) · budgetSet, which writes a gate line and the
+ * budget line · spend · brief.saveSkill. Reads append nothing.
  *
  * gate() is law 6 made auditable (A18, M4): the human's yes and the
  * crossing, recorded — for BOTH gates. asks.accept/sent are its
@@ -23,7 +25,7 @@
  * and actual so pricing stays auditable.
  */
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync, mkdirSync, realpathSync } from "node:fs";
 import { join, basename } from "node:path";
 import * as ledger from "./ledger.ts";
 
@@ -41,36 +43,37 @@ function readSessions(root: string): string {
   return readdirSync(dir).sort().map(f => readFileSync(join(dir, f), "utf8")).join("\n");
 }
 
-export interface SessionEvent { at: string; verb: string; detail: string; costEstimate?: number; costActual?: number; }
+export interface SessionEvent { at: string; verb: string; detail: string; costEstimate?: number; costActual?: number; overBudget?: boolean; gateAt?: string; gate?: { kind: "send" | "spend"; what: string; ruling: string }; }
 export interface Budget { limit: number; spent: number; remaining: number; }
 
 /** commit the whole engagement as consult: <label>; append the session record; retire fully-cited sources */
 export function checkpoint(root: string, label: string, dryRun?: boolean): { committed: string[]; retired: string[] } {
-  // retirement first: fully-cited sources move to processed/ (consumption's one side effect, A18)
+  // dryRun DESCRIBES: it retires nothing, appends nothing, commits nothing (review C9)
+  // retirement: fully-cited sources move to processed/ (consumption's one side effect, A18)
+  // git first (review): a root that is not its own repository is refused by name before any mutation
+  let top = "";
+  try { top = execSync("git rev-parse --show-toplevel", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { /* not a repo */ }
+  // compare REAL paths (verification round): git resolves symlinks (macOS /tmp → /private/tmp), the caller's root may not
+  const same = (a: string, b: string) => { try { return realpathSync(a) === realpathSync(b); } catch { return a === b; } };
+  if (!dryRun && (!top || !same(top, root))) throw new Error(top ? `checkpoint: ${root} is inside the repository ${top} — an engagement is its own repository` : `checkpoint: ${root} is not a git repository — run git init in the engagement root`);
   const st = ledger.status(root);
   const retired: string[] = [];
-  const book = ledger.readBook(root);
-  for (const e of book.entries) {
-    const out = st.outstanding.get(e.id as never) ?? [];
-    const inNew = e.file.startsWith("_sources/new/");
-    if (inNew && e.intent.length > 0 && out.length === 0) {
-      const from = join(root, e.file), to = join(root, "_sources/processed", basename(e.file));
-      mkdirSync(join(root, "_sources/processed"), { recursive: true });
-      renameSync(from, to);
-      e.file = join("_sources/processed", basename(e.file));
-      retired.push(e.id);
-    }
+  const candidates = st.entries.filter(e => e.file.startsWith("_sources/new/") && e.intent.length > 0 && (st.outstanding.get(e.id) ?? []).length === 0);
+  for (const e of candidates) {
+    const to = join(root, "_sources/processed", basename(e.file));
+    if (existsSync(to)) throw new Error(`checkpoint: cannot retire ${e.id} — _sources/processed/${basename(e.file)} already exists; retirement never overwrites`);
+    if (!existsSync(join(root, e.file))) throw new Error(`checkpoint: cannot retire ${e.id} — ${e.file} is missing from disk`);
   }
-  ledger.writeBook(root, book);
+  if (dryRun) return { committed: [], retired: candidates.map(e => e.id) };
+  for (const e of candidates) { ledger.retire(root, e.id); retired.push(e.id); }
   sessionAppend(root, { at: new Date().toISOString(), verb: "checkpoint", detail: label });
-  if (dryRun) return { committed: [], retired };
   execSync("git add -A", { cwd: root });
   const staged = execSync("git diff --cached --name-only", { cwd: root }).toString().trim();
   const committed = staged ? staged.split("\n") : [];
   if (committed.length) execSync(`git commit -qm ${JSON.stringify("consult: " + label)}`, { cwd: root });
   return { committed, retired };
 }
-/** every verb and dispatch appends itself to the sitting's session record */
+/** the one append: every writer named in this module's contract lands its line here */
 export function sessionAppend(root: string, event: SessionEvent): void {
   mkdirSync(SESSIONS(root), { recursive: true });
   const line = JSON.stringify(event);
@@ -78,10 +81,26 @@ export function sessionAppend(root: string, event: SessionEvent): void {
 }
 /** the human's yes and the crossing, in the session record — law 6, auditable (A18) */
 export function gate(root: string, g: { kind: "send" | "spend"; what: string; ruling: string }): void {
-  sessionAppend(root, { at: new Date().toISOString(), verb: "gate", detail: `${g.kind}: ${g.what} — ${g.ruling}` });
+  if (g.kind !== "send" && g.kind !== "spend") throw new Error(`gate: kind "${String(g.kind)}" is not send | spend — two gates only (law 6)`);
+  if (!g.what.trim()) throw new Error("gate: what is required — a gate names what it rules on");
+  sessionAppend(root, { at: new Date().toISOString(), verb: "gate", detail: `${g.kind}: ${g.what} — ${g.ruling}`, gate: { kind: g.kind, what: g.what, ruling: g.ruling } });
+}
+/** a ruling counts as a YES only if it says so — "no", "denied", or silence never unlock anything (review B2) */
+export function isYes(ruling: string): boolean {
+  const r = ruling.trim().toLowerCase();
+  if (/\b(no|not|denied|refused|reject|hold)\b/.test(r)) return false;
+  return /^(yes|y|ok|okay|approved|accepted|accept|approve|go|proceed|agreed|sent)\b/.test(r) || /\b(approved|accepted|yes)\b/.test(r);
 }
 /** appends the budget line to the session record — the budget's one home (A14); remaining is derived */
-export function budgetSet(root: string, tokens: number): void {
+export function budgetSet(root: string, tokens: number, ruling?: string): void {
+  if (!Number.isFinite(tokens) || tokens < 0) throw new Error(`budget set: "${String(tokens)}" is not a finite, non-negative token count`);
+  // the budget is itself a spend-shaped ruling (review B2): it lands as a gate line so the audit shows who set the ceiling.
+  // A RE-SET (any prior budget line on record) resets spent-so-far, so it is a spend ruling in its own right and needs the
+  // human's own words as a yes (verification round, law 6): the party the gate gates cannot re-issue the ceiling on its own.
+  const prior = sessionLines(root).some(l => l.verb === "budget");
+  const words = (ruling ?? "").trim();
+  if (prior && !isYes(words)) throw new Error(`budget set: a budget is already on record — re-setting it resets the sitting's spend and needs the human's ruling (--ruling "<their words>", a yes)${words ? `; "${words}" is not one` : ""}`);
+  sessionAppend(root, { at: new Date().toISOString(), verb: "gate", detail: `spend: budget set to ${tokens} — ${words || "the human's sitting budget"}`, gate: { kind: "spend", what: `budget ${tokens}`, ruling: words || "set" } });
   sessionAppend(root, { at: new Date().toISOString(), verb: "budget", detail: String(tokens) });
 }
 export function budget(root: string): Budget {
@@ -95,14 +114,17 @@ export function budget(root: string): Budget {
 }
 /** record one spend's estimate and actual in the session record */
 export function spend(root: string, estimate: number, actual: number, what: string): void {
+  if (!what.trim()) throw new Error("spend: a label is required — a spend names what it paid for");
+  for (const [k, v] of [["estimate", estimate], ["actual", actual]] as const)
+    if (!Number.isFinite(v) || v < 0) throw new Error(`spend: ${what} — ${k} "${String(v)}" is not a finite, non-negative number`);
   const b = budget(root);
   if (estimate > b.remaining) {
-    // over the sitting budget: requires an unconsumed spend-gate ruling (D9)
-    const lines = readSessions(root).split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
-    const gates = lines.filter(e => e.verb === "gate" && String(e.detail).startsWith("spend:")).length;
-    const overs = lines.filter(e => e.verb === "spend" && e.overBudget === true).length;
-    if (gates <= overs) throw new Error(`spend: ${what} (${estimate}) exceeds the sitting budget remaining (${b.remaining}) — record a spend gate ruling first`);
-    appendFileSync(sessionFile(root), JSON.stringify({ at: new Date().toISOString(), verb: "spend", detail: what, costEstimate: estimate, costActual: actual, overBudget: true }) + "\n");
+    // over the sitting budget (D9): requires an UNCONSUMED spend-gate line that NAMES this spend and says yes (review B2)
+    const lines = sessionLines(root);
+    const consumed = new Set(lines.filter(e => e.verb === "spend" && e.gateAt).map(e => e.gateAt));
+    const g = lines.find(e => e.verb === "gate" && e.gate?.kind === "spend" && e.gate.what === what && isYes(e.gate.ruling) && !consumed.has(e.at));
+    if (!g) throw new Error(`spend: ${what} (${estimate}) exceeds the sitting budget remaining (${b.remaining}) — needs an unconsumed spend gate that names "${what}" with a yes`);
+    sessionAppend(root, { at: new Date().toISOString(), verb: "spend", detail: what, costEstimate: estimate, costActual: actual, overBudget: true, gateAt: g.at });
     return;
   }
   sessionAppend(root, { at: new Date().toISOString(), verb: "spend", detail: what, costEstimate: estimate, costActual: actual });

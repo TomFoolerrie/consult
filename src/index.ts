@@ -129,8 +129,8 @@ export function cards(root: string, store?: Store): IndexLine[] {
     for (const f of synthesisFiles(root).filter(isLineage)) out.push(line("_synthesis", f, asCard(headCard(join(root, f))), basename(f), "lineage", f));
   }
   if (want("capture")) {
-    for (const n of kernel.taxonomy(root)) out.push(line("capture", n.slug, n.scope ? { title: n.slug, kind: "taxonomy-node", summary: n.scope, keyItems: [] } : undefined, n.slug, "taxonomy-node", join("capture/_taxonomy", `${n.slug}.yaml`)));
-    for (const e of kernel.entities(root)) out.push(line("capture", e.slug, e.scope ? { title: e.slug, kind: "process-step", summary: e.scope, keyItems: [] } : undefined, e.slug, "process-step", join("capture", `${e.slug}.yaml`)));
+    for (const n of kernel.taxonomyLenient(root)) out.push(line("capture", n.slug, n.scope ? { title: n.slug, kind: "taxonomy-node", summary: n.scope, keyItems: [] } : undefined, n.slug, "taxonomy-node", join("capture/_taxonomy", `${n.slug}.yaml`)));
+    for (const e of kernel.entitiesLenient(root)) out.push(line("capture", e.slug, e.scope ? { title: e.slug, kind: "process-step", summary: e.scope, keyItems: [] } : undefined, e.slug, "process-step", join("capture", `${e.slug}.yaml`)));
   }
   if (want("_skills")) for (const s of brief.skills(root))
     out.push(line("_skills", s.name, { title: s.name, kind: "skill", summary: s.mission, keyItems: [] }, s.name, "skill"));

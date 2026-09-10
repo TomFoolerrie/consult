@@ -16,9 +16,11 @@ _registers/     where does each transaction stand, and what was spent?
 _skills/        how do I work?
 _synthesis/     what have we made?
 capture/        what do we know?
+_definitions/   which shapes are pinned?
+_types/         which vocabulary has this engagement amended?
 ```
 
-Seven names, one question each. No store answers another's question —
+Nine names, one question each. No store answers another's question —
 the moment one does, something is in the wrong place. Everything derived
 (coverage, needs, the snapshot, any view) is recomputed on demand and
 never stored: if you are looking for a cached picture, you are looking
@@ -60,11 +62,24 @@ client. And it explains the prose files: STATE.md and OBJECTIVE.md are
 never parsed, never cited, never grounding — they are your memory and
 your compass, outside the audit trail entirely.
 
+And it places the two DECLARATION stores. `_definitions/` holds the
+deliverable shapes this engagement has pinned — `consult pin` is its
+one writer, and a pinned shape is what `needs` measures the record
+against. `_types/` holds this engagement's amendments to the shipped
+vocabulary: a `_types/<name>.yaml` shadows the shipped type declaration
+by name, which is how a client's own words for a callout enter the
+grammar. Neither holds knowledge and neither is ever cited — they
+declare what a SHAPE is, not what is true.
+
 ## How you read it: three tiers (A22)
 
-Every item in every store has an INDEX line (what exists), a CARD (what
-it is — one schema, the scan template), and CONTENT. `consult index`
-walks the folder and prints the lines; `consult card <ref>` opens one;
+Every item in the four INDEXED stores — `_sources/`, `_synthesis/`,
+`capture/`, `_skills/` — has an INDEX line (what exists), a CARD (what
+it is — one schema, the scan template), and CONTENT. The rest are not
+indexed and do not need to be: the registers are small enough to read
+whole, the two prose pads are read every sitting, and `_definitions/`
+and `_types/` are opened when you touch a shape.
+`consult index` walks the folder and prints the lines; `consult card <ref>` opens one;
 you open content only when the card says it is the one. Cards live in
 the scan for a client source, in the head of text we authored, in a
 sidecar beside anything that cannot carry text, and in the `scope:`

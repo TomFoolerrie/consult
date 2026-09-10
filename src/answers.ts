@@ -28,7 +28,7 @@ import type { Standing, Ground, SrcId, CalloutAddr, Claim } from "./types.ts";
 
 /** resolve one citation to its standing: primary sources are evidenced;
  *  a synthesis source takes the WEAKEST standing among its grounds (A12). */
-function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledger.status>["entries"], depth = 0): Standing {
+function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledger.status>["entries"], ents: readonly kernel.Entity[], depth = 0): Standing {
   if (depth > 8) return { kind: "claimed" };
   const e = entries.find(e => e.id === src);
   if (!e) return { kind: "claimed" };
@@ -36,18 +36,25 @@ function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledge
   const sources: SrcId[] = [];
   for (const g of e.grounds ?? []) {
     if (/^SRC-\d+$/.test(g)) {
-      const inner = citeStanding(root, g as SrcId, entries, depth + 1);
+      const inner = citeStanding(root, g as SrcId, entries, ents, depth + 1);
       if (inner.kind !== "evidenced") return { kind: "claimed" };
       sources.push(...inner.sources);
     } else {
-      // a capture address (slug or slug#id): weakest = the cited statement's own standing
-      const slug = g.split("#")[0]!;
-      const ent = kernel.entities(root).find(x => x.slug === slug);
-      const anyEvidenced = ent?.statements.some(st => st.cites.length > 0);
-      if (!anyEvidenced) return { kind: "claimed" };
-      for (const st of ent!.statements) for (const c of st.cites) {
-        const inner = citeStanding(root, c as SrcId, entries, depth + 1);
-        if (inner.kind === "evidenced") sources.push(...inner.sources);
+      // a capture address — the WEAKEST of what it names (review B1, law 2):
+      //   slug#Q-n  → a question record is not evidence → claimed
+      //   slug      → the MINIMUM over the fragment's statements: one uncited statement makes the whole ground claimed
+      const [slug, local] = g.split("#") as [string, string | undefined];
+      const ent = ents.find(x => x.slug === slug);
+      if (!ent) return { kind: "claimed" };
+      if (local !== undefined) return { kind: "claimed" };
+      if (ent.statements.length === 0) return { kind: "claimed" };
+      for (const st of ent.statements) {
+        if (st.cites.length === 0) return { kind: "claimed" };
+        for (const c of st.cites) {
+          const inner = citeStanding(root, c as SrcId, entries, ents, depth + 1);
+          if (inner.kind !== "evidenced") return { kind: "claimed" };
+          sources.push(...inner.sources);
+        }
       }
     }
   }
@@ -56,12 +63,20 @@ function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledge
 
 export interface GroundedItem { text: string; standing: Standing; where: string; }
 
-/** the grounded material for a topic: entities, callouts, coverage,
- *  register entries, conflicts — each tagged with its standing */
+/**
+ * the grounded material for a topic: every STATEMENT and every QUESTION
+ * RECORD in the capture fragments and taxonomy nodes the topic matches,
+ * each tagged with its computed standing. Nothing else: what the record
+ * covers is desk's answer, and lifecycle bookkeeping is asks'/findings'.
+ * An EMPTY topic is refused by name: matching everything is not a topic.
+ */
 export function ground(root: string, topic: string): GroundedItem[] {
+  if (!topic.trim()) throw new Error("ground: an empty topic matches everything — name a fragment slug or a phrase to ground");
   const { entries } = ledger.status(root);
+  // parse capture ONCE per call, not once per citation (review A/F6c)
+  const ents = kernel.entities(root);
   const t = topic.toLowerCase();
-  const relevant = [...kernel.entities(root), ...kernel.taxonomy(root)].filter(e =>
+  const relevant = [...ents, ...kernel.taxonomy(root)].filter(e =>
     e.slug === topic || e.slug.toLowerCase().includes(t) ||
     e.statements.some(st => st.text.toLowerCase().includes(t)) ||
     e.callouts.some(c => c.text.toLowerCase().includes(t)));
@@ -73,7 +88,7 @@ export function ground(root: string, topic: string): GroundedItem[] {
       else {
         const sources: SrcId[] = []; let weakest: Standing = { kind: "evidenced", sources: [] };
         for (const c of st.cites) {
-          const s = citeStanding(root, c as SrcId, entries);
+          const s = citeStanding(root, c as SrcId, entries, ents);
           if (s.kind === "evidenced") sources.push(...s.sources); else weakest = s;
         }
         standing = weakest.kind === "evidenced" && sources.length
@@ -84,8 +99,18 @@ export function ground(root: string, topic: string): GroundedItem[] {
     for (const q of kernel.openQuestions(e)) {
       const srcs = (q.fields.get("sources") ?? "").split(",").map(x => x.trim()).filter(Boolean) as SrcId[];
       if (srcs.length >= 2) {
-        const readings: [Claim, Claim] = [{ text: q.text, source: srcs[0]! }, { text: q.text, source: srcs[1]! }];
-        items.push({ text: q.text, standing: { kind: "contested", readings }, where: e.slug });
+        // each reading carries the STATEMENT that cites its source where one
+        // exists (the two readings are the disagreement, not two copies of the
+        // question); a third source and beyond is KEPT in `more`, never dropped.
+        const reading = (src: SrcId): Claim => {
+          const st = e.statements.find(s => s.cites.includes(src));
+          return { text: st ? st.text : q.text, source: src };
+        };
+        const readings: [Claim, Claim] = [reading(srcs[0]!), reading(srcs[1]!)];
+        const standing: Standing = srcs.length > 2
+          ? { kind: "contested", readings, more: srcs.slice(2) }
+          : { kind: "contested", readings };
+        items.push({ text: q.text, standing, where: e.slug });
       } else {
         items.push({ text: q.text, standing: { kind: "absent", question: q.addr }, where: e.slug });
       }

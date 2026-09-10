@@ -44,7 +44,7 @@ export interface Ask {
 export type Standing =
   | { kind: "evidenced"; sources: SrcId[] }
   | { kind: "claimed" }
-  | { kind: "contested"; readings: [Claim, Claim] }
+  | { kind: "contested"; readings: [Claim, Claim]; more?: SrcId[] }   // review A: a question may name more than two sources — the first two are the readings, the rest are KEPT here, never dropped
   | { kind: "absent"; question: CalloutAddr };   // A18: the open question's ADDRESS — phrasing the ask is the consultant's judgment, never the engine's
 export interface Claim { text: string; source: SrcId; }
 

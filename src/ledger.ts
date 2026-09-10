@@ -41,12 +41,17 @@
  */
 import { parse, stringify } from "yaml";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync, renameSync } from "node:fs";
 import { join, basename, dirname, relative, isAbsolute } from "node:path";
 import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
 
 const LEDGER = (root: string) => join(root, "_sources", "sources.yaml");
+/** ids are minted as max+1, never length+1 — a hand-deleted entry must not free a live id (review) */
+export function nextId<P extends string>(ids: readonly string[], prefix: P): `${P}-${number}` {
+  const max = ids.reduce((m, id) => Math.max(m, Number(id.split("-")[1] ?? 0)), 0);
+  return `${prefix}-${String(max + 1).padStart(3, "0")}` as `${P}-${number}`;
+}
 /** the ONE sidecar-path rule (A22): <dir>/<stem>.card.yaml, stem taken from the basename — a dot in the root path never matters */
 export function sidecarPath(file: string): string {
   const b = basename(file);
@@ -92,17 +97,27 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
   if (!existsSync(file)) throw new Error(`route: no such staged file ${file}`);
   if (opts?.provenance === "synthesis" && !(opts.grounds && opts.grounds.length))
     throw new Error(`route: synthesis provenance requires non-empty grounds (${basename(file)})`);
-  const hash = createHash("sha256").update(readFileSync(file)).digest("hex");
-  const b = readBook(root);
-  const dup = b.entries.find(e => e.hash === hash);
-  if (dup) { rmSync(file); return dup.id; }  // same content = same source; no copies
-  const id = `SRC-${String(b.entries.length + 1).padStart(3, "0")}` as SrcId;
   // the ledger records the file WHERE IT LIVES, root-relative: staged files in
-  // _sources/new/, synthesis in _synthesis/ (it is the store — never moved)
+  // _sources/new/, synthesis in _synthesis/ (it is the store — never moved).
+  // Every refusal comes BEFORE any filesystem change (review B3: no deletions, ever).
   const rel = relative(root, file);
   if (rel.startsWith("..") || isAbsolute(rel)) throw new Error(`route: ${file} is outside the engagement`);
   if (rel.startsWith(join("_sources", "scans"))) throw new Error(`route: ${rel} is a scan — a scout report is never a source (A20)`);
   if (rel.endsWith(".card.yaml")) throw new Error(`route: ${rel} is a card — a card is never a source (A22)`);
+  const inNew = rel.startsWith(join("_sources", "new") + "/"), inSynth = rel.startsWith("_synthesis/");
+  if (!inNew && !inSynth) throw new Error(`route: ${rel} is not a staged file (_sources/new/) or a work product (_synthesis/) — nothing else is a source`);
+  if (!intent.length) throw new Error(`route: ${rel} declares no intent — name the capture slugs this source is expected to inform`);
+  const b = readBook(root);
+  const already = b.entries.find(e => e.file === rel);
+  if (already) throw new Error(`route: ${rel} is already registered as ${already.id}`);
+  const hash = createHash("sha256").update(readFileSync(file)).digest("hex");
+  const dup = b.entries.find(e => e.hash === hash);
+  if (dup) {
+    // same content = same source; a FRESH copy in new/ is removed (no copies) — anything else is left exactly where it is
+    if (inNew) rmSync(file);
+    return dup.id;
+  }
+  const id = nextId(b.entries.map(e => e.id), "SRC");
   const entry: MutableEntry = { id, file: rel, hash, intent: [...intent], answers: [] };
   if (opts?.provenance) entry.provenance = opts.provenance;
   if (opts?.grounds) entry.grounds = [...opts.grounds];
@@ -135,9 +150,26 @@ export function scan(root: string, src: SrcId, reportFile?: string): string {
   writeBook(root, b);
   return rel;
 }
+/** retire one fully-cited source from new/ to processed/, rewriting its entry — the ledger's own hand (review: one writer per store) */
+export function retire(root: string, src: SrcId): string {
+  const b = readBook(root);
+  const e = b.entries.find(e => e.id === src);
+  if (!e) throw new Error(`retire: ${src} not in the ledger`);
+  if (!e.file.startsWith("_sources/new/")) throw new Error(`retire: ${src} is not in _sources/new/`);
+  const to = join("_sources", "processed", basename(e.file));
+  if (existsSync(join(root, to))) throw new Error(`retire: ${to} already exists — never overwrite`);
+  mkdirSync(join(root, "_sources", "processed"), { recursive: true });
+  renameSync(join(root, e.file), join(root, to));
+  e.file = to;
+  writeBook(root, b);
+  return to;
+}
 /** decline a staged file with a durable reason */
 export function park(root: string, file: string, reason: string): void {
+  const rel = relative(root, file);
+  if (rel.startsWith("..") || isAbsolute(rel) || !rel.startsWith(join("_sources", "new") + "/")) throw new Error(`park: ${file} is not a staged file in _sources/new/`);
   const b = readBook(root);
+  if (b.entries.some(e => e.file === rel)) throw new Error(`park: ${rel} is already routed — a registered source is retired at checkpoint, never parked`);
   mkdirSync(join(root, "_sources/parked"), { recursive: true });
   const dest = join(root, "_sources/parked", basename(file));
   writeFileSync(dest, readFileSync(file)); rmSync(file);
@@ -147,15 +179,17 @@ export function park(root: string, file: string, reason: string): void {
 /** the whole ledger picture — consumed/outstanding COMPUTED from capture citations (A18), never stored */
 export function status(root: string): { unrouted: string[]; entries: LedgerEntry[]; consumed: Map<SrcId, string[]>; outstanding: Map<SrcId, string[]> } {
   const b = readBook(root);
-  const routedNames = new Set(b.entries.map(e => basename(e.file)));
+  // unrouted = files in new/ whose FULL relative path is not registered (review B7: a re-dropped name is never hidden)
+  const routedPaths = new Set(b.entries.map(e => e.file));
   const newDir = join(root, "_sources/new");
-  const unrouted = (existsSync(newDir) ? readdirSync(newDir) : []).filter(f => !routedNames.has(f));
+  const unrouted = (existsSync(newDir) ? readdirSync(newDir) : []).filter(f => !f.startsWith(".") && !routedPaths.has(join("_sources", "new", f)));
   const consumed = new Map<SrcId, string[]>(), outstanding = new Map<SrcId, string[]>();
-  const ents = kernel.entities(root);
+  const ents = kernel.entitiesLenient(root);
   for (const e of b.entries) {
     const got = ents.filter(en => en.statements.some(st => st.cites.includes(e.id))).map(en => en.slug);
     consumed.set(e.id, got);
-    outstanding.set(e.id, e.intent.filter(sl => !got.includes(sl)));
+    const intent = Array.isArray(e.intent) ? e.intent : [];  // a hand-broken entry is check's defect, never a crash of the read
+    outstanding.set(e.id, intent.filter(sl => !got.includes(sl)));
   }
   return { unrouted, entries: b.entries as unknown as LedgerEntry[], consumed, outstanding };
 }

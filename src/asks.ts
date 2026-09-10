@@ -51,8 +51,11 @@ interface Reg { asks: MutableAsk[]; closedQuestions: { question: CalloutAddr; re
 function readReg(root: string): Reg {
   if (!existsSync(REG(root))) return { asks: [], closedQuestions: [] };
   const r = parse(readFileSync(REG(root), "utf8"));
-  if (Array.isArray(r)) return { asks: r as MutableAsk[], closedQuestions: [] }; // tolerate a hand-written bare list
-  return { asks: r?.asks ?? [], closedQuestions: r?.closedQuestions ?? [] };
+  // a hand-broken entry (no answeredBy, questions not a list) is the registers check's defect, never a crash of a read (verification round)
+  const list = (xs: unknown): MutableAsk[] => (Array.isArray(xs) ? xs : []).map((a: any) => ({ ...a,
+    questions: Array.isArray(a?.questions) ? a.questions : [], answeredBy: Array.isArray(a?.answeredBy) ? a.answeredBy : [] }));
+  if (Array.isArray(r)) return { asks: list(r), closedQuestions: [] }; // tolerate a hand-written bare list
+  return { asks: list(r?.asks), closedQuestions: Array.isArray(r?.closedQuestions) ? r.closedQuestions : [] };
 }
 function writeReg(root: string, r: Reg): void { mkdirSync(join(root, "_registers"), { recursive: true }); writeFileSync(REG(root), stringify(r)); }
 function must(r: Reg, id: AskId): MutableAsk {
@@ -67,7 +70,7 @@ function settledIn(root: string, a: MutableAsk, ents: ReturnType<typeof kernel.e
     const [slug, qid] = q.split("#") as [string, string];
     const e = ents.find(e => e.slug === slug);
     if (!e) return false;
-    const questionGone = !e.callouts.some(c => c.id === qid);
+    const questionGone = !kernel.openQuestions(e).some(c => c.id === qid);
     const cited = e.statements.some(st => st.cites.some(c => a.answeredBy.includes(c as SrcId)));
     return cited || questionGone;
   });
@@ -75,12 +78,19 @@ function settledIn(root: string, a: MutableAsk, ents: ReturnType<typeof kernel.e
 
 /** mint a client-voiced ask referencing the question records it would close; audience/artifact optional (A13) */
 export function propose(root: string, text: string, questions: CalloutAddr[], audience?: string, artifact?: string): AskId {
+  if (!questions.length) throw new Error("ask propose: an ask names at least one question record");
+  const ents = kernel.entities(root);
+  for (const q of questions) {
+    const [slug, qid] = q.split("#") as [string, string | undefined];
+    const e = ents.find(e => e.slug === slug);
+    if (!qid || !e || !kernel.openQuestions(e).some(c => c.id === qid)) throw new Error(`ask propose: question ${q} does not resolve to a question record in capture — settlement must be un-fakeable`);
+  }
   const r = readReg(root);
   for (const q of questions) {
     if (r.asks.some(a => a.questions.includes(q)) || r.closedQuestions.some(c => c.question === q))
       throw new Error(`ask propose: question ${q.split("#")[1]} (${q}) is already in the register — exactly once, asked or closed`);
   }
-  const id = `ASK-${String(r.asks.length + 1).padStart(3, "0")}` as AskId;
+  const id = ledger.nextId(r.asks.map(a => a.id), "ASK") as AskId;
   const a: MutableAsk = { id, status: "proposed", text, questions: [...questions], answeredBy: [] };
   if (audience !== undefined) a.audience = audience;
   if (artifact !== undefined) a.artifact = artifact;
@@ -88,21 +98,22 @@ export function propose(root: string, text: string, questions: CalloutAddr[], au
   writeReg(root, r);
   return id;
 }
-/** the human gate's yes — recorded through record.gate (A18) */
-export function accept(root: string, id: AskId): void {
+/** the human gate's yes — recorded through record.gate (A18); `ruling` carries the human's own words */
+export function accept(root: string, id: AskId, ruling?: string): void {
   const r = readReg(root); const a = must(r, id);
   if (a.status !== "proposed") throw new Error(`ask accept: ${id} is ${a.status}, not proposed`);
+  // audit line FIRST, register write LAST (review C1): a failed gate leaves no accepted-but-unrecorded ask
+  record.gate(root, { kind: "send", what: `ask ${id}: ${a.text}`, ruling: (ruling ?? "").trim() || "accepted" });
   a.status = "accepted"; writeReg(root, r);
-  record.gate(root, { kind: "send", what: `ask ${id}: ${a.text}`, ruling: "accepted" });
 }
 /** record accepted asks as sent — all by default, or just ids; a send-gate crossing (A18) */
 export function sent(root: string, ids?: AskId[]): number {
   const r = readReg(root);
+  if (ids) for (const id of ids) { const a = must(r, id); if (a.status !== "accepted") throw new Error(`ask sent: ${id} is ${a.status}, not accepted`); }
   const targets = r.asks.filter(a => a.status === "accepted" && (!ids || ids.includes(a.id)));
-  for (const a of targets) {
-    a.status = "sent";
-    record.gate(root, { kind: "send", what: `ask ${a.id} crossed to the client`, ruling: "sent" });
-  }
+  // audit lines FIRST, the register LAST (review C1)
+  for (const a of targets) record.gate(root, { kind: "send", what: `ask ${a.id} crossed to the client`, ruling: "sent" });
+  for (const a of targets) a.status = "sent";
   writeReg(root, r);
   return targets.length;
 }
@@ -110,9 +121,14 @@ export function sent(root: string, ids?: AskId[]): number {
 export function respond(root: string, file: string, ids: AskId[]): { src: SrcId; answered: Ask[] } {
   const r = readReg(root);
   const answeredAsks = ids.map(id => must(r, id));
+  // a response answers an ask that CROSSED: proposed, accepted and closed asks are named refusals (review C1)
+  for (const a of answeredAsks)
+    if (a.status !== "sent") throw new Error(`ask respond: ${a.id} is ${a.status}, not sent — a response answers an ask that crossed to the client`);
   const intent = [...new Set(answeredAsks.flatMap(a => a.questions.map(q => q.split("#")[0]!)))];
+  // route FIRST (idempotent by hash, and it refuses a re-route by name), then stamp, then the register (review C1)
   const src = ledger.route(root, file, intent, { provenance: "client" });
-  for (const a of answeredAsks) { if (!a.answeredBy.includes(src)) a.answeredBy.push(src); ledger.stampAnswer(root, src, a.id); }
+  for (const a of answeredAsks) ledger.stampAnswer(root, src, a.id);
+  for (const a of answeredAsks) if (!a.answeredBy.includes(src)) a.answeredBy.push(src);
   writeReg(root, r);
   return { src, answered: answeredAsks.map(a => ({ ...a, questions: [...a.questions], answeredBy: [...a.answeredBy] })) as unknown as Ask[] };
 }
@@ -125,6 +141,13 @@ export function close(root: string, target: AskId | CalloutAddr, reason: string)
   else throw new Error(`ask close: no such ask or question ${target}`);
   writeReg(root, r);
 }
+/** every question address that is closed — deliberately not the client's, or belonging to a withdrawn ask */
+export function closedAddresses(root: string): Set<string> {
+  const r = readReg(root);
+  const out = new Set<string>(r.closedQuestions.map(c => c.question));
+  for (const a of r.asks) if (a.status === "closed") for (const q of a.questions) out.add(q);
+  return out;
+}
 export function entriesOf(root: string, status?: AskStatus): Ask[] {
   const r = readReg(root);
   return r.asks.filter(a => !status || a.status === status) as unknown as Ask[];
@@ -132,6 +155,6 @@ export function entriesOf(root: string, status?: AskStatus): Ask[] {
 /** PURE (A18): answered (answeredBy stamped) but not yet settled (answering sources not yet cited where the questions live) */
 export function unsettled(root: string): Ask[] {
   const r = readReg(root);
-  const ents = kernel.entities(root);
+  const ents = kernel.entitiesLenient(root);
   return r.asks.filter(a => a.answeredBy.length > 0 && a.status !== "closed" && !settledIn(root, a, ents)) as unknown as Ask[];
 }

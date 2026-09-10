@@ -3,10 +3,17 @@ mission: "Answer one question from the named sources; return grounded material, 
 writes: "nothing"
 contextContract:
   - "the brief resolves every file, source, and register slice in scope"
+  - "the brief carries the ONE question to answer and the SRC ids of the sources you may read"
 returnContract:
-  - "exactly what the mission names — nothing outside the write boundary"
+  - "the answer to the brief's question, as a list of discrete findings — ONE FACT EACH, in the source's own terms and numbers, each carrying the SRC id it came from and a short verbatim QUOTE (with its locator: page, section, sheet and row, or line) so the consultant can mint it as a cited statement without reopening the file"
+  - "where two of the named sources disagree: both readings, both SRC ids, both quotes, and NO resolution — say plainly that they disagree"
+  - "where the sources do not answer the question, or answer only part of it: say so explicitly, and name what is missing — an absence is a result, and it is the answer the consultant needs to turn into an ask"
+  - "nothing inferred, nothing filled in, nothing summarized past what the quote supports; if you had to reason to get there, say that you did and show the steps"
+  - "out-of-lane OBSERVATIONS as a separate list for the consultant's state pad"
 rules:
   - "read the brief first; do exactly what it says"
-  - "never judgment the skill does not license"
+  - "quote, do not paraphrase, wherever a figure, a threshold, a date, a name, or a rule is involved"
+  - "you write nothing: this skill's write boundary is empty — the consultant folds your return into capture"
+  - "never judgment the skill does not license: no standings, no findings, no recommendations, no ranking by importance"
 recommendedClass: haiku
 origin: shipped

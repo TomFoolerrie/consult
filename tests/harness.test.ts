@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { install, seat, SKELETON } from "../harness/install.ts";
 import { plan, deliver, loadScript } from "../harness/client.ts";
-import { bareEngagement } from "./helpers.ts";
+import { bareEngagement, fragment } from "./helpers.ts";
 import * as asks from "../src/asks.ts";
 import * as record from "../src/record.ts";
 
@@ -48,6 +48,9 @@ test("the scripted client answers only SENT asks, by substring match, honoring n
   - { topic: expedite, match: [expedite], file: responses/dodge.md, behavior: non-answer }
   - { topic: duplicates, match: [duplicate], behavior: silence }
 `);
+  fragment(root, "ap-approval", { questions: [{ id: "Q-1", text: "reporting line?" }] });
+  fragment(root, "ap-payment", { questions: [{ id: "Q-3", text: "expedite?" }, { id: "Q-4", text: "duplicates?" }] });
+  fragment(root, "ap-intake", { questions: [{ id: "Q-9", text: "vendor master?" }] });
   const a1 = asks.propose(root, "Please confirm Dana's reporting line", ["ap-approval#Q-1"]);
   const a2 = asks.propose(root, "Is the expedite path sanctioned?", ["ap-payment#Q-3"]);
   const a3 = asks.propose(root, "Are the Kessler duplicates duplicate payments?", ["ap-payment#Q-4"]);

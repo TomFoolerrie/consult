@@ -836,3 +836,72 @@ No `consult pulse` verb — a new verb is the design smell the charter
 names, and a verb is the thing that could have grown into the advisor.
 The A19 tripwire is honored by construction: there is nothing to rank
 with. A19 closed. Suite 87/87.
+
+## Amendment A26 — the review round (2026-09-10)
+
+A thorough outside review (blockers, should-fixes, nits, test quality,
+doc drift) against `v2-rebuild`; fixed on branch `v2-review`, tests
+first for every item, by the build owner (the ten blockers) and three
+sub-agents with disjoint file ownership (the rest), then reconciled.
+
+**Two laws had leaked at the edges, now closed:**
+- Law 2: a synthesis grounded on a fragment took `evidenced` if ANY
+  statement there was cited. Now the WEAKEST: a bare-slug ground is the
+  minimum over the fragment's statements; a question address is claimed.
+- Law 6: the spend gate was bypassable by a "no", a NaN budget, a
+  negative estimate, or a self-issued `budget set`. Now a spend over
+  budget needs an unconsumed gate line that names that spend and says
+  yes, consumed once; numbers must be finite and non-negative; only two
+  gate kinds exist; `budget set` itself lands as a gate line.
+
+**No deletions, made true:** every `route` refusal precedes any
+filesystem change; a duplicate removes only a fresh copy in new/;
+registered paths, work products, and files outside the root are never
+touched; retirement lives in `ledger.retire` (one writer) and never
+overwrites; `checkpoint` verifies the root is its own repository first;
+`render --out` is confined to `_synthesis/`.
+
+**Rulings made during the round:**
+- Findings are NOT a third gate. The human rules on the brain's opinions
+  in conversation whenever they choose; the consultant proposes, never
+  accepts its own, surfaces proposals in the sitting summary, and does
+  not block on them. Rejection is terminal and enforced.
+- Settlement by removing the question record (A18's second branch) is
+  lawful once an answering source is on file or the ask is closed;
+  `check` flags a phantom address only for an ask that could never
+  settle honestly. `ask propose` resolves every address at mint.
+- A declared intent for a fragment not yet written is a WARNING (the
+  normal mid-fold-in state); a retired source not fully cited stays an
+  error.
+- `consult init` is the repair verb for an engagement-shaped tree with
+  no `_sources/`; `consult pin` is the one writer of `_definitions/`;
+  `consult skill save` the one writer of `_skills/`; `brief --param k=v`
+  carries skill parameters from the CLI. `_definitions/` and `_types/`
+  are named stores; `_types/` is a direct write (a declaration).
+- Taxonomy nodes join fragments by slug PREFIX; prefer `node-topic`
+  fragment names. Workers may write capture only where a skill's write
+  boundary grants it; the consultant is the default writer.
+- The declared callout vocabulary is now live: `callouts:` on a fragment
+  parses declared kinds, refuses undeclared ones by name; question
+  records stay the one engine-known kind and the only thing an ask may
+  name.
+- The registers check is a real shape check: statuses, lists, ids,
+  files on disk, sha256 of every source, synthesis-chain cycles and
+  depth. `check` never crashes on a malformed file; the reads use
+  lenient enumerators and `check` names the defect.
+- The brief now carries the objective's head and the pad's standing
+  guidance; the CLI drops option values from positionals; a worker's
+  exit-2 reason is surfaced; the client driver matches basenames exactly.
+
+Synthetic #1 re-run end to end as regression: exam 6/6 (one probe
+updated — it searched a question's wording after the question had been
+lawfully removed). Suite 136/136.
+
+**Verification round (the reviewer, same day):** four holes in the fixes
+closed, tests first. A second `budget set` resets spent-so-far, so it is
+a spend ruling in its own right: it needs the human's words as a yes
+(`--ruling`), never the consultant's say-so. A skill's name is a slug
+(the one writer of `_skills/` can never write outside it). `checkpoint`
+compares real paths, so a symlinked root (macOS `/tmp`) is its own
+repository. A hand-broken ask entry is the registers check's defect,
+never a crash of `state`. Suite 140/140.

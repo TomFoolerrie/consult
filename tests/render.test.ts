@@ -10,9 +10,11 @@ test("a plan naming an unregistered view kind is refused BY NAME before any rend
     (e: Error) => e.message.includes("no-such-builder"));
 });
 
-test("the shipped registry serves the two shipped definitions (growable — at LEAST these three)", () => {
-  for (const k of ["client-asks", "findings-by-theme", "information-requests"])
-    assert.ok(render.BUILDERS.has(k), k);
+test("the shipped registry is exactly the four view builders — joining it is the YAML-sized act's one code hop", () => {
+  // named in full, not "at least": a builder appearing or vanishing is a design change
+  // (adding a deliverable = a YAML file plus AT MOST one builder), so it must break a test.
+  assert.deepEqual([...render.BUILDERS.keys()].sort(),
+    ["client-asks", "findings-by-theme", "information-requests", "open-questions"]);
 });
 
 // ---- the docx seam (A23) ----

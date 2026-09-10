@@ -7,12 +7,15 @@
  * callout kind — the QUESTION record (v1 called it GAP) — because the
  * registers join on it: asks reference question ids, coverage's
  * `conflicted` reads a question naming two sources, answers' "absent"
- * standing stands on it. Every OTHER kind (CONTROL, PAIN POINT,
- * IMPROVEMENT OPPORTUNITY, anything an objective wants) is DECLARED
- * VOCABULARY: shipped as a default in the type YAML, engagement-amendable
- * like a skill or a definition, never engine law. Skills BIND to declared
- * kinds (a drafting skill carries the discipline for minting them well);
- * they never define the schema. SCREENSHOT PLACEHOLDER does not exist.
+ * standing stands on it. Every OTHER kind is DECLARED VOCABULARY: what
+ * the shipped process-step YAML actually declares today is CONTROL,
+ * PAIN POINT and INPUT/OUTPUT (taxonomy-node declares the question kind
+ * alone); an engagement overlay may amend that list like a skill or a
+ * definition — it is never engine law. Declared kinds are LIVE: a
+ * fragment carries them in a top-level `callouts:` list of
+ * { kind, id, text }, parsed here, refused by name when the kind is not
+ * declared. Skills BIND to declared kinds (a drafting skill carries the
+ * discipline for minting them well); they never define the schema.
  *
  * No aliases of any kind, ever.
  */
@@ -96,12 +99,36 @@ export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity
   }
   const qdecl = tdecl.callouts.find(c => c.kind === QUESTION_KIND)!;
   const callouts: Callout[] = [];
+  const claim = (id: unknown, what: string) => {
+    if (typeof id !== "string" || !id) throw new Error(`fragment ${slug}: ${what} needs id and text`);
+    if (callouts.some(c => c.id === id)) throw new Error(`fragment ${slug}: duplicate callout id ${id}`);
+  };
   for (const q of raw.questions ?? []) {
     if (typeof q?.id !== "string" || typeof q?.text !== "string")
       throw new Error(`fragment ${slug}: question record needs id and text`);
+    if (callouts.some(c => c.id === q.id)) throw new Error(`fragment ${slug}: duplicate question id ${q.id}`);
     const fields = new Map<string, string>();
+    if (q.sources !== undefined && !Array.isArray(q.sources)) throw new Error(`fragment ${slug}: question ${q.id} sources must be a list`);
     if (Array.isArray(q.sources)) fields.set("sources", q.sources.join(", "));
     callouts.push({ id: q.id, addr: `${slug}#${q.id}`, kind: QUESTION_KIND, label: qdecl.label, text: q.text, fields });
+  }
+  // the DECLARED vocabulary, live (review A/F5b): { kind, id, text } for any
+  // non-question kind the declaration names; ids are unique across the whole
+  // fragment, questions included; the label rides in from the declaration.
+  if (raw.callouts !== undefined && !Array.isArray(raw.callouts))
+    throw new Error(`fragment ${slug}: callouts must be a list`);
+  for (const c of raw.callouts ?? []) {
+    if (typeof c?.kind !== "string")
+      throw new Error(`fragment ${slug}: callout without a kind`);
+    if (c.kind === QUESTION_KIND)
+      throw new Error(`fragment ${slug}: callout ${String(c.id)} is kind ${QUESTION_KIND} — question records live in the questions list`);
+    const decl = tdecl.callouts.find(d => d.kind === c.kind);
+    if (!decl) throw new Error(`fragment ${slug}: callout ${String(c.id)} declares kind ${c.kind}, which ${tdecl.name} does not declare`);
+    if (typeof c.text !== "string") throw new Error(`fragment ${slug}: callout ${String(c.id)} needs id and text`);
+    claim(c.id, `callout of kind ${c.kind}`);
+    const fields = new Map<string, string>();
+    for (const f of decl.fields ?? []) if (typeof c[f] === "string") fields.set(f, c[f]);
+    callouts.push({ id: c.id, addr: `${slug}#${c.id}`, kind: c.kind, label: decl.label, text: c.text, fields });
   }
   const parts = new Map<string, string>();
   for (const p of tdecl.parts) if (typeof raw[p.slug] === "string") parts.set(p.slug, raw[p.slug]);
@@ -114,6 +141,24 @@ export function openQuestions(entity: Entity): Callout[] {
   return entity.callouts.filter(c => c.kind === QUESTION_KIND);
 }
 
+/**
+ * the non-conforming names under capture/ (review A/F5a): a .yml file or any
+ * subdirectory other than _taxonomy is silently invisible to enumeration —
+ * so the grammar check names it instead of letting it disappear.
+ */
+export function captureAnomalies(root: string): { path: string; message: string }[] {
+  const dir = join(root, "capture");
+  if (!existsSync(dir)) return [];
+  const out: { path: string; message: string }[] = [];
+  for (const d of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (d.isDirectory()) {
+      if (d.name !== "_taxonomy") out.push({ path: `capture/${d.name}/`, message: `capture/${d.name}/: no nested directories under capture/` });
+    } else if (d.name.endsWith(".yml")) {
+      out.push({ path: `capture/${d.name}`, message: `capture/${d.name}: fragments are .yaml files` });
+    }
+  }
+  return out;
+}
 /** every capture fragment, slug order, parsed through the declaration (A18, from engagement.ts) */
 export function entities(root: string): Entity[] {
   const dir = join(root, "capture");
@@ -121,6 +166,27 @@ export function entities(root: string): Entity[] {
   const tdecl = loadType(root, "process-step");
   return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()
     .map(f => parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, "")));
+}
+/** the parseable fragments only — for reads that must survive one malformed file (review B5); check names the bad ones */
+export function entitiesLenient(root: string): Entity[] {
+  const dir = join(root, "capture");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "process-step");
+  const out: Entity[] = [];
+  for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()) {
+    try { out.push(parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, ""))); } catch { /* grammar defect — check reports it */ }
+  }
+  return out;
+}
+export function taxonomyLenient(root: string): Entity[] {
+  const dir = join(root, "capture", "_taxonomy");
+  if (!existsSync(dir)) return [];
+  const tdecl = loadType(root, "taxonomy-node");
+  const out: Entity[] = [];
+  for (const f of readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()) {
+    try { out.push(parseEntity(readFileSync(join(dir, f), "utf8"), tdecl, f.replace(/\.yaml$/, ""))); } catch { /* grammar defect — check reports it */ }
+  }
+  return out;
 }
 /** every taxonomy node, name order (A18, from engagement.ts) */
 export function taxonomy(root: string): Entity[] {

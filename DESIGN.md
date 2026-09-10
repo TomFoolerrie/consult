@@ -28,7 +28,9 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
      OBJECTIVE.md         the consultant, directly  the soft objective: relationship framing, no client facts (A11/A14)
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/, scans/ (A20)
      _registers/          asks.ts · findings.ts · record.ts  asks.yaml, findings.yaml, sessions/ (A15/A18)
-     _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable)
+     _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable) — `consult skill save`
+     _definitions/        definitions.ts (pin)     the deliverable shapes this engagement pinned — `consult pin`
+     _types/              the consultant, directly the engagement's vocabulary amendments (shadow the shipped type declarations)
      _synthesis/          render.ts + workers      work products + their cards (sidecar or head, A22); registrable as sources (A12)
      capture/             consultant+workers, directly  fragments + _taxonomy/ — flat, no manifest, no areas (A14)
 ```
@@ -65,7 +67,14 @@ sitting budget. Gates sit ON the cycle; they are not cycles.
 | `_registers/sessions/` | what did the machinery spend, and who said yes at a gate? | the machinery (record.ts) | append-only audit |
 | `_sources/` | what came in, and is it accounted for? | ledger.ts | yes — the balance |
 | `_synthesis/` | what have we made? | render.ts / workers | registrable as synthesis sources (A12) |
-| `_skills/` | what work shapes have we authored? | brief.ts (saveSkill) | yes — resolved into briefs |
+| `_skills/` | what work shapes have we authored? | brief.ts (saveSkill), via `consult skill save` | yes — resolved into briefs |
+| `_definitions/` | which deliverable shapes are pinned? | definitions.ts (pin), via `consult pin` | yes — compiled at render; `needs` measures against them |
+| `_types/` | which vocabulary has this engagement amended? | the consultant, directly (overlays that shadow the shipped declarations by name) | yes — the grammar parses through them |
+
+Indexing covers four of these stores — `_sources`, `_synthesis`,
+`capture`, `_skills`. The rest are not indexed and do not need to be:
+the registers are read whole, the prose files are read every sitting,
+and the two declaration stores are opened when a shape is touched.
 
 No store answers another's question. Registers hold NO knowledge —
 lifecycle bookkeeping only; a register holding synthesized prose is a
@@ -82,7 +91,7 @@ at read time from the record's physical shape.
 | `src/types.ts` | nothing | the shared vocabulary: lifecycles and standings as discriminated unions |
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
 | `src/kernel.ts` | nothing | the grammar: type declarations, parsing, entity/taxonomy enumeration (absorbed engagement.ts, A18) |
-| `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
+| `src/definitions.ts` | `_definitions/` | the deliverable definition language (load, validate, compile) + `pin` — the one writer of the pinned-shape store |
 | `src/index.ts` | nothing — pure | progressive disclosure (A22): index → card → content; one card schema; indexes computed every call, never stored |
 | `src/ledger.ts` | `_sources/` | one intake door: route, park, scan, status — consumption COMPUTED from capture citations (A18); the durable scan is a pointer to _sources/scans/ (A20) |
 | `src/asks.ts` | `_registers/asks.yaml` | four stored states (proposed/accepted/sent/closed); answered + settled DERIVED from the record's shape (A18) |
@@ -92,8 +101,21 @@ at read time from the record's physical shape.
 | `src/render.ts` | `_synthesis/` | any definition → .docx + its card, via the versioned job to the py seam (A23) + the BUILDERS registry (absorbed views.ts, A18); views never files (R1) |
 | `src/desk.ts` | nothing (pure) | the ONE derived picture: state/report, coverage, needs, locate — writes nothing, ever (A18) |
 | `src/record.ts` | git + `_registers/sessions/` | the machinery's hand: checkpoint, sessionAppend, budget, spend, gate — BOTH gates auditable (A18) |
-| `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
+| `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill (the one writer, behind `consult skill save`), compose(name, class, params) |
 | `py/render_worker.py` | `_synthesis/` (via render.ts) | the one Python seam, built (A23): a bounded docx formatter that never thinks — job v1 in, {path, sections, warnings} out |
+
+## The verbs the stores' writers expose
+
+Every verb wraps one exported function (R5). Beyond the inventory the
+CLI docstring lists, four verbs exist specifically because a store needs
+exactly one writer, or a damaged tree needs exactly one repair:
+
+| verb | why it exists |
+|---|---|
+| `consult pin <definition>` | the ONE writer of `_definitions/` — pins a shipped or local shape into the engagement; refuses an unknown name; never overwrites a file already there |
+| `consult skill save <file>` | the ONE writer of `_skills/` — validates the skill's shape and logs the save, so a skill is never run from raw prompt text |
+| `consult brief <skill> [--class c] [--cards a,b] [--param k=v]…` | dispatch's composer; `--param` is repeatable and carries the skill's own parameters from the CLI |
+| `consult init` | the repair verb for an engagement-shaped tree with no `_sources/` marker — creates the skeleton without touching what is already there. Without the marker the engine refuses every verb, reads included, so this is the one way back |
 
 ## The seven core laws (A16)
 

@@ -12,7 +12,8 @@
  * material (A18, absorbing engagement.locate): the root is the
  * directory holding _sources/; an engagement-shaped tree without the
  * marker is a named CONTRADICTION whose `repair` field names the one
- * verb allowed to run. "All quiet" requires positive evidence —
+ * verb allowed to run — `init`, which lays the marker and nothing else
+ * (review C6; `route` could not repair it, having nowhere to route to). "All quiet" requires positive evidence —
  * quiet-by-damage is a contradiction, never done.
  *
  * After a fold-in the consultant edits capture, checks, checkpoints —
@@ -44,7 +45,7 @@ export interface Snapshot {
   coverage: NodeCoverage[];        // per taxonomy node, recomputed
   needs: Need[];                   // what each pinned shape still lacks
   askDebts: { unsettled: number; awaitingResponse: number };  // awaitingResponse: sent, client silent (synthetic-1 finding)
-  pinnedShapes: { name: string; serviceable: boolean }[];
+  pinnedShapes: { name: string; serviceable: boolean; note?: string }[];
   git: { clean: boolean; note?: string };
   budget: { limit: number; spent: number; remaining: number };
   /** the clock (A19 resolved into state): staleness as HOURS, computed from the session record and file mtimes — describes, never nags */
@@ -65,8 +66,8 @@ export function locate(path: string): { root: string; health: EngagementHealth }
   }
   const looksLike = ["capture", "_registers", "STATE.md"].some(m => existsSync(join(resolve(path), m)));
   return { root: resolve(path), health: { kind: "contradiction",
-    what: looksLike ? "engagement-shaped tree without the _sources/ marker" : "no engagement here: no _sources/ marker on this path or above",
-    repair: "route" } };
+    what: looksLike ? `engagement-shaped tree at ${resolve(path)} without the _sources/ marker` : `no engagement here: no _sources/ marker at ${resolve(path)} or above`,
+    repair: "init" } };
 }
 const hoursSince = (iso: string | number) => Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000);
 /** the clock: pure read over the session record (checkpoints, send-gate crossings) and _sources/new/ mtimes */
@@ -83,16 +84,20 @@ export function ages(root: string): Ages {
   return out;
 }
 /** the engagement snapshot — describes, never commands */
-export function state(root: string): Snapshot {
-  const health = locate(root).health;
+export function state(path: string): Snapshot {
+  // read the LOCATED root, never the subdirectory we were called in (review C6)
+  const { root, health } = locate(path);
   const st = health.kind === "ok" ? ledger.status(root) : { unrouted: [], entries: [], consumed: new Map(), outstanding: new Map() };
   let git: Snapshot["git"];
   try {
     const dirty = execSync("git status --porcelain", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
     git = dirty ? { clean: false, note: "uncommitted changes" } : { clean: true };
   } catch { git = { clean: false, note: "not a git repository" }; }
-  const pinnedShapes = health.kind === "ok"
-    ? definitions.pinned(root).map(d => ({ name: d.name, serviceable: definitions.serviceability(d, root).length === 0 }))
+  // a pin that will not load is a health NOTE, never a throw (review C5): quiet-by-damage is not quiet
+  const pinnedShapes: Snapshot["pinnedShapes"] = health.kind === "ok"
+    ? definitions.pinnedResults(root).map(r => r.defn
+        ? { name: r.name, serviceable: definitions.serviceability(r.defn, root).length === 0 }
+        : { name: r.name, serviceable: false, note: r.error! })
     : [];
   return {
     health, unrouted: st.unrouted,
@@ -115,7 +120,7 @@ export function report(root: string): string {
     `unrouted: ${s.unrouted.length}`,
     `coverage: ${s.coverage.map(c => `${c.slug}:${c.status}`).join(" ") || "(no taxonomy yet)"}`,
     `needs: ${s.needs.length}`, `unsettled asks: ${s.askDebts.unsettled}`, `awaiting response: ${s.askDebts.awaitingResponse}`,
-    `pinned: ${s.pinnedShapes.map(p => `${p.name}${p.serviceable ? "" : " (not serviceable)"}`).join(", ") || "none"}`,
+    `pinned: ${s.pinnedShapes.map(p => `${p.name}${p.serviceable ? "" : ` (not serviceable${p.note ? `: ${p.note}` : ""})`}`).join(", ") || "none"}`,
     `git: ${s.git.clean ? "clean" : s.git.note}`,
     `budget: ${s.budget.remaining}/${s.budget.limit} remaining`,
     `ages: ${[
@@ -127,9 +132,10 @@ export function report(root: string): string {
   return lines.join("\n");
 }
 /** pure read: per-node coverage status + lens conflicts, recomputed every call */
-export function coverage(root: string): NodeCoverage[] {
-  const ents = kernel.entities(root);
-  return kernel.taxonomy(root).map(n => {
+export function coverage(path: string): NodeCoverage[] {
+  const root = locate(path).root;
+  const ents = kernel.entitiesLenient(root);
+  return kernel.taxonomyLenient(root).map(n => {
     const matching = ents.filter(e => e.slug === n.slug || e.slug.startsWith(n.slug + "-"));
     const conflicts: string[] = [];
     let status: CoverageStatus = "outstanding";
@@ -146,8 +152,10 @@ export function coverage(root: string): NodeCoverage[] {
   });
 }
 /** pure read: what a pinned shape (or all) still lacks — standing state as a read */
-export function needs(root: string, deliverable?: string): Need[] {
-  const shapes = definitions.pinned(root).filter(d => !deliverable || d.name === deliverable);
+export function needs(path: string, deliverable?: string): Need[] {
+  const root = locate(path).root;
+  // pins that will not load are reported by state().pinnedShapes as notes; needs describes the shapes that DO load
+  const shapes = definitions.pinnedResults(root).flatMap(r => r.defn ? [r.defn] : []).filter(d => !deliverable || d.name === deliverable);
   const out: Need[] = [];
   for (const d of shapes) for (const g of definitions.serviceability(d, root)) {
     const standing: Standing = { kind: "absent", question: `${d.name}#${g.binding}` };

@@ -12,6 +12,7 @@ import { parse, stringify } from "yaml";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import * as answers from "./answers.ts";
+import * as ledger from "./ledger.ts";
 import type { Finding, FindingId, FindingStatus, Ground } from "./types.ts";
 
 const REG = (root: string) => join(root, "_registers", "findings.yaml");
@@ -29,9 +30,10 @@ function must(r: MutableFinding[], id: FindingId): MutableFinding {
 
 /** mint FIND-nnn; every ground must resolve or the mint refuses by name */
 export function propose(root: string, claim: string, grounds: Ground[], theme?: string): FindingId {
+  if (!grounds.length) throw new Error("finding propose: a finding stands on at least one ground");
   answers.cite(root, grounds); // refuses by name if any ground fails to resolve
   const r = readReg(root);
-  const id = `FIND-${String(r.length + 1).padStart(3, "0")}` as FindingId;
+  const id = ledger.nextId(r.map(f => f.id), "FIND") as FindingId;
   const f: MutableFinding = { id, status: "proposed", claim, grounds: grounds.map(g => typeof g === "string" ? g : g.slug) };
   if (theme !== undefined) f.theme = theme;
   r.push(f); writeReg(root, r);
@@ -39,7 +41,10 @@ export function propose(root: string, claim: string, grounds: Ground[], theme?: 
 }
 /** the human's ruling, in conversation, recorded */
 export function accept(root: string, id: FindingId): void {
-  const r = readReg(root); must(r, id).status = "accepted"; writeReg(root, r);
+  const r = readReg(root); const f = must(r, id);
+  // rejection is TERMINAL: a rejected finding is case law, never revived (review C3)
+  if (f.status === "rejected") throw new Error(`finding accept: ${id} is rejected — rejection is terminal (${f.rejectedReason ?? "no reason recorded"})`);
+  f.status = "accepted"; writeReg(root, r);
 }
 export function reject(root: string, id: FindingId, reason: string): void {
   const r = readReg(root); const f = must(r, id);

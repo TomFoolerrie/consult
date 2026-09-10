@@ -14,7 +14,7 @@
  * re-reads them every call, so an amended shape has no migration step.
  */
 import { parse } from "yaml";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync , mkdirSync, writeFileSync} from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as asksMod from "./asks.ts";
@@ -58,17 +58,23 @@ export function load(name: string, root?: string): Definition {
     }
   }
   for (const blk of raw.blocks) {
+    // fail loud (law 7): an unknown block kind is refused at load, never silently dropped from the render (review C5)
+    if (!["static", "view", "entity-part"].includes(blk?.kind))
+      throw new Error(`definition ${raw.name}: block ${blk?.id ?? "(unnamed)"} names unknown kind "${String(blk?.kind)}" (static/view/entity-part only)`);
     if (blk.kind === "view" && !bindings.has(blk.binding))
       throw new Error(`definition ${raw.name}: view ${blk.id} names missing binding ${blk.binding}`);
   }
-  return { name: raw.name, title: raw.title ?? raw.name, blocks: raw.blocks, bindings, skin: raw.skin };
+  // a skin with no furniture is a skin with an EMPTY requires — defaulted here so assembleJob never throws (review C5)
+  const skin: Skin = { format: raw.skin.format, requires: raw.skin.requires ?? [] };
+  return { name: raw.name, title: raw.title ?? raw.name, blocks: raw.blocks, bindings, skin };
 }
 /** stage 3 as records: every gap between this engagement and this shape */
 export function serviceability(defn: Definition, root: string): ServiceabilityGap[] {
   const gaps: ServiceabilityGap[] = [];
   for (const [bname, b] of defn.bindings) {
     const spec = b as Record<string, string>;
-    if (spec.asks === "accepted" && asksMod.entriesOf(root, "accepted").length === 0 && asksMod.entriesOf(root, "sent").length === 0)
+    // ACCEPTED only (review C5): the information-requests builder renders accepted asks — a sent-only register renders an empty section
+    if (spec.asks === "accepted" && asksMod.entriesOf(root, "accepted").length === 0)
       gaps.push({ binding: bname, missing: "no accepted asks to bind", where: "_registers/asks.yaml" });
     if (spec.findings && findingsMod.renderable(root).length === 0)
       gaps.push({ binding: bname, missing: "no accepted findings to bind", where: "_registers/findings.yaml" });
@@ -92,9 +98,34 @@ export function compilePlan(defn: Definition, root: string): Plan {
 }
 export interface Plan { views: readonly { id: string; builder: string }[]; blocks: readonly Block[]; }
 /** the shapes this engagement has pinned so far — what needs.standing reads */
+/** pin a shipped (or local) definition into this engagement — the one writer of _definitions/ (review B10) */
+export function pin(root: string, name: string): string {
+  load(name, root); // refuses by name if no such definition
+  mkdirSync(join(root, "_definitions"), { recursive: true });
+  const p = join(root, "_definitions", `${name}.yaml`);
+  if (!existsSync(p)) writeFileSync(p, `pin: ${name}\n`);
+  return join("_definitions", `${name}.yaml`);
+}
 export function pinned(root: string): Definition[] {
+  return pinnedResults(root).map(r => {
+    if (r.error) throw new Error(r.error);
+    return r.defn!;
+  });
+}
+/** every pin, loadable or not — a broken pin is a RECORD, never a crash, so state() can report it (review C5) */
+export interface PinResult { name: string; defn?: Definition; error?: string; }
+export function pinnedResults(root: string): PinResult[] {
   const dir = join(root, "_definitions");
   if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort()
-    .map(f => load(f.replace(/\.yaml$/, ""), root));
+  return readdirSync(dir).filter(f => f.endsWith(".yaml")).sort().map(f => {
+    const name = f.replace(/\.yaml$/, "");
+    try {
+      // the pin file's NAME is the name render loads by: a file whose pin:/name: disagrees with it is refused BY NAME (review C5)
+      const raw = parse(readFileSync(join(dir, f), "utf8")) as { pin?: string; name?: string } | null;
+      const declared = raw?.pin ?? raw?.name;
+      if (declared && declared !== name)
+        throw new Error(`definitions.pinned: _definitions/${f} declares "${declared}" but is named "${name}" — a pin is loaded by its file name`);
+      return { name, defn: load(name, root) };
+    } catch (e) { return { name, error: (e as Error).message }; }
+  });
 }

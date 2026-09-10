@@ -7,7 +7,8 @@
  *                               the consultant (agents/consultant.md + agents/system.md + the
  *                               substrate notes below)
  *   <root>/.claude/agents/      the three worker classes (model pinned, tool surface fixed)
- *   <root>/.claude/settings.json  permission allow-list for the engine
+ *   <root>/.claude/settings.json  permission allow-list for the engine (written only if absent — a
+                               customised file is never clobbered; CLAUDE.md, the seat, always is)
  *   the folder skeleton, STATE.md, OBJECTIVE.md, a git repo with a first commit
  * Usage: node --experimental-strip-types harness/install.ts <root> [--objective <file>]
  */
@@ -39,6 +40,16 @@ export function seat(): string {
     "- **Record every dispatch's cost**: the Agent result reports token usage; immediately run",
     "  `consult spend \"<skill> on <class>: <what>\" --estimate <your estimate> --actual <tokens reported>`.",
     "  Estimate BEFORE dispatching; over-budget estimates go to the human first (the spend gate).",
+    "- **The sitting budget is set once by the human's word**: `consult budget set <tokens>` at the start of a",
+    "  sitting (the human names the number; you run the verb — it lands as a gate line). Until it is set the",
+    "  budget is 0 and every spend is refused; that is the intended state, not a bug. A SECOND `budget set`",
+    "  (a new sitting, or a raise) needs `--ruling \"<their words>\"` — you never re-issue the ceiling yourself.",
+    "- **Pin a shape before you need it**: `consult pin information-request` puts the shipped definition into",
+    "  `_definitions/`; `needs` and `render` read only pinned shapes.",
+    "- **Save a skill before you use it**: write the YAML anywhere, then `consult skill save <file>` — the",
+    "  only writer of `_skills/`.",
+    "- **Where a worker's scan report goes**: write it OUTSIDE the stores (e.g. `/tmp/scan-SRC-003.yaml`),",
+    "  then `consult scan SRC-003 /tmp/scan-SRC-003.yaml`; never into `_sources/new/` or `_synthesis/`.",
     "- **The two gates are a question to the human in this chat** — nothing else. Spends over the",
     "  sitting budget, and anything client-facing. Record the answer with `consult gate` or",
     "  `consult ask accept`; then proceed.",
@@ -70,8 +81,11 @@ export function install(root: string, opts: { objective?: string } = {}): string
   put("STATE.md", "# state pad\n## now\nSitting 1: not yet begun.\n## human's standing guidance\n(none yet)\n## precedent\n(none yet)\n## observations\n(none yet)\n");
   put("OBJECTIVE.md", opts.objective ? readFileSync(opts.objective, "utf8") : "# objective\n(the human writes the soft objective here — who the client is, what the relationship is producing; no client facts)\n");
   put("CLAUDE.md", seat(), true);
+  mkdirSync(join(root, "agents"), { recursive: true });
+  copyFileSync(join(REPO, "agents", "system.md"), join(root, "agents", "system.md")); made.push("agents/system.md");
   for (const f of readdirSync(join(REPO, "harness", "agents"))) { copyFileSync(join(REPO, "harness", "agents", f), join(root, ".claude/agents", f)); made.push(join(".claude/agents", f)); }
-  put(".claude/settings.json", JSON.stringify({ permissions: { allow: ["Bash(consult:*)", "Bash(git:*)", "Bash(python3:*)", "Read", "Write", "Edit", "Grep", "Glob"] } }, null, 2) + "\n", true);
+  // CLAUDE.md is the seat — the repo owns it, always regenerated. settings.json is the human's — written only if absent (review C11).
+  put(".claude/settings.json", JSON.stringify({ permissions: { allow: ["Bash(consult:*)", "Bash(git:*)", "Bash(python3:*)", "Read", "Write", "Edit", "Grep", "Glob"] } }, null, 2) + "\n");
   put(".gitignore", ".harness/\n");
   if (!existsSync(join(root, ".git"))) {
     execSync("git init -q && git add -A && git commit -qm 'consult: engagement opened'", { cwd: root });
