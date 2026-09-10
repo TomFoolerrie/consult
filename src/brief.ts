@@ -27,6 +27,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as record from "./record.ts";
+import * as index from "./index.ts";
 
 const SHIPPED = join(dirname(fileURLToPath(import.meta.url)), "..", "kernel", "skills");
 
@@ -72,13 +73,25 @@ export function saveSkill(root: string, tpl: Skill): void {
 /** resolve one skilled unit of work into a printable brief for one worker class */
 export function compose(root: string, name: string, cls: WorkerClass, params: Record<string, unknown>): string {
   const sk = skill(root, name);
+  // A22 — progressive disclosure at dispatch: the brief carries the INDEX (what exists) and the
+  // full CARDS named in params.cards (what those are); CONTENT is named by path, never inlined.
+  const wanted = Array.isArray(params.cards) ? params.cards as string[] : [];
+  const all = index.cards(root);
+  const cardBlock = wanted.flatMap(ref => {
+    const c = index.card(root, ref);
+    const content = all.find(l => l.ref === ref)?.content;
+    return [`### ${ref}`, stringify(c).trimEnd(), ...(content ? [`content: ${content}`] : [])];
+  });
   const lines = [
     `# BRIEF — ${sk.name} on worker-${cls}`,
     `## Mission`, sk.mission,
     `## Write boundary`, sk.writes ?? "nothing — read-only work",
     `## Context`, ...sk.contextContract,
+    `## Index (every item in the engagement — open content only when its card says yes)`,
+    index.render(root) || "(empty engagement)",
+    ...(cardBlock.length ? [`## Cards (in scope for this unit)`, ...cardBlock] : []),
     `## Parameters`,
-    ...Object.entries(params).map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`),
+    ...Object.entries(params).filter(([k]) => k !== "cards").map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`),
     `## Rules (verbatim — these bind whoever works)`, ...sk.rules.map(r => `- ${r}`),
     `## Return contract`, ...sk.returnContract,
   ];

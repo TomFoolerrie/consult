@@ -1,6 +1,6 @@
 # CONSULT v2 — the engagement brain and its consultant
 
-**Status: BUILT — the executable spec is green (51/51).** Every module carries its
+**Status: BUILT — the executable spec is green (66/66).** Every module carries its
 contract as a docstring and its behavior in tests/ (written first, per the method).
 The one remaining seam is Phase 2's docx emitter (py/render_worker) — `render`
 compiles, validates, and builds views today, and refuses by name at the emit step.

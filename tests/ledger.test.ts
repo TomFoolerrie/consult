@@ -102,3 +102,23 @@ test("a scan is NOT a source: route refuses anything under _sources/scans/ — a
   assert.throws(() => ledger.route(root, join(root, path), ["ap-approval"], { provenance: "synthesis", grounds: [src] }),
     (e: Error) => e.message.includes("scan"), "not even as synthesis");
 });
+
+// ── A22: registering a synthesis artifact lands the PRODUCER'S card ────
+import { synthesisFile, sidecarCard } from "./helpers.ts";
+
+test("scan with no report lands the sidecar card beside the source — one card, moved, no second document", () => {
+  const root = bareEngagement();
+  ledger.route(root, stage(root, "raw.csv", "a,b\n1,2"), ["ap-payment"]);
+  const pq = synthesisFile(root, "je-canonical.parquet", "PAR1");
+  sidecarCard(root, pq, { title: "je-canonical", kind: "system-export", summary: "canonical", keyItems: [] });
+  const src = ledger.route(root, pq, ["ap-payment"], { provenance: "synthesis", grounds: ["SRC-001"] });
+  const path = ledger.scan(root, src);
+  assert.equal(path, `_sources/scans/${src}.yaml`);
+  assert.equal(parse(readFileSync(join(root, path), "utf8")).title, "je-canonical");
+});
+
+test("scan with no report and no sidecar is a named refusal", () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "raw.csv", "a,b"), ["ap-payment"]);
+  assert.throws(() => ledger.scan(root, src), (e: Error) => e.message.includes("card") && e.message.includes(src));
+});

@@ -678,3 +678,46 @@ Pending under the same amendment: the kind-shaped scan template
 (system-export → schema-centered; workbook → sheets-centered;
 narrative; correspondence), to be drafted from the human's side-run
 scans.
+
+## Amendment A22 — progressive disclosure (2026-09-10)
+
+The human's premise, from the side run: the schema YAML let an agent
+learn what a dataset was for fifty tokens instead of fifty thousand;
+that must be THE pattern, consistently, organized so agents beyond the
+consultant use it. Ruled and built on branch `v2-cards`:
+
+- **Three tiers, every store; an agent may stop at any:** INDEX (one
+  line per item — what exists) → CARD (one fixed shape — what it is) →
+  CONTENT (opened only when the card says yes).
+- **One card schema everywhere: the A20 scan template** (title, kind,
+  summary, keyItems, kind-specific sections). No second schema. The
+  engine validates the floor (summary, keyItems); the rest rides along.
+- **Where the card lives depends on whether we authored the file:**
+  client sources → `_sources/scans/` (the scan, A20) · authored text →
+  the file's own head (yaml top keys, md frontmatter) · anything we
+  made that cannot carry text (Parquet, docx) → a sidecar beside it,
+  `<stem>.card.yaml` · capture fragments → a `scope:` head key (what it
+  is ABOUT — intent, not summary, so it cannot go stale) · skills → the
+  skill file already is one.
+- **Registering a synthesis artifact lands the producer's card:**
+  `consult scan SRC-nnn` with no report finds the sidecar beside the
+  file and lands it. One card, moved; no haiku pass, no second doc.
+- **Index files are never stored** (a capture manifest stays outlawed,
+  A14 — it is a cache). `consult index [store]` walks the folder on
+  every call; `consult card <ref>` opens one. Ledgers are truth, not
+  cache. Both verbs are context expansion — the third lawful reason.
+- **An item without a card is LISTED with "(no card)", never hidden.**
+  The walk is honest; the missing card is visible debt. `check` gains a
+  seventh check, `cards`: a synthesis artifact with no card is a
+  WARNING (presence only — accuracy is the consultant's; sidecars and
+  lineage notes are not artifacts).
+- **The brief is where the tokens land:** `brief.compose` now carries
+  the index and the full cards named in `params.cards`; content is
+  referenced by path and NEVER inlined. A worker opens content on
+  demand. A fresh sitting reads the same way: pad, objective, `state`,
+  `index`, then content.
+- **Honest limits:** a head card can drift from its body and no check
+  can catch it — hence scope-not-summary on fragments. A fourteenth
+  module, `index.ts`, pure.
+
+Nine acceptance tests, written first; suite 66/66.

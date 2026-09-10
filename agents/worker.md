@@ -60,6 +60,15 @@ deliverable definitions:
   session record, and reusable — later sittings inherit it.
   A local name shadows a shipped one.
 
+## How you read (A22)
+Your brief carries an INDEX (one line per item in the engagement) and
+the CARDS of the items in scope; content is named by path. Read the
+index, read the cards, and open a file only when its card says it is
+the one you need. Anything you produce carries its own card: a
+`scope:` line on a fragment, frontmatter on markdown, a sidecar
+`<stem>.card.yaml` beside anything that cannot carry text. Same schema
+as the scan. No card, no deliverable.
+
 ## The worker's tool surface for data (A21)
 Every class carries Python with DuckDB and pyarrow. Canonical datasets
 are Parquet; analysis is SQL over Parquet; a spreadsheet is something a

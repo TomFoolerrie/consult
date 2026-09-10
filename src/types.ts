@@ -15,6 +15,12 @@ export type FindingId = `FIND-${number}`;
 export type CalloutAddr = `${string}#${string}`;
 export type Ground = SrcId | CalloutAddr | { slug: string };
 
+// the card (A20/A22) — ONE schema for every item's cheap description:
+// the scan template. summary + keyItems are the engine-validated floor;
+// title/kind and kind-specific sections ride along. Describes the ITEM,
+// never the engagement.
+export interface Card { title?: string; kind?: string; summary: string; keyItems: readonly string[]; [section: string]: unknown; }
+
 // the ask lifecycle — ONLY the events the folder cannot show (A18):
 // answered/settled are COMPUTED (answeredBy non-empty; answering sources
 // cited where the ask's questions live), never stored.

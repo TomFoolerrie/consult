@@ -66,3 +66,18 @@ test("registers: a ledger scan pointer that does not resolve to a file is an err
   const errs = check.run(root).filter(d => d.check === "registers");
   assert.equal(errs.length, 1); assert.match(errs[0]!.message, /scan/);
 });
+
+// ── A22 ────────────────────────────────────────────────────────────────
+import { synthesisFile, sidecarCard } from "./helpers.ts";
+test("cards: a synthesis artifact without a card is a WARNING; sidecars and lineage notes are not artifacts", () => {
+  const root = bareEngagement();
+  const src = ledger.route(root, stage(root, "p.pdf", "policy"), ["ap"]);
+  fragment(root, "ap", { statements: [{ text: "x", cites: [src] }] });
+  const pq = synthesisFile(root, "je.parquet", "PAR1");
+  sidecarCard(root, pq, { title: "je", kind: "system-export", summary: "s", keyItems: [] });
+  synthesisFile(root, "je-lineage.md", "# lineage");
+  assert.equal(check.run(root).filter(d => d.check === "cards").length, 0);
+  synthesisFile(root, "orphan.docx", "bytes");
+  const w = check.run(root).filter(d => d.check === "cards");
+  assert.equal(w.length, 1); assert.equal(w[0]!.severity, "warning"); assert.match(w[0]!.file, /orphan\.docx/);
+});

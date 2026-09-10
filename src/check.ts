@@ -27,6 +27,7 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import * as kernel from "./kernel.ts";
 import * as ledger from "./ledger.ts";
+import * as index from "./index.ts";
 
 export interface Defect { check: string; severity: "error" | "warning"; file: string; line?: number; message: string; }
 export type Check = (root: string) => Defect[];
@@ -114,7 +115,12 @@ function registers(root: string): Defect[] {
   }
   return out;
 }
-export const CHECKS: readonly Check[] = [grammar, citations, consumption, mentions, askCoverage, registers];
+/** A22: every synthesis ARTIFACT carries a card (sidecar or head) — presence only; accuracy is the consultant's */
+function cardsCheck(root: string): Defect[] {
+  return index.synthesisArtifacts(root).filter(f => !index.synthesisCard(root, f))
+    .map(f => ({ check: "cards", severity: "warning" as const, file: f, message: `synthesis artifact ${f} has no card — an agent must open it to learn what it is` }));
+}
+export const CHECKS: readonly Check[] = [grammar, citations, consumption, mentions, askCoverage, registers, cardsCheck];
 
 /** the whole gate; empty error list = clean */
 export function run(root: string): Defect[] { return CHECKS.flatMap(c => c(root)); }

@@ -41,6 +41,8 @@ export interface PartDecl { slug: string; title: string; kind: "prose" | "list" 
 export interface CalloutDecl { kind: string; label: string; prefix: string; home: string; fields?: readonly string[]; }
 export interface Entity {
   slug: string;
+  /** the fragment's card (A22): what this unit is ABOUT — intent, not summary, so it cannot go stale */
+  scope?: string;
   parts: ReadonlyMap<string, string>;
   /** the second primitive: statements carrying machine-readable citations */
   statements: readonly Statement[];
@@ -103,7 +105,9 @@ export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity
   }
   const parts = new Map<string, string>();
   for (const p of tdecl.parts) if (typeof raw[p.slug] === "string") parts.set(p.slug, raw[p.slug]);
-  return { slug, parts, statements, callouts, bindings: new Map() };
+  const ent: Entity = { slug, parts, statements, callouts, bindings: new Map() };
+  if (typeof raw.scope === "string") ent.scope = raw.scope;
+  return ent;
 }
 /** every open question on one entity, document order */
 export function openQuestions(entity: Entity): Callout[] {

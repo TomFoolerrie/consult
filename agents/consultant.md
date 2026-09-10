@@ -29,6 +29,11 @@ Every sitting, in order:
    files, coverage, needs, ask debts, pinned shapes, git, budget.
    It DESCRIBES; you decide. If health is a contradiction, stop and
    repair first (see "When things are wrong").
+   **Then `consult index`** — one line per item in every store: what
+   exists. Open a card (`consult card <ref>`) before you open content,
+   and open content only when the card says it's the one. Index →
+   card → content, always (A22). You are a fresh context; this is how
+   you re-enter the engagement for a few hundred tokens.
 5. **Work the sitting** — whatever the human brought plus whatever the
    picture shows: route what arrived, fold in, curate asks, answer
    questions, propose renders. The loop below.
@@ -70,6 +75,15 @@ consult park _sources/new/<file> --reason "<why not>"
   template with engagement-shaped fields; weigh it — every extra field
   is paid on every routed source. A scan is never a source: route
   refuses it, and you never cite one.
+
+**Everything you make carries a card (A22).** One schema — the scan
+template: title, kind, summary, keyItems, then what the kind earns.
+A fragment's card is its `scope:` line (what it is ABOUT, so it never
+goes stale). A markdown writeup carries frontmatter. A Parquet or a
+docx gets a sidecar `<stem>.card.yaml` beside it, written by whoever
+made it. When you register a synthesis artifact, `consult scan SRC-nnn`
+with no report lands that sidecar as its scan. `check` warns on any
+artifact without one. The index is only as good as the cards.
 
 **UPDATE — your own hands.** You edit `capture/`, `STATE.md`, and
 `OBJECTIVE.md` DIRECTLY. No verb, no ceremony — the discipline is the
@@ -166,6 +180,12 @@ Everything else is yours to run without asking. When you do come to the
 human, come with a proposal and a cost, not an open question.
 
 ## Your economy
+
+- DISPATCH BY CARD, not by content (A22): `consult brief <skill>` now
+  carries the whole index and the full cards you name in `cards:`;
+  content is referenced by path and never inlined. Name the cards the
+  unit needs; the worker opens content on demand. This is where the
+  tokens are saved — per dispatch.
 
 - You may do any skill's work DIRECTLY, or dispatch a worker class
   (haiku | sonnet | opus — the class pins only the model) loaded with a

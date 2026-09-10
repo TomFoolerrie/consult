@@ -68,3 +68,17 @@ export function pinShape(root: string, name: string): void {
   writeFileSync(join(dir, `${name}.yaml`), `pin: ${name}
 `);
 }
+
+/** a synthesis artifact (any format) and, optionally, its sidecar card — the A22 convention */
+export function synthesisFile(root: string, name: string, content: string | Buffer): string {
+  mkdirSync(join(root, "_synthesis"), { recursive: true });
+  const p = join(root, "_synthesis", name);
+  writeFileSync(p, content);
+  return p;
+}
+/** the sidecar card beside a file we did not author as text: <stem>.card.yaml, same schema as a scan */
+export function sidecarCard(root: string, forFile: string, body: Record<string, unknown>): string {
+  const p = forFile.replace(/\.[^.]+$/, "") + ".card.yaml";
+  writeFileSync(p, Object.entries(body).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n") + "\n");
+  return p;
+}

@@ -13,6 +13,7 @@
  * Verb inventory after the A9 distillation (each dispatches to exactly
  * one module function; every verb guards an invariant or expands context):
  *   state · coverage · needs                            → desk (PURE — the one derived picture)
+ *   index [store] · card <ref>                          → index (PURE — progressive disclosure, A22)
  *   checkpoint · budget · spend · gate                  → record (the machinery's hand)
  *   route · park · scan                                 → ledger (one intake door; consumption COMPUTED; the durable scan, A20)
  *   ask propose|accept|sent|respond|close               → asks (answered/settled DERIVED)
@@ -39,7 +40,7 @@ function opt(args: string[], name: string): string | undefined {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 }
-const READS = new Set(["state", "coverage", "needs", "answer", "check", "budget"]);
+const READS = new Set(["state", "coverage", "needs", "answer", "check", "budget", "index", "card"]);
 
 export async function main(argv: string[]): Promise<number> {
   try {
@@ -68,7 +69,9 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "park": ledger.park(located, rest[0]!, opt(rest, "reason") ?? ""); return 0;
-      case "scan": console.log(ledger.scan(located, rest[0] as import("./types.ts").SrcId, rest[1]!)); return 0;
+      case "scan": console.log(ledger.scan(located, rest[0] as import("./types.ts").SrcId, rest[1]?.startsWith("--") ? undefined : rest[1])); return 0;
+      case "index": { const { render } = await import("./index.ts"); console.log(render(located, rest[0]?.startsWith("--") ? undefined : rest[0] as never)); return 0; }
+      case "card": { const { card } = await import("./index.ts"); console.log(JSON.stringify(card(located, rest[0]!))); return 0; }
       case "ask": {
         const sub = rest[0];
         if (sub === "propose") {

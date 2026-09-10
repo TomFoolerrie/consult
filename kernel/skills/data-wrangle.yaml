@@ -8,6 +8,7 @@ contextContract:
 returnContract:
   - "the canonical dataset: tabular, stable column names, one row per stated grain, typed once — emitted as PARQUET for key data (a general ledger, a sub-ledger, anything an analysis will query repeatedly); a small lookup may stay CSV. Never a spreadsheet: a workbook is an input format, not a canonical one"
   - "two columns the wrangler always adds: row_id (stable, unique within this canonical) and source_ref (the contributing SRC id + its original locator — sheet and row, or export line). This is what makes a figure citable at row level: SRC-014#row_id walks back to the raw export through the lineage"
+  - "the CARD, mandatory (A22): a sidecar <stem>.card.yaml beside the Parquet — scan-template shape, kind: system-export, with the schema section (columns, types, rowCount, grain, period, keys). Written by you, landed by the consultant at registration; an agent reads it instead of the file"
   - "the lineage note, mandatory: rows in per source · rows out · what was deduplicated and on what key · what was excluded and why · every transformation applied, in order · every place two sources disagreed and BOTH values, flagged by row — never a winner"
   - "a descriptive title for the dataset (e.g. je-canonical-2025q2-v2) — used as the file stem and carried into its scan when the consultant routes it"
   - "the grounds to declare on registration: every SRC id that contributed a row or a rule"

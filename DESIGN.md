@@ -29,7 +29,7 @@ the oracle's surface after the A9 distillation: every deterministic verb either 
      _sources/            ledger.ts owns           sources.yaml, new/, processed/, parked/, scans/ (A20)
      _registers/          asks.ts · findings.ts · record.ts  asks.yaml, findings.yaml, sessions/ (A15/A18)
      _skills/             brief.ts (saveSkill)     consultant-authored skills (variants logged, reusable)
-     _synthesis/          render.ts + workers      work products; registrable as sources (A12)
+     _synthesis/          render.ts + workers      work products + their cards (sidecar or head, A22); registrable as sources (A12)
      capture/             consultant+workers, directly  fragments + _taxonomy/ — flat, no manifest, no areas (A14)
 ```
 
@@ -83,6 +83,7 @@ at read time from the record's physical shape.
 | `src/cli.ts` | nothing | one entry point, every verb, one parser |
 | `src/kernel.ts` | nothing | the grammar: type declarations, parsing, entity/taxonomy enumeration (absorbed engagement.ts, A18) |
 | `src/definitions.ts` | nothing | the deliverable definition language (load, validate, compile) |
+| `src/index.ts` | nothing — pure | progressive disclosure (A22): index → card → content; one card schema; indexes computed every call, never stored |
 | `src/ledger.ts` | `_sources/` | one intake door: route, park, scan, status — consumption COMPUTED from capture citations (A18); the durable scan is a pointer to _sources/scans/ (A20) |
 | `src/asks.ts` | `_registers/asks.yaml` | four stored states (proposed/accepted/sent/closed); answered + settled DERIVED from the record's shape (A18) |
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |

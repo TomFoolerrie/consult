@@ -105,10 +105,16 @@ export function route(root: string, file: string, intent: string[], opts?: { pro
 }
 /** the one scan writer (A20): validate the report against the default template, land it as
  * _sources/scans/SRC-nnn.yaml (overwriting any earlier scan), point the ledger entry at it */
-export function scan(root: string, src: SrcId, reportFile: string): string {
+export function scan(root: string, src: SrcId, reportFile?: string): string {
   const b = readBook(root);
   const e = b.entries.find(e => e.id === src);
   if (!e) throw new Error(`scan: ${src} not in the ledger`);
+  if (reportFile === undefined) {
+    // A22: no report given — land the PRODUCER'S sidecar card beside the source (a registered synthesis artifact)
+    const side = join(root, e.file).replace(/\.[^.]+$/, "") + ".card.yaml";
+    if (!existsSync(side)) throw new Error(`scan: ${src} has no sidecar card beside ${e.file} and no report was given`);
+    reportFile = side;
+  }
   if (!existsSync(reportFile)) throw new Error(`scan: no such report ${reportFile}`);
   const report = parse(readFileSync(reportFile, "utf8"));
   for (const k of ["summary", "keyItems"] as const)

@@ -7,6 +7,7 @@ returnContract:
   - "exactly what the mission names — nothing outside the write boundary"
 rules:
   - "read the brief first; do exactly what it says"
+  - "the fragment's scope: line is its card (A22) — one line saying what this unit is ABOUT (its intent), never a summary of what it says; fill it on a new fragment, leave it alone on an edit unless the scope itself changed"
   - "never judgment the skill does not license"
 recommendedClass: sonnet
 origin: shipped
