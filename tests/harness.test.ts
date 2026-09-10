@@ -44,7 +44,7 @@ test("the scripted client answers only SENT asks, by substring match, honoring n
   writeFileSync(join(dir, "responses/reorg.md"), "Dana reports to Tomás.");
   writeFileSync(join(dir, "responses/dodge.md"), "We'll get back to you on that.");
   writeFileSync(join(dir, "script.yaml"), `responses:
-  - { topic: reporting-line, match: [reporting line], file: responses/reorg.md, behavior: answer }
+  - { topic: reporting-line, match: [reporting line, 1000, 2025-01-01], file: responses/reorg.md, behavior: answer }   # non-string YAML terms must coerce
   - { topic: expedite, match: [expedite], file: responses/dodge.md, behavior: non-answer }
   - { topic: duplicates, match: [duplicate], behavior: silence }
 `);

@@ -27,7 +27,8 @@ export interface Delivery { ask: string; topic: string; behavior: ScriptEntry["b
 
 export function loadScript(path: string): ScriptEntry[] {
   const raw = parse(readFileSync(path, "utf8")) as { responses?: ScriptEntry[] };
-  return (raw?.responses ?? []).map(e => ({ ...e, match: e.match ?? [e.topic] }));
+  // YAML may parse a match term as a number or date ("1,000", "2025-01-01"); every term is a string here
+  return (raw?.responses ?? []).map(e => ({ ...e, match: (e.match ?? [e.topic]).map(m => String(m)) }));
 }
 /** which sent asks the script answers, and how — pure */
 export function plan(asks: { id: string; status: string; text: string }[], script: ScriptEntry[]): Delivery[] {
