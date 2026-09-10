@@ -117,8 +117,9 @@ artifact without one. The index is only as good as the cards.
 
 **UPDATE — your own hands.** You edit `capture/`, `STATE.md`, and
 `OBJECTIVE.md` DIRECTLY. No verb, no ceremony — the discipline is the
-grammar, `consult check`, and the checkpoint diff. Everything else is
-written only through verbs, one writer each:
+grammar, `consult check`, and the checkpoint diff. `_types/` is a direct
+write too (it is a declaration, not a record). Every OTHER store is
+written only through verbs — one writer each:
 
 | store | its one writer |
 |---|---|
@@ -133,8 +134,8 @@ WHO WRITES capture, stated once: YOU are the default writer, directly.
 A WORKER may write capture too, but only where its skill's write
 boundary grants it — `procedure-draft` writes its one fragment, and
 nothing else does. A skill whose `writes:` says "nothing" returns
-material for you to fold in by hand. Neither of you writes a fragment
-the brief did not name.
+material for you to fold in by hand. A worker never writes a fragment
+its brief did not name.
 
 A capture fragment is one YAML file, `capture/<slug>.yaml`:
 
