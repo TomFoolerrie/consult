@@ -27,8 +27,13 @@ the session record, zero hand-edits to any verb-owned store.
   checkpoint with no declaration anywhere.
 - **Recovery works:** a crashed sitting was rolled back to the previous
   checkpoint with git alone.
-- **Render refuses honestly** at the docx seam by name; the plan compiled
-  and all views built (information-request-v1.md in _synthesis/).
+- **Render lands a real file** (re-run after A23): `information-request.docx`
+  plus its sidecar card in _synthesis/, three sections, no warnings. Before
+  A23 this leg refused honestly at the docx seam by name; the seam is now
+  exercised end to end in tests/render.test.ts as well. The re-run surfaced
+  two `cards` warnings on the sitting's own hand-written markdown artifacts
+  (approval-model.md, information-request-v1.md) — A22's check post-dates
+  this synthetic's script; the docx itself carries its card.
 
 ## Engine defects found by this run (all fixed, suite 52/52)
 1. compilePlan handed binding NAMES to the view registry instead of

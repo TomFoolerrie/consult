@@ -1,4 +1,4 @@
-/** SITTING 2 — the ask round: curate, gate, send, render-refusal, responses back, fold, synthesis. */
+/** SITTING 2 — the ask round: curate, gate, send, render, responses back, fold, synthesis. */
 import { writeFileSync, readFileSync, copyFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,10 +23,9 @@ const a3 = asks.propose(root, "The June sample shows two Kessler Tooling invoice
 // the human's yes at the gate (scripted human approves all three)
 for (const id of [a1, a2, a3]) asks.accept(root, id as never);
 
-// demand-driven render of the information request: MUST refuse at the docx seam, by name
-try { await render.deliverable(root, "information-request"); out.render = "UNEXPECTED SUCCESS"; }
-catch (e) { out.renderRefusal = (e as Error).message; }
-// the views themselves build — proof the plan compiles even though emit is Phase 2
+// demand-driven render of the information request through the docx seam (A23): a real file + its card
+out.render = await render.deliverable(root, "information-request");
+// the same views as markdown — the consultant's own working copy
 const plan = definitions.compilePlan(definitions.load("information-request", root), root);
 const views = render.build(root, plan);
 writeFileSync(join(root, "_synthesis/information-request-v1.md"), `# Information Request — Meridian AP\n\n${[...views.values()].join("\n\n")}\n`);

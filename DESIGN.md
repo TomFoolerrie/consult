@@ -89,11 +89,11 @@ at read time from the record's physical shape.
 | `src/findings.ts` | `_registers/findings.yaml` | the findings register (propose→accept/reject) |
 | `src/answers.ts` | nothing (pure) | the question interface: grounded answers with standing |
 | `src/check.ts` | nothing | the QC gate: seven mechanical checks, no signal files |
-| `src/render.ts` | `_synthesis/` | any definition → .docx + the BUILDERS registry (absorbed views.ts, A18); views never files (R1) |
+| `src/render.ts` | `_synthesis/` | any definition → .docx + its card, via the versioned job to the py seam (A23) + the BUILDERS registry (absorbed views.ts, A18); views never files (R1) |
 | `src/desk.ts` | nothing (pure) | the ONE derived picture: state/report, coverage, needs, locate — writes nothing, ever (A18) |
 | `src/record.ts` | git + `_registers/sessions/` | the machinery's hand: checkpoint, sessionAppend, budget, spend, gate — BOTH gates auditable (A18) |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill, compose(name, class, params) |
-| `py/render_worker` | `_synthesis/` (via render.ts) | the one Python seam: a bounded docx formatter that never thinks |
+| `py/render_worker.py` | `_synthesis/` (via render.ts) | the one Python seam, built (A23): a bounded docx formatter that never thinks — job v1 in, {path, sections, warnings} out |
 
 ## The seven core laws (A16)
 

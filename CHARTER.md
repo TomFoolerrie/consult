@@ -733,3 +733,25 @@ artifact shows one card on both its lines, cross-referenced by SRC id;
 no-report scan path is synthesis-only; unknown store names are refused.
 
 Seventeen acceptance tests, written first; suite 74/74.
+
+## Amendment A23 — the docx seam, built (2026-09-10)
+
+The one Python seam the language ruling reserved (2026-08-26) is built.
+`render.deliverable` now compiles, checks serviceability, builds the
+views in-memory, and — in a pure, exported `assembleJob` — turns the
+plan into a versioned job: `{ version: 1, title, draft, skin: { format,
+requires }, sections: [{ id, title, body }], out }`, sections in BLOCK
+order, static blocks bringing their text and view blocks their built
+body. `py/render_worker.py` (python-docx, stdlib otherwise) reads that
+job on stdin, draws the title page, the DRAFT line and header when
+drafted, one Heading 1 per section, and the builders' light markup
+(bullets, `###` headings, paragraphs); it answers `{ path, sections,
+warnings }` and decides nothing. Every render lands its sidecar card
+beside the docx (A22) — `check` stays quiet. Three named refusals, at
+the render verb only: python3 not available; the worker missing (its
+path named); the worker failing (stderr's first line). No gate is
+added — a client-bound render crosses the send gate by the consultant's
+hand (A18). CLI: `render <deliverable> [--draft] [--out path]`.
+
+Six acceptance tests, written first; suite 80/80. Synthetic #1's
+sitting 2 re-run: the render leg now lands a real file.

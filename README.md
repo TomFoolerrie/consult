@@ -2,9 +2,9 @@
 
 **Status: BUILT — the executable spec is green (74/74).** Every module carries its
 contract as a docstring and its behavior in tests/ (written first, per the method).
-The one remaining seam is Phase 2's docx emitter (py/render_worker) — `render`
-compiles, validates, and builds views today, and refuses by name at the emit step.
-Next: synthetic engagement #1.
+The docx seam is built (A23): `render` compiles, validates, builds views, assembles
+a versioned job, and hands it to py/render_worker.py — the one Python file — which
+formats the .docx and nothing else; the card lands beside it. Suite 80/80.
 
 The ruled charter is `CHARTER.md`. The module map and data flow are `DESIGN.md`.
 The old engine (shipped as 2.0–2.5.1, retroactively the v1 line's final form) lives on
