@@ -4,6 +4,10 @@
 name: process-step
 parts:
   - { slug: body, title: "What happens", kind: prose }
+# The question kind lives in the fragment's `questions:` list (the engine
+# joins the registers on it). Every OTHER kind below is live vocabulary a
+# fragment carries in a top-level `callouts:` list of { kind, id, text }
+# (plus any declared `fields`); an undeclared kind is refused by name.
 callouts:
   - { kind: question, label: "QUESTION", prefix: Q, home: questions }
   - { kind: control,  label: "CONTROL",  prefix: C, home: callouts }
