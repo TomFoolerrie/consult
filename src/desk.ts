@@ -66,7 +66,7 @@ export function locate(path: string): { root: string; health: EngagementHealth }
   }
   const looksLike = ["capture", "_registers", "STATE.md"].some(m => existsSync(join(resolve(path), m)));
   return { root: resolve(path), health: { kind: "contradiction",
-    what: looksLike ? "engagement-shaped tree without the _sources/ marker" : "no engagement here: no _sources/ marker on this path or above",
+    what: looksLike ? `engagement-shaped tree at ${resolve(path)} without the _sources/ marker` : `no engagement here: no _sources/ marker at ${resolve(path)} or above`,
     repair: "init" } };
 }
 const hoursSince = (iso: string | number) => Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000);

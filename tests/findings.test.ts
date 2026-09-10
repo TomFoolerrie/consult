@@ -28,7 +28,6 @@ test("accepted findings render; rejection is terminal and KEPT as case law", () 
 });
 
 test("rejection is TERMINAL: accepting a rejected finding is refused BY NAME, and the rejection stands",
-  { todo: "RED until review-b lands: findings.accept currently overwrites status unconditionally, so a rejected finding can be silently resurrected." },
   () => {
   const root = bareEngagement();
   const src = ledger.route(root, stage(root, "p.pdf", "policy"), ["ap"]);

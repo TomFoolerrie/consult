@@ -119,7 +119,6 @@ test("cards: a synthesis artifact without a card is a WARNING; sidecars and line
 
 // ── ask coverage: settlement's SECOND branch ───────────────────────────
 test("settle by REMOVING the question record leaves check clean — the docstring's second branch",
-  { todo: "RED on this branch: askCoverage errors on an address whose question record was removed, which is exactly how the second settlement branch settles. Lands with the src fix." },
   () => {
   const root = bareEngagement();
   fragment(root, "ap-approval", { questions: [{ id: "Q-1", text: "Who approves under $10k?" }] });

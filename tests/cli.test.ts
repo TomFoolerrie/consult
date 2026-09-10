@@ -84,7 +84,6 @@ test("locate: no engagement root at all — exit 2, and the refusal names the MA
 });
 
 test("locate: the refusal names the PATH it looked at — the offender here is the FOLDER",
-  { todo: "RED on this branch: desk.locate says \"on this path or above\" without naming the path, so tests/README's \"every refusal names the offender\" is not yet true of this one. Lands with the src fix." },
   async () => {
   const plain = await plainDir();
   const r = await run(["state", "--root", plain]);
