@@ -1,32 +1,70 @@
-# kernel — the declarative half (MOCK-OUT)
+# kernel — the declarative half
 
-Four files ship, all ported from the oracle at build time with v1 residue
-removed (no aliases, no activity type):
+Three directories ship, all ported from the oracle at build time with v1
+residue removed (no aliases, no activity type): `types/`, `deliverables/`,
+`skills/`.
+
+## types/ — the capture grammar, as the YAML actually declares it
+
+`types/process-step.yaml` — the capture substrate.
 
 ```
-types/process-step.yaml          the capture substrate: scope / inputs /
-                                 transformation / outputs / controls / issues.
-                                 Callouts: the engine-required QUESTION record,
-                                 plus shipped DEFAULT vocabulary (CONTROL with
-                                 Performer/Comparison/Trigger/Evidence, PAIN
-                                 POINT, IMPROVEMENT OPPORTUNITY) — amendable
-                                 per engagement; skills bind to declared kinds.
-                                 No SCREENSHOT PLACEHOLDER; no aliases.
-types/taxonomy-node.yaml         one part (scope), the question record only
-                                 (a question naming two sources IS the
-                                 lens-conflict record)
-deliverables/information-request.yaml   the ask loop's front door — curated
-                                 asks lead, mechanical feeds as appendix
-deliverables/findings-report.yaml       accepted findings by theme
+parts     body — "What happens", kind: prose        (ONE part)
+callouts  question  QUESTION       prefix Q   → questions
+          control   CONTROL        prefix C   → callouts
+          pain      PAIN POINT     prefix P   → callouts
+          io        INPUT/OUTPUT   prefix IO  → callouts, fields: direction, artifact
+channels  statements · questions
 ```
 
-A fourth directory joins at build time: `skills/` — the SHIPPED work
-shapes (procedure-draft, source-read, assessment, data-analysis,
-data-wrangle, intake-scan), each
-declaring mission, write boundary, context contract, return contract,
-rules, and a recommended worker class. Engagement-authored skills live
-in `<root>/_skills/` and shadow shipped ones by name — the consultant
-authors them ad-hoc (always saved before use, logged, reusable).
+`types/taxonomy-node.yaml` — one part (`scope`, prose), the QUESTION
+callout only, the same two channels. A question naming two sources IS
+the lens-conflict record, so the node needs no separate conflict shape.
+
+The engine hard-codes exactly ONE callout kind: `question` — the
+registers join on it. Everything else above is SHIPPED DEFAULT
+vocabulary, declared here and amendable per engagement: a
+`<root>/_types/<name>.yaml` shadows the shipped declaration by name.
+Skills bind to declared kinds; they never define schema. There is no
+SCREENSHOT PLACEHOLDER and there are no aliases.
+
+## deliverables/ — the two shipped shapes
+
+```
+information-request.yaml   the ask loop's front door — curated asks lead,
+                           mechanical feeds as appendix
+findings-report.yaml       accepted findings by theme
+```
+
+Neither is auto-pinned. An engagement pins the shapes it wants with
+`consult pin <name>`, which writes `<root>/_definitions/<name>.yaml`; a
+local definition of the same name shadows the shipped one.
+
+## skills/ — the eight shipped work shapes
+
+| skill | writes | recommended class |
+|---|---|---|
+| `intake-scan` | nothing — the report is returned and landed by `consult scan` | haiku |
+| `source-read` | nothing | haiku |
+| `procedure-draft` | its one capture fragment | sonnet |
+| `data-wrangle` | `_synthesis/` — one canonical dataset + its lineage note | sonnet |
+| `data-analysis` | nothing | sonnet |
+| `interview-guide` | `_synthesis/` — one markdown agenda | sonnet |
+| `narrative-draft` | `_synthesis/` — one markdown document | sonnet |
+| `assessment` | nothing — proposals are returned | opus |
+
+Each declares mission, write boundary (`writes`), context contract,
+return contract, rules, and a RECOMMENDED class — advisory: the
+consultant may override with a recorded reason, because class and skill
+are two independent dials.
+
+Engagement-authored skills live in `<root>/_skills/` and shadow shipped
+ones by name. The consultant authors them ad-hoc and saves them with
+`consult skill save <file>` before use — always saved, logged, reusable.
+A capture template is not new machinery: a capture shape IS a skill, a
+`procedure-draft` variant authored per engagement.
+
+## Why analyses are not verbs
 
 Analyses are skills, not engine verbs (A9): the four analysis lenses the
 old engine hard-coded (pain-synthesis, control-coverage, conflict-support,

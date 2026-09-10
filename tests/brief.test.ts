@@ -26,7 +26,8 @@ test("compose resolves skill + class + params into one printable brief carrying 
 });
 
 // ── A22: the brief carries the index and the named cards, never content ─
-import { writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { stage, synthesisFile, sidecarCard } from "./helpers.ts";
 import * as ledger from "../src/ledger.ts";
@@ -34,7 +35,10 @@ import * as ledger from "../src/ledger.ts";
 test("compose includes the index for the stores in scope and the full cards named in params — content is listed by path, not inlined", () => {
   const root = bareEngagement();
   const src = ledger.route(root, stage(root, "policy.md", "SECRET BODY TEXT of the policy"), ["ap-approval"]);
-  const rep = join(root, "_synthesis", "r.yaml"); writeFileSync(rep, "title: approval-policy\nkind: narrative\nsummary: the policy\nkeyItems: [\"$10k threshold\"]\n");
+  // the scout report lives OUTSIDE the root until `consult scan` lands it (A20) —
+  // staging it in _synthesis/ would put a stray card into the very index under test
+  const rep = join(mkdtempSync(join(tmpdir(), "scout-")), "r.yaml");
+  writeFileSync(rep, "title: approval-policy\nkind: narrative\nsummary: the policy\nkeyItems: [\"$10k threshold\"]\n");
   ledger.scan(root, src, rep);
   const pq = synthesisFile(root, "je.parquet", "PAR1 SECRET BYTES");
   sidecarCard(root, pq, { title: "je-canonical", kind: "system-export", summary: "canonical JEs", keyItems: [] });

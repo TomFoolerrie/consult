@@ -36,8 +36,16 @@ test("the engine hard-codes ONE callout kind (question); other vocabulary is ame
   const root = bareEngagement();
   const t = kernel.loadType(root, "process-step");
   assert.ok(t.callouts.some(c => c.kind === "question"), "question record always known");
-  // shipped default vocabulary present but engagement-amendable — declared, not hard-coded
-  assert.ok(t.callouts.length >= 1);
+  // the shipped default vocabulary, exactly as process-step.yaml declares it: four kinds in
+  // declaration order, only ONE of which the engine itself knows (question — the registers
+  // join on it). The other three are amendable per engagement via _types/, so pinning the
+  // exact list is what makes an accidental engine-side addition visible.
+  assert.deepEqual(t.callouts.map(c => c.kind), ["question", "control", "pain", "io"]);
+  assert.deepEqual(t.callouts.map(c => c.prefix), ["Q", "C", "P", "IO"]);
+  assert.deepEqual(t.callouts.map(c => c.home), ["questions", "callouts", "callouts", "callouts"]);
+  // the taxonomy node declares the question record and nothing else
+  const n = kernel.loadType(root, "taxonomy-node");
+  assert.deepEqual(n.callouts.map(c => c.kind), ["question"]);
 });
 
 test("a two-source question parses as the question callout with an address — the lens-conflict record", () => {

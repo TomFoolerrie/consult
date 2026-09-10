@@ -29,8 +29,19 @@ Every sitting, in order:
    files, coverage, needs, ask debts, pinned shapes, git, budget.
    It DESCRIBES; you decide. If health is a contradiction, stop and
    repair first (see "When things are wrong").
-   **Then `consult index`** — one line per item in every store: what
-   exists. Open a card (`consult card <ref>`) before you open content,
+   **Set the sitting budget.** The human names the number; you run
+   `consult budget set <n>`. Until it is set the limit is 0, so every
+   spend with a nonzero estimate is refused until a spend gate names it —
+   by design, not by accident. If the human has not named a number, ask
+   for it before you dispatch anything. Setting the budget also resets
+   the sitting's spent-so-far to zero and lands a gate line naming who
+   set the ceiling.
+   **Then `consult index`** — one line per item in the four INDEXED
+   stores: `_sources`, `_synthesis`, `capture`, `_skills`. The rest are
+   not indexed and do not need to be: the registers are small enough to
+   read whole, the two prose pads you read every sitting, and
+   `_definitions/` / `_types/` you open when you touch a shape.
+   Open a card (`consult card <ref>`) before you open content,
    and open content only when the card says it's the one. Index →
    card → content, always (A22). You are a fresh context; this is how
    you re-enter the engagement for a few hundred tokens.
@@ -82,11 +93,23 @@ consult park _sources/new/<file> --reason "<why not>"
   template with engagement-shaped fields; weigh it — every extra field
   is paid on every routed source. A scan is never a source: route
   refuses it, and you never cite one.
+- WHERE THE SCOUT REPORT GOES BEFORE YOU LAND IT: outside the stores.
+  The worker returns the report, or writes it to a scratch path outside
+  the engagement root — `/tmp/scan-SRC-003.yaml` is the shape.
+  `consult scan` copies it into `_sources/scans/`. Never stage a scout
+  report in `_sources/new/` (it would route as a source) and never in
+  `_synthesis/` (everything there is registrable, therefore citable —
+  a cheap-model précis one route away from grounding material is exactly
+  the laundering the audit trail exists to prevent, A20).
 
 **Everything you make carries a card (A22).** One schema — the scan
 template: title, kind, summary, keyItems, then what the kind earns.
 A fragment's card is its `scope:` line (what it is ABOUT, so it never
-goes stale). A markdown writeup carries frontmatter. A Parquet or a
+goes stale). A markdown writeup carries frontmatter. A YAML artifact we
+authored carries its card as a top-level `card:` key — NEVER its own top
+level keys: the body is content, and a body that happens to have a
+`summary:` key is not a card. (That rule is what stops a brief inlining
+content by accident.) A Parquet or a
 docx gets a sidecar `<stem>.card.yaml` beside it, written by whoever
 made it. When you register a synthesis artifact, `consult scan SRC-nnn`
 with no report lands that sidecar as its scan. `check` warns on any
@@ -94,8 +117,25 @@ artifact without one. The index is only as good as the cards.
 
 **UPDATE — your own hands.** You edit `capture/`, `STATE.md`, and
 `OBJECTIVE.md` DIRECTLY. No verb, no ceremony — the discipline is the
-grammar, `consult check`, and the checkpoint diff. Everything else
-(`_sources/`, `_registers/`, `_skills/`) is written only through verbs.
+grammar, `consult check`, and the checkpoint diff. `_types/` is a direct
+write too (it is a declaration, not a record). Every OTHER store is
+written only through verbs — one writer each:
+
+| store | its one writer |
+|---|---|
+| `_sources/` (incl. `scans/`) | `route` · `park` · `scan` · retirement at `checkpoint` |
+| `_registers/` | `ask …` · `finding …` · the machinery (`spend`, `gate`, `budget set`, `checkpoint`) |
+| `_skills/` | `consult skill save <file>` — the ONE writer; a skill is never run from raw prompt text |
+| `_definitions/` | `consult pin <definition>` — the ONE writer that PINS a shape (it never overwrites); amending an already-pinned shape is a direct edit of that one file |
+| `_synthesis/` | `consult render` and workers whose skill's write boundary names it |
+| `_types/` | you, directly — engagement overlays that AMEND the shipped vocabulary (a `_types/process-step.yaml` shadows the shipped declaration by name) |
+
+WHO WRITES capture, stated once: YOU are the default writer, directly.
+A WORKER may write capture too, but only where its skill's write
+boundary grants it — `procedure-draft` writes its one fragment, and
+nothing else does. A skill whose `writes:` says "nothing" returns
+material for you to fold in by hand. A worker never writes a fragment
+its brief did not name.
 
 A capture fragment is one YAML file, `capture/<slug>.yaml`:
 
@@ -132,8 +172,27 @@ naming both sources — **you never adjudicate a conflict**: both claims,
 both ids, a question, and an ask. Removing a question record is your
 judgment that it is answered; the ask register remembers it was asked.
 
-The taxonomy is yours to shape: `capture/_taxonomy/<slug>.yaml` with
-`type: taxonomy-node` and a `scope:` line. Partition by the objective,
+The taxonomy is yours to shape — `capture/_taxonomy/<slug>.yaml`:
+
+```yaml
+slug: approval                                       # REQUIRED — no slug, no node
+type: taxonomy-node
+scope: "how a spend gets approved, end to end"       # the card (A22)
+statements: []
+questions: []
+```
+
+THE JOIN IS BY SLUG PREFIX. A node covers the fragment named exactly
+like it AND every fragment whose slug starts with `<node>-`: node
+`approval` covers `approval`, `approval-thresholds`, `approval-
+delegation`. That is how `coverage` and `needs` find a node's material,
+so a fragment's slug is a routing decision, not a label. A fragment
+named EXACTLY like a node is legal and covered — but then
+`consult card approval` is ambiguous between the node and the fragment
+and is refused by name. So prefer `node-topic` names for fragments and
+keep the bare name for the node.
+
+Partition by the objective,
 not by the sources: nodes are PROCESS (approval, payment, submission),
 never documents. "the policy" or "the Q2 export" is not a node — what a
 source says lands under the process it describes; what a source IS
@@ -145,9 +204,18 @@ nodes and had to flag them itself.)
 ```
 consult answer "<question>"        grounded answer, standing on every statement
 consult coverage · consult needs   where the record is thin, what shapes lack
+consult pin <definition>           pin (or amend) a deliverable shape into _definitions/ — the ONE writer of that store; shipped shapes are NOT auto-pinned, so pin before you render
 consult render <deliverable>       compile + build a pinned shape on demand — render AFTER accepting the asks it carries (rendered before `ask accept`, an information request has an empty Requests section)
 consult finding propose "<text>" --grounds SRC-001,slug#Q-3 [--theme t]
 ```
+
+`pin` refuses an unknown definition by name, then writes
+`_definitions/<name>.yaml` — a one-line pointer (`pin: <name>`) at the
+shipped shape. It NEVER overwrites a file already there, so pinning is
+safe to re-run. To AMEND a shape, write the full definition YAML at that
+same path: `needs` and `render` re-read `_definitions/` every call, so
+an amended shape has no migration step. Adding a deliverable stays a
+YAML-sized act.
 
 "Absent — and here is the ask that would close it" is a complete
 answer. Never fill a gap with your own plausible guess.
@@ -177,10 +245,18 @@ consult ask close ASK-001 --reason "<why>"     (or close a question: slug#Q-9)
   artifact closes many gaps. But if the objective needs something, it
   needs something.
 
-## The two gates — your only trips to the human
+## The two gates
 
-1. **SPENDS over the sitting budget.** `consult spend` refuses an
-   over-budget spend unless the human has ruled:
+There are TWO gates, and only two. They are the two things you may not
+do on your own authority. They are not the only times you talk to the
+human — you talk to the human constantly; you are BLOCKED at exactly
+two places.
+
+1. **SPENDS over the sitting budget.** The human names the sitting's
+   number and you set it: `consult budget set <n>`. Until it is set the
+   limit is 0 and nothing with a nonzero estimate goes through.
+   `consult spend` then refuses an over-budget spend unless the human
+   has ruled:
    `consult gate --kind spend --what "<what>" --ruling "<their words>"`.
    Log every dispatch: `consult spend "<label>" --estimate N --actual N`.
 2. **ANYTHING CLIENT-FACING.** Nothing crosses to the client without the
@@ -191,13 +267,37 @@ consult ask close ASK-001 --reason "<why>"     (or close a question: slug#Q-9)
 Everything else is yours to run without asking. When you do come to the
 human, come with a proposal and a cost, not an open question.
 
+### Findings — the brain's opinions, and who rules on them
+
+**Findings are NOT a third gate.** They do not block anything and they
+do not queue up waiting for a ceremony.
+
+- You PROPOSE; you never accept your own finding. `consult finding
+  propose "<claim>" --grounds …` is the whole of your authority here.
+- Accept and reject are the HUMAN'S RULING on your opinions, given in
+  conversation, whenever the human chooses. You run the verb that
+  records the ruling they gave you — `consult finding accept FND-002`
+  or `consult finding reject FND-003 --reason "<their words>"` — you do
+  not originate it.
+- You SURFACE proposed findings in your sitting summary, alongside
+  everything else you did. That is the surfacing; there is no waiting.
+- You never block on an unruled finding. Propose it, surface it, carry
+  on. An unruled proposal is a normal, healthy state of the register —
+  it is not a debt and it is not a defect.
+- Rejection is terminal and KEPT: a rejected finding stays in the
+  register as case law, with its reason, so the same claim does not
+  come back around unexamined. Only accepted findings render.
+
 ## Your economy
 
 - DISPATCH BY CARD, not by content (A22): `consult brief <skill>` now
-  carries the whole index and the full cards you name in `cards:`;
-  content is referenced by path and never inlined. Name the cards the
-  unit needs; the worker opens content on demand. This is where the
-  tokens are saved — per dispatch.
+  carries the scoped index and the full cards you name with
+  `--cards a,b`; content is referenced by path and never inlined. Name
+  the cards the unit needs; the worker opens content on demand. This is
+  where the tokens are saved — per dispatch.
+- The skill's own parameters come from `--param k=v`, repeatable:
+  `consult brief data-analysis --class sonnet --cards SRC-001 \
+      --param question="are there duplicate payments?" --param period=2025Q2`
 
 - You may do any skill's work DIRECTLY, or dispatch a worker class
   (haiku | sonnet | opus — the class pins only the model) loaded with a
@@ -207,7 +307,11 @@ human, come with a proposal and a cost, not an open question.
   including you when you do it yourself.
 - You may AUTHOR skills — from scratch or as a variant — but always
   SAVED to `_skills/` before use (never run from raw prompt text) and
-  logged. A local skill shadows a shipped one by name. Later sittings
+  logged. Write the skill YAML anywhere and save it with
+  `consult skill save <file>` — the one writer of `_skills/`; it
+  validates the shape (name, mission, list-shaped contracts, a
+  recommendedClass that is haiku | sonnet | opus) and logs the save to
+  the session record. A local skill shadows a shipped one by name. Later sittings
   inherit your skills like your pad. Analyses ARE skills (A9): the
   engine pre-declares no analysis verbs; a new lens is a new skill.
 - TOKEN ASYMMETRY: input is cheap on strong models, output is dear.
@@ -231,8 +335,9 @@ human, come with a proposal and a cost, not an open question.
 
 ## Your record
 
-- `STATE.md` is your ONE free-prose file — never parsed by machinery.
-  Keep these sections current: **now** (what this sitting is doing, what
+- `STATE.md` and `OBJECTIVE.md` are your TWO prose files — both written
+  directly by your own hands, neither ever parsed by machinery.
+- `STATE.md` is the pad. Keep these sections current: **now** (what this sitting is doing, what
   is mid-flight), **human's standing guidance**, **precedent** (your
   case law — rulings and hardened judgments a new sitting inherits),
   **observations** (out-of-lane notes, yours and your workers', each
@@ -254,6 +359,14 @@ human, come with a proposal and a cost, not an open question.
   Warnings are judgment calls; note in the pad why you left one.
 - **Health: contradiction** — the engine blockades state-changing verbs
   and names the one repair verb. Run the repair, re-check, then proceed.
+- **"no engagement here"** — the folder has no `_sources/` marker, so
+  the engine will not treat it as an engagement at all and refuses every
+  verb, reads included. If the tree is otherwise engagement-shaped
+  (a pad, an objective, capture) this is the damage case, and the repair
+  verb is `consult init`: it creates `_sources/` and the rest of the
+  skeleton without touching anything already there. If the tree is NOT
+  an engagement, you are in the wrong folder — say so rather than
+  initialising one.
 - **Dirty or broken mid-sitting state** — the checkpoint history is your
   recovery line: the record at the last checkpoint was checked and
   committed. Say so in the pad, recover, re-do the lost work through

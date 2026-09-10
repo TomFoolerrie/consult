@@ -3,11 +3,18 @@ mission: "Analyze the provided structured data per the brief's question; return 
 writes: "nothing"
 contextContract:
   - "the brief resolves every file, source, and register slice in scope"
+  - "the brief carries the analytical question, the dataset(s) in scope with their cards (schema, grain, period, rowCount), and the registered CANONICAL dataset's SRC id if one exists"
 returnContract:
-  - "exactly what the mission names — nothing outside the write boundary"
+  - "the answer to the brief's question as FIGURES: each one a number with its unit and its population (what was counted, over what period, out of how many rows), never a bare number in prose"
+  - "for every figure, the QUERY that produced it — the SQL, verbatim and re-runnable — plus the dataset it ran against, so the consultant or a later worker can reproduce it exactly"
+  - "for every figure, its citation: SRC-nnn#row_id for a row-level fact, or the canonical's SRC id plus the query for an aggregate — so each number walks back to raw rows through the lineage"
+  - "the exclusions: rows dropped, nulls encountered, periods that fell short, keys that did not join, and what each does to the figure — stated before the figure is used, not in a footnote"
+  - "what the data CANNOT answer about the brief's question, and what would be needed to answer it — an absence is a result"
+  - "out-of-lane OBSERVATIONS as a separate list for the consultant's state pad"
 rules:
   - "read the brief first; do exactly what it says"
-  - "never judgment the skill does not license"
+  - "you write nothing: this skill's write boundary is empty — no files, no dataset edits. Findings-shaped material is RETURNED; the consultant proposes any finding"
+  - "never judgment the skill does not license: no findings, no recommendations, no causal claims, no 'this suggests'"
   - "work from the registered CANONICAL dataset when one exists for the subject (A21) — query it with SQL over Parquet (DuckDB), and cite figures as SRC-nnn#row_id so every number walks back to a raw row; if you must work from a raw export instead, say why in the return, so the consultant can decide whether to wrangle first"
   - "never re-derive in pandas what one SQL query over the canonical answers; never load a spreadsheet when a Parquet canonical exists — the slowness you avoid is the whole point of the canonical"
   - "a figure cited from the canonical stands only as far as the raw sources behind it — never present a derived number as more certain than its lineage allows"

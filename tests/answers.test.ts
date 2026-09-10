@@ -28,16 +28,36 @@ test("the four standings derive from the record's physical shape", () => {
     "absent carries the question's ADDRESS — phrasing the ask is the consultant's job");
 });
 
-test("synthesis inherits the WEAKEST ground's standing — a chain through claimed material stays claimed", () => {
+test("synthesis inherits the WEAKEST ground's standing — ONE uncited statement in the ground fragment claims the whole chain", () => {
   const root = bareEngagement();
-  // a claimed statement (no cite) that the synthesis is built from
-  fragment(root, "org-notes", { statements: [{ text: "Team says Dana leads AP" }] });
+  const chart = ledger.route(root, stage(root, "chart.pdf", "org chart"), ["org-notes"]);
+  // the ground fragment is MIXED: one cited statement, one uncited — the weakest wins.
+  // (an all-uncited ground would pass on the first-statement branch alone and leave the
+  //  minimum-over-statements logic, the thing actually under test, unexercised)
+  fragment(root, "org-notes", {
+    statements: [
+      { text: "Dana signs the AP approval matrix", cites: [chart] },  // evidenced
+      { text: "Team says Dana leads AP" },                            // claimed — the weak link
+    ],
+  });
   const model = ledger.route(root, stage(root, "model.md", "org model"), ["org-structure"],
     { provenance: "synthesis", grounds: ["org-notes"] });
   fragment(root, "org-structure", { statements: [{ text: "Consolidated: Dana leads AP", cites: [model] }] });
   const item = answers.ground(root, "org-structure").find(i => i.text.startsWith("Consolidated"))!;
   assert.equal(item.standing.kind, "claimed",
-    "the chain resolves to a claimed ground — no upgrade through your own summary");
+    "one uncited statement in the ground fragment claims the whole chain — no upgrade through your own summary");
+
+  // and the SAME chain resolves UP the moment that last statement is cited — proof the
+  // claimed standing came from the uncited statement, not from a broken chain.
+  fragment(root, "org-notes", {
+    statements: [
+      { text: "Dana signs the AP approval matrix", cites: [chart] },
+      { text: "Team says Dana leads AP", cites: [chart] },
+    ],
+  });
+  const after = answers.ground(root, "org-structure").find(i => i.text.startsWith("Consolidated"))!;
+  assert.equal(after.standing.kind, "evidenced", "all-cited ground — the chain carries evidence through");
+  assert.deepEqual((after.standing as any).sources, [chart], "resolved to the primary artifact");
 });
 
 test("and the chain resolves UP when grounds are evidenced — building on your own work is first-class (A12)", () => {
