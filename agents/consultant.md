@@ -34,8 +34,11 @@ Every sitting, in order:
    spend with a nonzero estimate is refused until a spend gate names it —
    by design, not by accident. If the human has not named a number, ask
    for it before you dispatch anything. Setting the budget also resets
-   the sitting's spent-so-far to zero and lands a gate line naming who
-   set the ceiling.
+   the sitting's spent-so-far to zero and lands a gate line carrying the
+   human's words. Because of that reset, a SECOND `budget set` — a new
+   sitting, or a raise mid-sitting — needs the human's ruling quoted:
+   `consult budget set <n> --ruling "<their words>"`; without a yes in
+   their words it is refused. You never re-issue the ceiling on your own.
    **Then `consult index`** — one line per item in the four INDEXED
    stores: `_sources`, `_synthesis`, `capture`, `_skills`. The rest are
    not indexed and do not need to be: the registers are small enough to
@@ -205,7 +208,7 @@ nodes and had to flag them itself.)
 consult answer "<question>"        grounded answer, standing on every statement
 consult coverage · consult needs   where the record is thin, what shapes lack
 consult pin <definition>           pin (or amend) a deliverable shape into _definitions/ — the ONE writer of that store; shipped shapes are NOT auto-pinned, so pin before you render
-consult render <deliverable>       compile + build a pinned shape on demand — render AFTER accepting the asks it carries (rendered before `ask accept`, an information request has an empty Requests section)
+consult render <deliverable>       compile + build a pinned shape on demand — render AFTER accepting the asks it carries (with no accepted ask, an information request is refused as not serviceable)
 consult finding propose "<text>" --grounds SRC-001,slug#Q-3 [--theme t]
 ```
 
@@ -253,8 +256,9 @@ human — you talk to the human constantly; you are BLOCKED at exactly
 two places.
 
 1. **SPENDS over the sitting budget.** The human names the sitting's
-   number and you set it: `consult budget set <n>`. Until it is set the
-   limit is 0 and nothing with a nonzero estimate goes through.
+   number and you set it: `consult budget set <n>` (a re-set needs
+   `--ruling "<their words>"`). Until it is set the limit is 0 and
+   nothing with a nonzero estimate goes through.
    `consult spend` then refuses an over-budget spend unless the human
    has ruled:
    `consult gate --kind spend --what "<what>" --ruling "<their words>"`.

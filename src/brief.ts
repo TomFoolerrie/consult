@@ -75,6 +75,8 @@ export function skills(root: string): Skill[] {
 /** save an ad-hoc skill (from scratch or a variant) into _skills/ — always saved before use, logged in the session record */
 export function saveSkill(root: string, tpl: Skill): void {
   if (!tpl?.name || !tpl.mission) throw new Error("skill save: name and mission are required");
+  // the name is the file name (verification round): a slug, so the one writer of _skills/ can never write outside it
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(tpl.name)) throw new Error(`skill save: name "${tpl.name}" is not a slug (lowercase letters, digits, hyphens) — it is the file name under _skills/`);
   for (const k of ["contextContract", "returnContract", "rules"] as const)
     if (!Array.isArray(tpl[k])) throw new Error(`skill save: ${tpl.name} — ${k} must be a list`);
   if (!["haiku", "sonnet", "opus"].includes(String(tpl.recommendedClass))) throw new Error(`skill save: ${tpl.name} — recommendedClass "${String(tpl.recommendedClass)}" is not haiku | sonnet | opus`);

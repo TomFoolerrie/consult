@@ -51,8 +51,11 @@ interface Reg { asks: MutableAsk[]; closedQuestions: { question: CalloutAddr; re
 function readReg(root: string): Reg {
   if (!existsSync(REG(root))) return { asks: [], closedQuestions: [] };
   const r = parse(readFileSync(REG(root), "utf8"));
-  if (Array.isArray(r)) return { asks: r as MutableAsk[], closedQuestions: [] }; // tolerate a hand-written bare list
-  return { asks: r?.asks ?? [], closedQuestions: r?.closedQuestions ?? [] };
+  // a hand-broken entry (no answeredBy, questions not a list) is the registers check's defect, never a crash of a read (verification round)
+  const list = (xs: unknown): MutableAsk[] => (Array.isArray(xs) ? xs : []).map((a: any) => ({ ...a,
+    questions: Array.isArray(a?.questions) ? a.questions : [], answeredBy: Array.isArray(a?.answeredBy) ? a.answeredBy : [] }));
+  if (Array.isArray(r)) return { asks: list(r), closedQuestions: [] }; // tolerate a hand-written bare list
+  return { asks: list(r?.asks), closedQuestions: Array.isArray(r?.closedQuestions) ? r.closedQuestions : [] };
 }
 function writeReg(root: string, r: Reg): void { mkdirSync(join(root, "_registers"), { recursive: true }); writeFileSync(REG(root), stringify(r)); }
 function must(r: Reg, id: AskId): MutableAsk {

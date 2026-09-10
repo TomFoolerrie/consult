@@ -25,7 +25,7 @@
  * and actual so pricing stays auditable.
  */
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, renameSync, appendFileSync, mkdirSync, realpathSync } from "node:fs";
 import { join, basename } from "node:path";
 import * as ledger from "./ledger.ts";
 
@@ -53,7 +53,9 @@ export function checkpoint(root: string, label: string, dryRun?: boolean): { com
   // git first (review): a root that is not its own repository is refused by name before any mutation
   let top = "";
   try { top = execSync("git rev-parse --show-toplevel", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { /* not a repo */ }
-  if (!dryRun && top !== root) throw new Error(top ? `checkpoint: ${root} is inside the repository ${top} — an engagement is its own repository` : `checkpoint: ${root} is not a git repository — run git init in the engagement root`);
+  // compare REAL paths (verification round): git resolves symlinks (macOS /tmp → /private/tmp), the caller's root may not
+  const same = (a: string, b: string) => { try { return realpathSync(a) === realpathSync(b); } catch { return a === b; } };
+  if (!dryRun && (!top || !same(top, root))) throw new Error(top ? `checkpoint: ${root} is inside the repository ${top} — an engagement is its own repository` : `checkpoint: ${root} is not a git repository — run git init in the engagement root`);
   const st = ledger.status(root);
   const retired: string[] = [];
   const candidates = st.entries.filter(e => e.file.startsWith("_sources/new/") && e.intent.length > 0 && (st.outstanding.get(e.id) ?? []).length === 0);
@@ -90,10 +92,15 @@ export function isYes(ruling: string): boolean {
   return /^(yes|y|ok|okay|approved|accepted|accept|approve|go|proceed|agreed|sent)\b/.test(r) || /\b(approved|accepted|yes)\b/.test(r);
 }
 /** appends the budget line to the session record — the budget's one home (A14); remaining is derived */
-export function budgetSet(root: string, tokens: number): void {
+export function budgetSet(root: string, tokens: number, ruling?: string): void {
   if (!Number.isFinite(tokens) || tokens < 0) throw new Error(`budget set: "${String(tokens)}" is not a finite, non-negative token count`);
-  // the budget is itself a spend-shaped ruling (review B2): it lands as a gate line so the audit shows who set the ceiling
-  sessionAppend(root, { at: new Date().toISOString(), verb: "gate", detail: `spend: budget set to ${tokens} — the human's sitting budget`, gate: { kind: "spend", what: `budget ${tokens}`, ruling: "set" } });
+  // the budget is itself a spend-shaped ruling (review B2): it lands as a gate line so the audit shows who set the ceiling.
+  // A RE-SET (any prior budget line on record) resets spent-so-far, so it is a spend ruling in its own right and needs the
+  // human's own words as a yes (verification round, law 6): the party the gate gates cannot re-issue the ceiling on its own.
+  const prior = sessionLines(root).some(l => l.verb === "budget");
+  const words = (ruling ?? "").trim();
+  if (prior && !isYes(words)) throw new Error(`budget set: a budget is already on record — re-setting it resets the sitting's spend and needs the human's ruling (--ruling "<their words>", a yes)${words ? `; "${words}" is not one` : ""}`);
+  sessionAppend(root, { at: new Date().toISOString(), verb: "gate", detail: `spend: budget set to ${tokens} — ${words || "the human's sitting budget"}`, gate: { kind: "spend", what: `budget ${tokens}`, ruling: words || "set" } });
   sessionAppend(root, { at: new Date().toISOString(), verb: "budget", detail: String(tokens) });
 }
 export function budget(root: string): Budget {

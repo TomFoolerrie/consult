@@ -138,7 +138,7 @@ export async function main(argv: string[]): Promise<number> {
       case "spend": record.spend(located, Number(opt(rest, "estimate")), Number(opt(rest, "actual")), pos[0] ?? ""); return 0;
       case "gate": record.gate(located, { kind: opt(rest, "kind") as "send" | "spend", what: opt(rest, "what") ?? "", ruling: opt(rest, "ruling") ?? "" }); return 0;
       case "budget": {
-        if (pos[0] === "set") { record.budgetSet(located, Number(pos[1])); return 0; }
+        if (pos[0] === "set") { record.budgetSet(located, Number(pos[1]), opt(rest, "ruling")); return 0; }
         console.log(JSON.stringify(record.budget(located))); return 0;
       }
       case "render": {
@@ -152,8 +152,10 @@ export async function main(argv: string[]): Promise<number> {
       }
       case "skill": {
         if (pos[0] !== "save") { console.error(`refused: unknown skill verb ${pos[0]}`); return 2; }
+        if (!pos[1]) { console.error("refused: skill save needs the path of the skill YAML to save"); return 2; }
+        if (!existsSync(pos[1])) { console.error(`refused: skill save: no such file ${pos[1]}`); return 2; }
         const { parse } = await import("yaml"); const { readFileSync } = await import("node:fs");
-        const raw = parse(readFileSync(pos[1]!, "utf8"));
+        const raw = parse(readFileSync(pos[1], "utf8"));
         brief.saveSkill(located, raw); console.log(raw?.name); return 0;
       }
       case "brief": {

@@ -896,3 +896,12 @@ overwrites; `checkpoint` verifies the root is its own repository first;
 Synthetic #1 re-run end to end as regression: exam 6/6 (one probe
 updated — it searched a question's wording after the question had been
 lawfully removed). Suite 136/136.
+
+**Verification round (the reviewer, same day):** four holes in the fixes
+closed, tests first. A second `budget set` resets spent-so-far, so it is
+a spend ruling in its own right: it needs the human's words as a yes
+(`--ruling`), never the consultant's say-so. A skill's name is a slug
+(the one writer of `_skills/` can never write outside it). `checkpoint`
+compares real paths, so a symlinked root (macOS `/tmp`) is its own
+repository. A hand-broken ask entry is the registers check's defect,
+never a crash of `state`. Suite 140/140.

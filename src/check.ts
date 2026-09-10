@@ -127,13 +127,8 @@ function askCoverage(root: string): Defect[] {
   const raw = parse(readFileSync(p, "utf8"));
   const asksList: { id?: string; status?: string; questions?: string[]; answeredBy?: string[] }[] = Array.isArray(raw) ? raw : raw?.asks ?? [];
   const seen = new Map<string, string>();
-  const addrs = new Set(safeEntities(root).flatMap(e => kernel.openQuestions(e).map(c => c.addr as string)));
-  for (const a of asksList) for (const q of a.questions ?? []) {
-    // a removed question record is settlement's SECOND branch (A18) — lawful once an answer is on file or the ask is closed;
-    // only an ask that could never settle honestly (nothing answered it, not closed) is flagged for a phantom address
-    const couldSettle = (Array.isArray(a.answeredBy) && a.answeredBy.length > 0) || a.status === "closed";
-    if (!addrs.has(q) && !couldSettle) out.push({ check: "registers", severity: "error", file: "_registers/asks.yaml",
-      message: `${a.id} names ${q}, which resolves to no question record in capture` });
+  // a phantom address (a question record that does not exist) is the REGISTERS check's defect (asksShape) — not repeated here
+  for (const a of asksList) for (const q of Array.isArray(a.questions) ? a.questions : []) {
     if (seen.has(q)) out.push({ check: "ask-coverage", severity: "error", file: "_registers/asks.yaml",
       message: `question ${q.split("#")[1] ?? q} (${q}) appears in both ${seen.get(q)} and ${a.id} — exactly once, asked or closed` });
     else seen.set(q, a.id ?? "?");
