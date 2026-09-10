@@ -80,6 +80,9 @@ export function serviceability(defn: Definition, root: string): ServiceabilityGa
 export interface ServiceabilityGap { binding: string; missing: string; where: string; }
 /** the ordered render plan: views to build, blocks to emit */
 export function compilePlan(defn: Definition, root: string): Plan {
+  // fail loud (law 7): an entity-part block has no builder path yet — refuse by name, never drop it from the plan
+  const orphan = defn.blocks.find(b => b.kind === "entity-part");
+  if (orphan) throw new Error(`compile ${defn.name}: block ${orphan.id} is kind entity-part — no builder path exists for it yet; it cannot be rendered`);
   const views = defn.blocks.filter(b => b.kind === "view").map(b => {
     const name = (b as { binding: string }).binding;
     const spec = defn.bindings.get(name) as Record<string, string> | undefined;

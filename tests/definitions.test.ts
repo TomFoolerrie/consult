@@ -41,3 +41,17 @@ test("compilePlan joins bindings to REGISTERED builders — the synthetic-1 bug,
     for (const v of plan.views) assert.ok(BUILDERS.has(v.builder), `${name}: ${v.builder} is registered`);
   }
 });
+
+test("an entity-part block has no builder path yet — compilePlan refuses it BY NAME, never silently drops it (fail loud)", () => {
+  const root = bareEngagement();
+  mkdirSync(join(root, "_definitions"), { recursive: true });
+  writeFileSync(join(root, "_definitions/walkthrough.yaml"), `name: walkthrough
+title: "Process Walkthrough"
+blocks:
+  - { kind: entity-part, id: steps, repeat: { over: process-step, order: slug } }
+bindings: {}
+skin: { format: docx, requires: [] }
+`);
+  const defn = definitions.load("walkthrough", root);
+  assert.throws(() => definitions.compilePlan(defn, root), (e: Error) => e.message.includes("steps") && e.message.includes("entity-part"));
+});

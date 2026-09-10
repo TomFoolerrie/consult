@@ -28,7 +28,7 @@ out.render = await render.deliverable(root, "information-request");
 // the same views as markdown — the consultant's own working copy
 const plan = definitions.compilePlan(definitions.load("information-request", root), root);
 const views = render.build(root, plan);
-writeFileSync(join(root, "_synthesis/information-request-v1.md"), `# Information Request — Meridian AP\n\n${[...views.values()].join("\n\n")}\n`);
+writeFileSync(join(root, "_synthesis/information-request-v1.md"), `---\ntitle: information-request-v1\nkind: narrative\nsummary: the first information request to Meridian AP, hand-rendered from the built views\nkeyItems: []\n---\n# Information Request — Meridian AP\n\n${[...views.values()].join("\n\n")}\n`);
 asks.sent(root); // crossed the boundary
 
 // the scripted client answers (script.yaml): reorg confirmed, expedite dodged, Kessler silence
@@ -60,7 +60,7 @@ asks.close(root, a2 as never, "client deferred in writing until Marcus speaks wi
 // Kessler: silence — the ask stays sent, the debt visible
 
 // the synthesis: consolidated approval model, registered with grounds, then cited
-writeFileSync(join(root, "_synthesis/approval-model.md"), readFileSync(join(root, "capture/ap-approval.yaml"), "utf8"));
+writeFileSync(join(root, "_synthesis/approval-model.md"), `---\ntitle: approval-model\nkind: narrative\nsummary: consolidated AP approval model, lifted from the ap-approval fragment after the ask round\nkeyItems: []\n---\n` + readFileSync(join(root, "capture/ap-approval.yaml"), "utf8"));
 const model = ledger.route(root, join(root, "_synthesis/approval-model.md"), ["ap-approval"], { provenance: "synthesis", grounds: ["SRC-001", r1.src as string] });
 // hmm — route expects the file staged; it lives in _synthesis. The door took it from there: note for RESULTS if it misbehaved.
 writeFileSync(join(root, "capture/ap-approval.yaml"), readFileSync(join(root, "capture/ap-approval.yaml"), "utf8").replace(

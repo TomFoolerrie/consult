@@ -92,7 +92,7 @@ export function assembleJob(defn: Definition, plan: Plan, views: ReadonlyMap<str
   const sections = plan.blocks.flatMap(b => {
     if (b.kind === "static") return [{ id: b.id, title: b.title, body: b.text }];
     if (b.kind === "view") return [{ id: b.id, title: b.title, body: views.get(b.id) ?? "" }];
-    return []; // entity-part blocks have no builder yet — an unrenderable block is nothing, never a stub
+    return []; // unreachable: compilePlan refuses entity-part blocks by name before any plan reaches here
   });
   return { version: 1, title: defn.title, draft: opts.draft === true, skin: { format: defn.skin.format, requires: [...defn.skin.requires] }, sections };
 }
