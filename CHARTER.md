@@ -905,3 +905,40 @@ a spend ruling in its own right: it needs the human's words as a yes
 compares real paths, so a symlinked root (macOS `/tmp`) is its own
 repository. A hand-broken ask entry is the registers check's defect,
 never a crash of `state`. Suite 140/140.
+
+## Amendment A27 — the skill contract (2026-09-11): three ports, one return door
+
+Ruled after PR #12 (the human's assessment package integrated on the
+engine). The package proved the read and write ports; it also carried
+its own findings ledger, its own gates, and its own next-action loop
+inside the folder — the "beside the engine" shape v2 was built to
+retire. The ruling: a skill sits ON TOP when it reads through the
+engine, writes through it, and RETURNS through it; the contract makes
+that declarable and the alternative impossible.
+
+- **Three ports, nothing else:** READ (index, card, answer, the four
+  `source` verbs — verified, locatable: `SRC:Lx-Ly`, `SRC:Rn`,
+  `slug#Q-n`); WRITE (work products via `publishSynthesis`, immutable
+  with declared input hashes and a card; capture fragments only under a
+  declared grant; a skill's own state under `_synthesis/<skill>/<run>/`
+  as carded work products); RETURN (`consult return <file>` — the one
+  door for what a skill produces: findings → proposals with validated
+  grounds; asks and statements → handed to the consultant, never minted
+  or written by the verb; artifacts → recorded; flags → the pad).
+- **A manifest declares the ports** (`contract: v1`, reads, writes,
+  returns, runtime); level 1 is a YAML file, level 2 a directory with
+  the manifest at its root; undeclared ports and unknown versions are
+  refused by name.
+- **Conformance is proof:** `consult skill check` (static) and a
+  harness kit (dynamic) that a skill must pass — read only through the
+  port, wrote only under its own directory with cards, hashes intact,
+  return validates, no register or pad touched, stopped for no one.
+- **Deliberately absent:** any skill orchestrator in the engine; any
+  skill-declared gate. The engine enforces four things and decides
+  nothing: auditability, progressive disclosure, the client loop, the
+  bookkeeping. Judgment stays in the consultant's prompt and in skills.
+
+Spec: `SKILL-CONTRACT.md`. Build on `v2-skills`, tests first. PR #12's
+engine half (the read port's `source` verbs, `publishSynthesis`, the
+intake lock) merges first as `v2-evidence`; the package migrates onto
+the ports afterwards with the human.
