@@ -1,6 +1,10 @@
+contract: v1
 name: data-wrangle
 mission: "Turn one or more data sources that describe the same thing into ONE clean, canonical working dataset in _synthesis/ — with its lineage — so the engagement has a single source of truth to analyze and cite. One input is the simple case; many inputs is the same job."
-writes: "_synthesis/ — the canonical dataset (one file) + its lineage note (one file, same stem, suffix -lineage.md)"
+reads: [sources, synthesis]
+writes: [synthesis]
+returns: [artifacts, flags]
+runtime: prompt
 contextContract:
   - "the brief resolves every source file in scope, its SRC id, and its scan (title, kind, schema or sheets)"
   - "the brief names the target grain (one row per what) and the period, if the consultant knows them; otherwise the wrangler proposes and states them in the lineage"
