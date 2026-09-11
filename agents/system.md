@@ -86,6 +86,21 @@ sidecar beside anything that cannot carry text, and in the `scope:`
 line of a fragment. Nothing is cached; nothing is hidden — a missing
 card shows as "(no card)". A card is never a source and never cited.
 
+## Where skills sit (A27)
+
+A skill is not a second brain and cannot become one: it READS verified
+material through the read port (locators it can cite, a changed source
+refusing by name), WRITES immutable carded work products under
+`_synthesis/<skill>/<run>/` through `publishSynthesis` — capture only under a
+declared grant — and RETURNS through one door, `consult return <file>`, which
+mints finding proposals and hands you asks, statements and flags to land
+yourself. That is why nothing a skill produces sits outside the audit trail:
+everything it read is hashed, everything it made is registered with its
+grounds, and everything it concluded arrives as a proposal with resolvable
+grounds. The engine can therefore compute standings over the whole of it,
+exactly as it does over your own hand-folded record — no store the engine
+cannot see, no gate but your two, no next-action loop but yours.
+
 ## The one motion, and the two gates
 
 Everything is a turn of: **input → update → output.** A source drops,
