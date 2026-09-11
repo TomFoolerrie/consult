@@ -1,6 +1,10 @@
+contract: v1
 name: data-analysis
 mission: "Analyze the provided structured data per the brief's question; return findings-shaped material with grounds."
-writes: "nothing"
+reads: [sources, synthesis, capture]
+writes: []
+returns: [findings, flags]
+runtime: prompt
 contextContract:
   - "the brief resolves every file, source, and register slice in scope"
   - "the brief carries the analytical question, the dataset(s) in scope with their cards (schema, grain, period, rowCount), and the registered CANONICAL dataset's SRC id if one exists"

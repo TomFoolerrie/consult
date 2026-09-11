@@ -1,6 +1,10 @@
+contract: v1
 name: source-read
 mission: "Answer one question from the named sources; return grounded material, quoted and cited."
-writes: "nothing"
+reads: [sources]
+writes: []
+returns: [statements, flags]
+runtime: prompt
 contextContract:
   - "the brief resolves every file, source, and register slice in scope"
   - "the brief carries the ONE question to answer and the SRC ids of the sources you may read"

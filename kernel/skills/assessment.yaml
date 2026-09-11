@@ -1,6 +1,10 @@
+contract: v1
 name: assessment
 mission: "Judge the provided candidate material under the analysis license and return findings-shaped proposals — propose-only, every ground resolving, never 'likely'. Lenses shipped: pain-synthesis, control-coverage, conflict-support, handoff-friction; an engagement adds lenses by authoring a variant."
-writes: "nothing — proposals are returned; the consultant lands them with `consult finding propose`"
+reads: [sources, capture, registers]
+writes: []
+returns: [findings, asks, flags]
+runtime: prompt
 contextContract:
   - "the brief carries the index and the cards of the fragments and sources in scope, the lens to apply, and the objective's framing; open content only as the cards direct"
 returnContract:

@@ -12,7 +12,8 @@ test("shipped skills resolve; an unknown skill is a named refusal", () => {
 
 test("a saved local skill SHADOWS the shipped one by name — and ad-hoc skills are always saved before use", () => {
   const root = bareEngagement();
-  brief.saveSkill(root, { name: "source-read", mission: "tuned for scanned tables", writes: "nothing",
+  brief.saveSkill(root, { name: "source-read", mission: "tuned for scanned tables", contract: "v1",
+    reads: ["sources"], writes: [], returns: ["statements", "flags"], runtime: "prompt",
     contextContract: ["the named sources"], returnContract: ["grounded material"], rules: ["quote, cite"],
     recommendedClass: "haiku", origin: "engagement", variantOf: "source-read" });
   assert.equal(brief.skill(root, "source-read").origin, "engagement");
