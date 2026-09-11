@@ -1,0 +1,4 @@
+# Python dependencies for the engine render seam and packaged-assessment tests.
+# Install into a project-local virtual environment, not the system interpreter.
+python-docx==1.2.0
+PyYAML==6.0.3
