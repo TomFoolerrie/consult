@@ -1,6 +1,10 @@
+contract: v1
 name: procedure-draft
 mission: "Fill or edit ONE capture fragment from the tagged sources, under the minting bars."
-writes: "its one fragment — capture/<slug>.yaml, the slug the brief names, and nothing else"
+reads: [sources, capture]
+writes: [capture-fragment]
+returns: [flags]
+runtime: prompt
 contextContract:
   - "the brief resolves every file, source, and register slice in scope"
   - "the brief names the ONE fragment slug you may write, and the SRC ids of the sources you may cite"
@@ -10,6 +14,7 @@ returnContract:
   - "the SRC ids you actually cited, and — for each source the brief handed you — anything in it you did NOT fold in, and why"
   - "out-of-lane OBSERVATIONS as a separate list for the consultant's state pad; never written into the fragment"
 rules:
+  - "your write boundary is its one fragment — capture/<slug>.yaml, the slug the brief names, and nothing else"
   - "read the brief first; do exactly what it says"
   - >-
     THE MINTING BARS, in full — the discipline every statement is minted under.

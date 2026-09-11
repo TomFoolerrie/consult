@@ -31,6 +31,7 @@ kinds of calls: what to spend and what to send.
 ```
 CHARTER.md            the ruled charter (Amendment A1)
 DESIGN.md             module map, data flow, who-writes-what
+SKILL-CONTRACT.md     the skill contract (A27): three ports, one return door, the v1 manifest, conformance
 src/                  the engine — TypeScript, one entry point (`consult <verb>`)
 py/                   the one Python seam: the bounded docx render worker
 agents/               consultant + worker contracts, and system.md — the mental model the consultant loads every sitting

@@ -27,6 +27,7 @@
  *   source record SRC-nnn --record N                     → ledger.sourceRecord (one CSV data record)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
+ *   return <file>                                       → returns.land (A27: the ONE door for what a skill produces — validates, mints proposals, records, hands over)
  * Gone: register (A9) · new (A9) · flag/tenure (A9) · feeds (A9) ·
  * credit and ask settle (A18 — consumption and settlement are computed
  * from capture citations, never declared).
@@ -169,11 +170,21 @@ export async function main(argv: string[]): Promise<number> {
         const out = opt(rest, "out");
         console.log(JSON.stringify(await deliverable(located, pos[0]!, { draft: rest.includes("--draft"), ...(out ? { out } : {}) }))); return 0;
       }
+      case "return": {
+        const { land } = await import("./returns.ts");
+        if (!pos[0]) { console.error("refused: return needs the path of the return YAML"); return 2; }
+        console.log(JSON.stringify(land(located, pos[0]))); return 0;
+      }
       case "pin": {
         const { pin } = await import("./definitions.ts");
         console.log(pin(located, pos[0]!)); return 0;
       }
       case "skill": {
+        if (pos[0] === "check") {
+          if (!pos[1]) { console.error("refused: skill check needs a skill name"); return 2; }
+          const r = brief.skillCheck(located, pos[1]);
+          console.log(JSON.stringify(r)); return r.ok ? 0 : 2;
+        }
         if (pos[0] !== "save") { console.error(`refused: unknown skill verb ${pos[0]}`); return 2; }
         if (!pos[1]) { console.error("refused: skill save needs the path of the skill YAML to save"); return 2; }
         if (!existsSync(pos[1])) { console.error(`refused: skill save: no such file ${pos[1]}`); return 2; }

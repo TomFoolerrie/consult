@@ -1,6 +1,10 @@
+contract: v1
 name: interview-guide
 mission: "Turn the open question records for a taxonomy node (or the whole taxonomy) into an agenda for the human's next client conversation — grouped by who can answer, ordered by what unblocks the most, phrased for a person, not a register."
-writes: "_synthesis/ (one markdown file with frontmatter: interview-guide-<node-or-all>-<date>.md)"
+reads: [capture, registers]
+writes: [synthesis]
+returns: [artifacts, flags]
+runtime: prompt
 contextContract:
   - "the brief carries the index and the cards of the fragments in scope; open a fragment only to read its question records"
   - "the brief names the audience if known (who the human is meeting) and any standing guidance from the state pad about what is sensitive"

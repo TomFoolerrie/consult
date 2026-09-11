@@ -157,7 +157,7 @@ test("B10 the sitting procedure is executable on an installed root: `consult pin
     assert.equal(await main(["pin", "no-such-shape", "--root", root]), 2);
     assert.match(err.join("\n"), /no-such-shape/);
     const sk = join(root, "draft-skill.yaml");
-    writeFileSync(sk, "name: my-scan\nmission: tuned scan\nwrites: nothing\ncontextContract: []\nreturnContract: []\nrules: []\nrecommendedClass: haiku\norigin: engagement\nvariantOf: intake-scan\n");
+    writeFileSync(sk, "contract: v1\nname: my-scan\nmission: tuned scan\nreads: [sources]\nwrites: []\nreturns: [flags]\nruntime: prompt\ncontextContract: []\nreturnContract: []\nrules: []\nrecommendedClass: haiku\norigin: engagement\nvariantOf: intake-scan\n");
     assert.equal(await main(["skill", "save", sk, "--root", root]), 0);
     assert.ok(existsSync(join(root, "_skills/my-scan.yaml")));
     assert.equal(brief.skill(root, "my-scan").variantOf, "intake-scan");

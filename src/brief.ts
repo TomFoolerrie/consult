@@ -22,12 +22,20 @@
  * line naming its content path), the full CARDS named in params.cards,
  * the parameters, and the skill's rules and return contract verbatim.
  * Registers are NOT inlined — the index covers them (review C10).
+ *
+ * A27 — the manifest: a skill DECLARES its ports (contract: v1, reads,
+ * writes, returns, runtime) and the brief prints them as the worker's walls.
+ * Level 1 is a YAML file; level 2 is a directory with skill.yaml at its root
+ * and code beside it. skillCheck() is the STATIC half of conformance —
+ * manifest valid, ports declared, the level-2 runner actually present, and
+ * no human-stop vocabulary in a level-2 skill's own scripts; it returns
+ * problems rather than throwing, because a bad skill is a report, not a crash.
  * Issued when, and only when, delegation happens; the consultant's own
  * picture is desk.report. The brief decides nothing about content.
  */
 import { parse, stringify } from "yaml";
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, statSync } from "node:fs";
+import { join, dirname, basename, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as record from "./record.ts";
 import * as index from "./index.ts";
@@ -36,10 +44,24 @@ const SHIPPED = join(dirname(fileURLToPath(import.meta.url)), "..", "kernel", "s
 
 export type WorkerClass = "haiku" | "sonnet" | "opus";
 
+/** A27: the three ports a skill may use, declared in its manifest and nowhere else. */
+export const READ_PORTS = ["sources", "capture", "registers", "synthesis"] as const;
+export const WRITE_PORTS = ["synthesis", "capture-fragment"] as const;
+export const RETURN_KINDS = ["findings", "asks", "statements", "artifacts", "flags"] as const;
+export type ReadPort = (typeof READ_PORTS)[number];
+export type WritePort = (typeof WRITE_PORTS)[number];
+export type ReturnKind = (typeof RETURN_KINDS)[number];
+/** level 1 is prompt-only; level 2 carries code and names the command that runs it */
+export type Runtime = "prompt" | { command: string; cwd?: string };
+
 export interface Skill {
+  contract: "v1";                   // the manifest version; anything else is refused by name
   name: string;
   mission: string;
-  writes: string | null;            // the write boundary, or null for read-only work
+  reads: readonly ReadPort[];       // what it may learn, and through which port
+  writes: readonly WritePort[];     // the two landings — [] for read-only work
+  returns: readonly ReturnKind[];   // what `consult return` may carry back from it
+  runtime: Runtime;                 // "prompt" (level 1) or a command (level 2)
   contextContract: readonly string[];
   returnContract: readonly string[];
   rules: readonly string[];
@@ -48,28 +70,72 @@ export interface Skill {
   variantOf?: string;               // set when authored as a variant
 }
 
+/**
+ * the manifest's own validation, shared by the read door and the write door and
+ * reused (as problems, not throws) by skillCheck. Order is load-bearing: the
+ * older refusals (list shape, the class dial) keep firing first so a skill that
+ * was malformed before contract v1 is still named for what is actually wrong.
+ */
+function manifestProblems(name: string, raw: Partial<Skill> | undefined): string[] {
+  const p: string[] = [];
+  const say = (m: string) => p.push(`skill ${name}: ${m}`);
+  if (!raw?.name || !raw.mission) return [`skill ${name}: malformed — mission required`];
+  for (const k of ["contextContract", "returnContract", "rules"] as const)
+    if (!Array.isArray(raw[k])) say(`${k} must be a list, not ${typeof raw[k]}`);
+  const cls = String(raw.recommendedClass ?? "").split(/[;\s]/)[0] ?? "";
+  if (!["haiku", "sonnet", "opus"].includes(cls))
+    say(`recommendedClass "${String(raw.recommendedClass)}" is not haiku | sonnet | opus`);
+  if (raw.contract !== "v1") say(`contract ${String(raw.contract)} is not v1`);
+  const ports: [string, readonly string[]][] = [["reads", READ_PORTS], ["writes", WRITE_PORTS], ["returns", RETURN_KINDS]];
+  for (const [field, allowed] of ports) {
+    const v = (raw as Record<string, unknown>)[field];
+    if (!Array.isArray(v)) { say(`${field} must be a list of ${allowed.join("|")} — a skill declares its ports`); continue; }
+    for (const item of v) if (!allowed.includes(String(item))) say(`${field} '${String(item)}' is not ${allowed.join("|")}`);
+  }
+  const rt = raw.runtime;
+  if (rt !== "prompt") {
+    if (!rt || typeof rt !== "object") say(`runtime ${JSON.stringify(rt) ?? String(rt)} is not "prompt" or { command }`);
+    else if (typeof rt.command !== "string") say(`runtime.command must be a string, not ${typeof rt.command}`);
+  }
+  return p;
+}
+
+/** level 1 (<name>.yaml) or level 2 (<name>/skill.yaml) — the same manifest either way */
+function manifestPath(dir: string, name: string): string | null {
+  const flat = join(dir, `${name}.yaml`);
+  if (existsSync(flat)) return flat;
+  const nested = join(dir, name, "skill.yaml");
+  if (existsSync(nested)) return nested;
+  return null;
+}
+/** where a skill resolves from: its manifest, and (level 2) the directory that holds its code */
+export function skillPath(root: string, name: string): { manifest: string; dir: string; level: 1 | 2 } {
+  const local = manifestPath(join(root, "_skills"), name);   // a local name shadows a shipped one
+  const path = local ?? manifestPath(SHIPPED, name);
+  if (!path) throw new Error(`skill: no skill named ${name} (shipped or engagement-authored)`);
+  const level = basename(path) === "skill.yaml" ? 2 : 1;
+  return { manifest: path, dir: dirname(path), level };
+}
+
 /** resolve a skill by name: engagement store shadows shipped; unknown is a named refusal */
 export function skill(root: string, name: string): Skill {
-  const local = join(root, "_skills", `${name}.yaml`);
-  const shipped = join(SHIPPED, `${name}.yaml`);
-  const path = existsSync(local) ? local : shipped;
-  if (!existsSync(path)) throw new Error(`skill: no skill named ${name} (shipped or engagement-authored)`);
-  const raw = parse(readFileSync(path, "utf8")) as Skill;
-  if (!raw?.name || !raw.mission) throw new Error(`skill ${name}: malformed — mission required`);
-  // the three list fields, validated where the skill is READ too (review C10): a string composes into "not iterable"
-  for (const k of ["contextContract", "returnContract", "rules"] as const)
-    if (!Array.isArray(raw[k])) throw new Error(`skill ${name}: ${k} must be a list, not ${typeof raw[k]}`);
-  // the class is a dial with three positions; a skill may hedge in prose elsewhere, never here
-  const cls = String(raw.recommendedClass ?? "").split(/[;\s]/)[0] as WorkerClass;
-  if (!["haiku", "sonnet", "opus"].includes(cls)) throw new Error(`skill ${name}: recommendedClass "${String(raw.recommendedClass)}" is not haiku | sonnet | opus`);
+  const raw = parse(readFileSync(skillPath(root, name).manifest, "utf8")) as Skill;
+  const problems = manifestProblems(name, raw);
+  if (problems.length) throw new Error(problems[0]);
+  const cls = String(raw.recommendedClass).split(/[;\s]/)[0] as WorkerClass;
   return { ...raw, recommendedClass: cls };
 }
 /** every skill visible to this engagement (shipped + authored), shadowing applied */
 export function skills(root: string): Skill[] {
   const names = new Set<string>();
   const local = join(root, "_skills");
-  if (existsSync(local)) for (const f of readdirSync(local)) if (f.endsWith(".yaml")) names.add(f.replace(/\.yaml$/, ""));
-  if (existsSync(SHIPPED)) for (const f of readdirSync(SHIPPED)) if (f.endsWith(".yaml")) names.add(f.replace(/\.yaml$/, ""));
+  for (const dir of [local, SHIPPED]) {
+    if (!existsSync(dir)) continue;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.isFile() && e.name.endsWith(".yaml")) names.add(e.name.replace(/\.yaml$/, ""));           // level 1
+      else if (e.isDirectory() && existsSync(join(dir, e.name, "skill.yaml"))) names.add(e.name);      // level 2
+    }
+  }
   return [...names].sort().map(n => skill(root, n));
 }
 /** save an ad-hoc skill (from scratch or a variant) into _skills/ — always saved before use, logged in the session record */
@@ -77,9 +143,8 @@ export function saveSkill(root: string, tpl: Skill): void {
   if (!tpl?.name || !tpl.mission) throw new Error("skill save: name and mission are required");
   // the name is the file name (verification round): a slug, so the one writer of _skills/ can never write outside it
   if (!/^[a-z0-9][a-z0-9-]*$/.test(tpl.name)) throw new Error(`skill save: name "${tpl.name}" is not a slug (lowercase letters, digits, hyphens) — it is the file name under _skills/`);
-  for (const k of ["contextContract", "returnContract", "rules"] as const)
-    if (!Array.isArray(tpl[k])) throw new Error(`skill save: ${tpl.name} — ${k} must be a list`);
-  if (!["haiku", "sonnet", "opus"].includes(String(tpl.recommendedClass))) throw new Error(`skill save: ${tpl.name} — recommendedClass "${String(tpl.recommendedClass)}" is not haiku | sonnet | opus`);
+  const problems = manifestProblems(tpl.name, tpl);
+  if (problems.length) throw new Error(problems[0]);
   mkdirSync(join(root, "_skills"), { recursive: true });
   writeFileSync(join(root, "_skills", `${tpl.name}.yaml`), stringify(tpl));
   try { record.sessionAppend(root, { at: new Date().toISOString(), verb: "saveSkill",
@@ -104,6 +169,26 @@ function standingGuidance(root: string): string {
   const text = body.join("\n").trim();
   return text || "(none)";
 }
+/**
+ * the declared ports, printed into the brief so the worker knows its walls (A27).
+ * The manifest is the wall; the prose that used to sit in `writes:` now lives in
+ * the skill's rules, where a skill that needs to say "its one fragment" says it.
+ */
+function ports(sk: Skill): string[] {
+  const lines = [
+    `## Ports (your walls)`,
+    `reads: ${sk.reads.length ? sk.reads.join(", ") : "nothing"}`,
+    `writes: ${sk.writes.length ? sk.writes.join(", ") : "nothing"}`,
+    `returns: ${sk.returns.length ? sk.returns.join(", ") : "nothing"}`,
+    `runtime: ${sk.runtime === "prompt" ? "prompt" : `${sk.runtime.command}${sk.runtime.cwd ? ` (cwd ${sk.runtime.cwd})` : ""}`}`,
+  ];
+  if (sk.writes.includes("synthesis"))
+    lines.push("your work products land under _synthesis/<skill>/<run>/ with a card; publish through publishSynthesis; a rerun is a new artifact");
+  if (sk.returns.length)
+    lines.push("hand your result back as a return file (see SKILL-CONTRACT.md); the consultant lands it with `consult return`");
+  return lines;
+}
+
 /** resolve one skilled unit of work into a printable brief for one worker class */
 export function compose(root: string, name: string, cls: WorkerClass, params: Record<string, unknown>): string {
   const sk = skill(root, name);
@@ -126,7 +211,7 @@ export function compose(root: string, name: string, cls: WorkerClass, params: Re
     `## Objective`, objective(root),
     `## Standing guidance`, standingGuidance(root),
     `## Mission`, sk.mission,
-    `## Write boundary`, sk.writes ?? "nothing — read-only work",
+    ...ports(sk),
     `## Context`, ...sk.contextContract,
     `## Index (${stores.size ? [...stores].join(", ") : "every store"} — open content only when its card says yes)`,
     indexText || "(nothing indexed)",
@@ -137,4 +222,60 @@ export function compose(root: string, name: string, cls: WorkerClass, params: Re
     `## Return contract`, ...sk.returnContract,
   ];
   return lines.join("\n");
+}
+
+/**
+ * `consult skill check <name>` — the STATIC half of conformance (A27).
+ * Never throws for a bad skill: a bad skill is a list of problems. It throws
+ * only for a skill that does not exist, by name. The dynamic half (did it
+ * actually read through the port, write only its own directory, stop for no
+ * one) lives in harness/conformance.ts.
+ */
+export function skillCheck(root: string, name: string): { ok: boolean; problems: string[] } {
+  const where = skillPath(root, name);   // throws by name when there is no such skill
+  let raw: Partial<Skill> | undefined;
+  try { raw = parse(readFileSync(where.manifest, "utf8")) as Skill; }
+  catch (e) { return { ok: false, problems: [`skill ${name}: manifest does not parse — ${(e as Error).message}`] }; }
+  const problems = manifestProblems(name, raw);
+  if (where.level === 2) {
+    problems.push(...runtimeProblems(name, where.dir, raw?.runtime));
+    problems.push(...gateProblems(name, where.dir));
+  }
+  return { ok: problems.length === 0, problems };
+}
+/** a level-2 skill's runner must actually be there — relative to the skill dir, or on PATH */
+function runtimeProblems(name: string, dir: string, rt: Runtime | undefined): string[] {
+  if (!rt || rt === "prompt" || typeof rt !== "object" || typeof rt.command !== "string") return [];
+  const first = rt.command.trim().split(/\s+/)[0];
+  if (!first) return [`skill ${name}: runtime.command is empty`];
+  const base = rt.cwd ? join(dir, rt.cwd) : dir;
+  const isFile = (p: string) => { try { return statSync(p).isFile(); } catch { return false; } };
+  if (isFile(join(base, first))) return [];
+  for (const d of (process.env.PATH ?? "").split(delimiter)) if (d && isFile(join(d, first))) return [];
+  return [`skill ${name}: runtime command "${first}" is not in the skill directory (${base}) and not on PATH`];
+}
+/**
+ * a skill stops for no one: the two gates are the engine's. A level-2 skill's own
+ * scripts may not carry the human-stop vocabulary — each hit is named file:line.
+ */
+function gateProblems(name: string, dir: string): string[] {
+  const out: string[] = [];
+  const walk = (d: string, rel: string) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) { if (e.name !== "node_modules" && e.name !== ".git") walk(join(d, e.name), r); continue; }
+      if (!e.isFile() || r === "skill.yaml") continue;
+      let text: string;
+      try { text = readFileSync(join(d, e.name), "utf8"); } catch { continue; }
+      if (text.includes("\u0000")) continue;   // not a script
+      text.split("\n").forEach((line, i) => {
+        const hit = line.includes("[HUMAN]") ? "[HUMAN]"
+          : /run\.py\s+gate/.test(line) ? "run.py gate"
+          : /(^|[^.\w])gate\s*\(/.test(line) && !/record\.gate\s*\(|consult\s+gate/.test(line) ? "gate(" : null;
+        if (hit) out.push(`skill ${name}: ${r}:${i + 1} carries "${hit}" — a skill stops for no one; the two gates are the engine's`);
+      });
+    }
+  };
+  walk(dir, "");
+  return out;
 }

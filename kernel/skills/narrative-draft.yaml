@@ -1,6 +1,10 @@
+contract: v1
 name: narrative-draft
 mission: "Compose one synthesis document — a process narrative, a consolidated model, an analysis writeup — from cited capture, carrying every citation through, so it registers cleanly as a synthesis source and reads as a document a person would hand to another person."
-writes: "_synthesis/ (one markdown file with frontmatter)"
+reads: [capture, synthesis]
+writes: [synthesis]
+returns: [artifacts, flags]
+runtime: prompt
 contextContract:
   - "the brief names the fragments (by slug) and any registered synthesis sources the document stands on, with their cards; open content only as needed"
   - "the brief names the document's purpose and audience (internal working model vs client-facing draft) and the objective's framing"

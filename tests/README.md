@@ -19,6 +19,21 @@ What the suite encodes, beyond per-verb behavior:
 - state is recomputed, never cached — a direct edit changes the next
   snapshot.
 
+What the conformance test pins (tests/conformance.test.ts, A27): a
+well-behaved skill — a scripted stub standing in for a dispatch — writes ONE
+carded work product under `_synthesis/<skill>/run-1/`, publishes it through
+`ledger.publishSynthesis` with every input declared by hash, and writes its
+return file OUTSIDE the stores; that run yields no findings. Each way of
+becoming a second brain is caught and NAMED by path: writing `STATE.md`,
+editing a registered source's bytes (the path AND the source id whose hash no
+longer verifies), writing under another skill's synthesis directory, an
+artifact with no card, touching `_registers/asks.yaml` (and the capture
+fragment written without a `writes: capture-fragment` grant), a return
+carrying `[HUMAN]`, and a return that is missing, lacks `skill:`, or was
+written inside a store. The fixture root is the harness's, not the suite's —
+`harness/fixtures/conformance/engagement.ts` — so a skill author proves a
+skill against exactly the ground the suite uses.
+
 Store hygiene: a test never writes a scratch file into a store it is not
 testing. A scout report a test needs is written to a temp dir OUTSIDE the
 engagement root (see `scanned()` in tests/index.test.ts) — writing one

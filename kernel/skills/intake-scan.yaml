@@ -1,6 +1,10 @@
+contract: v1
 name: intake-scan
 mission: "Scout ONE routed source and return a scout report the consultant lands with `consult scan`. Advisory metadata only — never grounds, never cited, never a statement."
-writes: "nothing — the report is returned; the consultant lands it as _sources/scans/SRC-nnn.yaml through the scan verb"
+reads: [sources]
+writes: []
+returns: [flags]
+runtime: prompt
 contextContract:
   - "the brief resolves the one source file in scope and its SRC id"
   - "the brief carries this template verbatim; a local variant may extend it"

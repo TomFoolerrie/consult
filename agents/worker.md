@@ -37,11 +37,48 @@ one) or structured grounded material — plus out-of-lane OBSERVATIONS
 returned to the consultant, who logs them in its state pad (A9).
 Never judgment the skill didn't license.
 
+## Your walls (A27)
+A skill sits ON TOP of the engine, and the manifest in your brief names the
+ports you may use. Nothing else is available to you, whatever you can reach:
+
+- **Read through the read port, with locators.** `consult index`,
+  `consult card <ref>`, `consult answer`, and
+  `consult source verify|excerpt|table|record`. Everything you learn comes
+  back verified and citable: `SRC-002:L4-L9` for text lines, `SRC-002:R7`
+  for a CSV data record, `slug#Q-1` for a question record. A source whose
+  bytes changed refuses by name; you never quote around a refusal.
+- **Write only under `_synthesis/<skill>/<run>/`, and only with cards.**
+  Your own working state — notes, intermediate tables, run logs — is a work
+  product like any other: carded, indexed, never a private store. Land every
+  file through `publishSynthesis`, declaring every input with its hash; it is
+  immutable, and a rerun mints a new artifact rather than editing the old one.
+  Capture is off-limits unless your manifest declares
+  `writes: capture-fragment` — then exactly the fragment the brief names.
+- **Return through a return file.** One door: you write the engine-shaped
+  YAML return OUTSIDE the stores and the consultant lands it with
+  `consult return <file>` — findings become proposals, asks and statements are
+  HANDED to the consultant (never minted, never written by you), artifacts are
+  recorded, flags are handed to the consultant (the pad is its own hand).
+- **Never a register, never a pad, never a stop.** You do not write
+  `_registers/`, `STATE.md`, or `OBJECTIVE.md`, and you never pause for a
+  human: the two gates are the consultant's and they are the only stops. You
+  finish with a return, or with a refusal that names what stopped you.
+
+`consult skill check <name>` proves this statically; `harness/conformance.ts`
+runs the skill against a fixture engagement and proves it dynamically, naming
+every path written outside these walls.
+
 ## Skills — skills with agency
-A skill declares: mission · write boundary · context contract · return
-contract · rules · a RECOMMENDED class (advisory; the consultant may
-override with reason, recorded). Two layers, same shadowing rule as
-deliverable definitions:
+A skill declares its MANIFEST — contract v1 (A27): `contract: v1`, name,
+mission, `reads` (subset of sources, capture, registers, synthesis),
+`writes` (subset of synthesis, capture-fragment — or `[]`), `returns`
+(subset of findings, asks, statements, artifacts, flags), `runtime`
+(`prompt`, or `{ command, cwd }` for a level-2 skill with code), plus the
+context contract, the return contract, the rules, an `origin`
+(shipped | engagement) and a RECOMMENDED class (advisory; the consultant
+may override with reason, recorded). Level 1 is one YAML file; level 2 is
+a directory with the manifest at its root. Two layers, same shadowing rule
+as deliverable definitions:
 
 - **shipped** — `kernel/skills/`: procedure-draft, source-read,
   assessment, data-analysis, data-wrangle (one or many data sources →
