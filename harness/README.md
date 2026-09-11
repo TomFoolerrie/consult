@@ -23,6 +23,14 @@ classes ASSUME it is there and nothing checks at dispatch time. Install
 it before the first live run — a missing library surfaces as a worker
 failing mid-dispatch, not as a named refusal.
 
+## Assessment evidence adapter (partial integration)
+
+`assessment-evidence.ts` reads assessment's versioned findings ledger using
+engine source IDs and produces checked citations/excerpts as JSON or a Markdown
+review pack. It is read-only and does not replace the assessment runner or its
+schema/layer validators. Usage and boundaries:
+[ASSESSMENT-EVIDENCE.md](ASSESSMENT-EVIDENCE.md).
+
 ## The pulse (A19, resolved into existing verbs)
 There is no `consult pulse`. Unattended maintenance is two existing verbs
 on a timer, from outside the engine — e.g. hourly:

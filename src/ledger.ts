@@ -40,9 +40,10 @@
  * ledger itself is _sources/sources.yaml.
  */
 import { parse, stringify } from "yaml";
+import { parse as parseCsv } from "csv-parse/sync";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync, renameSync } from "node:fs";
-import { join, basename, dirname, relative, isAbsolute } from "node:path";
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync, renameSync, realpathSync, statSync, openSync, closeSync } from "node:fs";
+import { join, basename, dirname, relative, isAbsolute, resolve } from "node:path";
 import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
 
@@ -91,9 +92,166 @@ export interface LedgerEntry {
   scan?: string;
 }
 
+/** Read-only evidence bridge. Integrity is byte identity, NOT truth, semantic
+ * support, standing, or recursive verification of synthesis grounds. */
+export interface VerifiedSource {
+  id: SrcId;
+  file: string;
+  hash: string;
+  integrity: "sha256-matched";
+  provenance?: "client" | "public" | "synthesis";
+  grounds?: readonly string[];
+}
+export interface LineRange { start: number; end: number; }
+export interface SourceExcerpt extends VerifiedSource {
+  locator: { kind: "lines"; start: number; end: number };
+  totalLines: number;
+  text: string;
+}
+function allowedSourcePath(path: string): boolean {
+  return !isAbsolute(path) && ["_sources/new/", "_sources/processed/", "_synthesis/"].some(p => path.startsWith(p))
+    && !path.endsWith(".card.yaml");
+}
+/** Resolve the ledger on every use (retirement changes location, not identity).
+ * Hash and excerpt use the SAME read. Real-path checks prevent accidental
+ * traversal/symlink escapes; this is not a sandbox against concurrent hostile
+ * filesystem mutation. No cached integrity or line counts are trusted. */
+function verifiedBytes(root: string, id: string): { source: VerifiedSource; bytes: Buffer } {
+  if (!/^SRC-\d+$/.test(id)) throw new Error(`source: invalid source id ${id}`);
+  const matches = readBook(root).entries.filter(e => e?.id === id);
+  if (!matches.length) throw new Error(`source: unknown source ${id}`);
+  if (matches.length !== 1) throw new Error(`source: duplicate source ${id}`);
+  const e = matches[0]!;
+  if (typeof e.hash !== "string" || !/^[a-f0-9]{64}$/.test(e.hash)) throw new Error(`source ${id}: missing or malformed registered hash`);
+  const base = resolve(root);
+  if (typeof e.file !== "string" || !allowedSourcePath(e.file) || !allowedSourcePath(relative(base, resolve(base, e.file)).split("\\").join("/")))
+    throw new Error(`source ${id}: path outside allowed source stores: ${e.file}`);
+  let actual: string;
+  try { actual = realpathSync(join(base, e.file)); }
+  catch { throw new Error(`source ${id}: unreadable source ${e.file}`); }
+  const realRoot = realpathSync(base);
+  if (!allowedSourcePath(relative(realRoot, actual).split("\\").join("/")))
+    throw new Error(`source ${id}: path outside allowed source stores: ${e.file}`);
+  let bytes: Buffer;
+  try {
+    if (!statSync(actual).isFile()) throw new Error("not a regular file");
+    bytes = readFileSync(actual);
+  } catch { throw new Error(`source ${id}: unreadable source ${e.file}`); }
+  if (createHash("sha256").update(bytes).digest("hex") !== e.hash)
+    throw new Error(`source ${id}: content changed since registration: ${e.file}`);
+  return { bytes, source: { id: e.id, file: e.file, hash: e.hash, integrity: "sha256-matched",
+    ...(e.provenance ? { provenance: e.provenance } : {}), ...(e.grounds ? { grounds: [...e.grounds] } : {}) } };
+}
+/** Verify a registered artifact of any format, without mutation. */
+export function verifySource(root: string, id: string): VerifiedSource { return verifiedBytes(root, id).source; }
+/** UTF-8 text only. Positive inclusive lines; CRLF normalized for display;
+ * terminal newline creates no extra line. Bare CR and binary controls refused.
+ * No implicit whole-file dump: callers must request an explicit range. */
+export function sourceExcerpt(root: string, id: string, range: LineRange): SourceExcerpt {
+  if (!range || !Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 1 || range.end < range.start)
+    throw new Error(`source ${id}: invalid line range`);
+  const { source, bytes } = verifiedBytes(root, id);
+  let text: string;
+  try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+  catch { throw new Error(`source ${id}: unsupported text encoding (requires UTF-8)`); }
+  text = text.replace(/\r\n/g, "\n");
+  if (/[\x00-\x08\x0b-\x1f\x7f]/.test(text)) throw new Error(`source ${id}: unsupported text (binary controls or bare CR)`);
+  const lines = text === "" ? [] : text.split("\n");
+  if (text.endsWith("\n")) lines.pop();
+  if (range.end > lines.length) throw new Error(`source ${id}: line range ${range.start}:${range.end} exceeds ${lines.length} lines`);
+  return { ...source, locator: { kind: "lines", ...range }, totalLines: lines.length,
+    text: lines.slice(range.start - 1, range.end).join("\n") };
+}
+
+/** Verified comma-delimited UTF-8 table. Header names must be nonempty and
+ * unique after trimming. Blank physical lines are skipped; empty cells/records
+ * are retained. Record IDs count data records after the header, not file lines. */
+export interface SourceTable extends VerifiedSource { header: string[]; records: string[][]; }
+export interface SourceRecord extends VerifiedSource { header: string[]; values: string[]; locator: { kind: "csv-record"; record: number }; totalRecords: number; }
+export function sourceTable(root: string, id: string): SourceTable {
+  const { source, bytes } = verifiedBytes(root, id);
+  if (!source.file.toLowerCase().endsWith(".csv")) throw new Error(`source ${id}: CSV requires a .csv artifact (comma-delimited UTF-8)`);
+  let rows: string[][];
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(text)) throw new Error("binary controls");
+    rows = parseCsv(text, { bom: true, skip_empty_lines: true, delimiter: ",", record_delimiter: ["\r\n", "\n"], relax_column_count: false }) as string[][];
+  } catch { throw new Error(`source ${id}: invalid CSV (UTF-8, quoting and consistent column counts required)`); }
+  const header = rows.shift()?.map(c => c.trim());
+  if (!header?.length || header.some(c => !c) || new Set(header).size !== header.length)
+    throw new Error(`source ${id}: invalid CSV header (nonempty unique names required)`);
+  return { ...source, header, records: rows };
+}
+export function sourceRecord(root: string, id: string, record: number): SourceRecord {
+  if (!Number.isSafeInteger(record) || record < 1) throw new Error(`source ${id}: invalid CSV record number`);
+  const { records, ...source } = sourceTable(root, id);
+  const values = records[record - 1];
+  if (!values) throw new Error(`source ${id}: CSV record ${record} exceeds ${records.length} records`);
+  return { ...source, locator: { kind: "csv-record", record }, values, totalRecords: records.length };
+}
+
+/** A22 at the write port: a work product carries a card — sidecar, md frontmatter with summary, or a yaml `card:` key */
+function hasCard(file: string): boolean {
+  if (existsSync(sidecarPath(file))) return true;
+  try {
+    const text = readFileSync(file, "utf8");
+    if (file.endsWith(".md")) { const m = /^---\n([\s\S]*?)\n---/.exec(text); return !!m && /\bsummary:/.test(m[1]!); }
+    if (/\.ya?ml$/.test(file)) { const raw = parse(text); return !!raw && typeof raw === "object" && !!(raw as { card?: unknown }).card; }
+  } catch { /* binary or unreadable: needs a sidecar */ }
+  return false;
+}
+/** Serialize source-ID allocation across integrated worker publications and
+ * ordinary intake. Busy/stale locks are named refusals, never silently stolen.
+ * Other ledger editing must not run concurrently with intake (single steward). */
+function intakeLock<T>(root: string, work: () => T): T {
+  const lock = join(root, "_sources", ".intake.lock");
+  let fd: number;
+  try { fd = openSync(lock, "wx", 0o600); }
+  catch { throw new Error("source intake busy or unavailable: retry after the active writer finishes; inspect a stale .intake.lock rather than deleting it blindly"); }
+  try { return work(); } finally { closeSync(fd); rmSync(lock); }
+}
+export interface SourceVersion { id: SrcId; hash: string; }
+/** Register an immutable skill-produced artifact against EXACT input versions.
+ * Synthesis-only, all-source grounds in this first publication contract. No
+ * implicit replacement/supersession; retry with identical provenance is safe. */
+export function publishSynthesis(root: string, file: string, intent: string[], inputs: readonly SourceVersion[]): VerifiedSource {
+  return intakeLock(root, () => {
+    if (!inputs.length) throw new Error("publish synthesis: nonempty inputs required");
+    if (!intent.length || intent.some(s => typeof s !== "string" || !s.trim())) throw new Error("publish synthesis: nonempty capture intent required");
+    const grounds = [...new Set(inputs.map(input => {
+      const current = verifySource(root, input.id);
+      if (current.hash !== input.hash) throw new Error(`publish synthesis: input version changed for ${input.id}`);
+      return current.id;
+    }))].sort();
+    const base = realpathSync(root);
+    const rel = relative(base, resolve(file)).split("\\").join("/");
+    const actual = realpathSync(file);
+    if (!rel.startsWith("_synthesis/") || !relative(base, actual).split("\\").join("/").startsWith("_synthesis/") || rel.endsWith(".card.yaml") || actual.endsWith(".card.yaml"))
+      throw new Error("publish synthesis: output must be a work product under _synthesis");
+    if (!statSync(actual).isFile()) throw new Error("publish synthesis: output is not a regular file");
+    if (!hasCard(actual)) throw new Error(`publish synthesis: ${basename(actual)} has no card — a sidecar ${basename(sidecarPath(actual))} beside it, or a head card (md frontmatter / yaml card: key) (A22)`);
+    const hash = createHash("sha256").update(readFileSync(actual)).digest("hex");
+    const book = readBook(root);
+    const existing = book.entries.find(e => e.file === rel) ?? book.entries.find(e => e.hash === hash);
+    if (existing) {
+      const current = verifySource(root, existing.id);
+      if (current.hash !== hash) throw new Error("publish synthesis: registered output changed; use a new versioned path");
+      if (existing.provenance !== "synthesis" || JSON.stringify([...(existing.grounds ?? [])].sort()) !== JSON.stringify(grounds)
+        || JSON.stringify([...existing.intent].sort()) !== JSON.stringify([...intent].sort()))
+        throw new Error(`publish synthesis: provenance collision with ${existing.id}; no implicit relabeling`);
+      return current;
+    }
+    const id = routeUnlocked(root, actual, intent, { provenance: "synthesis", grounds });
+    return verifySource(root, id);
+  });
+}
+
 /** the one intake door: tag + one idempotent-by-hash entry; mints SRC-nnn; no copies, no sidecars.
  * opts (A14): provenance; grounds REQUIRED when synthesis — refused by name otherwise */
 export function route(root: string, file: string, intent: string[], opts?: { provenance?: "client" | "public" | "synthesis"; grounds?: string[] }): SrcId {
+  return intakeLock(root, () => routeUnlocked(root, file, intent, opts));
+}
+function routeUnlocked(root: string, file: string, intent: string[], opts?: { provenance?: "client" | "public" | "synthesis"; grounds?: string[] }): SrcId {
   if (!existsSync(file)) throw new Error(`route: no such staged file ${file}`);
   if (opts?.provenance === "synthesis" && !(opts.grounds && opts.grounds.length))
     throw new Error(`route: synthesis provenance requires non-empty grounds (${basename(file)})`);

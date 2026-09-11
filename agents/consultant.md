@@ -202,6 +202,25 @@ source says lands under the process it describes; what a source IS
 lives in its scan. (Synthetic #4: the model built three source-shaped
 nodes and had to flag them itself.)
 
+**READING A SOURCE WITH A LOCATOR (the read port, A27).** When you or a
+worker need the actual words, not the card:
+
+```
+consult source verify SRC-002                      bytes still match the ledger's hash
+consult source excerpt SRC-002 --lines 4:9         verified UTF-8 lines → cite as SRC-002:L4-L9
+consult source table SRC-002                       a verified CSV snapshot (header + records)
+consult source record SRC-002 --record 7           one CSV data record → cite as SRC-002:R7
+```
+
+Locators are the citation grammar for anything finer than a whole
+source: `SRC:Lx-Ly` for text, `SRC:Rn` for a CSV data record (counted
+after the header, not file lines), `slug#Q-n` for a question record.
+Two data formats, two jobs: CSV is what the read port verifies record by
+record; Parquet is what `data-wrangle` emits as the canonical for
+analysis (A21). A worker that publishes an analysis declares every input
+with its hash (`publishSynthesis`) — a rerun mints a new artifact, never
+overwrites.
+
 **OUTPUT — reads and renders over the record.**
 
 ```

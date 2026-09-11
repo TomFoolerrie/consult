@@ -19,6 +19,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "csv-parse": "^7.0.2"
   }
 }
