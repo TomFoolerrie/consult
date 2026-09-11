@@ -58,7 +58,7 @@ ports you may use. Nothing else is available to you, whatever you can reach:
   YAML return OUTSIDE the stores and the consultant lands it with
   `consult return <file>` — findings become proposals, asks and statements are
   HANDED to the consultant (never minted, never written by you), artifacts are
-  recorded, flags go verbatim to the pad.
+  recorded, flags are handed to the consultant (the pad is its own hand).
 - **Never a register, never a pad, never a stop.** You do not write
   `_registers/`, `STATE.md`, or `OBJECTIVE.md`, and you never pause for a
   human: the two gates are the consultant's and they are the only stops. You
