@@ -71,10 +71,8 @@ test("a full valid return mints the findings, hands asks/statements/flags, and r
   assert.equal(reg[0]!.id, res.minted[0]);
   assert.equal(reg[0]!.status, "proposed");
   assert.equal(reg[0]!.theme, "payment-review");
-  // the locators stay VISIBLE on the minted finding (findings.propose refuses a locator as a ground)
-  assert.match(reg[0]!.claim, new RegExp(`${f.csv}:R1`));
-  assert.match(reg[0]!.claim, new RegExp(`${f.csv}:R2`));
-  assert.deepEqual([...reg[0]!.grounds], [f.csv, f.art]);
+  assert.equal(reg[0]!.claim, "Two exported rows share INV-001; whether paid twice is unresolved", "the claim is untouched — locators live in grounds");
+  assert.deepEqual([...reg[0]!.grounds], [`${f.csv}:R1`, `${f.csv}:R2`, f.art], "locators are first-class grounds (A27)");
 
   // handed, never minted, never written
   assert.equal(res.handed.asks.length, 1);

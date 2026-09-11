@@ -85,11 +85,12 @@ function atStatement(root: string, slug: string, i: number, check: string, sever
 }
 function citations(root: string): Defect[] {
   const out: Defect[] = [];
-  const ids = new Set(safeStatus(root).entries.map(e => e.id as string));
   for (const e of safeEntities(root)) {
     e.statements.forEach((st, i) => {
-      for (const c of st.cites) if (!ids.has(c))
-        out.push(atStatement(root, e.slug, i, "citations", "error", `${c} resolves to no source on file`));
+      for (const c of st.locators) {
+        try { ledger.resolveRef(root, c); }
+        catch (err) { out.push(atStatement(root, e.slug, i, "citations", "error", `${c} does not resolve — ${(err as Error).message}`)); }
+      }
     });
   }
   return out;
@@ -169,7 +170,7 @@ function findingsShape(root: string, srcIds: Set<string>, addrs: Set<string>, sl
       err(`${who} status "${String(f?.status)}" is not one of ${FINDING_STATUS.join("|")}`);
     for (const g of Array.isArray(f?.grounds) ? f.grounds : []) {
       const ref = typeof g === "string" ? g : String(g?.slug);
-      if (/^SRC-\d+$/.test(ref)) { if (!srcIds.has(ref)) err(`${who} grounds ${ref}, which resolves to no source on file`); continue; }
+      if (ledger.isSrcRef(ref)) { if (!srcIds.has(ledger.srcOf(ref))) err(`${who} grounds ${ref}, which resolves to no source on file`); continue; }
       if (ref.includes("#")) { if (!addrs.has(ref)) err(`${who} grounds ${ref}, which resolves to no question record in capture`); continue; }
       if (!slugs.has(ref)) err(`${who} grounds ${ref}, which is no capture fragment`);
     }
@@ -222,7 +223,7 @@ function sourcesShape(root: string, slugs: Set<string>, addrs: Set<string>): Def
     if (e?.provenance === "synthesis") {
       if (!e.grounds?.length) err(`${who} is synthesis with no declared grounds`);
       for (const g of e.grounds ?? []) {
-        const ok = /^SRC-\d+$/.test(g) ? ids.has(g) : (g.includes("#") ? addrs.has(g) : slugs.has(g));
+        const ok = ledger.isSrcRef(g) ? ids.has(ledger.srcOf(g)) : (g.includes("#") ? addrs.has(g) : slugs.has(g));
         if (!ok) err(`${who} ground ${g} does not resolve`);
       }
     }
@@ -231,7 +232,7 @@ function sourcesShape(root: string, slugs: Set<string>, addrs: Set<string>): Def
   // answers.citeStanding gives up at — named here so the cause is visible (A12)
   const groundsOf = new Map<string, string[]>();
   for (const e of entries)
-    if (e.provenance === "synthesis") groundsOf.set(e.id as string, (e.grounds ?? []).filter(g => /^SRC-\d+$/.test(g) && ids.has(g)));
+    if (e.provenance === "synthesis") groundsOf.set(e.id as string, (e.grounds ?? []).filter(g => ledger.isSrcRef(g) && ids.has(ledger.srcOf(g))).map(g => ledger.srcOf(g)));
   const depth = new Map<string, number>();
   const walk = (id: string, path: string[]): number => {
     const at = path.indexOf(id);

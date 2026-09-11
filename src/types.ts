@@ -13,7 +13,9 @@ export type AskId = `ASK-${number}`;
 export type FindingId = `FIND-${number}`;
 /** fragment-qualified callout address (slug#LOCAL-ID), the grounding currency */
 export type CalloutAddr = `${string}#${string}`;
-export type Ground = SrcId | CalloutAddr | { slug: string };
+/** a located source reference (A27): SRC-nnn:Lx-Ly (text lines) or SRC-nnn:Rn (CSV data record) — standing is computed from the SRC part */
+export type SrcLocator = `${SrcId}:L${number}-L${number}` | `${SrcId}:R${number}`;
+export type Ground = SrcId | SrcLocator | CalloutAddr | { slug: string };
 
 // the card (A20/A22) — ONE schema for every item's cheap description:
 // the scan template. summary + keyItems are the engine-validated floor;

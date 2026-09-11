@@ -48,6 +48,25 @@ import * as kernel from "./kernel.ts";
 import type { SrcId, AskId } from "./types.ts";
 
 const LEDGER = (root: string) => join(root, "_sources", "sources.yaml");
+/** THE CITATION GRAMMAR (A27): a source reference is `SRC-nnn`, `SRC-nnn:Lx-Ly` (text lines), or `SRC-nnn:Rn` (CSV data record).
+ *  srcOf() gives the bare id standing is computed from; resolveRef() verifies the locator against the bytes on file. */
+export const SRC_REF = /^(SRC-\d+)(?::L(\d+)-L(\d+)|:R(\d+))?$/;
+export function isSrcRef(s: string): boolean { return SRC_REF.test(s); }
+export function srcOf(ref: string): SrcId {
+  const m = SRC_REF.exec(ref);
+  if (!m) throw new Error(`citation ${ref} is not SRC-nnn, SRC-nnn:Lx-Ly, or SRC-nnn:Rn`);
+  return m[1] as SrcId;
+}
+/** verify a reference resolves on file — the id exists; a line range is within the text; a record is within the table. Throws by name. */
+export function resolveRef(root: string, ref: string): SrcId {
+  const m = SRC_REF.exec(ref);
+  if (!m) throw new Error(`citation ${ref} is not SRC-nnn, SRC-nnn:Lx-Ly, or SRC-nnn:Rn`);
+  const id = m[1] as SrcId;
+  if (m[2] !== undefined) sourceExcerpt(root, id, { start: Number(m[2]), end: Number(m[3]) });
+  else if (m[4] !== undefined) sourceRecord(root, id, Number(m[4]));
+  else if (!readBook(root).entries.some(e => e.id === id)) throw new Error(`cite: ${id} resolves to no source on file`);
+  return id;
+}
 /** ids are minted as max+1, never length+1 — a hand-deleted entry must not free a live id (review) */
 export function nextId<P extends string>(ids: readonly string[], prefix: P): `${P}-${number}` {
   const max = ids.reduce((m, id) => Math.max(m, Number(id.split("-")[1] ?? 0)), 0);

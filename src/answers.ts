@@ -35,8 +35,8 @@ function citeStanding(root: string, src: SrcId, entries: ReturnType<typeof ledge
   if (e.provenance !== "synthesis") return { kind: "evidenced", sources: [src] };
   const sources: SrcId[] = [];
   for (const g of e.grounds ?? []) {
-    if (/^SRC-\d+$/.test(g)) {
-      const inner = citeStanding(root, g as SrcId, entries, ents, depth + 1);
+    if (ledger.isSrcRef(g)) {
+      const inner = citeStanding(root, ledger.srcOf(g), entries, ents, depth + 1);
       if (inner.kind !== "evidenced") return { kind: "claimed" };
       sources.push(...inner.sources);
     } else {
@@ -124,9 +124,9 @@ export function cite(root: string, grounds: Ground[]): (SrcId | CalloutAddr)[] {
   const ents = kernel.entities(root);
   return grounds.map(g => {
     const ref = typeof g === "string" ? g : g.slug;
-    if (/^SRC-\d+$/.test(ref)) {
-      if (!entries.some(e => e.id === ref)) throw new Error(`cite: ${ref} resolves to no source on file`);
-      return ref as SrcId;
+    if (ledger.isSrcRef(ref)) {
+      try { ledger.resolveRef(root, ref); } catch (e) { throw new Error(`cite: ${ref} — ${(e as Error).message}`); }
+      return ref as SrcId;   // the locator is kept verbatim; standing is computed from srcOf(ref)
     }
     const [slug, local] = ref.split("#");
     const e = ents.find(e => e.slug === slug);

@@ -52,7 +52,7 @@ export interface Entity {
   callouts: readonly Callout[];
   bindings: ReadonlyMap<string, readonly string[]>;
 }
-export interface Statement { text: string; cites: readonly SrcRef[]; }
+export interface Statement { text: string; cites: readonly SrcRef[]; /** the citations as written — bare ids or locators (A27); cites[] is the bare form */ locators: readonly string[]; }
 export type SrcRef = `SRC-${number}`;
 export interface Callout { id: string; addr: CalloutAddr; kind: string; label: string; text: string; fields: ReadonlyMap<string, string>; }
 
@@ -90,12 +90,13 @@ export function parseEntity(text: string, tdecl: TypeDecl, slug: string): Entity
   const statements: Statement[] = [];
   for (const st of raw.statements ?? []) {
     if (typeof st?.text !== "string") throw new Error(`fragment ${slug}: statement without text`);
-    const cites = (st.cites ?? []).map((c: unknown) => {
-      if (typeof c !== "string" || !/^SRC-\d+$/.test(c))
-        throw new Error(`fragment ${slug}: malformed citation ${String(c)}`);
-      return c as SrcRef;
+    const locators: string[] = (st.cites ?? []).map((c: unknown) => {
+      if (typeof c !== "string" || !/^SRC-\d+(?::L\d+-L\d+|:R\d+)?$/.test(c))
+        throw new Error(`fragment ${slug}: malformed citation ${String(c)} — SRC-nnn, SRC-nnn:Lx-Ly, or SRC-nnn:Rn`);
+      return c;
     });
-    statements.push({ text: st.text, cites });
+    const cites = locators.map(c => c.split(":")[0] as SrcRef);
+    statements.push({ text: st.text, cites, locators });
   }
   const qdecl = tdecl.callouts.find(c => c.kind === QUESTION_KIND)!;
   const callouts: Callout[] = [];

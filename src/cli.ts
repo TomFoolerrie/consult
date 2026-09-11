@@ -180,6 +180,11 @@ export async function main(argv: string[]): Promise<number> {
         console.log(pin(located, pos[0]!)); return 0;
       }
       case "skill": {
+        if (pos[0] === "check") {
+          if (!pos[1]) { console.error("refused: skill check needs a skill name"); return 2; }
+          const r = brief.skillCheck(located, pos[1]);
+          console.log(JSON.stringify(r)); return r.ok ? 0 : 2;
+        }
         if (pos[0] !== "save") { console.error(`refused: unknown skill verb ${pos[0]}`); return 2; }
         if (!pos[1]) { console.error("refused: skill save needs the path of the skill YAML to save"); return 2; }
         if (!existsSync(pos[1])) { console.error(`refused: skill save: no such file ${pos[1]}`); return 2; }

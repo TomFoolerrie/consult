@@ -107,14 +107,14 @@ function resolve(root: string, ref: string, where: string): Ground {
     const [, id, start, end] = lines as unknown as [string, SrcId, string, string];
     try { ledger.sourceExcerpt(root, id, { start: Number(start), end: Number(end) }); }
     catch (e) { fail((e as Error).message); }
-    return id;
+    return ref as Ground;   // verified; the locator itself is the ground (A27)
   }
   const rec = RECORD.exec(ref);
   if (rec) {
     const [, id, num] = rec as unknown as [string, SrcId, string];
     try { ledger.sourceRecord(root, id, Number(num)); }
     catch (e) { fail((e as Error).message); }
-    return id;
+    return ref as Ground;   // verified; the locator itself is the ground (A27)
   }
   if (ref.includes(":")) fail("malformed locator — use SRC-nnn:Lx-Ly (lines) or SRC-nnn:Rn (CSV record)");
   try { answers.cite(root, [ref as Ground]); }
@@ -174,12 +174,8 @@ export function land(root: string, file: string): ReturnResult {
   }
 
   // --- land ---
-  const minted: FindingId[] = r.findings.map((f, i) => {
-    const bare = [...new Set(grounds[i]!.map(g => typeof g === "string" ? g : g.slug))] as Ground[];
-    const located = f.grounds.filter(g => g.includes(":"));
-    const claim = located.length ? `${f.claim} [grounds: ${located.join(", ")}]` : f.claim;
-    return findings.propose(root, claim, bare, f.theme);
-  });
+  // locators are first-class grounds (A27): they pass straight through and stay visible in the register
+  const minted: FindingId[] = r.findings.map((f, i) => findings.propose(root, f.claim, [...new Set(grounds[i]!)] as Ground[], f.theme));
 
   record.sessionAppend(root, { at: new Date().toISOString(), verb: "return",
     detail: `${id}: ${r.findings.length} findings, ${r.asks.length} asks, ${r.statements.length} statements, ${r.artifacts.length} artifacts, ${r.flags.length} flags` });
