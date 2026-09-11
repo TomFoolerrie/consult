@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["harness/**/*.ts", "src", "tests"]
+  "include": ["harness/**/*.ts", "src", "tests", "synthetic/engagement-5/run.ts"]
 }

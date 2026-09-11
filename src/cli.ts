@@ -21,6 +21,10 @@
  *   finding propose|accept|reject                       → findings
  *   check                                               → check (seven mechanical checks)
  *   render <deliverable> [--draft] [--out path]        → render (self-contained: compile → build views in-memory → emit via the py seam)
+ *   source verify SRC-nnn                               → ledger.verifySource (byte integrity only)
+ *   source excerpt SRC-nnn --lines START:END             → ledger.sourceExcerpt (verified UTF-8 lines)
+ *   source table SRC-nnn                                → ledger.sourceTable (verified CSV snapshot)
+ *   source record SRC-nnn --record N                     → ledger.sourceRecord (one CSV data record)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
  * Gone: register (A9) · new (A9) · flag/tenure (A9) · feeds (A9) ·
@@ -70,7 +74,7 @@ export function init(root: string): string[] {
   if (!existsSync(book)) { writeFileSync(book, "entries: []\nparked: []\n"); made.push("_sources/sources.yaml"); }
   return made;
 }
-const READS = new Set(["state", "coverage", "needs", "answer", "check", "index", "card", "brief"]);  // `budget` (read) vs `budget set` (write) is decided below
+const READS = new Set(["state", "coverage", "needs", "answer", "check", "index", "card", "brief", "source"]);  // `budget` (read) vs `budget set` (write) is decided below
 
 export async function main(argv: string[]): Promise<number> {
   try {
@@ -105,6 +109,25 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "park": ledger.park(located, pos[0]!, opt(rest, "reason") ?? ""); return 0;
+      case "source": {
+        const [sub, id] = pos;
+        if (sub === "verify" && id && pos.length === 2) {
+          console.log(JSON.stringify(ledger.verifySource(located, id))); return 0;
+        }
+        if (sub === "table" && id && pos.length === 2) {
+          console.log(JSON.stringify(ledger.sourceTable(located, id))); return 0;
+        }
+        const record = opt(rest, "record");
+        if (sub === "record" && id && pos.length === 2 && record && /^\d+$/.test(record)) {
+          console.log(JSON.stringify(ledger.sourceRecord(located, id, Number(record)))); return 0;
+        }
+        const lines = opt(rest, "lines");
+        if (sub === "excerpt" && id && pos.length === 2 && lines && /^\d+:\d+$/.test(lines)) {
+          const [start, end] = lines.split(":").map(Number);
+          console.log(JSON.stringify(ledger.sourceExcerpt(located, id, { start: start!, end: end! }))); return 0;
+        }
+        throw new Error("source: use source verify|table SRC-nnn, source excerpt SRC-nnn --lines START:END, or source record SRC-nnn --record N");
+      }
       case "scan": console.log(ledger.scan(located, pos[0] as import("./types.ts").SrcId, pos[1])); return 0;
       case "index": { const { render } = await import("./index.ts"); console.log(render(located, pos[0] as never)); return 0; }
       case "card": { const { card } = await import("./index.ts"); console.log(JSON.stringify(card(located, pos[0]!))); return 0; }

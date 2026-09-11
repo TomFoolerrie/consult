@@ -1,0 +1,127 @@
+# The knowledge model for an engagement. The skill's method (findings ->
+# themes -> recommendations -> initiatives -> story, ownership, citations,
+# figures-as-queries) is fixed; everything here is the house's to define.
+#
+# axes      classification fields on a finding. Order = display/sort order.
+# scales    numeric fields with defined meanings.
+# figures   which axes get plotted against which. Method figures (theme cards,
+#           2x2, roadmap, trace, coverage, unthemed, strengths) are always built.
+# rules     tagging discipline readers load verbatim.
+
+name: pre-audit-readiness
+
+axes:
+  business_cycle:
+    label: Business cycle
+    role: where                      # free text; readers see it. 'where' / 'what is at risk' / 'why'
+    required: true
+    primary: true                    # the scorecard groups by this axis
+    values:
+      - Brokerage Commission Revenue (O2C)
+      - Agent Commission COGS, Payable & Clawbacks
+      - Cash & Escrow / Trust Accounts
+      - Recurring / Subscription Revenue (MRR)
+      - Corporate AP, Cards & Accruals (P2P)
+      - Payroll & Payroll Taxes
+      - Financial Close, JEs & Estimates
+      - Intercompany & Consolidation
+      - Fixed Assets, Capitalized Software & Leases
+      - Debt, Equity & Stock-Based Comp
+      - Income Tax Provision (ASC 740)
+      - Financial Reporting & Disclosure
+      - IT General Controls & Service Organizations
+      - Entity-Level / Governance & Control Environment
+
+  focus_area:
+    label: Focus area
+    required: true
+    values:
+      - Pre-Audit Readiness
+      - Process Effectiveness
+
+  assertions:
+    label: Assertion(s)
+    role: what is at risk on the financial statements
+    multi: true
+    required_when: {focus_area: Pre-Audit Readiness}   # optional otherwise
+    values:
+      - Completeness
+      - Existence / Occurrence
+      - Rights & Obligations
+      - Accuracy
+      - Cut-off
+      - Valuation & Allocation
+      - Classification
+      - Presentation & Disclosure
+      - Pervasive / control environment
+
+  process_attribute:
+    label: Process attribute
+    role: what about the process
+    required_when: {focus_area: Process Effectiveness}
+    values:
+      - Efficiency
+      - Cycle time
+      - Manual effort
+      - Handoffs & ownership
+      - Controls & review
+      - Documentation
+
+  dimension:
+    label: Dimension
+    role: nature of the root cause (why it exists)
+    required: true
+    on_theme: true                   # themes carry this axis as the diagnosis; the finding's tag is provisional
+    secondary: true                  # allows secondary_dimension on findings and themes
+    values:
+      - People & Organization
+      - Process
+      - Data
+      - Systems / Technology
+      - Governance
+
+scales:
+  severity:                          # on findings
+    1: "Low - minor, isolated, or easily remediated; unlikely to affect audit or operations materially"
+    2: "Medium - recurring or unmitigated; likely to draw audit attention or cause rework"
+    3: "High - pervasive, unmitigated, or affects a material balance/assertion; would delay or impair an audit"
+  impact:                            # on initiatives
+    1: Low
+    2: Medium
+    3: High
+  effort:                            # on initiatives
+    1: Low
+    2: Medium
+    3: High
+
+figures:
+  - id: fig-heatmap
+    type: heatmap
+    rows: business_cycle
+    cols: assertions
+    title: Audit readiness heat map
+    question: Where are the readiness gaps, by cycle and assertion?
+  - id: fig-process
+    type: heatmap
+    rows: business_cycle
+    cols: process_attribute
+    title: Process effectiveness map
+    question: Where does the finance process leak time, effort, or ownership?
+  - id: fig-dimensions
+    type: bar
+    axis: dimension
+    by: business_cycle
+    title: Root-cause dimensions
+    question: Is this a people, process, data, systems, or governance problem?
+
+# Method fields every finding also carries, regardless of house:
+#   type (gap|risk|strength|observation), evidence_basis (stated|observed|inferred),
+#   severity (scale above), observation, sources, related.
+
+rules: |
+  business_cycle = WHERE the finding lives. Use Entity-Level only when it is not specific to any cycle.
+  assertions     = WHAT is at risk on the financial statements. Use Pervasive only when no single assertion fits.
+  dimension      = the NATURE of the root cause (why it exists), single primary; this is provisional on a finding
+                   and decided on the theme. Use secondary_dimension sparingly.
+  Example: "no formal JE approval policy" -> Financial Close / Accuracy / Governance, NOT Entity-Level / Pervasive / Governance.
+  Financial Reporting & Disclosure (cycle) and Presentation & Disclosure (assertion) will co-occur; tag both, they are different axes.

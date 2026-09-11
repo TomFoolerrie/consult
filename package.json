@@ -12,13 +12,15 @@
   },
   "scripts": {
     "test": "node --test --experimental-strip-types 'tests/*.test.ts'",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "demo:assessment": "node --experimental-strip-types synthetic/engagement-5/run.ts"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "csv-parse": "^7.0.2",
     "yaml": "^2.9.0"
   }
 }

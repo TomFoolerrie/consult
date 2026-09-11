@@ -1,0 +1,32 @@
+name: itgc-assessment
+axes:
+  domain:
+    label: IT domain
+    required: true
+    primary: true
+    values: [Access Management, Change Management, Operations & Batch, Backup & Recovery, Vendor / SOC Reports]
+  control_objective:
+    label: Control objective
+    multi: true
+    required: true
+    values: [Restricted access, Authorized changes, Complete processing, Recoverability, Monitored third parties]
+  system:
+    label: System
+    multi: true
+    values: [ERP, CRM, Payroll SaaS, Data warehouse]
+  maturity_gap:
+    label: Maturity gap
+    role: why
+    required: true
+    on_theme: true
+    values: [Undefined, Informal, Defined but not operating, Operating not evidenced]
+scales:
+  severity: {1: Low, 2: Medium, 3: High}
+  impact: {1: Low, 2: Medium, 3: High}
+  effort: {1: Low, 2: Medium, 3: High}
+figures:
+  - {id: fig-domain-objective, type: heatmap, rows: domain, cols: control_objective, title: Control coverage, question: "Where are the control gaps?"}
+  - {id: fig-system-domain, type: heatmap, rows: system, cols: domain, title: Gaps by system, question: "Which systems carry the risk?"}
+  - {id: fig-maturity, type: bar, axis: maturity_gap, by: domain, title: Maturity gaps, question: "Are controls missing, informal, or just unevidenced?"}
+rules: |
+  domain = where; control_objective = what's at risk; maturity_gap = why (provisional on findings, decided on themes).
