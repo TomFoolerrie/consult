@@ -938,6 +938,17 @@ that declarable and the alternative impossible.
   nothing: auditability, progressive disclosure, the client loop, the
   bookkeeping. Judgment stays in the consultant's prompt and in skills.
 
+- **Locators are the citation grammar** (ruled during the build, the
+  build owner): `SRC-nnn:Lx-Ly` and `SRC-nnn:Rn` are first-class in
+  capture cites, finding grounds, and return files; standing is computed
+  from the SRC part; `check` resolves every locator against the bytes.
+  One grammar, one resolver (`ledger.SRC_REF`/`srcOf`/`resolveRef`).
+
+Built on `v2-skills`, tests first: `src/returns.ts` + `consult return`
+(10 tests); the v1 manifest in `brief.ts`, eight shipped skills
+migrated, `consult skill check` (6 tests); `harness/conformance.ts` +
+fixture (8 tests); locators (4 tests). Suite 179/179.
+
 Spec: `SKILL-CONTRACT.md`. Build on `v2-skills`, tests first. PR #12's
 engine half (the read port's `source` verbs, `publishSynthesis`, the
 intake lock) merges first as `v2-evidence`; the package migrates onto

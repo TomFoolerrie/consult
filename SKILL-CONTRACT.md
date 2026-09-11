@@ -56,7 +56,7 @@ statements:          # → handed to the consultant for fold-in; never written b
     cites: [SRC-001:L2-L3]
 artifacts:           # → must already be published; return records them on the run
   - SRC-004
-flags:               # → out-of-lane observations, verbatim to the pad
+flags:               # → out-of-lane observations, handed to the consultant (the pad is the consultant's own hand)
   - "register completeness not confirmed"
 ```
 `return` VALIDATES (every ground, address, slug, and artifact resolves;
@@ -66,6 +66,15 @@ what it handed to the consultant (asks, statements, flags). It refuses
 malformed by name and mints nothing on refusal. Symmetry: `route` is the
 one door for what comes in from the world; `return` is the one door for
 what skills produce.
+
+### Locators are the citation grammar (ruled during the build)
+`SRC-nnn:Lx-Ly` and `SRC-nnn:Rn` are first-class everywhere a source is
+cited: capture statement `cites`, finding `grounds`, return files.
+Standing is computed from the SRC part; `check` resolves every locator
+against the bytes on file and names one that does not (a line past the
+end, a record past the table). A bare `SRC-nnn` remains lawful — it cites
+the whole artifact. `SRC_REF`, `srcOf`, `resolveRef` in `ledger.ts` are
+the one implementation.
 
 ## The manifest — a skill declares its ports
 `kernel/skills/<name>.yaml` (level 1, prompt-only) or
