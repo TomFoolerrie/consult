@@ -102,7 +102,17 @@ at read time from the record's physical shape.
 | `src/desk.ts` | nothing (pure) | the ONE derived picture: state/report, coverage, needs, locate — writes nothing, ever (A18) |
 | `src/record.ts` | git + `_registers/sessions/` | the machinery's hand: checkpoint, sessionAppend, budget, spend, gate — BOTH gates auditable (A18) |
 | `src/brief.ts` | `_skills/` | the skill store + composer: resolve (local shadows shipped), saveSkill (the one writer, behind `consult skill save`), compose(name, class, params) |
+| `src/returns.ts` | nothing (mints through findings.ts) | the RETURN door (A27): validate a skill's engine-shaped YAML return, mint its finding proposals, record the return in the session record, print the asks/statements/flags handed to the consultant — refuses malformed by name and mints nothing on refusal |
 | `py/render_worker.py` | `_synthesis/` (via render.ts) | the one Python seam, built (A23): a bounded docx formatter that never thinks — job v1 in, {path, sections, warnings} out |
+
+Outside the engine, in the harness: `harness/conformance.ts` — the DYNAMIC
+half of the skill contract (A27). It snapshots an engagement, runs a skill
+against it, and reports every wall the skill crossed, by path: a write under
+`_sources/`, a register or prose pad touched, capture without a declared
+`writes: capture-fragment` grant, synthesis outside `_synthesis/<skill>/`, an
+uncarded artifact, a source hash that no longer verifies, a missing or
+`[HUMAN]`-carrying return, a check error the run introduced. Fixture root:
+`harness/fixtures/conformance/`.
 
 ## The verbs the stores' writers expose
 
@@ -115,7 +125,25 @@ exactly one writer, or a damaged tree needs exactly one repair:
 | `consult pin <definition>` | the ONE writer of `_definitions/` — pins a shipped or local shape into the engagement; refuses an unknown name; never overwrites a file already there |
 | `consult skill save <file>` | the ONE writer of `_skills/` — validates the skill's shape and logs the save, so a skill is never run from raw prompt text |
 | `consult brief <skill> [--class c] [--cards a,b] [--param k=v]…` | dispatch's composer; `--param` is repeatable and carries the skill's own parameters from the CLI |
+| `consult return <file>` | the ONE door for what a skill produces (A27) — validates the return, mints its finding proposals, records it in the session record, and HANDS the consultant the asks, statements and flags (it mints no ask and writes no capture) |
+| `consult skill check <name>` | the STATIC half of conformance (A27) — manifest valid, ports declared, runtime entry present, no `[HUMAN]`/gate vocabulary in a level-2 runner; the dynamic half is `harness/conformance.ts` |
 | `consult init` | the repair verb for an engagement-shaped tree with no `_sources/` marker — creates the skeleton without touching what is already there. Without the marker the engine refuses every verb, reads included, so this is the one way back |
+
+## The skill contract (A27)
+
+A skill sits ON TOP of the engine when it reads through it, writes through
+it, and returns through it; a skill that keeps its own knowledge ledger, its
+own gates, or its own next-action loop inside the folder sits BESIDE it and
+is a second brain. Three ports — READ (index/card/answer + the four `source`
+verbs, everything locatable), WRITE (`publishSynthesis` under
+`_synthesis/<skill>/<run>/`, with cards; capture fragments only under a
+declared grant), RETURN (`consult return <file>`) — and a manifest that
+declares them (`contract: v1`, `reads`, `writes`, `returns`, `runtime`).
+Conformance is proof, not hope: `consult skill check` statically,
+`harness/conformance.ts` dynamically. Deliberately absent: any skill
+orchestrator in the engine, and any skill-declared gate — when to run a
+skill and what to do with its return is the consultant's judgment, and the
+two gates stay the only stops. The full spec is `SKILL-CONTRACT.md`.
 
 ## The seven core laws (A16)
 

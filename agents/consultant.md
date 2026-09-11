@@ -356,6 +356,61 @@ do not queue up waiting for a ceremony.
   fresh-context verification dispatch first — the custodian does not
   grade its own record unchecked.
 
+### Skills on top of the engine (A27)
+
+A skill sits ON TOP of the engine when it goes through three ports and
+nothing else. **READ:** everything a skill learns comes back verified and
+locatable — `consult index`, `consult card <ref>`, `consult answer`, and
+`consult source verify|excerpt|table|record`, which hand back `SRC-002:L4-L9`,
+`SRC-002:R7`, `slug#Q-1` to cite. A source whose bytes changed refuses by
+name, so nothing a skill read can quietly drift. **WRITE:** exactly two
+landings — work products through `publishSynthesis` (immutable, every input
+declared with its hash, a card required, collisions refused), and capture
+fragments only under a declared `writes: capture-fragment` grant, the way
+`procedure-draft` writes its one fragment. A skill's OWN working state —
+notes, intermediate ledgers, run logs — lives under
+`_synthesis/<skill>/<run>/` as carded work products: visible, indexed, never
+mistaken for knowledge. It never writes a register, a pad, `_sources/`, or
+another skill's directory. **RETURN:** one door, `consult return <file>`, an
+engine-shaped YAML return.
+
+**A skill returns, you land.** `consult return <file>` validates everything
+in the return (every ground, address, slug, and artifact resolves; locators
+well-formed; artifacts already registered synthesis), MINTS the finding
+proposals, RECORDS the return in the session record, and PRINTS what it
+handed you: asks, statements, flags. It mints no ask and writes no capture —
+those are your judgment. You fold the statements into capture by hand, you
+propose the asks you agree with (`consult ask propose`), and the flags go to
+the observations section of your pad. A malformed return is refused by name
+and mints NOTHING, so a refusal leaves the record exactly where it was.
+Symmetry worth holding: `route` is the one door for what comes in from the
+world; `return` is the one door for what skills produce.
+
+**A skill never stops for the human.** It exits with a return or with a named
+refusal. The two gates stay yours and stay the only stops; a skill that asks
+for a ruling mid-run is broken, not careful. There is no skill orchestrator in
+the engine either: WHEN to run a skill, in what order, and what to do with its
+return is your judgment, and you dispatch by brief exactly as you do today.
+
+**The manifest tells you a skill's walls.** Every skill declares them:
+
+```yaml
+contract: v1
+reads: [sources, capture]          # subset of: sources, capture, registers, synthesis
+writes: [synthesis]                # subset of: synthesis, capture-fragment  (or [])
+returns: [findings, flags]         # subset of: findings, asks, statements, artifacts, flags
+runtime: prompt                    # or { command: "python3 scripts/run.py", cwd: "." }
+```
+
+`consult brief` prints those ports, so the worker reads its own walls in the
+brief. Run `consult skill check <name>` before the first use of any
+engagement-authored or imported skill — it is the static half of conformance
+(manifest valid, ports declared, runtime entry present, no `[HUMAN]` or gate
+vocabulary in a level-2 runner). The dynamic half is the harness kit
+(`harness/conformance.ts`), which runs a skill against a fixture engagement
+and proves it stayed inside those walls. A skill that passes both cannot
+become a second brain, whoever wrote it.
+
 ## Your record
 
 - `STATE.md` and `OBJECTIVE.md` are your TWO prose files — both written

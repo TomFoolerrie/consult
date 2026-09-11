@@ -31,6 +31,59 @@ review pack. It is read-only and does not replace the assessment runner or its
 schema/layer validators. Usage and boundaries:
 [ASSESSMENT-EVIDENCE.md](ASSESSMENT-EVIDENCE.md).
 
+## The conformance kit (A27) — the dynamic half of the skill contract
+
+`consult skill check <name>` is the STATIC half (manifest valid, ports
+declared, runtime entry present, no `[HUMAN]`/gate vocabulary in a level-2
+runner). `harness/conformance.ts` is the DYNAMIC half: it RUNS a skill against
+a known engagement and proves from the filesystem that it stayed inside its
+walls. It writes nothing and repairs nothing — it reports.
+
+```
+conform(root, { skill, run, expectReturn? }) → { ok, findings }
+```
+
+`run(root)` is whatever exercises the skill: a scripted stub in the suite, a
+real dispatch in life, a shell command from the CLI. `conform` snapshots every
+file path + sha256 under `_sources/`, `_registers/`, `capture/`, `_synthesis/`
+plus `STATE.md` and `OBJECTIVE.md`, runs it, snapshots again, and reports each
+of these as a finding NAMING the offending path:
+
+- any change under `_sources/` — only `_sources/sources.yaml` GAINING entries
+  is allowed (publication); an edited, deleted or re-hashed existing entry is not;
+- any change under `_registers/`, `STATE.md`, `OBJECTIVE.md` — a skill writes
+  none of these: it returns, and the CONSULTANT lands the return;
+- any change under `capture/`, unless the skill's manifest declares
+  `writes: capture-fragment` (the `procedure-draft` grant). The manifest is read
+  as plain YAML from `<root>/_skills/` then `kernel/skills/` (level 1
+  `<name>.yaml` or level 2 `<name>/skill.yaml`). The grant is honoured coarsely
+  in this first kit: WHICH fragment the brief named is not checked here — the
+  checkpoint diff still audits that;
+- any new file under `_synthesis/` outside `_synthesis/<skill>/`, and any
+  modification or deletion of a work product already published (immutable);
+- any new synthesis artifact without a card (A22);
+- any source registered before the run whose bytes no longer verify;
+- with `expectReturn`: a missing return file, one that does not parse as YAML,
+  one lacking `skill:` or `run:`, one written INSIDE a store, or one carrying
+  `[HUMAN]` text — a skill never stops for a human;
+- any `consult check` ERROR the run introduced (pre-existing errors are not the
+  skill's).
+
+How a skill author runs it:
+
+```
+node --experimental-strip-types harness/conformance.ts <root> <skill> \
+    [--return <return-file>] -- <command…>
+```
+
+The command runs with the engagement root as its cwd and stands in for the
+dispatch. Exit 0 means it conforms; exit 2 prints one `finding:` line per
+violation. Build the known root with
+`harness/fixtures/conformance/engagement.ts` (`conformanceFixture()`): the
+skeleton, two routed sources (markdown + CSV), one fragment carrying a question
+record, and one accepted ask, all landed through the library's own doors.
+Tests: tests/conformance.test.ts.
+
 ## The pulse (A19, resolved into existing verbs)
 There is no `consult pulse`. Unattended maintenance is two existing verbs
 on a timer, from outside the engine — e.g. hourly:

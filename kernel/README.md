@@ -53,10 +53,31 @@ local definition of the same name shadows the shipped one.
 | `narrative-draft` | `_synthesis/` — one markdown document | sonnet |
 | `assessment` | nothing — proposals are returned | opus |
 
-Each declares mission, write boundary (`writes`), context contract,
-return contract, rules, and a RECOMMENDED class — advisory: the
-consultant may override with a recorded reason, because class and skill
-are two independent dials.
+Each is a CONTRACT v1 MANIFEST (A27) — level 1 is this one YAML file, level
+2 is a directory with `skill.yaml` at its root, same schema:
+
+```yaml
+contract: v1
+name: data-wrangle
+mission: "…"
+recommendedClass: sonnet
+reads: [sources, capture]          # subset of: sources, capture, registers, synthesis
+writes: [synthesis]                # subset of: synthesis, capture-fragment  (or [])
+returns: [artifacts, flags]        # subset of: findings, asks, statements, artifacts, flags
+runtime: prompt                    # or { command: "python3 scripts/run.py", cwd: "." }
+contextContract: [...]
+returnContract: [...]
+rules: [...]
+origin: shipped | engagement
+```
+
+`reads`, `writes` and `returns` ARE the skill's walls: an unknown
+`contract`, an undeclared port value, or a return kind the skill did not
+declare is refused by name, and a brief prints the declared ports so the
+worker reads its own walls. The RECOMMENDED class stays advisory — the
+consultant may override with a recorded reason, because class and skill are
+two independent dials. `consult skill check <name>` proves a manifest
+statically; `harness/conformance.ts` proves the running skill dynamically.
 
 Engagement-authored skills live in `<root>/_skills/` and shadow shipped
 ones by name. The consultant authors them ad-hoc and saves them with
