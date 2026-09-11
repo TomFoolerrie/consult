@@ -52,3 +52,18 @@ prompt lessons folded into consultant.md (nodes are process, never
 sources; render after the accept). One retrieval limit recorded
 (substring probes). Full write-up: engagement-4/RESULTS.md. The dispatch
 leg is the remaining item and needs the RUNBOOK's real substrate.
+
+## Run 5 — integrated assessment (scripted): PASS for mechanics
+
+`engagement-5/run.ts` connects the engine and the imported assessment package on
+fictional text/CSV evidence. It exercises verified excerpts and record locators,
+source-backed immutable analysis, author-owned correction, local analytical
+layers, method review/resume through `DONE`, and a later artifact that reopens
+review and changes the finding/theme/recommendation. All review decisions and
+analytical judgments are explicitly scripted; this is not another live-model
+result and does not close run 4's delegation gap.
+
+The generated engagement has zero engine check errors and 30 missing-card
+warnings from method internals—an observed discovery/context-noise issue for the
+next design pass. Reproduce with `npm run demo:assessment`; see
+`engagement-5/README.md` and its illustrative review/story snapshots.
