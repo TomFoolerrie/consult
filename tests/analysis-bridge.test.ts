@@ -27,18 +27,19 @@ test("publication preserves input hashes, declares every input, and refuses drif
   const b = ledger.route(root, stage(root, "b.txt", "second input"), ["ap"]);
   const inputs = [ledger.verifySource(root, a), ledger.verifySource(root, b)].map(s => ({ id: s.id, hash: s.hash }));
   mkdirSync(join(root, "_synthesis/run"), { recursive: true });
-  const file = join(root, "_synthesis/run/result-v1.md"); writeFileSync(file, "---\ntitle: result-v1\nkind: narrative\nsummary: analysis result\nkeyItems: []\n---\nanalysis result");
+  const BODY = "---\ntitle: result\nkind: narrative\nsummary: analysis result\nkeyItems: []\n---\nanalysis result";  // a head card (A22)
+  const file = join(root, "_synthesis/run/result-v1.md"); writeFileSync(file, BODY);
   const out = ledger.publishSynthesis(root, file, ["ap"], inputs);
   assert.equal(out.provenance, "synthesis"); assert.deepEqual(out.grounds, [a, b]);
   assert.equal(ledger.publishSynthesis(root, file, ["ap"], inputs).id, out.id, "retry same publication is idempotent");
-  const copy = join(root, "_synthesis/run/result-v2.md"); writeFileSync(copy, "analysis result");
+  const copy = join(root, "_synthesis/run/result-v2.md"); writeFileSync(copy, BODY);
   assert.equal(ledger.publishSynthesis(root, copy, ["ap"], inputs).id, out.id);
   assert.throws(() => ledger.publishSynthesis(root, copy, ["ap"], [inputs[0]!]), /provenance collision/);
   writeFileSync(copy, "first input");
   assert.throws(() => ledger.publishSynthesis(root, copy, ["ap"], inputs), /provenance collision/);
   writeFileSync(join(root, "_sources/new/a.txt"), "changed");
   assert.throws(() => ledger.publishSynthesis(root, copy, ["ap"], inputs), /content changed/);
-  assert.equal(readFileSync(file, "utf8"), "analysis result");
+  assert.equal(readFileSync(file, "utf8"), BODY);
 });
 
 test("intake contention is refused without removing another writer's lock", () => {

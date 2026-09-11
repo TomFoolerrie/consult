@@ -229,7 +229,6 @@ export function publishSynthesis(root: string, file: string, intent: string[], i
     if (!rel.startsWith("_synthesis/") || !relative(base, actual).split("\\").join("/").startsWith("_synthesis/") || rel.endsWith(".card.yaml") || actual.endsWith(".card.yaml"))
       throw new Error("publish synthesis: output must be a work product under _synthesis");
     if (!statSync(actual).isFile()) throw new Error("publish synthesis: output is not a regular file");
-    if (!hasCard(actual)) throw new Error(`publish synthesis: ${basename(actual)} has no card — a sidecar ${basename(sidecarPath(actual))} beside it, or a head card (md frontmatter / yaml card: key) (A22)`);
     const hash = createHash("sha256").update(readFileSync(actual)).digest("hex");
     const book = readBook(root);
     const existing = book.entries.find(e => e.file === rel) ?? book.entries.find(e => e.hash === hash);
@@ -241,6 +240,7 @@ export function publishSynthesis(root: string, file: string, intent: string[], i
         throw new Error(`publish synthesis: provenance collision with ${existing.id}; no implicit relabeling`);
       return current;
     }
+    if (!hasCard(actual)) throw new Error(`publish synthesis: ${basename(actual)} has no card — a sidecar ${basename(sidecarPath(actual))} beside it, or a head card (md frontmatter / yaml card: key) (A22)`);
     const id = routeUnlocked(root, actual, intent, { provenance: "synthesis", grounds });
     return verifySource(root, id);
   });
