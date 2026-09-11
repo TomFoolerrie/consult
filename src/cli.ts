@@ -27,6 +27,7 @@
  *   source record SRC-nnn --record N                     → ledger.sourceRecord (one CSV data record)
  *   answer "<question>"                                 → answers.ground
  *   brief <skill> …                                     → brief.compose
+ *   return <file>                                       → returns.land (A27: the ONE door for what a skill produces — validates, mints proposals, records, hands over)
  * Gone: register (A9) · new (A9) · flag/tenure (A9) · feeds (A9) ·
  * credit and ask settle (A18 — consumption and settlement are computed
  * from capture citations, never declared).
@@ -168,6 +169,11 @@ export async function main(argv: string[]): Promise<number> {
         const { deliverable } = await import("./render.ts");
         const out = opt(rest, "out");
         console.log(JSON.stringify(await deliverable(located, pos[0]!, { draft: rest.includes("--draft"), ...(out ? { out } : {}) }))); return 0;
+      }
+      case "return": {
+        const { land } = await import("./returns.ts");
+        if (!pos[0]) { console.error("refused: return needs the path of the return YAML"); return 2; }
+        console.log(JSON.stringify(land(located, pos[0]))); return 0;
       }
       case "pin": {
         const { pin } = await import("./definitions.ts");
